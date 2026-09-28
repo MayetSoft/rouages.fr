@@ -1,5 +1,5 @@
 {
-  "dernier_controle": "2026-09-21",
+  "dernier_controle": "2026-09-28",
   "constats": {
     "banatic-referentiel": {
       "empreinte": "a9d1b65dfa4eea62",
@@ -24,7 +24,7 @@
       "gravite": "ok"
     },
     "annuaire-education": {
-      "millesime": 68584,
+      "millesime": 68574,
       "gravite": "ok"
     },
     "dmto-recettes": {
@@ -32,7 +32,7 @@
       "gravite": "ok"
     },
     "decp-marches": {
-      "millesime": 707787,
+      "millesime": 711685,
       "gravite": "ok"
     },
     "effectifs-ecoles": {
@@ -40,7 +40,7 @@
       "gravite": "ok"
     },
     "annuaire-administration": {
-      "millesime": 93780,
+      "millesime": 93778,
       "gravite": "ok"
     },
     "sru-inventaire": {
@@ -55,6 +55,24 @@
       "empreinte": "0b463da3a172c9f8",
       "gravite": "ok"
     },
+    "sudocuh-documents": {
+      "empreinte": "5ab4d15c2789c44e",
+      "gravite": "ok"
+    },
+    "sitadel-communes": {
+      "gravite": "alerte"
+    },
+    "rei-millesime": {
+      "empreinte": "2025",
+      "millesime": 2025,
+      "gravite": "ok"
+    },
+    "bpe-denombrement": {
+      "gravite": "a-regarder"
+    },
+    "gpu-documents": {
+      "gravite": "ok"
+    },
     "gaspar-risques": {
       "gravite": "ok"
     },
@@ -62,11 +80,45 @@
       "gravite": "alerte"
     },
     "deliberations-megalis": {
-      "empreinte": "243c462663070aaa",
-      "gravite": "ok"
+      "empreinte": "82d37ea1df8a4ad7",
+      "gravite": "a-regarder"
     },
     "subventions-schema": {
       "empreinte": "aa909f1676bbfe8b",
+      "gravite": "ok"
+    },
+    "rne-conseillers": {
+      "empreinte": "011b477b9c5b251d",
+      "gravite": "ok"
+    },
+    "insee-populations": {
+      "gravite": "ok"
+    },
+    "insee-naissances": {
+      "empreinte": "2026-07-09",
+      "millesime": "2025",
+      "gravite": "ok"
+    },
+    "insee-deces": {
+      "empreinte": "2026-07-09",
+      "millesime": "2025",
+      "gravite": "ok"
+    },
+    "insee-ages": {
+      "empreinte": "2026-06-25",
+      "millesime": "2023",
+      "gravite": "ok"
+    },
+    "sirene-etablissements": {
+      "empreinte": "2026-08-01",
+      "gravite": "a-regarder"
+    },
+    "rna-waldec": {
+      "empreinte": "2026-09-01",
+      "gravite": "ok"
+    },
+    "bodacc-annonces": {
+      "empreinte": "2026-09-27",
       "gravite": "ok"
     }
   },
