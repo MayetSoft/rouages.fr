@@ -91,6 +91,8 @@ export interface Repere {
   flux?: string;
   /** Euros par habitant pour cette commune, ou null si non renseigné. */
   valeur: number | null;
+  /** Le montant du dernier exercice, en euros. */
+  montant?: number | null;
   /** Médiane des communes de la même strate de population. */
   mediane: number | null;
   /**
@@ -118,7 +120,28 @@ export interface Finances {
    * chiffres restent affichés, la médiane est retirée.
    */
   statutParticulier?: string;
+  /** Les lignes de tête, avec leur série. */
   reperes: Repere[];
+  /** Tous les postes, dans l'ordre de l'arbre : le tableau poste par poste. */
+  lignes: LigneCompte[];
+}
+
+/**
+ * Un poste du tableau : son montant, en euros et par habitant, et la médiane à
+ * laquelle il se compare. Le niveau dit sa place dans l'arbre — 0 pour les
+ * totaux —, et `dont` qu'il ne détaille qu'une partie de son parent.
+ */
+export interface LigneCompte {
+  id: string;
+  nom: string;
+  explication: string;
+  niveau: number;
+  dont: boolean;
+  montant: number | null;
+  parHabitant: number | null;
+  mediane: number | null;
+  /** Combien de collectivités entrent dans la médiane, pour les échelons ; absent pour les communes. */
+  effectif?: number;
 }
 
 /**
@@ -201,6 +224,7 @@ export interface ComptesEchelon {
   annees: number[];
   effectif: number;
   reperes: (Repere & { effectif: number })[];
+  lignes: LigneCompte[];
 }
 
 /**
@@ -446,7 +470,9 @@ export interface ServiceEau {
 interface MetaFinances {
   annee: number;
   annees?: number[];
-  reperes: { id: string; nom: string; explication: string; flux?: string }[];
+  reperes: { id: string; nom: string; explication: string; flux?: string; parent?: string; dont?: boolean }[];
+  /** La position, dans `reperes`, de ceux qui ont leur ligne en tête. */
+  principaux: number[];
   strates: string[];
   medianes: (number | null)[][];
   statutParticulier: Record<string, string>;
@@ -459,7 +485,9 @@ interface Meta {
   eau?: { annee: number; indicateur: string; competence: string; prixMedian: number | null };
 }
 
-type FinancesDep = { annee: number; annees: number[]; h: Record<string, (number | null)[][]> };
+/** Par commune : les séries des repères de tête, le montant de chaque repère au dernier exercice, la population. */
+type LigneFinances = [(number | null)[][], (number | null)[], number | null];
+type FinancesDep = { annee: number; annees: number[]; c: Record<string, LigneFinances> };
 type EauDep = { annee: number; c: Record<string, [number | null, string, string, string]> };
 type SruDep = { maj: string; c: Record<string, Sru> };
 type AssoDep = {
@@ -561,14 +589,15 @@ type DmtoNational = {
 };
 type ComptesFichier = {
   annees: number[];
+  reperes: { id: string; nom: string; parent?: string; dont?: boolean }[];
+  principaux: number[];
   medianes: (number | null)[];
   effectifs: number[];
   effectif: number;
-  h: Record<string, (number | null)[][]>;
+  h: Record<string, LigneFinances>;
 };
 type EchelonsFichier = {
   maj: string;
-  reperes: { id: string; nom: string }[];
   departements: ComptesFichier | null;
   regions: ComptesFichier | null;
 };
@@ -667,30 +696,95 @@ export function debutSerie(serie: (number | null)[], annees: number[]): number |
   return i >= 0 ? (annees[i] ?? null) : null;
 }
 
+/**
+ * L'euro par habitant tel que le site l'écrit : au dixième sous 10 €, à l'euro
+ * au-delà — « 0 € » se lirait « rien » là où la valeur est faible mais réelle.
+ * La même règle que l'ingestion, pour que tableau et lignes de tête disent le
+ * même chiffre.
+ */
+function parHabitant(brut: number | null): number | null {
+  return brut === null ? null : Math.abs(brut) < 10 ? Math.round(brut * 10) / 10 : Math.round(brut);
+}
+
+/** La profondeur de chaque repère dans l'arbre, d'après son parent. */
+function niveaux(reperes: { id: string; parent?: string }[]): number[] {
+  const rang = new Map(reperes.map((r, i) => [r.id, i]));
+  const n: number[] = [];
+  for (const [i, r] of reperes.entries()) {
+    const p = r.parent ? rang.get(r.parent) : undefined;
+    n[i] = p === undefined || p >= i ? 0 : n[p] + 1;
+  }
+  return n;
+}
+
+/**
+ * Les lignes du tableau poste par poste. L'euro par habitant d'un repère de
+ * tête est le dernier point de sa série, tel que l'OFGL le publie ; celui des
+ * autres, le montant rapporté à la population que l'OFGL retient.
+ */
+function lignesDe(
+  reperes: { id: string; nom: string; explication?: string; parent?: string; dont?: boolean }[],
+  principaux: number[],
+  [series, montants, population]: LigneFinances,
+  mediane: (i: number) => number | null,
+): LigneCompte[] {
+  const n = niveaux(reperes);
+  const tete = new Map(principaux.map((i, k) => [i, k]));
+  return reperes.map((r, i) => {
+    const k = tete.get(i);
+    const montant = montants[i] ?? null;
+    const serie = k !== undefined ? series[k] : undefined;
+    const parHab =
+      serie && serie.length > 0
+        ? (serie[serie.length - 1] ?? null)
+        : montant !== null && population
+          ? parHabitant(montant / population)
+          : null;
+    return {
+      id: r.id,
+      nom: r.nom,
+      explication: r.explication ?? '',
+      niveau: n[i],
+      dont: !!r.dont,
+      montant,
+      parHabitant: parHab,
+      mediane: mediane(i),
+    };
+  });
+}
+
 function assemblerFinances(commune: CommuneFiche, population: number): Finances | null {
   const m = metaFichier()?.finances;
   const dep = financesDep.get(commune.dep);
   if (!m || !dep) return null;
-  const series = dep.h[commune.code];
-  if (!series) return null;
+  const f = dep.c?.[commune.code];
+  if (!f) return null;
   const strate = BORNES.findIndex((b) => population < b);
   const particulier = m.statutParticulier?.[commune.code];
   const annees = dep.annees ?? m.annees ?? [dep.annee];
+  const mediane = (i: number) => (particulier ? null : (m.medianes[strate]?.[i] ?? null));
+  const lignes = lignesDe(m.reperes, m.principaux ?? [], f, mediane);
   return {
     annee: dep.annee,
     annees,
     strate: m.strates[strate] ?? '',
     statutParticulier: particulier,
-    reperes: m.reperes.map((r, i) => {
-      const serie = series[i] ?? [];
+    reperes: (m.principaux ?? []).map((i, k) => {
+      const r = m.reperes[i];
+      const serie = f[0][k] ?? [];
       return {
-        ...r,
-        valeur: serie.length > 0 ? (serie[serie.length - 1] ?? null) : null,
-        mediane: particulier ? null : (m.medianes[strate]?.[i] ?? null),
+        id: r.id,
+        nom: r.nom,
+        explication: r.explication,
+        flux: r.flux,
+        valeur: lignes[i].parHabitant,
+        montant: lignes[i].montant,
+        mediane: mediane(i),
         serie,
         evolution: variation(serie),
       };
     }),
+    lignes,
   };
 }
 
@@ -989,27 +1083,33 @@ function assemblerEchelons(commune: CommuneFiche): ComptesEchelon[] {
   const out: ComptesEchelon[] = [];
   const lireEchelon = (c: ComptesFichier | null, code: string | undefined, nom: string) => {
     if (!c || !code) return;
-    const series = c.h[code];
-    if (!series) return;
-    const dernier = c.annees.length - 1;
+    const f = c.h[code];
+    if (!f) return;
+    // Les explications de `reperes.yaml` parlent de la commune : elles
+    // seraient fausses ici, et le bloc dit lui-même ce qu'il montre.
+    const lignes = lignesDe(c.reperes, c.principaux, f, (i) => c.medianes[i] ?? null).map((l, i) => ({
+      ...l,
+      effectif: c.effectifs[i] ?? c.effectif,
+    }));
     out.push({
       nom,
       annees: c.annees,
       effectif: c.effectif,
-      reperes: e.reperes.map((r, i) => {
-        const serie = series[i] ?? [];
+      reperes: c.principaux.map((i, k) => {
+        const serie = f[0][k] ?? [];
         return {
-          ...r,
-          // Les explications de `reperes.yaml` parlent de la commune : elles
-          // seraient fausses ici, et le bloc dit lui-même ce qu'il montre.
+          id: c.reperes[i].id,
+          nom: c.reperes[i].nom,
           explication: '',
-          valeur: serie[dernier] ?? null,
+          valeur: lignes[i].parHabitant,
+          montant: lignes[i].montant,
           mediane: c.medianes[i] ?? null,
-          effectif: c.effectifs?.[i] ?? c.effectif,
+          effectif: c.effectifs[i] ?? c.effectif,
           serie,
           evolution: variation(serie),
         };
       }),
+      lignes,
     });
   };
   lireEchelon(e.departements, commune.dep, `Le département — ${commune.depNom}`);

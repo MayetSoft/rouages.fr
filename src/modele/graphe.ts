@@ -201,9 +201,20 @@ function verifierReferences(g: Graphe): void {
     if (s.lien) exige(s.lien, g.sources, 'page de référence', `surveillance ${s.id}.lien`);
   }
 
+  // L'ordre des repères est celui du tableau poste par poste : un parent vient
+  // avant ses parts, et un repère calculé après ceux dont il se déduit.
+  const vus = new Set<string>();
   for (const r of g.reperes.values()) {
     exigeLiens(r.liens, `repère ${r.id}`);
     if (r.flux) exige(r.flux, g.flux, 'flux', `repère ${r.id}.flux`);
+    const erreur = (chemin: string, message: string) =>
+      g.anomalies.push({ fichier: 'contenu', chemin: `repère ${r.id}${chemin}`, message, gravite: 'erreur' });
+    if (!!r.agregat === !!r.difference) erreur('', 'porte un agrégat de l’OFGL ou une différence, et un seul des deux');
+    if (r.parent && !vus.has(r.parent)) erreur('.parent', `renvoie vers « ${r.parent} », absent ou placé après lui`);
+    for (const d of r.difference ?? []) {
+      if (!vus.has(d)) erreur('.difference', `renvoie vers « ${d} », absent ou placé après lui`);
+    }
+    vus.add(r.id);
   }
 
   for (const s of g.sigles.values()) {

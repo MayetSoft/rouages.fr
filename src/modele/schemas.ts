@@ -330,8 +330,36 @@ export const Sigle = z.object({
 export const Repere = z.object({
   id: Id,
   nom: z.string().min(3).max(60),
-  /** Libellé exact de l'agrégat OFGL : l'ingestion échoue s'il ne correspond pas. */
-  agregat: z.string().min(3),
+  /**
+   * Libellé exact de l'agrégat OFGL : l'ingestion échoue s'il ne correspond
+   * pas. Absent d'un repère calculé, qui porte `difference` à la place.
+   */
+  agregat: z.string().min(3).optional(),
+  /**
+   * Un repère que l'OFGL ne publie pas mais qui se déduit de deux autres : le
+   * premier moins le second, montant par montant. « Impôts locaux » comprend
+   * ce que l'intercommunalité reverse ; ce qu'en lève la commune elle-même,
+   * c'est cette différence.
+   */
+  difference: z.tuple([Id, Id]).optional(),
+  /**
+   * Le poste dont celui-ci est une part. Les postes d'un même parent
+   * s'additionnent pour faire son total — l'ingestion le vérifie commune par
+   * commune —, sauf ceux marqués `dont`, qui n'en détaillent qu'une partie.
+   */
+  parent: Id.optional(),
+  dont: z.boolean().default(false),
+  /**
+   * Une ligne en tête du bloc, avec sa réglette et sa série depuis 2018. Les
+   * autres ne paraissent que dans le tableau poste par poste, au dernier
+   * exercice : une série par poste alourdirait chaque page pour rien.
+   */
+  principal: z.boolean().default(false),
+  /**
+   * Les échelons dont les comptes portent ce poste. Les allocations de RSA ne
+   * se trouvent que chez le département, les cartes grises que chez la région.
+   */
+  niveaux: z.array(z.enum(['commune', 'departement', 'region'])).default(['commune', 'departement', 'region']),
   /**
    * L'échelon où la mesure a un sens.
    *

@@ -178,6 +178,12 @@ sigles:
     definition: "L'impôt payé sur presque tout achat ; son taux réduit est l'une des aides au logement social."
     liens: [impots-tva]
 
+  - id: sigle-fctva
+    sigle: FCTVA
+    developpe: "Fonds de compensation pour la taxe sur la valeur ajoutée"
+    definition: "Le remboursement par l'État d'une partie de la TVA qu'une collectivité a payée sur ses investissements."
+    liens: [ofgl-definitions]
+
   - id: sigle-rei
     sigle: REI
     developpe: "Recensement des éléments d'imposition à la fiscalité directe locale"

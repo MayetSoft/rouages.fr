@@ -1,0 +1,66 @@
+---
+/**
+ * Toutes les recettes et les dépenses, poste par poste : le montant en euros,
+ * le même par habitant, et la médiane à laquelle il se compare.
+ *
+ * L'arbre est celui de l'OFGL, tel que `contenu/reperes.yaml` le reprend : les
+ * parts d'un poste sont en retrait sous lui, et s'additionnent pour le refaire
+ * — l'ingestion le vérifie commune par commune. Une part précédée de « dont »
+ * n'en détaille qu'une partie.
+ *
+ * Un tableau, pas une ligne par poste avec sa réglette et sa courbe : trente
+ * lignes dessinées pèseraient sur chacune des trente-cinq mille pages, pour un
+ * détail que les lignes de tête résument déjà.
+ */
+import type { LigneCompte } from '../../modele/fiche-commune.ts';
+
+interface Props {
+  lignes: LigneCompte[];
+  annee: number;
+  /** Ce que la colonne des médianes compare, en une phrase. */
+  legende: string;
+  /** Pour un échelon : le nombre de collectivités qu'il compte, pour dire quand une médiane n'en couvre qu'une partie. */
+  effectif?: number;
+}
+const { lignes, annee, legende, effectif } = Astro.props;
+const montrees = lignes.filter((l) => l.montant !== null);
+
+// Le signe moins typographique, et une espace insécable avant l'unité.
+const signe = (s: string) => s.replace('-', '−');
+const montant = (v: number) => signe(`${Math.round(v).toLocaleString('fr-FR')} €`);
+const parHab = (v: number) => signe(`${v.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} €`);
+const nom = (l: LigneCompte) => (l.dont ? `dont ${l.nom.charAt(0).toLowerCase()}${l.nom.slice(1)}` : l.nom);
+---
+{montrees.length > 0 && (
+  <details class="p-service-groupe cpt" open>
+    <summary class="p-service-famille">Toutes les recettes et les dépenses, poste par poste</summary>
+    <div class="cpt-defile">
+      <table class="cpt-tableau">
+        <caption>{legende}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Poste</th>
+            <th scope="col">{`En ${annee}`}</th>
+            <th scope="col">Par habitant</th>
+            <th scope="col">Médiane</th>
+          </tr>
+        </thead>
+        <tbody>
+          {montrees.map((l) => (
+            <tr class={`cpt-n${Math.min(l.niveau, 4)}${l.dont ? ' cpt-dont' : ''}`}>
+              <th scope="row" title={l.explication || undefined}>{nom(l)}</th>
+              <td>{montant(l.montant!)}</td>
+              <td>{l.parHabitant !== null ? parHab(l.parHabitant) : '—'}</td>
+              <td>
+                {l.mediane !== null ? parHab(l.mediane) : '—'}
+                {l.mediane !== null && effectif && l.effectif && l.effectif < effectif && (
+                  <span class="cpt-sur">{` sur ${l.effectif}`}</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </details>
+)}
