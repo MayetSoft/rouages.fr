@@ -286,6 +286,25 @@ surveillances:
     ressource: "2023"
     lien: od-insee-ages
 
+  - id: insee-diplomes
+    nom: "INSEE — diplômes et formation (recensement)"
+    alimente: "le diplôme le plus élevé des habitants de chaque commune"
+    type: melodi-periode
+    url: "DS_RP_DIPLOMES_PRINC"
+    ressource: "2023"
+    lien: od-insee-diplomes
+
+  - id: insee-filosofi
+    nom: "INSEE — Filosofi, niveau de vie et pauvreté"
+    alimente: "le niveau de vie médian et le taux de pauvreté de chaque commune"
+    # Un millésime par an. Au changement, relire la note d'accompagnement :
+    # le 2023 était le premier d'un dispositif refondu, sans comparaison
+    # possible avec les précédents — le suivant, lui, devrait l'être.
+    type: melodi-periode
+    url: "DS_FILOSOFI_CC"
+    ressource: "2023"
+    lien: od-insee-filosofi
+
   - id: sirene-etablissements
     nom: "SIRENE — établissements, copie Opendatasoft"
     alimente: "les établissements actifs et employeurs de chaque commune, par secteur"

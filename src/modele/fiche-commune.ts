@@ -316,6 +316,36 @@ export interface Ages {
 }
 
 /**
+ * Le diplôme le plus élevé des habitants de 15 ans ou plus sortis de l'école,
+ * d'après le recensement : les effectifs par niveau, du moins au plus
+ * diplômé, pour la commune, son département et la France, à deux millésimes.
+ * Des estimations pondérées, au dixième.
+ */
+export interface Diplomes {
+  niveaux: string[];
+  /** Le plus récent d'abord. */
+  millesimes: number[];
+  /** Par millésime, les effectifs par niveau ; null quand le millésime manque. */
+  commune: (number[] | null)[];
+  departement: (number[] | null)[] | null;
+  france: (number[] | null)[] | null;
+  maj: string;
+}
+
+/**
+ * Le niveau de vie des habitants d'après Filosofi : la médiane et le taux de
+ * pauvreté, null quand le secret statistique les couvre — la page le dit.
+ */
+export interface NiveauDeVie {
+  millesime: number;
+  mediane: number | null;
+  pauvrete: number | null;
+  departement: { mediane: number | null; pauvrete: number | null } | null;
+  metropole: { mediane: number | null; pauvrete: number | null } | null;
+  maj: string;
+}
+
+/**
  * Le centre d'action sociale d'une commune, ou celui de son intercommunalité :
  * son budget principal, ses budgets annexes, les établissements qu'il gère.
  */
@@ -469,6 +499,21 @@ type AgesDep = {
   dep: [number[], number[]] | null;
   c: Record<string, [number[], number[]]>;
 };
+type DiplomesDep = {
+  maj: string;
+  millesimes: number[];
+  niveaux: string[];
+  france: (number[] | null)[] | null;
+  dep: (number[] | null)[] | null;
+  c: Record<string, (number[] | null)[]>;
+};
+type RevenusDep = {
+  maj: string;
+  millesime: number;
+  metropole: [number | null, number | null] | null;
+  dep: [number | null, number | null] | null;
+  c: Record<string, [number | null, number | null]>;
+};
 type EtatCivilDep = { maj: string; annees: number[]; c: Record<string, [(number | null)[], (number | null)[]]> };
 type ElectionsDep = {
   scrutin: string;
@@ -559,6 +604,8 @@ const assoDep = parDepartement<AssoDep>('associations');
 const popDep = parDepartement<PopDep>('population');
 const etatCivilDep = parDepartement<EtatCivilDep>('etat-civil');
 const agesDep = parDepartement<AgesDep>('ages');
+const diplomesDep = parDepartement<DiplomesDep>('diplomes');
+const revenusDep = parDepartement<RevenusDep>('revenus');
 const sireneDep = parDepartement<SireneDep>('sirene');
 const ccasDep = parDepartement<CcasDep>('ccas');
 const entreprisesDep = parDepartement<EntreprisesDep>('entreprises');
@@ -707,6 +754,28 @@ function assemblerAges(commune: CommuneFiche): Ages | null {
     femmes: p[0],
     hommes: p[1],
     departement: d.dep ? { femmes: d.dep[0], hommes: d.dep[1] } : null,
+    maj: d.maj,
+  };
+}
+
+function assemblerDiplomes(commune: CommuneFiche): Diplomes | null {
+  const d = diplomesDep.get(commune.dep);
+  const c = d?.c[commune.code];
+  if (!d || !c || !c[0]) return null;
+  return { niveaux: d.niveaux, millesimes: d.millesimes, commune: c, departement: d.dep, france: d.france, maj: d.maj };
+}
+
+function assemblerNiveauDeVie(commune: CommuneFiche): NiveauDeVie | null {
+  const d = revenusDep.get(commune.dep);
+  const c = d?.c[commune.code];
+  if (!d || !c) return null;
+  const paire = (x: [number | null, number | null] | null) => (x ? { mediane: x[0], pauvrete: x[1] } : null);
+  return {
+    millesime: d.millesime,
+    mediane: c[0],
+    pauvrete: c[1],
+    departement: paire(d.dep),
+    metropole: paire(d.metropole),
     maj: d.maj,
   };
 }
@@ -1003,6 +1072,8 @@ export interface ComplementsFiche {
   histoire: Population | null;
   etatCivil: EtatCivil | null;
   ages: Ages | null;
+  diplomes: Diplomes | null;
+  niveauDeVie: NiveauDeVie | null;
   centres: CentresSociaux | null;
   entreprises: Entreprises | null;
   presentes: Presentes | null;
@@ -1036,6 +1107,8 @@ export function complementsFiche(
     histoire: assemblerPopulation(commune),
     etatCivil: assemblerEtatCivil(commune),
     ages: assemblerAges(commune),
+    diplomes: assemblerDiplomes(commune),
+    niveauDeVie: assemblerNiveauDeVie(commune),
     centres: assemblerCentres(commune),
     entreprises: assemblerEntreprises(commune),
     presentes: assemblerPresentes(commune, population),

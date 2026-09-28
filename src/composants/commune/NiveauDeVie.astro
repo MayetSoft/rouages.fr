@@ -1,0 +1,86 @@
+---
+/**
+ * Le niveau de vie des habitants : la médiane, et le taux de pauvreté quand
+ * l'INSEE le publie — soit pour une commune sur sept.
+ *
+ * Deux chiffres seulement, parce que l'INSEE n'en publie pas d'autre sous le
+ * département. Ils sont rapportés au département et à la France
+ * métropolitaine, pas à une médiane des communes : une médiane de médianes ne
+ * voudrait rien dire, et c'est à la métropole que se mesure le seuil de
+ * pauvreté.
+ *
+ * Quand le secret statistique couvre un chiffre, le bloc le dit : un chiffre
+ * absent sans explication se lit comme un oubli du site.
+ */
+import type { NiveauDeVie } from '../../modele/fiche-commune.ts';
+import Repere from './Repere.astro';
+
+interface Props {
+  n: NiveauDeVie;
+  /** Le nom du département, pour les comparaisons ; null quand la commune est le département, comme Paris. */
+  depNom: string | null;
+}
+const { n, depNom } = Astro.props;
+// Une espace insécable avant le signe, pour qu'il ne se retrouve pas seul en début de ligne.
+const euros = (v: number) => `${Math.round(v).toLocaleString('fr-FR')}\u00a0€`;
+const pc = (v: number) => `${v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}\u00a0%`;
+const references = (d: number | null | undefined, m: number | null | undefined, f: (v: number) => string) =>
+  [d != null ? `${depNom} ${f(d)}` : null, m != null ? `France métropolitaine ${f(m)}` : null].filter(Boolean).join(' · ') ||
+  null;
+const dep = depNom ? n.departement : null;
+const metro = n.metropole;
+// Ce que le département dit à la place des chiffres couverts par le secret.
+const auDepartement = [
+  n.mediane === null && dep?.mediane != null ? `le niveau de vie médian est de ${euros(dep.mediane)} par an` : null,
+  n.pauvrete === null && dep?.pauvrete != null ? `${pc(dep.pauvrete)} des habitants vivent sous le seuil de pauvreté` : null,
+].filter((x): x is string => x !== null);
+---
+<h3 class="p-titre-echelon">{`Leur niveau de vie, en ${n.millesime}`}</h3>
+<dl class="p-reperes">
+  {n.mediane !== null && (
+    <Repere
+      nom="Niveau de vie médian"
+      aide="Le revenu disponible du ménage divisé par ses unités de consommation ; la moitié des habitants vit avec moins, l’autre moitié avec plus."
+      montant={`${euros(n.mediane)} par an`}
+      compare={metro?.mediane ? { valeur: n.mediane, mediane: metro.mediane, reference: 'la France métropolitaine' } : null}
+      mediane={references(dep?.mediane, metro?.mediane, euros)}
+    />
+  )}
+  {n.pauvrete !== null && (
+    <Repere
+      nom="Taux de pauvreté"
+      aide="La part des habitants dont le niveau de vie est inférieur à 60 % du niveau de vie médian de la France métropolitaine."
+      montant={pc(n.pauvrete)}
+      compare={metro?.pauvrete ? { valeur: n.pauvrete, mediane: metro.pauvrete, reference: 'la France métropolitaine' } : null}
+      mediane={references(dep?.pauvrete, metro?.pauvrete, pc)}
+    />
+  )}
+</dl>
+{n.mediane !== null && (
+  <p class="p-strate">
+    {`La moitié des habitants vit avec moins de ${euros(n.mediane)} par an et par unité de consommation, ` +
+      `soit ${euros(n.mediane / 12)} par mois. Pour un couple avec deux enfants de moins de 14 ans, qui compte ` +
+      `2,1 unités, cela fait ${euros(n.mediane * 2.1)} par an pour le ménage.`}
+  </p>
+)}
+{(n.mediane === null || n.pauvrete === null) && (
+  <p class="p-strate">
+    {(n.mediane === null && n.pauvrete === null
+      ? 'L’INSEE ne publie ni le niveau de vie médian ni le taux de pauvreté de la commune : le secret statistique les couvre.'
+      : n.mediane === null
+        ? 'L’INSEE ne publie pas le niveau de vie médian de la commune : le secret statistique le couvre.'
+        : 'Le taux de pauvreté de la commune n’est pas publié, comme celui de la plupart des communes : le secret statistique le couvre.') +
+      (auDepartement.length > 0 ? ` Dans le département, ${auDepartement.join(', et ')}.` : '')}
+  </p>
+)}
+<p class="p-source-territoire">
+  {'Le niveau de vie est le revenu disponible du ménage — revenus d’activité, chômage, retraites, revenus du ' +
+    'patrimoine, prestations sociales, moins les impôts directs — divisé par ses unités de consommation : 1 pour le ' +
+    'premier adulte, 0,5 pour chaque autre personne de 14 ans ou plus, 0,3 pour chaque enfant plus jeune. ' +
+    `D’après Filosofi ${n.millesime}, le dispositif de l’INSEE sur les revenus localisés (${n.maj}). Le seuil de ` +
+    'pauvreté est de 60 % du niveau de vie médian de la France métropolitaine. Ce millésime est le premier d’un ' +
+    'dispositif refondu après la suppression de la taxe d’habitation, et '}
+  <a href="https://www.insee.fr/fr/statistiques/fichier/8984748/Note_accompagnement_Filosofi_2023.pdf" target="_blank" rel="noopener">l’INSEE proscrit de le comparer aux précédents</a>
+  {' : le site ne montre donc aucune évolution. Sous le département, l’INSEE ne publie que ces deux chiffres. Les définitions : '}
+  <a href="https://www.insee.fr/fr/metadonnees/definition/c1890" target="_blank" rel="noopener">niveau de vie</a>{', '}<a href="https://www.insee.fr/fr/metadonnees/definition/c1802" target="_blank" rel="noopener">unité de consommation</a>{'.'}
+</p>

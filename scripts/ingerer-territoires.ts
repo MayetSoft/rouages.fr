@@ -642,6 +642,29 @@ async function principal() {
   );
   if (ages) dire(`${GRIS}${ecrireAges(SORTIE, ages)} départements de pyramides des âges écrits.${RAZ}`);
 
+  // Qui sont les habitants, au-delà de leur âge : leurs diplômes, d'après le
+  // même recensement, et leur niveau de vie, d'après Filosofi. Écrits à part,
+  // par département, comme la pyramide.
+  const { collecterDiplomes, ecrireDiplomes } = await import('./diplomes-emettre.ts');
+  const diplomes = await tenter('Diplômes', () =>
+    collecterDiplomes(
+      (url, vers) => telechargerEnCache(url, vers, reutiliser, 'Diplômes et formation INSEE (26 Mo)'),
+      CACHE,
+      (m) => dire(`${GRIS}${m}${RAZ}`),
+    ),
+  );
+  if (diplomes) dire(`${GRIS}${ecrireDiplomes(SORTIE, diplomes)} départements de diplômes écrits.${RAZ}`);
+
+  const { collecterRevenus, ecrireRevenus } = await import('./revenus-emettre.ts');
+  const revenus = await tenter('Niveau de vie', () =>
+    collecterRevenus(
+      (url, vers) => telechargerEnCache(url, vers, reutiliser, 'Filosofi — niveau de vie INSEE (5 Mo)'),
+      CACHE,
+      (m) => dire(`${GRIS}${m}${RAZ}`),
+    ),
+  );
+  if (revenus) dire(`${GRIS}${ecrireRevenus(SORTIE, revenus)} départements de niveau de vie écrits.${RAZ}`);
+
   // Les annonces légales des entreprises : décomptes par commune, et les
   // dernières annonces des sociétés, que le journal reprend. Avant l'émetteur
   // principal, qui rassemble le journal ; le rattachement lit le découpage

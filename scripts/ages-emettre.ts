@@ -48,8 +48,8 @@ function tranche(age: string): number {
   return m ? Math.min(Math.floor(Number(m[1]) / 5), TRANCHES.length - 1) : -1;
 }
 
-/** Les lignes du CSV de données de l'archive, en flux. */
-async function* lignesArchive(chemin: string): AsyncGenerator<string> {
+/** Les lignes du CSV de données d'une archive Melodi, en flux. */
+export async function* lignesArchive(chemin: string): AsyncGenerator<string> {
   const p = spawn('sh', ['-c', `unzip -p "${chemin}" '*_data.csv'`]);
   const fin = new Promise<void>((ok, ko) => {
     p.on('error', () => ko(new Error('« unzip » est requis pour lire les fichiers de l’INSEE')));

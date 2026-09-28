@@ -924,6 +924,12 @@ a.p-sommaire-lien { text-decoration: none; }
 .pyr-svg .pyr-f, .pyr-svg .pyr-h { font-size: 10px; font-weight: 600; fill: var(--encre); text-anchor: end; }
 .pyr-svg .pyr-h { text-anchor: start; }
 .pyr-legende { font-size: .82rem; color: var(--encre-douce); margin-top: .35rem; }
+/* Les diplômes : l'intitulé au-dessus de sa barre, la part au bout. */
+.pyr-svg .dip-nom { font-size: 10px; fill: var(--encre); text-anchor: start; }
+.pyr-svg .dip-val { text-anchor: start; }
+/* Six colonnes ne tiennent pas sur un téléphone : le tableau défile dans son cadre, pas la page. */
+.dip-defile { overflow-x: auto; }
+.dip-defile caption { caption-side: top; text-align: left; font-size: .8rem; color: var(--encre-douce); padding: .2rem 0; }
 .pyr-cle { display: inline-block; width: .9rem; height: .55rem; margin: 0 .3rem 0 .6rem; vertical-align: baseline; }
 .pyr-cle:first-child { margin-left: 0; }
 .pyr-cle-barre { background: var(--accent); background: color-mix(in srgb, var(--accent) 70%, var(--fond-carte)); border-radius: 2px; }

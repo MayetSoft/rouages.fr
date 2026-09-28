@@ -2431,6 +2431,36 @@ Mayet-de-Montagne, 41 blancs et 124 nuls —, et le rattachement des annonces du
 BODACC a son script de vérification, `npm run verifier-rattachement`, lancé en
 intégration continue.
 
+### De quoi ils vivent, ce qu'ils ont étudié ✔
+
+Deux sources de l'INSEE, au millésime 2023, dans une section qui suit celle des
+habitants :
+
+- **Le niveau de vie**, d'après Filosofi : la médiane et le taux de pauvreté,
+  rapportés au département et à la France métropolitaine — une médiane de
+  médianes communales ne voudrait rien dire, et c'est à la métropole que se
+  mesure le seuil de pauvreté. Ce sont les deux seuls chiffres que l'INSEE
+  publie sous le département. La médiane est publiée pour 30 794 communes, le
+  taux de pauvreté pour 5 242 seulement ; quand le secret statistique couvre
+  un chiffre, le bloc le dit et donne celui du département. Rien pour la
+  Guadeloupe, la Martinique, la Guyane et Mayotte, et le bloc le dit aussi.
+  Le millésime 2023 est le premier de « Filosofi 2 », refondu après la
+  suppression de la taxe d'habitation : l'INSEE proscrit la comparaison avec
+  les précédents, et le site ne montre aucune évolution.
+- **Les diplômes**, d'après le recensement : le diplôme le plus élevé des
+  habitants de 15 ans ou plus sortis de l'école, sept niveaux d'« aucun » à
+  « bac + 5 ou plus », en barres rapportées au département, 2017 et la France
+  dans le tableau replié. Le recensement ne va pas au-delà du bac + 5 : ni
+  doctorat ni bac + 8 à l'échelle d'une commune, même dans la table détaillée.
+  Sous 100 personnes, pas de graphique.
+
+Au Mayet-de-Montagne : un niveau de vie médian de 22 680 € par an, contre
+24 430 € dans l'Allier et 25 920 € en France métropolitaine ; taux de pauvreté
+sous secret. 17 % des habitants sortis de l'école ont un diplôme du supérieur,
+contre 24 % dans l'Allier et 34 % en France, 4 % un bac + 5 ou plus ; 25 %
+n'ont aucun diplôme, contre 30 % en 2017. Le niveau de vie médian entre dans
+« L'essentiel ».
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
