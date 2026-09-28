@@ -1,0 +1,138 @@
+---
+/**
+ * Le diplôme le plus élevé des habitants sortis de l'école : sept niveaux, du
+ * moins au plus diplômé, en part des habitants de 15 ans ou plus qui ne sont
+ * plus scolarisés — et, en trait, le département à la même échelle.
+ *
+ * En part, comme la pyramide : c'est ce qui pose un village sur son
+ * département. Les effectifs, arrondis, sont dans le tableau replié dessous,
+ * avec 2017 et la France. Le recensement s'arrête à « bac + 5 ou plus » : ni
+ * doctorat ni bac + 8 à l'échelle d'une commune.
+ *
+ * Sous 100 personnes, pas de graphique : une barre y tiendrait à trois
+ * habitants. Les deux parts qui résument restent écrites.
+ */
+import type { Diplomes } from '../../modele/fiche-commune.ts';
+
+interface Props {
+  d: Diplomes;
+  /** La commune est son propre département, comme Paris : la comparaison n'aurait pas de sens. */
+  seule?: boolean;
+}
+const { d, seule = false } = Astro.props;
+
+const somme = (v: number[]) => v.reduce((s, x) => s + x, 0);
+const parts = (v: number[] | null | undefined) => {
+  if (!v) return null;
+  const t = somme(v);
+  return t > 0 ? v.map((x) => x / t) : null;
+};
+const [recent, ancien] = d.commune;
+const total = recent ? somme(recent) : 0;
+const pCom = parts(recent)!;
+const pAncien = parts(ancien);
+const pDep = seule ? null : parts(d.departement?.[0]);
+const pFr = parts(d.france?.[0]);
+const [millesime, millesimeAncien] = d.millesimes;
+
+// Ce que la phrase résume : le supérieur (bac + 2 et au-delà), le bac + 5, et
+// ceux qui n'ont aucun diplôme.
+const SUP = [4, 5, 6];
+const sup = (p: number[] | null) => (p ? SUP.reduce((s, i) => s + p[i], 0) : null);
+// Une espace insécable avant le signe : « 14 % » ne se coupe pas en fin de ligne.
+const pc = (v: number) => `${Math.round(v * 100).toLocaleString('fr-FR')}\u00a0%`;
+const pc1 = (v: number) => `${(v * 100).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}\u00a0%`;
+const contre = (dep: number | null, fr: number | null) =>
+  dep !== null && fr !== null ? `contre ${pc(dep)} dans le département et ${pc(fr)} en France` : fr !== null ? `contre ${pc(fr)} en France` : '';
+const virgule = (s: string) => (s ? `, ${s}` : '');
+
+// La géométrie : une rangée par niveau, l'intitulé au-dessus de sa barre.
+// Écrit en une chaîne, comme la pyramide : chaque octet se multiplie par
+// trente-cinq mille pages.
+const L = 320;
+const RANGEE = 27;
+const HAUT = 4;
+const H = HAUT + d.niveaux.length * RANGEE;
+const plusGrand = Math.max(...pCom, ...(pDep ?? []));
+const largeur = L - 40;
+const x = (v: number) => +((v / plusGrand) * largeur).toFixed(1);
+const y = (i: number) => HAUT + i * RANGEE;
+const svg =
+  `<svg class="pyr-svg" viewBox="0 0 ${L} ${H}" role="img" aria-label="Diplôme le plus élevé, en part des habitants ` +
+  `sortis de l’école${pDep ? ', comparée au département' : ''} ; les chiffres sont dans le tableau qui suit">` +
+  `<path class="pyr-barre" d="${pCom.map((v, i) => `M0 ${y(i) + 12}h${x(v)}v9h-${x(v)}z`).join('')}"/>` +
+  d.niveaux
+    .map(
+      (nom, i) =>
+        `<text class="dip-nom" x="0" y="${y(i) + 9}">${nom}</text>` +
+        // La part au bout de la barre, ou au-delà du trait du département s'il la dépasse.
+        `<text class="dip-val" x="${+(Math.max(x(pCom[i]), pDep ? x(pDep[i]) : 0) + 5).toFixed(1)}" y="${y(i) + 20}">${pc(pCom[i])}</text>`,
+    )
+    .join('') +
+  (pDep ? `<path class="pyr-dep" d="${pDep.map((v, i) => `M${x(v)} ${y(i) + 11}v12`).join('')}"/>` : '') +
+  '</svg>';
+---
+<h3 class="p-titre-echelon">{`Leurs diplômes, au recensement de ${millesime}`}</h3>
+<p class="p-strate">
+  {`Parmi les habitants de 15 ans ou plus sortis de l’école, ${pc(sup(pCom)!)} ont un diplôme du supérieur` +
+    virgule(contre(sup(pDep), sup(pFr))) +
+    `, dont ${pc(pCom[6])} un bac + 5 ou plus` +
+    (pDep && pFr ? ` (${pc(pDep[6])} et ${pc(pFr[6])})` : '') +
+    `. ${pc(pCom[0])} n’ont aucun diplôme ou seulement le certificat d’études` +
+    virgule(contre(pDep?.[0] ?? null, pFr?.[0] ?? null)) +
+    '.'}
+  {pAncien &&
+    ` En ${millesimeAncien}, ils étaient ${pc(sup(pAncien)!)} à avoir un diplôme du supérieur, et ${pc(pAncien[0])} à n’en avoir aucun.`}
+</p>
+{total >= 100 && (
+  <figure class="pyr">
+    <Fragment set:html={svg} />
+    <figcaption class="pyr-legende">
+      <span class="pyr-cle pyr-cle-barre" aria-hidden="true"></span>la commune
+      {pDep && (
+        <>
+          <span class="pyr-cle pyr-cle-dep" aria-hidden="true"></span>le département
+        </>
+      )}
+      {' — en part des habitants de 15 ans ou plus sortis de l’école'}
+    </figcaption>
+  </figure>
+)}
+{total >= 100 && (
+  <details class="p-service-groupe pyr-tableau">
+    <summary class="p-service-famille">Les chiffres, niveau par niveau</summary>
+    <div class="dip-defile">
+    <table>
+      <caption>Effectifs arrondis ; parts des habitants de 15 ans ou plus sortis de l’école</caption>
+      <thead>
+        <tr>
+          <th scope="col">Diplôme le plus élevé</th>
+          <th scope="col">Habitants</th>
+          <th scope="col">{String(millesime)}</th>
+          {pAncien && <th scope="col">{String(millesimeAncien)}</th>}
+          {pDep && <th scope="col">Département</th>}
+          {pFr && <th scope="col">France</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {d.niveaux.map((nom, i) => (
+          <tr>
+            <th scope="row">{nom}</th>
+            <td>{Math.round(recent![i]).toLocaleString('fr-FR')}</td>
+            <td>{pc1(pCom[i])}</td>
+            {pAncien && <td>{pc1(pAncien[i])}</td>}
+            {pDep && <td>{pc1(pDep[i])}</td>}
+            {pFr && <td>{pc1(pFr[i])}</td>}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    </div>
+  </details>
+)}
+<p class="p-source-territoire">
+  {`D’après le recensement de l’INSEE, table « diplômes et formation » (${d.maj}). Le millésime ${millesime} ` +
+    `combine les enquêtes de ${millesime - 2} à ${millesime + 2}, et les chiffres sont des estimations, arrondies ici. ` +
+    `${millesimeAncien} et ${millesime} sont les deux seules années où l’INSEE sépare bac + 3 ou 4 et bac + 5 ; ` +
+    'le recensement ne va pas au-delà, ni doctorat ni bac + 8 à l’échelle d’une commune.'}
+</p>

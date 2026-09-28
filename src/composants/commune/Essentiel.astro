@@ -1,6 +1,6 @@
 ---
 /**
- * L'essentiel, en haut de la page : cinq ou six chiffres, chacun renvoyant au
+ * L'essentiel, en haut de la page : cinq à sept chiffres, chacun renvoyant au
  * bloc qui l'explique.
  *
  * La page d'une commune dépasse dix écrans, et la plupart des lecteurs ne
@@ -41,6 +41,17 @@ if (population > 0) {
     if (tot > 0 && i60 >= 0) detail = `${pc((ages / tot) * 100)} ont 60 ans ou plus`;
   }
   cartes.push({ id: 'habitants', nom: 'Habitants', valeur: nb(population), detail });
+}
+
+// Le niveau de vie médian, quand le secret statistique ne le couvre pas.
+const nv = plus.niveauDeVie;
+if (nv && nv.mediane !== null) {
+  cartes.push({
+    id: 'niveaux',
+    nom: 'Niveau de vie médian',
+    valeur: `${euros(nv.mediane)} par an`,
+    detail: nv.metropole?.mediane != null ? `France métropolitaine ${euros(nv.metropole.mediane)}` : null,
+  });
 }
 
 if (plus.scrutin?.tete) {

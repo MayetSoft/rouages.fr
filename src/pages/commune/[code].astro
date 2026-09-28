@@ -26,6 +26,8 @@ import { ARTICLE_DOCUMENT, enFrancais, NOM_DOCUMENT } from '../../modele/urbanis
 import { complementsFiche } from '../../modele/fiche-commune.ts';
 import { moisAnnee } from '../../vues/graphiques.ts';
 import Habitants from '../../composants/commune/Habitants.astro';
+import NiveauDeVie from '../../composants/commune/NiveauDeVie.astro';
+import Diplomes from '../../composants/commune/Diplomes.astro';
 import Scrutin from '../../composants/commune/Scrutin.astro';
 import Conseil from '../../composants/commune/Conseil.astro';
 import Comptes from '../../composants/commune/Comptes.astro';
@@ -193,6 +195,12 @@ const dmtoDernier = plus.dmto
  * répertoire national n'y sait rien, et le dire vaut mieux qu'un bloc absent.
  */
 const DROIT_LOCAL = new Set(['57', '67', '68']);
+
+/** Filosofi 2023 ne publie rien pour ces quatre départements : le dire plutôt qu'un bloc absent. */
+const SANS_FILOSOFI = new Set(['971', '972', '973', '976']);
+
+/** Paris est à la fois commune et département : ses chiffres ne se comparent pas à eux-mêmes. */
+const SEULE_DE_SON_DEPARTEMENT = new Set(['75056']);
 const droitLocal = DROIT_LOCAL.has(commune.dep) && !(plus.associations && plus.associations.total > 0);
 
 /**
@@ -204,6 +212,7 @@ const droitLocal = DROIT_LOCAL.has(commune.dep) && !(plus.associations && plus.a
 const echelonsMontres = plus.comptesEchelons.some((c) => c.reperes.some((r) => r.valeur !== null));
 const sommaire: [string, string, unknown][] = [
   ['habitants', 'Les habitants', plus.histoire || plus.etatCivil || plus.ages],
+  ['niveaux', 'Niveau de vie et diplômes', plus.niveauDeVie || plus.diplomes],
   ['election', 'L’élection', plus.scrutin],
   ['conseil', 'Le conseil', fiche?.conseil && fiche.conseil.elus > 0],
   ['qui-exerce', 'Qui exerce quoi', lignes.length > 0],
@@ -278,6 +287,20 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <h2 class="badge">Combien d’habitants</h2>
         <Habitants h={plus.histoire} ec={plus.etatCivil} ag={plus.ages} />
         <Demarches bloc="habitants" />
+      </section>
+    )}
+
+    {(plus.niveauDeVie || plus.diplomes) && (
+      <section id="niveaux" class="p-habitants">
+        <h2 class="badge">De quoi ils vivent, ce qu’ils ont étudié</h2>
+        {plus.niveauDeVie && <NiveauDeVie n={plus.niveauDeVie} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />}
+        {!plus.niveauDeVie && SANS_FILOSOFI.has(commune.dep) && (
+          <p class="p-strate">
+            Le niveau de vie n’est pas publié ici : pour le millésime 2023, l’INSEE ne diffuse aucun chiffre
+            de revenus en Guadeloupe, en Martinique, en Guyane ni à Mayotte.
+          </p>
+        )}
+        {plus.diplomes && <Diplomes d={plus.diplomes} seule={SEULE_DE_SON_DEPARTEMENT.has(commune.code)} />}
       </section>
     )}
 
