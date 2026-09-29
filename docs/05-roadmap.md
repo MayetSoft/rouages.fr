@@ -2575,12 +2575,6 @@ deux communes.
 
 **Ce qui a été refusé :**
 
-- **La moyenne nationale de l'APL.** Calculée comme la note du fichier le
-  demande, elle donne 3,74 pour 2023 ; l'INSEE publie 3,8. Tant que l'écart
-  n'est pas expliqué, la page compare au seuil, pas à une moyenne d'ici. Pour
-  la même raison, Paris, Lyon et Marseille, que la DREES publie par
-  arrondissement, n'ont pas de bloc médecin : il faudrait recomposer une
-  moyenne.
 - **Le répertoire des logements sociaux (RPLS).** Il n'est publié que
   logement par logement — 5,4 millions de lignes — et aucun décompte communal
   n'est en données ouvertes nationales. Le logement social est lu par ses
@@ -2589,12 +2583,38 @@ deux communes.
   la session 2021.
 - **La couverture mobile** : aucun jeu communal national trouvé, seulement des
   cartes et des relevés départementaux.
-- **Les voix des candidats** : le bloc des votes donne la participation, les
-  blancs et les nuls ; les voix sont dans les fichiers cités.
 - **Une moyenne nationale de participation qui ne serait pas la bonne** : la
   référence additionne les communes de métropole et des départements
   d'outre-mer, et la page dit qu'elle n'est pas la participation officielle,
   qui compte les Français de l'étranger.
+
+**Repris ensuite, une fois l'obstacle levé :**
+
+- **La moyenne de l'APL.** L'écart avec l'INSEE — 3,745 calculé, 3,8 publié
+  pour 2023 — venait de la pondération, pas d'une révision du fichier : la note
+  de la DREES conseille la population standardisée, l'INSEE pondère par la
+  population totale. Avec sa pondération, le calcul redonne ses deux chiffres
+  publiés, 3,8 pour la France et 2,9 pour le Centre-Val de Loire (3,751 et
+  2,924). Le bloc compare donc au département et à la France, par la méthode de
+  l'INSEE, et Paris, Lyon et Marseille ont leur moyenne et le détail de chaque
+  arrondissement.
+- **Les voix.** Les six premiers candidats ou listes de la commune, en part des
+  exprimés, le reste réuni — la somme retombe sur les exprimés, vérifié au
+  Mayet-de-Montagne (694 + 78 = 772 au premier tour de 2022). Aux législatives,
+  la nuance est l'abréviation du ministère, affichée telle quelle : sa grille
+  de 2024 (UG, UXD, HOR…) n'est pas publiée en données ouvertes avec ses
+  libellés, et le dictionnaire de data.gouv s'arrête avant. Les 126 communes qui
+  couvrent plusieurs circonscriptions n'ont pas de classement : le fichier par
+  commune les réunit en une ligne, et mélangerait des candidats qui ne
+  s'affrontaient pas. On les reconnaît à deux candidats d'une même grande
+  coalition — UG, RN, UXD, ENS n'en présentaient qu'un par circonscription.
+- **Les noms d'écoles** de l'annuaire, rendus lisibles : abréviations
+  parisiennes développées (« E E PU » → école élémentaire publique), accents
+  rendus, nom répété dédoublé, adresse séparée par un tiret — c'est elle qui
+  distingue deux homonymes.
+- **« L'essentiel »** reçoit l'accès aux généralistes, le prix médian d'une
+  maison et la part de locaux raccordables à la fibre, arrondis comme dans leur
+  bloc.
 
 **Deux obstacles d'outillage.** Le site d'Agreste ne présente pas toute sa
 chaîne de certificats ; le collecteur fait ce que fait un navigateur — il va

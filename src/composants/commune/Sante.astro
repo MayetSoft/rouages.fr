@@ -3,17 +3,20 @@
  * Voir un médecin généraliste : l'accessibilité potentielle localisée de la
  * DREES, et le seuil sous lequel l'INSEE tient une commune pour sous-dotée.
  *
- * Pas de moyenne nationale : recalculée d'après la note du fichier, elle ne
- * retombe pas exactement sur celle que publie l'INSEE (voir
- * `scripts/sante-emettre.ts`). Le seuil, lui, ne dépend d'aucun calcul d'ici.
+ * Les moyennes du département et de la France sont pondérées par la
+ * population, comme l'INSEE les publie — le calcul redonne ses 3,8 et 2,9 de
+ * 2023 (voir `scripts/sante-emettre.ts`). Paris, Lyon et Marseille ont en plus
+ * le détail de leurs arrondissements, que la DREES publie un à un.
  */
 import type { Sante } from '../../modele/fiche-vie.ts';
 import { tendance } from '../../vues/graphiques.ts';
 
 interface Props {
   s: Sante;
+  /** Le nom du département ; null quand la commune est le département, comme Paris. */
+  depNom: string | null;
 }
-const { s } = Astro.props;
+const { s, depNom } = Astro.props;
 const SEUIL = 2.5;
 const n = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const i = s.apl.findLastIndex((a) => a[0] !== null);
@@ -21,6 +24,15 @@ const [apl, apl65] = s.apl[i];
 const annee = s.annees[i];
 const sous = apl! <= SEUIL;
 const ecart = apl65 !== null && apl! - apl65 >= 0.1 ? apl! - apl65 : null;
+const moyDep = depNom ? s.departement?.[i] ?? null : null;
+const moyFr = s.france?.[i] ?? null;
+const comparaison = [moyDep !== null ? `${depNom} ${n(moyDep)}` : null, moyFr !== null ? `France ${n(moyFr)}` : null].filter(Boolean).join(', ');
+// « 1er », « 2e »… d'après le code de l'arrondissement.
+const rang = (code: string) => {
+  const k = Number(code.startsWith('6938') ? code.slice(4) : code.slice(3));
+  return k === 1 ? '1er' : `${k}e`;
+};
+const arr = [...s.arrondissements].sort((a, b) => a.apl - b.apl);
 const courbe = s.apl.filter((a) => a[0] !== null).length >= 2
   ? tendance(s.apl.map((a) => a[0]), s.annees, (v) => `${n(v)} consultations`)
   : null;
@@ -32,7 +44,14 @@ const courbe = s.apl.filter((a) => a[0] !== null).length >= 2
   {sous
     ? `C'est au-dessous du seuil de ${n(SEUIL)} sous lequel l'INSEE considère une commune comme sous-dotée en généralistes.`
     : `Le seuil sous lequel l'INSEE considère une commune comme sous-dotée est de ${n(SEUIL)}.`}
+  {comparaison && ` En moyenne : ${comparaison}.`}
 </p>
+{arr.length > 1 && (
+  <p class="p-strate">
+    {`D’un arrondissement à l’autre, de ${n(arr[0].apl)} dans le ${rang(arr[0].code)} à ${n(arr.at(-1)!.apl)} dans le ${rang(arr.at(-1)!.code)} : ` +
+      [...s.arrondissements].sort((a, b) => a.code.localeCompare(b.code)).map((a) => `${rang(a.code)} ${n(a.apl)}`).join(' · ') + '.'}
+  </p>
+)}
 {courbe && (
   <p class="p-tendance-ligne">
     <Fragment set:html={courbe} />
@@ -52,6 +71,6 @@ const courbe = s.apl.filter((a) => a[0] !== null).length >= 2
 </p>
 <p class="p-source-territoire">
   {`D’après l’indicateur d’accessibilité potentielle localisée de la DREES, ${s.annees[0]} à ${annee} (${s.maj}) : `}
-  {'omnipraticiens libéraux, certains médecins à exercice particulier et médecins salariés des centres de santé. '}
-  {'Le seuil de 2,5 est celui de l’'}<a href="https://www.insee.fr/fr/statistiques/8677556" target="_blank" rel="noopener">INSEE</a>{'.'}
+  {'omnipraticiens libéraux, certains médecins à exercice particulier et médecins salariés des centres de santé ; France hors Mayotte, que l’indicateur ne couvre pas. '}
+  {'Le seuil de 2,5 et la façon de calculer une moyenne — pondérée par la population — sont ceux de l’'}<a href="https://www.insee.fr/fr/statistiques/8677556" target="_blank" rel="noopener">INSEE</a>{'.'}
 </p>

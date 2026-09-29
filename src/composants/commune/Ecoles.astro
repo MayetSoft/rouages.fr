@@ -7,6 +7,7 @@
  * dirait rien.
  */
 import type { Ecoles } from '../../modele/fiche-vie.ts';
+import { nomEcole } from '../../vues/nom-ecole.ts';
 
 interface Props {
   e: Ecoles;
@@ -19,14 +20,13 @@ const ref = (type: 'école' | 'collège', secteur: 'public' | 'privé') => {
   const k = secteur === 'public' ? 0 : 1;
   return { dep: r?.dep[k] ?? null, france: r?.france[k] ?? null };
 };
-// Les noms de l'annuaire sont en capitales : on les rend lisibles sans rien réécrire d'autre.
-// Les capitales de l'annuaire ont perdu leurs accents : on les rend aux deux mots qui ouvrent presque tous les noms.
-const nom = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/(^|[\s'’-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase())
-    .replace(/^Ecole\b/, 'École')
-    .replace(/^College\b/, 'Collège');
+// Les noms de l'annuaire, rendus lisibles (voir `src/vues/nom-ecole.ts`) ; le
+// secteur n'est ajouté que si le nom ne le dit pas déjà.
+const nom = (x: string) => nomEcole(x);
+const libelle = (x: { nom: string; secteur: string }) => {
+  const n = nomEcole(x.nom);
+  return /\b(publique?|privée?)\b/i.test(n) ? n : `${n} (${x.secteur})`;
+};
 const rentrees = [...new Set(e.etablissements.map((x) => e.rentrees[x.type]))];
 // Au-delà de vingt établissements — Paris en compte près de huit cents —, un
 // tableau pèserait plus que tout le reste de la page : on donne l'étendue.
@@ -63,7 +63,7 @@ const etendue = (type: 'école' | 'collège') => {
   <tbody>
     {e.etablissements.map((x) => (
       <tr>
-        <th scope="row">{`${nom(x.nom)} (${x.secteur})`}</th>
+        <th scope="row">{libelle(x)}</th>
         <td>{n(x.ips)}</td>
         <td>{n(ref(x.type, x.secteur).dep)}</td>
         <td>{n(ref(x.type, x.secteur).france)}</td>

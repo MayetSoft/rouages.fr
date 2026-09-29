@@ -3,16 +3,26 @@
  * La participation aux élections nationales depuis 2022, scrutin par scrutin,
  * comparée à celle de la métropole et des départements d'outre-mer réunis.
  *
- * Pas de voix par candidat : le site décrit des mécanismes, pas des camps. Les
- * résultats complets sont dans les fichiers du ministère, cités en source.
+ * Puis les voix : les six premiers candidats ou listes de la commune, en part
+ * des suffrages exprimés, et les autres réunis — dans l'ordre des voix, sans
+ * autre commentaire. Aux législatives, la nuance est l'abréviation du ministère.
  */
-type Participation = [number, number, number, number, number];
+import type { Participation, Voix } from '../../modele/fiche-vie.ts';
+
 interface Props {
   scrutins: { id: string; nom: string; date: string; france: Participation | null }[];
   resultats: (Participation | null)[];
+  voix: (Voix | null)[];
   maj: string;
 }
-const { scrutins, resultats, maj } = Astro.props;
+const { scrutins, resultats, voix, maj } = Astro.props;
+const pc1 = (v: number) => `${(v * 100).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}\u00a0%`;
+const details = scrutins
+  .map((s, i) => ({ s, r: resultats[i], v: voix[i] }))
+  .filter((x): x is { s: (typeof scrutins)[number]; r: Participation; v: Voix } => !!x.r && x.r[4] > 0 && !!x.v && x.v[0].length > 0);
+// Une liste européenne s'écrit en capitales, parfois avec le nom de sa tête : on
+// la reprend telle quelle, c'est son nom officiel.
+const legislatives = details.some((d) => d.s.id.startsWith("legi"));
 const pc = (v: number) => `${Math.round(v * 100).toLocaleString('fr-FR')} %`;
 const lignes = scrutins
   .map((s, i) => ({ s, r: resultats[i] }))
@@ -45,9 +55,27 @@ const partiel = (id: string, r: Participation) => id === 'legi2024-t2' && t1 && 
   </tbody>
 </table>
 </div>
+{details.length > 0 && (
+  <details class="p-service-groupe">
+    <summary class="p-service-famille">Les voix, scrutin par scrutin</summary>
+    <dl class="p-votes-voix">
+      {details.map(({ s, r, v }) => (
+        <div>
+          <dt>{s.nom}</dt>
+          <dd>
+            {v[2] > 1
+              ? 'La commune couvre plusieurs circonscriptions, que le fichier du ministère réunit : chaque candidat ne se présentait que dans la sienne, et un classement commun ne voudrait rien dire.'
+              : v[0].map(([nom, n]) => `${nom} ${pc1(n / r[4])}`).join(' · ') + (v[1] > 0 ? ` · autres ${pc1(v[1] / r[4])}` : '')}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </details>
+)}
 <p class="p-source-territoire">
   {`D’après les résultats définitifs publiés par le ministère de l’Intérieur (${maj}), qui donnent aussi les voix de chaque candidat et de chaque liste. ` +
     'La référence additionne les communes de métropole et des départements d’outre-mer : sans les Français de l’étranger, elle est un peu plus haute ' +
     'que la participation officielle, qui les compte. Au second tour des législatives, elle n’a pas de sens : ' +
-    'une partie des circonscriptions avait élu son député au premier.'}
+    'une partie des circonscriptions avait élu son député au premier. Les voix sont rapportées aux suffrages exprimés dans la commune.' +
+    (legislatives ? ' Aux législatives, la nuance entre parenthèses est l’abréviation que le ministère attribue à chaque candidat.' : '')}
 </p>

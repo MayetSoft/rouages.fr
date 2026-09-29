@@ -4,9 +4,13 @@
  * législatives de 2024, d'après les résultats définitifs du ministère de
  * l'intérieur.
  *
- * La participation seulement, pas les voix des candidats : le site décrit des
- * mécanismes, et c'est la participation qui dit si les habitants se servent
- * du levier. Les voix sont dans les fichiers du ministère, cités en source.
+ * La participation d'abord, puis les voix : les six premiers candidats ou
+ * listes de la commune, et le reste réuni. Les noms sont ceux du fichier du
+ * ministère — des données, pas des nœuds du graphe. Aux législatives, la
+ * nuance est l'abréviation que le ministère attribue à chaque candidat, telle
+ * qu'il la publie : sa grille de 2024 (UG, UXD, HOR…) n'est pas publiée en
+ * données ouvertes avec ses libellés, et le site ne les développe pas de
+ * mémoire.
  *
  * Les fichiers ne se ressemblent pas : la présidentielle de 2022 est en
  * Latin-1, le code de la commune sans son département, l'outre-mer sous des
@@ -75,11 +79,16 @@ export const SCRUTINS = [
 /** Inscrits, votants, blancs, nuls, exprimés. */
 export type Participation = [number, number, number, number, number];
 
+/** Les premiers candidats ou listes, [libellé, voix], les voix des autres, et au moins combien de circonscriptions couvre la commune (1 hors législatives). */
+export type Voix = [[string, number][], number, number];
+/** Combien de candidats ou de listes on nomme ; les autres sont réunis. */
+export const PREMIERS = 6;
+
 export interface Votes {
   maj: string;
   scrutins: { id: string; nom: string; date: string; france: Participation | null }[];
-  /** Par commune, un scrutin après l'autre ; null quand la commune n'y a pas voté (second tour sans objet). */
-  communes: Map<string, (Participation | null)[]>;
+  /** Par commune, un scrutin après l'autre : la participation, puis les voix ; null quand la commune n'y a pas voté. */
+  communes: Map<string, [Participation | null, Voix | null][]>;
 }
 
 /** Les départements d'outre-mer de la présidentielle, codés « Z… » par le ministère. */
@@ -96,8 +105,18 @@ function codeInsee(dep: string, commune: string): string | null {
   return `${d.padStart(2, '0')}${c.padStart(3, '0')}`;
 }
 
-export async function lireScrutin(chemin: string, encodage: 'latin1' | 'utf-8'): Promise<Map<string, Participation>> {
+export interface Scrutin {
+  participation: Map<string, Participation>;
+  voix: Map<string, Voix>;
+}
+
+export async function lireScrutin(chemin: string, encodage: 'latin1' | 'utf-8'): Promise<Scrutin> {
   const communes = new Map<string, Participation>();
+  const candidats = new Map<string, Map<string, number>>();
+  const lignes = new Map<string, number>();
+  // Les colonnes d'un candidat ou d'une liste se répètent : on repère le premier
+  // groupe par ses en-têtes, puis on avance d'un groupe à l'autre.
+  let groupe: { debut: number; pas: number; nom: number; prenom: number; nuance: number; liste: number; voix: number } | null = null;
   const decodeur = new TextDecoder(encodage === 'latin1' ? 'latin1' : 'utf-8');
   async function* texte() {
     for await (const m of createReadStream(chemin) as unknown as AsyncIterable<Uint8Array>) yield decodeur.decode(m, { stream: true });
@@ -120,6 +139,25 @@ export async function lireScrutin(chemin: string, encodage: 'latin1' | 'utf-8'):
         nuls: trouve(/^nuls$/),
         exprimes: trouve(/^exprim[ée]s$/),
       };
+      const debut = noms.findIndex((n) => /^(n°panneau|num[ée]ro de panneau 1)$/.test(n));
+      if (debut !== -1) {
+        const second = noms.findIndex((n) => /^num[ée]ro de panneau 2$/.test(n));
+        const dans = (motif: RegExp) => {
+          const k = noms.slice(debut).findIndex((n) => motif.test(n));
+          return k === -1 ? -1 : k;
+        };
+        groupe = {
+          debut,
+          // La présidentielle n'a qu'un groupe d'en-têtes : sept colonnes par candidat.
+          pas: second !== -1 ? second - debut : 7,
+          nom: dans(/^nom( candidat 1)?$/),
+          prenom: dans(/^pr[ée]nom( candidat 1)?$/),
+          nuance: dans(/^nuance candidat 1$/),
+          liste: dans(/^libell[ée] de liste 1$/),
+          voix: dans(/^voix( 1)?$/),
+        };
+        if (groupe.voix === -1 || (groupe.nom === -1 && groupe.liste === -1)) groupe = null;
+      }
       continue;
     }
     if (v.length < 8) continue;
@@ -132,8 +170,39 @@ export async function lireScrutin(chemin: string, encodage: 'latin1' | 'utf-8'):
     // Une commune partagée entre plusieurs circonscriptions a plusieurs lignes.
     const deja = communes.get(code);
     communes.set(code, deja ? (deja.map((y, i) => y + x[i]) as Participation) : x);
+    lignes.set(code, (lignes.get(code) ?? 0) + 1);
+    if (!groupe) continue;
+    let c = candidats.get(code);
+    if (!c) candidats.set(code, (c = new Map()));
+    for (let g = groupe.debut; g + groupe.voix < v.length; g += groupe.pas) {
+      const voix = n(g + groupe.voix);
+      const libelle =
+        groupe.liste !== -1
+          ? v[g + groupe.liste].trim()
+          : `${v[g + groupe.prenom]?.trim() ?? ''} ${v[g + groupe.nom].trim()}`.trim() +
+            (groupe.nuance !== -1 && v[g + groupe.nuance]?.trim() ? ` (${v[g + groupe.nuance].trim()})` : '');
+      if (!libelle) continue;
+      c.set(libelle, (c.get(libelle) ?? 0) + voix);
+    }
   }
-  return communes;
+  const voix = new Map<string, Voix>();
+  for (const [code, c] of candidats) {
+    const tries = [...c].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+    const autres = tries.slice(PREMIERS).reduce((s2, [, v]) => s2 + v, 0);
+    // Une grande ville couvre plusieurs circonscriptions, mais le fichier par
+    // commune la réunit en une ligne : ses « premiers » mélangeraient des
+    // candidats qui ne s'affrontaient pas. Les grandes coalitions n'avaient
+    // qu'un candidat par circonscription ; en trouver deux d'une même nuance,
+    // c'est que la commune en couvre plusieurs.
+    const parNuance = new Map<string, number>();
+    for (const [nom] of tries) {
+      const nuance = /\(([A-Z]+)\)$/.exec(nom)?.[1];
+      if (nuance && ['UG', 'RN', 'UXD', 'ENS'].includes(nuance)) parNuance.set(nuance, (parNuance.get(nuance) ?? 0) + 1);
+    }
+    const plusieurs = Math.max(lignes.get(code) ?? 1, ...parNuance.values(), 1);
+    voix.set(code, [tries.slice(0, PREMIERS), autres, plusieurs]);
+  }
+  return { participation: communes, voix };
 }
 
 export async function collecterVotes(
@@ -142,18 +211,23 @@ export async function collecterVotes(
   dire: (m: string) => void,
 ): Promise<Votes | null> {
   const lus: Map<string, Participation>[] = [];
+  const voix: Map<string, Voix>[] = [];
   for (const s of SCRUTINS) {
     const vers = join(cache, `elections-${s.id}.${s.url.endsWith('.txt') ? 'txt' : 'csv'}`);
     try {
       await telecharger(s.url, vers);
-      lus.push(await lireScrutin(vers, s.encodage));
+      const l = await lireScrutin(vers, s.encodage);
+      lus.push(l.participation);
+      voix.push(l.voix);
     } catch (e) {
       dire(`Élections nationales, ${s.nom} : ${(e as Error).message} — l’ingestion précédente reste en place.`);
       return null;
     }
   }
   const codes = new Set(lus.flatMap((m) => [...m.keys()]));
-  const communes = new Map([...codes].map((c) => [c, lus.map((m) => m.get(c) ?? null)] as const));
+  const communes = new Map(
+    [...codes].map((c) => [c, lus.map((m, i) => [m.get(c) ?? null, voix[i].get(c) ?? null] as [Participation | null, Voix | null])] as const),
+  );
   const scrutins = SCRUTINS.map((s, i) => ({
     id: s.id,
     nom: s.nom,
