@@ -1,0 +1,35 @@
+---
+/**
+ * La surface agricole des exploitations dont le siège est dans la commune,
+ * d'après le recensement agricole. La précaution du siège passe en tête : sans
+ * elle, le chiffre se lit comme la part du territoire qui est cultivée.
+ */
+import type { Agriculture } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  a: Agriculture;
+}
+const { a } = Astro.props;
+const ha = (v: number) => `${v.toLocaleString('fr-FR')} ha`;
+const pc = (v: number) => `${Math.round(v * 100).toLocaleString('fr-FR')} %`;
+const parts = a.sau > 0
+  ? [
+      a.prairies > 0 ? `${pc(a.prairies / a.sau)} de prairies` : null,
+      a.cereales > 0 ? `${pc(a.cereales / a.sau)} de céréales et d’oléoprotéagineux` : null,
+      a.permanentes > 0 ? `${pc(a.permanentes / a.sau)} de cultures permanentes — vignes, vergers` : null,
+    ].filter(Boolean)
+  : [];
+---
+<p class="mesure">
+  {a.sau > 0
+    ? `Les exploitations qui ont leur siège dans la commune cultivaient ${ha(a.sau)} en ${a.recensement}` +
+      (parts.length > 0 ? `, dont ${parts.join(', ')}.` : '.')
+    : `Aucune exploitation agricole n’avait son siège dans la commune en ${a.recensement}.`}
+</p>
+<p class="p-strate">
+  Toute la surface d’une exploitation est comptée à la commune de son siège, même quand ses champs sont chez les voisins :
+  le chiffre peut dépasser la surface de la commune, ou être nul au milieu des cultures.
+</p>
+<p class="p-source-territoire">
+  {`D’après le recensement agricole ${a.recensement} du service statistique du ministère de l’agriculture, Agreste (${a.maj}).`}
+</p>

@@ -1,0 +1,53 @@
+---
+/**
+ * La participation aux élections nationales depuis 2022, scrutin par scrutin,
+ * comparée à celle de la métropole et des départements d'outre-mer réunis.
+ *
+ * Pas de voix par candidat : le site décrit des mécanismes, pas des camps. Les
+ * résultats complets sont dans les fichiers du ministère, cités en source.
+ */
+type Participation = [number, number, number, number, number];
+interface Props {
+  scrutins: { id: string; nom: string; date: string; france: Participation | null }[];
+  resultats: (Participation | null)[];
+  maj: string;
+}
+const { scrutins, resultats, maj } = Astro.props;
+const pc = (v: number) => `${Math.round(v * 100).toLocaleString('fr-FR')} %`;
+const lignes = scrutins
+  .map((s, i) => ({ s, r: resultats[i] }))
+  .filter((x): x is { s: (typeof scrutins)[number]; r: Participation } => !!x.r && x.r[0] > 0);
+// Au second tour des législatives, une partie de la commune — ou toute — a pu
+// élire son député au premier : les inscrits le disent.
+const t1 = resultats[scrutins.findIndex((s) => s.id === 'legi2024-t1')];
+const partiel = (id: string, r: Participation) => id === 'legi2024-t2' && t1 && r[0] < 0.9 * t1[0];
+---
+<div class="cpt-defile" tabindex="0" role="region" aria-label="Les votes nationaux — le tableau défile sur les petits écrans">
+<table class="cpt-tableau">
+  <caption>Participation, et part des votants qui ont voté blanc ou nul</caption>
+  <thead>
+    <tr>
+      <th scope="col">Scrutin</th>
+      <th scope="col">Participation</th>
+      <th scope="col">Métropole et DOM</th>
+      <th scope="col">Blancs et nuls</th>
+    </tr>
+  </thead>
+  <tbody>
+    {lignes.map(({ s, r }) => (
+      <tr>
+        <th scope="row">{s.nom}{partiel(s.id, r) && <span class="cpt-sur"> (une partie de la commune)</span>}</th>
+        <td>{pc(r[1] / r[0])}</td>
+        <td>{s.france ? pc(s.france[1] / s.france[0]) : '—'}</td>
+        <td>{r[1] > 0 ? pc((r[2] + r[3]) / r[1]) : '—'}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+</div>
+<p class="p-source-territoire">
+  {`D’après les résultats définitifs publiés par le ministère de l’Intérieur (${maj}), qui donnent aussi les voix de chaque candidat et de chaque liste. ` +
+    'La référence additionne les communes de métropole et des départements d’outre-mer : sans les Français de l’étranger, elle est un peu plus haute ' +
+    'que la participation officielle, qui les compte. Au second tour des législatives, elle n’a pas de sens : ' +
+    'une partie des circonscriptions avait élu son député au premier.'}
+</p>

@@ -1,0 +1,86 @@
+---
+/**
+ * L'indice de position sociale des écoles et des collèges de la commune,
+ * comparé à celui du département et de la France que publie le ministère,
+ * public et privé à part : les deux secteurs ont des références très
+ * différentes, et comparer une école privée à la moyenne de l'ensemble ne
+ * dirait rien.
+ */
+import type { Ecoles } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  e: Ecoles;
+  depNom: string;
+}
+const { e, depNom } = Astro.props;
+const n = (v: number | null | undefined) => (v == null ? '—' : v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+const ref = (type: 'école' | 'collège', secteur: 'public' | 'privé') => {
+  const r = e.references?.[type];
+  const k = secteur === 'public' ? 0 : 1;
+  return { dep: r?.dep[k] ?? null, france: r?.france[k] ?? null };
+};
+// Les noms de l'annuaire sont en capitales : on les rend lisibles sans rien réécrire d'autre.
+// Les capitales de l'annuaire ont perdu leurs accents : on les rend aux deux mots qui ouvrent presque tous les noms.
+const nom = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/(^|[\s'’-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase())
+    .replace(/^Ecole\b/, 'École')
+    .replace(/^College\b/, 'Collège');
+const rentrees = [...new Set(e.etablissements.map((x) => e.rentrees[x.type]))];
+// Au-delà de vingt établissements — Paris en compte près de huit cents —, un
+// tableau pèserait plus que tout le reste de la page : on donne l'étendue.
+const LIMITE = 20;
+const long = e.etablissements.length > LIMITE;
+const etendue = (type: 'école' | 'collège') => {
+  const x = e.etablissements.filter((y) => y.type === type).sort((a, b) => a.ips - b.ips);
+  if (x.length === 0) return null;
+  const pluriel = type === 'école' ? 'écoles' : 'collèges';
+  return x.length === 1
+    ? `un${type === 'école' ? 'e' : ''} ${type}, d’indice ${n(x[0].ips)}`
+    : `${x.length.toLocaleString('fr-FR')} ${pluriel}, d’un indice de ${n(x[0].ips)} (${nom(x[0].nom)}) à ${n(x.at(-1)!.ips)} (${nom(x.at(-1)!.nom)})`;
+};
+---
+{long && (
+  <p class="mesure">
+    {`À la rentrée ${rentrees.join(' et ')} : ${[etendue('école'), etendue('collège')].filter(Boolean).join(' ; ')}. ` +
+      `Pour comparer : ${depNom}, ${n(ref('école', 'public').dep)} dans les écoles publiques et ${n(ref('école', 'privé').dep)} dans les privées ; ` +
+      `France, ${n(ref('école', 'public').france)} et ${n(ref('école', 'privé').france)}.`}
+  </p>
+)}
+{!long && (
+<div class="cpt-defile" tabindex="0" role="region" aria-label="Les écoles — le tableau défile sur les petits écrans">
+<table class="cpt-tableau">
+  <caption>{`Indice de position sociale, rentrée ${rentrees.join(' et ')}`}</caption>
+  <thead>
+    <tr>
+      <th scope="col">Établissement</th>
+      <th scope="col">IPS</th>
+      <th scope="col">{depNom}</th>
+      <th scope="col">France</th>
+    </tr>
+  </thead>
+  <tbody>
+    {e.etablissements.map((x) => (
+      <tr>
+        <th scope="row">{`${nom(x.nom)} (${x.secteur})`}</th>
+        <td>{n(x.ips)}</td>
+        <td>{n(ref(x.type, x.secteur).dep)}</td>
+        <td>{n(ref(x.type, x.secteur).france)}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+</div>
+)}
+<p class="p-strate">
+  {'L’indice résume les conditions sociales et culturelles des familles des élèves, d’après la profession de leurs parents surtout : ' +
+    'plus il est haut, plus les élèves viennent de milieux favorisés. Il décrit qui fréquente l’établissement, pas ce qu’on y enseigne. ' +
+    'Le département et la France sont ceux du même secteur, public ou privé, et du même type d’établissement. Les enseignants et les ouvertures de classes relèvent du '}
+  <a href="/n/rectorat">rectorat</a>
+  {' ; les murs d’une école, de la commune, ceux d’un collège, du '}<a href="/n/colleges">département</a>{'.'}
+</p>
+<p class="p-source-territoire">
+  {`D’après les indices de position sociale publiés par le ministère de l’Éducation nationale (${e.maj}). ` +
+    'Les résultats au brevet par établissement ne sont pas repris : le jeu national s’arrête à la session 2021.'}
+</p>

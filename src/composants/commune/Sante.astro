@@ -1,0 +1,57 @@
+---
+/**
+ * Voir un médecin généraliste : l'accessibilité potentielle localisée de la
+ * DREES, et le seuil sous lequel l'INSEE tient une commune pour sous-dotée.
+ *
+ * Pas de moyenne nationale : recalculée d'après la note du fichier, elle ne
+ * retombe pas exactement sur celle que publie l'INSEE (voir
+ * `scripts/sante-emettre.ts`). Le seuil, lui, ne dépend d'aucun calcul d'ici.
+ */
+import type { Sante } from '../../modele/fiche-vie.ts';
+import { tendance } from '../../vues/graphiques.ts';
+
+interface Props {
+  s: Sante;
+}
+const { s } = Astro.props;
+const SEUIL = 2.5;
+const n = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const i = s.apl.findLastIndex((a) => a[0] !== null);
+const [apl, apl65] = s.apl[i];
+const annee = s.annees[i];
+const sous = apl! <= SEUIL;
+const ecart = apl65 !== null && apl! - apl65 >= 0.1 ? apl! - apl65 : null;
+const courbe = s.apl.filter((a) => a[0] !== null).length >= 2
+  ? tendance(s.apl.map((a) => a[0]), s.annees, (v) => `${n(v)} consultations`)
+  : null;
+---
+<p class="mesure">
+  <strong>{`${n(apl!)} consultations par habitant et par an`}</strong>
+  {` : c'est, en ${annee}, ce qu'un habitant peut obtenir de médecine générale, compte tenu des médecins de la commune `}
+  {'et de ceux des communes voisines, de leur activité et de l’âge de la population. '}
+  {sous
+    ? `C'est au-dessous du seuil de ${n(SEUIL)} sous lequel l'INSEE considère une commune comme sous-dotée en généralistes.`
+    : `Le seuil sous lequel l'INSEE considère une commune comme sous-dotée est de ${n(SEUIL)}.`}
+</p>
+{courbe && (
+  <p class="p-tendance-ligne">
+    <Fragment set:html={courbe} />
+    <span class="p-evolution">{`de ${s.annees[0]} à ${annee}`}</span>
+  </p>
+)}
+{ecart !== null && (
+  <p class="p-strate">
+    {`Sans les médecins de plus de 65 ans, il n'en resterait que ${n(apl65!)} : ${n(ecart)} consultation${ecart >= 2 ? 's' : ''} par habitant ` +
+      `${ecart >= 2 ? 'dépendent' : 'dépend'} de médecins en âge de partir à la retraite.`}
+  </p>
+)}
+<p class="p-strate">
+  Ce n’est pas le maire qui en répond : le directeur général de l’<a href="/n/ars">agence régionale de santé</a>
+  arrête tous les deux ans les zones où l’offre de soins est insuffisante, et c’est là que s’appliquent les aides à
+  l’installation des médecins (article L1434-4 du code de la santé publique).
+</p>
+<p class="p-source-territoire">
+  {`D’après l’indicateur d’accessibilité potentielle localisée de la DREES, ${s.annees[0]} à ${annee} (${s.maj}) : `}
+  {'omnipraticiens libéraux, certains médecins à exercice particulier et médecins salariés des centres de santé. '}
+  {'Le seuil de 2,5 est celui de l’'}<a href="https://www.insee.fr/fr/statistiques/8677556" target="_blank" rel="noopener">INSEE</a>{'.'}
+</p>

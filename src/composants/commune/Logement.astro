@@ -1,0 +1,103 @@
+---
+/**
+ * Les logements de la commune et ce qu'ils coûtent : le parc d'après le
+ * recensement — principales, secondaires, vacantes, et qui les occupe —, puis
+ * le prix des ventes d'après DVF.
+ *
+ * Tout est en parts : un village de trois cents logements et une ville de
+ * trente mille se comparent ainsi à leur département et à la France. Les
+ * effectifs du recensement sont des estimations, d'où l'arrondi.
+ */
+import type { Immobilier, Parc } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  parc: Parc | null;
+  immobilier: Immobilier | null;
+  depNom: string | null;
+}
+const { parc, immobilier, depNom } = Astro.props;
+const pc = (v: number) => `${Math.round(v * 100).toLocaleString('fr-FR')} %`;
+const entier = (v: number) => Math.round(v).toLocaleString('fr-FR');
+const euros = (v: number) => `${entier(v)} €`;
+const [recent, ancien] = parc?.commune ?? [null, null];
+const dep = depNom ? parc?.departement?.[0] : null;
+const fr = parc?.france?.[0];
+// Les cases, dans l'ordre du collecteur : 0 logements, 1 principales, 2 secondaires, 3 vacants,
+// 4 propriétaires, 5 locataires privés, 6 logement social, 7 meublé, 8 logés gratuitement.
+const part = (x: number[] | null | undefined, i: number, sur: number) => (x && x[sur] > 0 ? x[i] / x[sur] : null);
+const lignes: [string, number, number][] = recent
+  ? [
+      ['Résidences secondaires ou occasionnelles', 2, 0],
+      ['Logements vacants', 3, 0],
+      ['Occupés par leur propriétaire', 4, 1],
+      ['Loués dans le parc privé', 5, 1],
+      ['Loués dans le parc social', 6, 1],
+    ]
+  : [];
+const compare = (i: number, sur: number) =>
+  [dep && part(dep, i, sur) !== null ? `${depNom} ${pc(part(dep, i, sur)!)}` : null, fr && part(fr, i, sur) !== null ? `France ${pc(part(fr, i, sur)!)}` : null]
+    .filter(Boolean)
+    .join(' · ');
+const m = immobilier?.commune;
+const d = depNom ? immobilier?.departement : null;
+---
+{recent && (
+  <>
+    <h3 class="p-titre-echelon">{`Ses logements, au recensement de ${parc!.millesimes[0]}`}</h3>
+    <p class="mesure">
+      {`${entier(recent[0])} logements, dont ${entier(recent[1])} résidences principales.`}
+      {ancien && ancien[0] > 0 &&
+        ` En ${parc!.millesimes[1]}, la commune en comptait ${entier(ancien[0])}, dont ${pc(ancien[3] / ancien[0])} de vacants, contre ${pc(recent[3] / recent[0])} aujourd’hui.`}
+    </p>
+    <div class="cpt-defile" tabindex="0" role="region" aria-label="Les logements — le tableau défile sur les petits écrans">
+    <table class="cpt-tableau">
+      <caption>Part des logements pour les deux premières lignes, des résidences principales pour les trois suivantes</caption>
+      <tbody>
+        {lignes.map(([nom, i, sur]) => (
+          <tr>
+            <th scope="row">{nom}</th>
+            <td>{pc(part(recent, i, sur) ?? 0)}</td>
+            <td class="cpt-sur">{compare(i, sur)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    </div>
+    <p class="p-strate">
+      {'Le logement social est compté par ses occupants : les ménages locataires d’un logement vide loué par un '}
+      <a href="/n/bailleur-social">bailleur social</a>
+      {'. Le répertoire des bailleurs dirait le parc lui-même, mais il n’est publié que logement par logement. '}
+      {'Un logement vacant est inoccupé au jour du recensement : à vendre, à louer, en attente de travaux ou de succession.'}
+    </p>
+    <p class="p-source-territoire">
+      {`D’après le recensement de l’INSEE, table « logements » (${parc!.maj}) : estimations, arrondies ici.`}
+    </p>
+  </>
+)}
+{m && (m.maisons > 0 || m.appartements > 0) && (
+  <>
+    <h3 class="p-titre-echelon">{`Ce qu’ils se vendent, de ${immobilier!.annees[0]} à ${immobilier!.annees.at(-1)}`}</h3>
+    <p class="mesure">
+      {m.maisons > 0 &&
+        `${entier(m.maisons)} maison${m.maisons > 1 ? 's vendues' : ' vendue'}` +
+          (m.prixMaison !== null
+            ? `, pour un prix médian de ${euros(m.prixMaison)}, soit ${euros(m.m2Maison!)} le mètre carré habitable` +
+              (d?.m2Maison ? ` (${depNom} : ${euros(d.m2Maison)})` : '') + '.'
+            : ` — trop peu pour une médiane, qui demande ${immobilier!.minimum} ventes.`)}
+      {m.appartements > 0 &&
+        ` ${entier(m.appartements)} appartement${m.appartements > 1 ? 's vendus' : ' vendu'}` +
+          (m.m2Appartement !== null
+            ? `, à ${euros(m.m2Appartement)} le mètre carré en médiane` + (d?.m2Appartement ? ` (${depNom} : ${euros(d.m2Appartement)})` : '') + '.'
+            : ' — trop peu pour une médiane.')}
+    </p>
+    <p class="p-strate">
+      {`Ventes de logements, année par année : ${immobilier!.annees.map((a, i) => `${entier(m.parAnnee[i] ?? 0)} en ${a}`).join(', ')}.`}
+      {' Chaque vente passe devant un '}<a href="/n/notaire">notaire</a>{', qui collecte les droits de mutation : l’essentiel revient au département, une part aux communes, une autre à l’État.'}
+    </p>
+    <p class="p-source-territoire">
+      {`D’après les demandes de valeurs foncières de la DGFiP, version géolocalisée publiée par data.gouv (${immobilier!.maj}). ` +
+        'Ne sont comptées que les ventes d’un seul logement, avec ou sans dépendances, dans une seule commune ; la médiane est le prix ' +
+        'qui partage ces ventes en deux moitiés. DVF ne couvre ni l’Alsace, ni la Moselle, ni Mayotte.'}
+    </p>
+  </>
+)}

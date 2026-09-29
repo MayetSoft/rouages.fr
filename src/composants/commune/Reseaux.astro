@@ -1,0 +1,121 @@
+---
+/**
+ * Les réseaux qui arrivent jusqu'aux maisons : l'eau du robinet, la fibre, et
+ * l'électricité et le gaz. Pour chacun, ce qu'on en sait ici, et qui en répond
+ * — parce que ce n'est presque jamais la commune seule.
+ *
+ * L'eau : les limites de qualité seulement, celles qui protègent la santé. Les
+ * références de qualité — goût, conductivité — ne sont pas comptées : elles
+ * signalent un défaut d'installation, pas un danger, et la réglementation les
+ * distingue.
+ */
+import type { EauRobinet, Energie, Fibre } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  eau: EauRobinet | null;
+  fibre: Fibre | null;
+  energie: Energie | null;
+}
+const { eau, fibre, energie } = Astro.props;
+const entier = (v: number) => Math.round(v).toLocaleString('fr-FR');
+const pc = (v: number) => `${Math.round(v * 100).toLocaleString('fr-FR')} %`;
+const date = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).replace(/^1 /, '1er ');
+const mwh = (v: number) => `${v.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} MWh`;
+// Les libellés de SISE-Eaux sont en capitales ; on les laisse tels quels, ce sont des noms.
+const nonConformes = eau ? eau.bacterio + eau.chimique : 0;
+// L'ANCT range chaque commune en zone d'initiative publique — le réseau d'une
+// collectivité — ou privée — celui d'un opérateur. Le détail (AMII, AMEL…) est
+// un historique de conventions que la page ne reprend pas.
+const zone = fibre
+  ? [...new Set(fibre.zone.split(' / ').map((z) => (z === 'RIP' ? 'un réseau d’initiative publique, porté par une collectivité' : 'le réseau d’un opérateur privé')))].join(' et ')
+  : '';
+const parLogement = (f: { residentiel: number; points: number }) => (f.points > 0 ? f.residentiel / f.points : null);
+const autre = (d: string[], principal: string) => d.filter((x) => x !== principal);
+---
+{eau && (
+  <>
+    <h3 class="p-titre-echelon">L’eau du robinet</h3>
+    <p class="mesure">
+      {nonConformes === 0
+        ? `Les ${entier(eau.prelevements)} prélèvements du contrôle sanitaire faits du ${date(eau.du)} au ${date(eau.au)} ` +
+          'sur les réseaux qui desservent la commune étaient tous conformes aux limites de qualité.'
+        : `Sur ${entier(eau.prelevements)} prélèvements du contrôle sanitaire faits du ${date(eau.du)} au ${date(eau.au)}, ` +
+          [eau.bacterio > 0 ? `${entier(eau.bacterio)} dépassaient une limite microbiologique` : null,
+           eau.chimique > 0 ? `${entier(eau.chimique)} une limite chimique — nitrates, pesticides, métaux…` : null]
+            .filter(Boolean).join(', et ') +
+          (eau.dernierNonConforme ? `. Le dernier date du ${date(eau.dernierNonConforme)}.` : '.')}
+      {eau.derogation > 0 &&
+        ` ${entier(eau.derogation)} prélèvement${eau.derogation > 1 ? 's étaient conformes' : ' était conforme'} ` +
+          'seulement grâce à une dérogation : à la demande du distributeur, le préfet peut autoriser pour trois ans au plus ' +
+          'une eau qui dépasse une limite chimique sans danger pour la santé, faute d’autre moyen de distribuer une eau conforme ' +
+          '(article R1321-31 du code de la santé publique).'}
+    </p>
+    <p class="p-strate">
+      {'L’eau est distribuée par '}<a href="/n/eau-potable">le service qui en a la compétence</a>
+      {eau.maitreOuvrage ? ` — ${eau.maitreOuvrage}` : ''}
+      {eau.exploitant && eau.exploitant !== eau.maitreOuvrage ? `, exploité par ${eau.exploitant}` : ''}
+      {'. Le contrôle, lui, revient à l’'}<a href="/n/ars">agence régionale de santé</a>
+      {', que le distributeur doit prévenir, avec le maire, au premier dépassement d’une limite.'}
+    </p>
+    <p class="p-source-territoire">
+      {`D’après les résultats du contrôle sanitaire de l’eau distribuée publiés par le ministère chargé de la santé (${eau.maj}). ` +
+        'Un prélèvement fait en amont, à l’usine ou au captage, compte pour chaque réseau qu’il alimente. Les bulletins détaillés, ' +
+        'paramètre par paramètre, sont sur '}<a href="https://sante.gouv.fr/sante-et-environnement/eaux/eau" target="_blank" rel="noopener">le site du ministère</a>{'.'}
+    </p>
+  </>
+)}
+{fibre && (
+  <>
+    <h3 class="p-titre-echelon">La fibre, et la fin du cuivre</h3>
+    <p class="mesure">
+      {`${entier(fibre.raccordables)} locaux sur ${entier(fibre.locaux)} peuvent être raccordés à la fibre, soit ${pc(fibre.raccordables / fibre.locaux)}, ` +
+        `au ${fibre.trimestre.replace(/(\d{4}) T(\d)/, (_, a, t) => `${t === '1' ? '1er' : `${t}e`} trimestre ${a}`)}. `}
+      {`Le réseau est porté par ${fibre.porteur} : ${zone}.`}
+    </p>
+    {fibre.finCuivre && (
+      <p class="p-strate">
+        {`Le réseau téléphonique en cuivre d’Orange doit y être fermé d’ici la fin de ${fibre.finCuivre}` +
+          (fibre.cuivre.some((c) => c.locaux > 0 && c.locaux < fibre.locaux)
+            ? `, par étapes : ${fibre.cuivre.filter((c) => c.locaux > 0).map((c) => `${entier(c.locaux)} locaux fin ${c.annee}`).join(', ')}.`
+            : '.') +
+          ' Une ligne qui passe encore par le cuivre devra alors passer par la fibre ou un autre réseau.'}
+      </p>
+    )}
+    <p class="p-source-territoire">
+      {`D’après l’indicateur France Très Haut Débit de l’ANCT (${fibre.maj}), sur la base de locaux de l’Arcep — logements et locaux professionnels. ` +
+        'Qui construit et exploite le réseau : '}<a href="/n/reseaux-numeriques">les réseaux numériques</a>{'.'}
+    </p>
+  </>
+)}
+{energie && (energie.electricite || energie.gaz) && (
+  <>
+    <h3 class="p-titre-echelon">{`L’électricité et le gaz, en ${energie.annee}`}</h3>
+    <p class="mesure">
+      {energie.electricite && parLogement(energie.electricite) !== null &&
+        `Un logement de la commune a consommé en moyenne ${mwh(parLogement(energie.electricite)!)} d’électricité ` +
+          `(${entier(energie.electricite.points)} points de livraison résidentiels). `}
+      {energie.gaz && parLogement(energie.gaz) !== null
+        ? `Ceux qui sont raccordés au gaz — ${entier(energie.gaz.points)} points — en ont consommé ${mwh(parLogement(energie.gaz)!)} chacun en moyenne.`
+        : 'La commune n’a pas de réseau de distribution de gaz, ou aucun logement n’y est raccordé.'}
+      {energie.electricite && ` Toute la commune, entreprises et services compris : ${mwh(energie.electricite.total)} d’électricité` +
+        (energie.gaz ? ` et ${mwh(energie.gaz.total)} de gaz.` : '.')}
+    </p>
+    <p class="p-strate">
+      {energie.electricite && (autre(energie.electricite.distributeurs, 'Enedis').length > 0
+        ? `L’électricité n’y est pas distribuée par Enedis mais par ${autre(energie.electricite.distributeurs, 'Enedis').join(', ')}, ` +
+          'une entreprise locale de distribution. '
+        : 'L’électricité est distribuée par ')}
+      {energie.electricite && autre(energie.electricite.distributeurs, 'Enedis').length === 0 && (
+        <><a href="/n/enedis">Enedis</a>{', concessionnaire du '}<a href="/n/syndicat-energie">syndicat d’énergie</a>{', propriétaire du réseau. '}</>
+      )}
+      {energie.gaz && `Le gaz, par ${energie.gaz.distributeurs.join(', ')}.`}
+    </p>
+    <p class="p-source-territoire">
+      {`D’après l’Agence ORE, qui réunit les données des gestionnaires de réseau (${energie.maj}).`}
+      {((energie.electricite?.mailles ?? 0) + (energie.gaz?.mailles ?? 0)) > 0 &&
+        ' Des consommations trop peu nombreuses pour être anonymes — une entreprise seule dans son secteur — sont retirées du fichier : ' +
+          'les totaux de la commune sont donc des minimums.'}
+    </p>
+  </>
+)}
