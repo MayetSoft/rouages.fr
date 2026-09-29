@@ -2643,12 +2643,15 @@ pas encore qu'on a vérifié ses chiffres.
 
 ### Lot 0 — Fiabiliser avant d'ajouter
 
-- **Réingérer en intégration continue.** L'ingestion complète ne tourne
-  aujourd'hui que dans l'environnement de développement, dont le tunnel coupe
-  les gros fichiers. Un workflow déclenché à la main lancerait `npm run
-  territoires` sur le réseau de GitHub et ouvrirait une PR avec les fichiers
-  réécrits. C'est aussi le premier passage des dix collectes de la PR #10 dans
-  la chaîne entière.
+- **Réingérer en intégration continue.** Fait : le workflow « Réingestion
+  des territoires » (`.github/workflows/reingerer.yml`), déclenché à la main,
+  lance `npm run territoires` sur le réseau de GitHub, refait le contrôle de
+  `ci.yml` — une PR ouverte par le jeton du workflow ne le relance pas — et
+  ouvre une PR avec les fichiers réécrits, les collectes en échec et le
+  nombre de fichiers par jeu. Il faut autoriser GitHub Actions à ouvrir des
+  PR (Settings → Actions → General) ; sinon la branche est poussée et le
+  journal donne le lien. Premier passage à faire : c'est aussi celui des dix
+  collectes de la PR #10 dans la chaîne entière.
 - **Déploiement par archives.** Bloqué côté hébergeur : aucun PHP ne s'exécute
   sur rouages.fr. Ce qu'il faut regarder dans le cPanel d'o2switch — journal
   d'erreurs, version de PHP du domaine, pare-feu applicatif — est noté dans
