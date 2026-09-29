@@ -1,0 +1,79 @@
+---
+/**
+ * La délinquance enregistrée par la police et la gendarmerie : seulement les
+ * indicateurs que le SSMSI diffuse pour la commune, avec leur taux et celui du
+ * département.
+ *
+ * Le bloc commence par ce qu'il ne dit pas, parce que c'est ce qu'on lit de
+ * travers : des faits enregistrés ne sont pas des faits commis, et un
+ * indicateur absent n'est pas un zéro.
+ */
+import type { Delinquance } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  d: Delinquance;
+  depNom: string | null;
+}
+const { d, depNom } = Astro.props;
+const derniere = d.annees.at(-1)!;
+const t = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const nombre = (x: (typeof d.indicateurs)[number]) => x.serie.at(-1) ?? null;
+const UNITES: Record<string, string> = {
+  Victime: 'victimes',
+  'Victime entendue': 'victimes',
+  Infraction: 'infractions',
+  Véhicule: 'véhicules',
+  'Mis en cause': 'personnes mises en cause',
+};
+const zeros = d.indicateurs.filter((x) => nombre(x) === 0);
+const chiffres = d.indicateurs.filter((x) => (nombre(x) ?? 0) > 0);
+---
+<p class="mesure">
+  {`Des faits enregistrés par la police et la gendarmerie en ${derniere}, au lieu où ils ont été commis — pas tous les faits commis : ` +
+    'la plainte n’est pas systématique, et moins encore pour les violences sexuelles que pour les cambriolages.'}
+</p>
+{chiffres.length > 0 && (
+  <div class="cpt-defile" tabindex="0" role="region" aria-label="La délinquance enregistrée — le tableau défile sur les petits écrans">
+  <table class="cpt-tableau">
+    <caption>{`En ${derniere}, pour mille habitants — mille logements pour les cambriolages`}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Indicateur</th>
+        <th scope="col">Nombre</th>
+        <th scope="col">Pour mille</th>
+        {depNom && <th scope="col">{depNom}</th>}
+      </tr>
+    </thead>
+    <tbody>
+      {chiffres.map((x) => (
+        <tr>
+          <th scope="row">{x.nom}</th>
+          <td>{`${nombre(x)!.toLocaleString('fr-FR')} ${UNITES[x.unite] ?? ''}`.trim()}</td>
+          <td>{t(x.taux)}</td>
+          {depNom && <td>{x.tauxDepartement === null ? '—' : t(x.tauxDepartement)}</td>}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  </div>
+)}
+{zeros.length > 0 && (
+  <p class="p-strate">
+    {`Aucun fait enregistré trois années de suite : ${zeros.map((x) => x.nom.charAt(0).toLowerCase() + x.nom.slice(1)).join(', ')}.`}
+  </p>
+)}
+{d.masques.length > 0 && (
+  <p class="p-strate">
+    {`Pour les autres indicateurs — ${d.masques.map((x) => x.charAt(0).toLowerCase() + x.slice(1)).join(', ')} —, ` +
+      'le service statistique ne publie rien : il faut plus de cinq faits enregistrés trois années de suite pour qu’une commune soit diffusée. ' +
+      'Ce n’est pas un zéro.'}
+  </p>
+)}
+<p class="p-strate">
+  {'La sécurité publique relève de l’État : '}<a href="/n/gendarmerie">gendarmerie</a>{' ou '}<a href="/n/police-nationale">police nationale</a>
+  {' selon la commune. Là où il en existe une, la '}<a href="/n/police-municipale">police municipale</a>{' est placée sous l’autorité du maire, avec des pouvoirs distincts.'}
+</p>
+<p class="p-source-territoire">
+  {`D’après la base communale de la délinquance enregistrée du service statistique ministériel de la sécurité intérieure (${d.maj}). ` +
+    'Les stupéfiants comptent des personnes mises en cause, pas des faits ; les escroqueries, des victimes à leur domicile.'}
+</p>

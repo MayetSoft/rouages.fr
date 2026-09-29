@@ -664,6 +664,76 @@ async function principal() {
   );
   if (revenus) dire(`${GRIS}${ecrireRevenus(SORTIE, revenus)} départements de niveau de vie écrits.${RAZ}`);
 
+  // La vie qu'on mène dans la commune : se soigner, l'eau du robinet, la
+  // fibre, l'électricité et le gaz, le logement et son prix, l'emploi et les
+  // trajets, les écoles, la délinquance enregistrée, la terre agricole, les
+  // votes nationaux. Dix collectes, chacune isolée : celle qui échoue laisse en
+  // place ses fichiers de l'ingestion précédente.
+  const grise = (m: string) => dire(`${GRIS}${m}${RAZ}`);
+  const lireJson = async (url: string) => (await obstine(url)).json();
+  const enCache = (annonce: string) => (url: string, vers: string) => telechargerEnCache(url, vers, reutiliser, annonce);
+
+  const { collecterSante, ecrireSante } = await import('./sante-emettre.ts');
+  const sante = await tenter('Accès aux généralistes', () => collecterSante(enCache('APL de la DREES (7 Mo)'), CACHE, grise));
+  if (sante) grise(`${ecrireSante(SORTIE, sante)} départements d’accès aux généralistes écrits.`);
+
+  const { collecterEauQualite, ecrireEauQualite } = await import('./eau-qualite-emettre.ts');
+  const eauQualite = await tenter('Contrôle sanitaire de l’eau', () =>
+    collecterEauQualite(enCache('Contrôle sanitaire de l’eau (85 Mo)'), CACHE, grise),
+  );
+  if (eauQualite) grise(`${ecrireEauQualite(SORTIE, eauQualite)} départements de qualité de l’eau écrits.`);
+
+  const { collecterFibre, ecrireFibre } = await import('./fibre-emettre.ts');
+  const fibre = await tenter('Fibre optique', () => collecterFibre(lireJson, enCache('France Très Haut Débit (6 Mo)'), CACHE, grise));
+  if (fibre) grise(`${ecrireFibre(SORTIE, fibre)} départements de fibre écrits.`);
+
+  const { collecterEnergie, ecrireEnergie } = await import('./energie-emettre.ts');
+  const energie = await tenter('Électricité et gaz', () => collecterEnergie(lireJson, obstine, grise));
+  if (energie) grise(`${ecrireEnergie(SORTIE, energie)} départements d’électricité et de gaz écrits.`);
+
+  const { collecterRecensement, ecrireRecensement } = await import('./recensement-emettre.ts');
+  const recensement = await tenter('Logements, activité et trajets', () =>
+    collecterRecensement(enCache('Recensement — logement, activité, trajets (230 Mo)'), CACHE, grise),
+  );
+  if (recensement) grise(`${ecrireRecensement(SORTIE, recensement)} fichiers de logements et d’emploi écrits.`);
+
+  const { anneesDvf, collecterDvf, ecrireDvf } = await import('./dvf-emettre.ts');
+  const dvf = await tenter('Ventes immobilières', () => collecterDvf(anneesDvf(), enCache('DVF géolocalisé (100 Mo par an)'), CACHE, grise));
+  if (dvf) grise(`${ecrireDvf(SORTIE, dvf)} départements de prix immobiliers écrits.`);
+
+  const { collecterIps, ecrireIps } = await import('./ips-emettre.ts');
+  const ips = await tenter('Indices de position sociale', () =>
+    collecterIps(lireJson, enCache('IPS des écoles et collèges'), (c) => createReadStream(c) as unknown as AsyncIterable<Uint8Array>, CACHE, grise),
+  );
+  if (ips) grise(`${ecrireIps(SORTIE, ips)} départements d’IPS écrits.`);
+
+  const { collecterDelinquance, ecrireDelinquance } = await import('./delinquance-emettre.ts');
+  const delinquance = await tenter('Délinquance enregistrée', () =>
+    collecterDelinquance(lireJson, enCache('Base communale du SSMSI (40 Mo)'), CACHE, grise),
+  );
+  if (delinquance) grise(`${ecrireDelinquance(SORTIE, delinquance)} départements de délinquance écrits.`);
+
+  // Agreste présente une chaîne de certificats incomplète : son téléchargement
+  // passe par un processus à part, qui ajoute l'intermédiaire publié par
+  // l'autorité de certification (voir le module).
+  const { collecterAgriculture, ecrireAgriculture, telechargerAvecIntermediaire } = await import('./agriculture-emettre.ts');
+  const agriculture = await tenter('Recensement agricole', () =>
+    collecterAgriculture(
+      async (url, vers) => {
+        if (reutiliser && existsSync(vers)) return;
+        grise('Recensement agricole 2020 — Agreste (1 Mo)…');
+        await telechargerAvecIntermediaire(url, vers);
+      },
+      CACHE,
+      grise,
+    ),
+  );
+  if (agriculture) grise(`${ecrireAgriculture(SORTIE, agriculture)} départements de surface agricole écrits.`);
+
+  const { collecterVotes, ecrireVotes } = await import('./votes-emettre.ts');
+  const votes = await tenter('Élections nationales', () => collecterVotes(enCache('Résultats des élections nationales (240 Mo)'), CACHE, grise));
+  if (votes) grise(`${ecrireVotes(SORTIE, votes)} départements de votes nationaux écrits.`);
+
   // Les annonces légales des entreprises : décomptes par commune, et les
   // dernières annonces des sociétés, que le journal reprend. Avant l'émetteur
   // principal, qui rassemble le journal ; le rattachement lit le découpage

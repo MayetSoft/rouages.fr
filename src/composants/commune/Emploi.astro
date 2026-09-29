@@ -1,0 +1,60 @@
+---
+/**
+ * Ce que font les habitants de 15 à 64 ans — un emploi, le chômage, la
+ * retraite, les études — et, pour ceux qui travaillent, où et comment ils s'y
+ * rendent. D'après le recensement.
+ *
+ * Le chômage est celui du recensement : les personnes qui se déclarent au
+ * chômage, qu'elles soient inscrites à France Travail ou non. Ce n'est ni le
+ * taux du Bureau international du travail ni le nombre d'inscrits, et la page
+ * le dit plutôt que de laisser comparer ce qui ne se compare pas.
+ */
+import type { Emploi } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  e: Emploi;
+  depNom: string | null;
+}
+const { e, depNom } = Astro.props;
+const pc = (v: number) => `${Math.round(v * 100).toLocaleString('fr-FR')} %`;
+const entier = (v: number) => Math.round(v).toLocaleString('fr-FR');
+// Cases de l'activité : 0 population 15-64 ans, 1 en emploi, 2 chômeurs, 3 retraités, 4 élèves et étudiants, 5 autres inactifs.
+const [a, ancien] = e.activite ?? [null, null];
+const aDep = depNom ? e.departement[0]?.[0] : null;
+const aFr = e.france[0]?.[0];
+const chomage = (x: number[] | null | undefined) => (x && x[1] + x[2] > 0 ? x[2] / (x[1] + x[2]) : null);
+const emploi = (x: number[] | null | undefined) => (x && x[0] > 0 ? x[1] / x[0] : null);
+const ref = (f: (x: number[] | null | undefined) => number | null) =>
+  [aDep && f(aDep) !== null ? `${depNom} ${pc(f(aDep)!)}` : null, aFr && f(aFr) !== null ? `France ${pc(f(aFr)!)}` : null].filter(Boolean).join(', ');
+// Cases des trajets : 0 actifs en emploi, 1 dans la commune, 2 ailleurs dans le département, 3 autre département de la région,
+// 4 autre région, 5 hors métropole, 6 sans transport, 7 à pied, 8 deux-roues, 9 voiture, 10 transports en commun.
+const n = e.navettes;
+const nFr = e.france[1];
+const partN = (x: number[] | null | undefined, i: number) => (x && x[0] > 0 ? x[i] / x[0] : null);
+---
+<h3 class="p-titre-echelon">{`Ce qu’ils font, au recensement de ${e.millesimes[0]}`}</h3>
+{a && (
+  <p class="mesure">
+    {`Sur ${entier(a[0])} habitants de 15 à 64 ans, ${pc(a[1] / a[0])} ont un emploi` + (ref(emploi) ? ` (${ref(emploi)})` : '') + ', '}
+    {`${pc(a[3] / a[0])} sont retraités, ${pc(a[4] / a[0])} étudient. `}
+    {chomage(a) !== null &&
+      `${pc(chomage(a)!)} des actifs se déclarent au chômage` + (ref(chomage) ? ` (${ref(chomage)})` : '') +
+        (ancien && chomage(ancien) !== null ? `, contre ${pc(chomage(ancien)!)} en ${e.millesimes[1]}.` : '.')}
+  </p>
+)}
+{n && (
+  <p class="mesure">
+    {`Parmi ceux qui travaillent, ${pc(partN(n, 1)!)} le font dans la commune, ${pc(partN(n, 2)!)} ailleurs dans le département` +
+      `, ${pc((n[3] + n[4] + n[5]) / n[0])} plus loin. `}
+    {`${pc(partN(n, 9)!)} s’y rendent en voiture` + (nFr ? ` (France ${pc(partN(nFr, 9)!)})` : '') +
+      `, ${pc(partN(n, 10)!)} en transports en commun, ${pc((n[7] + n[8]) / n[0])} à pied ou à deux-roues.`}
+  </p>
+)}
+<p class="p-strate">
+  {'L’offre de transport — lignes, tarifs, fréquences — relève de l’'}<a href="/n/aom">autorité organisatrice de la mobilité</a>
+  {' ; l’accompagnement des demandeurs d’emploi, de '}<a href="/n/france-travail">France Travail</a>{'.'}
+</p>
+<p class="p-source-territoire">
+  {`D’après le recensement de l’INSEE, tables « population active » et « déplacements domicile-travail » (${e.maj}). ` +
+    'Le chômage y est déclaré par les habitants : il ne se compare ni au taux du Bureau international du travail ni au nombre d’inscrits à France Travail.'}
+</p>

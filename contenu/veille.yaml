@@ -305,6 +305,121 @@ surveillances:
     ressource: "2023"
     lien: od-insee-filosofi
 
+  # Les dix jeux de la vie dans la commune.
+  # L'APL : un classeur en pièce jointe, sans date lisible par une requête
+  # d'en-tête. Sa disparition est la seule panne qu'on puisse voir d'ici.
+  - id: drees-apl
+    nom: "DREES — accessibilité aux médecins généralistes"
+    alimente: "l'accès aux généralistes de chaque commune"
+    type: disponibilite
+    url: "https://data.drees.solidarites-sante.gouv.fr/api/explore/v2.1/catalog/datasets/530_l-accessibilite-potentielle-localisee-apl/attachments/indicateur_d_apl_aux_medecins_generalistes_xlsx"
+    lien: od-drees-apl
+
+  # Le fichier des prélèvements est refait chaque mois sous la même adresse :
+  # c'est sa date qui dit s'il vit.
+  - id: eau-controle-sanitaire
+    nom: "Contrôle sanitaire de l'eau distribuée"
+    alimente: "la conformité de l'eau du robinet"
+    type: fichier-date
+    url: "https://data-pipeline-open.s3.sbg.io.cloud.ovh.net/controle_sanitaire_eau/PLV.csv.gz"
+    lien: od-eau-controle-sanitaire
+
+  - id: anct-fibre
+    nom: "ANCT — France Très Haut Débit"
+    alimente: "la fibre et la fermeture du cuivre"
+    type: datagouv-ressource
+    url: "indicateur-france-tres-haut-debit-etat-des-deploiements-de-la-fibre-optique-et-decommissionnement-du-cuivre"
+    ressource: "ftth-cu.csv"
+    lien: od-anct-fibre
+
+  - id: agence-ore
+    nom: "Agence ORE — électricité et gaz par commune"
+    alimente: "la consommation d'électricité et de gaz, et le distributeur"
+    type: disponibilite
+    url: "https://opendata.agenceore.fr/data-fair/api/v1/datasets/consommation-annuelle-d-electricite-et-gaz-par-commune/values_agg?field=annee&size=1&sort=-annee"
+    lien: od-agence-ore
+
+  - id: insee-logement
+    nom: "INSEE — logements"
+    alimente: "le parc de logements et qui l'occupe"
+    type: melodi-periode
+    url: "DS_RP_LOGEMENT_PRINC"
+    ressource: "2023"
+    lien: od-insee-logement
+
+  - id: insee-activite
+    nom: "INSEE — population active et chômage"
+    alimente: "l'emploi et le chômage des 15-64 ans"
+    type: melodi-periode
+    url: "DS_RP_EMPLOI_LR_PRINC"
+    ressource: "2023"
+    lien: od-insee-activite
+
+  - id: insee-navettes
+    nom: "INSEE — déplacements domicile-travail"
+    alimente: "où travaillent les habitants, et comment ils s'y rendent"
+    type: melodi-periode
+    url: "DS_RP_NAVETTES_PRINC"
+    ressource: "2023"
+    lien: od-insee-navettes
+
+  # La base est republiée au printemps et en automne sous la même adresse.
+  - id: dvf-geo
+    nom: "DVF géolocalisé"
+    alimente: "le prix des maisons et des appartements"
+    type: fichier-date
+    url: "https://files.data.gouv.fr/geo-dvf/latest/csv/2025/full.csv.gz"
+    lien: od-dvf-geo
+
+  # Une rentrée de plus chaque année : le total grossit d'environ trente-deux
+  # mille lignes pour les écoles, sept mille pour les collèges.
+  - id: ips-ecoles
+    nom: "IPS des écoles"
+    alimente: "qui fréquente les écoles de la commune"
+    type: opendatasoft-total
+    url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ips-ecoles-ap2022"
+    attendu: 97080
+    lien: od-ips-ecoles
+
+  - id: ips-colleges
+    nom: "IPS des collèges"
+    alimente: "qui fréquente les collèges de la commune"
+    type: opendatasoft-total
+    url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ips-colleges-ap2023"
+    attendu: 21061
+    lien: od-ips-colleges
+
+  - id: delinquance-communale
+    nom: "Délinquance enregistrée, base communale"
+    alimente: "la délinquance enregistrée dans la commune"
+    type: datagouv-ressource
+    url: "bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales"
+    ressource: "COM - Base statistique communale"
+    lien: od-delinquance-communale
+
+  # Les résultats d'un scrutin ne changent plus. Ce qu'il faut guetter, c'est
+  # le scrutin suivant : il ne viendra pas tout seul, il faut l'ajouter au
+  # collecteur (scripts/votes-emettre.ts).
+  - id: elections-nationales
+    nom: "Élections nationales, résultats par commune"
+    alimente: "la participation aux élections nationales"
+    type: datagouv-ressource
+    url: "6682d0c255dcda5df20b1d90"
+    ressource: "resultats-definitifs-par-communes.csv"
+    lien: od-elections-nationales
+
+  # Le recensement agricole ne change pas avant le suivant, et le site
+  # d'Agreste présente une chaîne de certificats incomplète qu'une requête
+  # ordinaire refuse. On surveille donc le jeu où le ministère annonce ses
+  # données communales, sur data.gouv.
+  - id: agreste-ra2020
+    nom: "Agreste — recensement agricole, données communales"
+    alimente: "la surface agricole des exploitations de la commune"
+    type: datagouv-ressource
+    url: "5369931da3a729239d2040d8"
+    ressource: "indicateurs"
+    lien: od-agreste-sau
+
   - id: sirene-etablissements
     nom: "SIRENE — établissements, copie Opendatasoft"
     alimente: "les établissements actifs et employeurs de chaque commune, par secteur"

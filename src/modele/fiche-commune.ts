@@ -38,7 +38,7 @@ function lire<T>(fichier: string): T | null {
  * interrogeaient des `Map` du même nom, remplies par le réseau. Garder la même
  * forme permet de les recopier sans les réécrire.
  */
-function parDepartement<T>(jeu: string) {
+export function parDepartement<T>(jeu: string) {
   const cache = new Map<string, T | null>();
   return {
     get(dep: string): T | null {

@@ -72,7 +72,7 @@ export function mediane(v: number[]): number | null {
  * de ventes immobilières par an — ne tiennent pas en mémoire d'un bloc.
  */
 export async function* lignesCsv(
-  source: AsyncIterable<Uint8Array | string>,
+  source: AsyncIterable<Uint8Array | string> | Iterable<Uint8Array | string>,
   separateur = ',',
 ): AsyncGenerator<string[]> {
   const decodeur = new TextDecoder('utf-8');
@@ -158,5 +158,5 @@ export function telechargerSiAbsent(racine: string) {
     throw new Error(`${url} : réponse tronquée six fois de suite`);
   };
   const lireJson = async (url: string): Promise<unknown> => (await obstine(url)).json();
-  return { cache, telecharger, lireJson, sortie: join(racine, 'public', 'territoires') };
+  return { cache, telecharger, lireJson, obstine, sortie: join(racine, 'public', 'territoires') };
 }

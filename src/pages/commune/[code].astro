@@ -48,6 +48,15 @@ import Fiscalite from '../../composants/commune/Fiscalite.astro';
 import Logements from '../../composants/commune/Logements.astro';
 import Equipements from '../../composants/commune/Equipements.astro';
 import Services from '../../composants/commune/Services.astro';
+import Emploi from '../../composants/commune/Emploi.astro';
+import Logement from '../../composants/commune/Logement.astro';
+import Sante from '../../composants/commune/Sante.astro';
+import Ecoles from '../../composants/commune/Ecoles.astro';
+import Reseaux from '../../composants/commune/Reseaux.astro';
+import Delinquance from '../../composants/commune/Delinquance.astro';
+import Agriculture from '../../composants/commune/Agriculture.astro';
+import Votes from '../../composants/commune/Votes.astro';
+import { complementsVie } from '../../modele/fiche-vie.ts';
 
 export function getStaticPaths() {
   // `ROUAGES_DEPS` restreint la génération à quelques départements : engendrer
@@ -69,6 +78,7 @@ const resolubles = reseau.noeuds
   .map((n) => ({ id: n.id, banatic: n.banatic! }));
 const fiche = ficheCommune(commune, resolubles);
 const plus = complementsFiche(commune, commune.population, fiche?.structures ?? []);
+const vie = complementsVie(commune);
 
 const nomDe = new Map(reseau.noeuds.map((n) => [n.id, n]));
 /**
@@ -212,15 +222,17 @@ const droitLocal = DROIT_LOCAL.has(commune.dep) && !(plus.associations && plus.a
 const echelonsMontres = plus.echelons.length > 0;
 const sommaire: [string, string, unknown][] = [
   ['habitants', 'Les habitants', plus.histoire || plus.etatCivil || plus.ages],
-  ['niveaux', 'Niveau de vie et diplômes', plus.niveauDeVie || plus.diplomes],
+  ['niveaux', 'Revenus, emploi, diplômes', plus.niveauDeVie || plus.diplomes || vie.emploi],
   ['election', 'L’élection', plus.scrutin],
   ['conseil', 'Le conseil', fiche?.conseil && fiche.conseil.elus > 0],
+  ['votes', 'Les votes nationaux', vie.votes],
   ['qui-exerce', 'Qui exerce quoi', lignes.length > 0],
   ['comptes', 'Ses comptes', plus.finances],
   ['ccas', 'Le CCAS', plus.centres],
   ['preleve', 'Ce qui est prélevé ici', fiche?.fiscalite],
   ['intercommunalite', 'L’intercommunalité', plus.fluxPercus.length > 0],
   ['echelons', 'Les échelons', echelonsMontres],
+  ['logements', 'Les logements', vie.parc || vie.immobilier],
   ['vente', 'Une vente immobilière', dmtoDernier >= 0],
   ['urbanisme', 'Ce qui peut s’y construire', fiche?.urbanisme],
   ['construit', 'Ce qui s’y construit', fiche?.logements],
@@ -233,6 +245,11 @@ const sommaire: [string, string, unknown][] = [
   ['entreprises', 'Les entreprises', plus.presentes || plus.entreprises],
   ['equipements', 'Ce qu’on trouve sur place', fiche?.equipements],
   ['services', 'Les services', (fiche?.services.length ?? 0) > 0],
+  ['sante', 'Le médecin', vie.sante],
+  ['ecoles', 'Les écoles', vie.ecoles],
+  ['reseaux', 'Eau, fibre, énergie', vie.eau || vie.fibre || vie.energie],
+  ['securite', 'La délinquance', vie.delinquance],
+  ['agriculture', 'L’agriculture', vie.agriculture],
   ['journal', 'Ce qui a bougé', journal.length > 0],
 ];
 const entrees = sommaire.filter(([, , present]) => !!present);
@@ -290,7 +307,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
-    {(plus.niveauDeVie || plus.diplomes) && (
+    {(plus.niveauDeVie || plus.diplomes || vie.emploi) && (
       <section id="niveaux" class="p-habitants">
         <h2 class="badge">De quoi ils vivent, ce qu’ils ont étudié</h2>
         {plus.niveauDeVie && <NiveauDeVie n={plus.niveauDeVie} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />}
@@ -300,6 +317,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             de revenus en Guadeloupe, en Martinique, en Guyane ni à Mayotte.
           </p>
         )}
+        {vie.emploi && <Emploi e={vie.emploi} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />}
         {plus.diplomes && <Diplomes d={plus.diplomes} seule={SEULE_DE_SON_DEPARTEMENT.has(commune.code)} />}
       </section>
     )}
@@ -334,6 +352,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="conseil" class="p-conseil">
         <h2 class="badge">De quoi le conseil est fait</h2>
         <Conseil k={fiche.conseil} />
+      </section>
+    )}
+
+    {vie.votes && (
+      <section id="votes" class="p-scrutin">
+        <h2 class="badge">Comment la commune vote aux élections nationales</h2>
+        <Votes scrutins={vie.votes.scrutins} resultats={vie.votes.resultats} maj={vie.votes.maj} />
       </section>
     )}
 
@@ -421,6 +446,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="echelons" class="p-finances p-echelons">
         <h2 class="badge">Les comptes des échelons au-dessus</h2>
         <Echelons echelons={plus.echelons} />
+      </section>
+    )}
+
+    {(vie.parc || vie.immobilier) && (
+      <section id="logements" class="p-logements">
+        <h2 class="badge">Ses logements, et ce qu’ils coûtent</h2>
+        <Logement parc={vie.parc} immobilier={vie.immobilier} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />
       </section>
     )}
 
@@ -615,6 +647,41 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="services" class="p-services">
         <h2 class="badge">Les services publics sur place</h2>
         <Services services={fiche.services} voisines={fiche.voisines} sdis={fiche.sdis} maj={fiche.servicesMaj} />
+      </section>
+    )}
+
+    {vie.sante && (
+      <section id="sante">
+        <h2 class="badge">Voir un médecin généraliste</h2>
+        <Sante s={vie.sante} />
+      </section>
+    )}
+
+    {vie.ecoles && (
+      <section id="ecoles">
+        <h2 class="badge">Qui fréquente ses écoles</h2>
+        <Ecoles e={vie.ecoles} depNom={commune.depNom} />
+      </section>
+    )}
+
+    {(vie.eau || vie.fibre || vie.energie) && (
+      <section id="reseaux">
+        <h2 class="badge">Les réseaux qui y arrivent</h2>
+        <Reseaux eau={vie.eau} fibre={vie.fibre} energie={vie.energie} />
+      </section>
+    )}
+
+    {vie.delinquance && (
+      <section id="securite">
+        <h2 class="badge">La délinquance enregistrée</h2>
+        <Delinquance d={vie.delinquance} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />
+      </section>
+    )}
+
+    {vie.agriculture && (
+      <section id="agriculture">
+        <h2 class="badge">Sa surface agricole</h2>
+        <Agriculture a={vie.agriculture} />
       </section>
     )}
 
