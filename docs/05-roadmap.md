@@ -2624,6 +2624,92 @@ environnement, le tunnel coupe les gros fichiers de l'INSEE servis compressés,
 qui n'annoncent pas leur longueur : ils ont été repris par `curl -C -`, puis
 contrôlés par `unzip -t`.
 
+## Plan d'octobre 2026 : sept lots
+
+Toutes les pistes proposées après les PR #10 et #11 ont été retenues. Elles sont
+rangées en lots, un lot par PR. Chaque lot se termine de la même façon : chaque
+source sondée puis vérifiée contre elle-même sur Le Mayet-de-Montagne, `npm run
+verifier-types`, `npm run valider`, build sur le périmètre de l'intégration
+continue, une entrée ici et une surveillance dans la veille.
+
+**Contrainte de rythme.** Tant que le déploiement par archives ne fonctionne pas,
+un lot qui touche toutes les pages de commune coûte un envoi complet de près de
+trois heures. D'où l'ordre : le lot 0 d'abord, puis des lots assez gros pour
+qu'un envoi en vaille la peine — pas une PR par source.
+
+État des sources au 29 septembre 2026, sondées depuis l'environnement de
+développement : « joignable » veut dire qu'on a lu le catalogue ou le fichier,
+pas encore qu'on a vérifié ses chiffres.
+
+### Lot 0 — Fiabiliser avant d'ajouter
+
+- **Réingérer en intégration continue.** L'ingestion complète ne tourne
+  aujourd'hui que dans l'environnement de développement, dont le tunnel coupe
+  les gros fichiers. Un workflow déclenché à la main lancerait `npm run
+  territoires` sur le réseau de GitHub et ouvrirait une PR avec les fichiers
+  réécrits. C'est aussi le premier passage des dix collectes de la PR #10 dans
+  la chaîne entière.
+- **Déploiement par archives.** Bloqué côté hébergeur : aucun PHP ne s'exécute
+  sur rouages.fr. Ce qu'il faut regarder dans le cPanel d'o2switch — journal
+  d'erreurs, version de PHP du domaine, pare-feu applicatif — est noté dans
+  « Déployer par archives ». Demande l'accès du mainteneur ; rien d'autre ne
+  l'attend.
+
+### Lot 1 — Une page par intercommunalité
+
+Aucune source nouvelle : compétences transférées (BANATIC), comptes et flux
+perçus (OFGL), communes membres et leurs sièges au conseil, sur le modèle des
+pages de département et de région. La page de commune y renvoie depuis « Les
+structures dont elle dépend » et depuis chaque compétence exercée par
+l'intercommunalité. Au Mayet-de-Montagne : Vichy Communauté.
+
+### Lot 2 — Le sol et les logements
+
+- **Artificialisation** — hectares consommés par commune depuis 2009 (Cerema,
+  republié par le service statistique du ministère de la transition
+  écologique ; jeux trouvés sur data.gouv), relié au bloc « Ce qui peut s'y
+  construire » et au SCoT, avec l'objectif de zéro artificialisation nette.
+- **Performance énergétique des logements** — part des étiquettes F et G
+  d'après la base des DPE de l'ADEME (joignable ; agrégation par commune à
+  faire côté ADEME, la base compte des millions de diagnostics).
+- **Radon** — la catégorie de chaque commune (jeu de l'autorité de sûreté
+  nucléaire trouvé sur data.gouv), rapprochée des risques.
+
+### Lot 3 — Ce que l'État et la CAF versent
+
+- **Dotations de l'État par commune** — DGF forfaitaire, dotation de
+  solidarité rurale, dotation nationale de péréquation. Source primaire à
+  trouver à la DGCL ; un jeu de LexImpact existe sur data.gouv mais n'est pas
+  la source. Relié au flux « dotations » du graphe.
+- **CAF** — accueil du jeune enfant, foyers allocataires du RSA et des aides
+  au logement. Le portail de la CNAF est joignable et publie à l'EPCI ; la
+  finesse communale reste à confirmer.
+
+### Lot 4 — Se déplacer, et la sécurité
+
+- **Transports en commun** — arrêts et lignes qui desservent la commune,
+  d'après transport.data.gouv.fr (joignable). Le plus lourd du plan : des
+  centaines de flux à lire et à rattacher aux communes.
+- **Accidents de la route** — bases annuelles de l'observatoire
+  interministériel de la sécurité routière (à sonder).
+- **Défibrillateurs** déclarés à Géo'DAE (base nationale publiée sur
+  data.gouv).
+
+### Lot 5 — Énergie produite et patrimoine
+
+- **Production d'électricité renouvelable** par commune et par filière,
+  d'après l'Agence ORE (à sonder, même portail que la consommation).
+- **Monuments historiques** (immeubles protégés, jeu du ministère de la
+  culture sur data.gouv) **et équipements culturels** (à sonder).
+
+### Lot 6 — Outils
+
+- **Comparer deux communes**, bloc par bloc, sur une page qui ne calcule rien
+  de plus que les pages qu'elle rapproche.
+- **Couverture mobile** — à retenter : aucune donnée communale nationale
+  trouvée aux deux premiers sondages ; l'Arcep publie une « base de
+  population » dont il faudra voir si elle porte la couverture par commune.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
