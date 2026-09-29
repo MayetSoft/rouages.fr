@@ -172,23 +172,26 @@ export async function collecterFinances(
 
   // Les repères calculés : le premier moins le second, montant par montant, et
   // l'euro par habitant sur la population que l'OFGL retient pour le premier.
-  // Il faut les deux : un poste absent n'est pas un poste nul.
+  //
+  // Un second terme absent compte pour zéro. L'OFGL n'écrit pas la ligne d'un
+  // poste que la commune n'a pas : 3 807 communes n'ont pas de fiscalité
+  // reversée en 2025, 515 pas de dotation globale, 631 pas d'autres impôts —
+  // et pour ces deux derniers, le contrôle des sommes ci-dessous tombe juste
+  // sur les 34 778 communes en les comptant pour zéro. C'est donc ce que
+  // l'absence veut dire.
   for (const r of reperes) {
     if (!r.difference) continue;
     const [a, b] = r.difference.map((id) => bruts.get(id));
     if (!a || !b) throw new Error(`repère ${r.id} : ${r.difference.join(' ou ')} n'a pas été collecté`);
     const parCode = new Map<string, Brut>();
-    let incomplets = 0;
+    let sansSecond = 0;
     for (const [code, x] of a) {
       const y = b.get(code);
+      if (!y || y.m[dernier] === null) sansSecond++;
       const d = vide();
       for (let j = 0; j < annees.length; j++) {
-        const [ma, mb, p] = [x.m[j], y?.m[j] ?? null, x.p[j]];
+        const [ma, mb, p] = [x.m[j], y?.m[j] ?? 0, x.p[j]];
         if (ma === null) continue;
-        if (mb === null) {
-          if (j === dernier) incomplets++;
-          continue;
-        }
         d.m[j] = ma - mb;
         d.p[j] = p;
         d.e[j] = p ? (ma - mb) / p : null;
@@ -196,7 +199,7 @@ export async function collecterFinances(
       parCode.set(code, d);
     }
     bruts.set(r.id, parCode);
-    dire(`  ${r.nom} : calculé${incomplets ? `, ${incomplets} commune(s) sans le second terme, laissées vides` : ''}`);
+    dire(`  ${r.nom} : calculé${sansSecond ? `, ${sansSecond.toLocaleString('fr-FR')} commune(s) sans le second terme, compté pour zéro` : ''}`);
   }
 
   // Tout ce que l'OFGL dit s'additionner s'additionne-t-il ? Au dernier
