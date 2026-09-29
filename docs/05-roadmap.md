@@ -2527,6 +2527,83 @@ arrêté en route. Un témoin — le PHP le plus simple — est désormais dépo
 appelé avant le script : s'il répond et pas le script, c'est le script que
 l'hébergeur bloque ; si aucun ne répond, c'est PHP.
 
+### La vie qu'on y mène : dix sources de plus ✔
+
+Onze pistes avaient été listées, sans vérification. Dix se sont révélées
+publiées à la commune et joignables ; chacune a son collecteur
+(`scripts/*-emettre.ts`, lançable seul), sa source, sa veille et son bloc :
+
+- **Voir un médecin généraliste** — l'accessibilité potentielle localisée de
+  la DREES, 2022 à 2024, rapportée au seuil de 2,5 consultations sous lequel
+  l'INSEE tient une commune pour sous-dotée, et ce qui dépend des médecins de
+  plus de 65 ans. Le zonage de l'ARS est cité par son article (L1434-4).
+- **L'eau du robinet** — douze mois de contrôle sanitaire, les limites de
+  qualité seulement, les dérogations préfectorales à part (R1321-31), avec le
+  maître d'ouvrage du réseau.
+- **La fibre et la fin du cuivre** — l'indicateur France Très Haut Débit de
+  l'ANCT : locaux raccordables, porteur du réseau, année de fermeture du cuivre.
+- **L'électricité et le gaz** — l'Agence ORE : consommation par logement et
+  distributeur, Enedis ou l'une des entreprises locales qui desservent
+  3 767 communes.
+- **Les logements** — le recensement (principales, secondaires, vacantes, et
+  qui les occupe, logement social compris) et le prix des ventes d'après DVF.
+- **L'emploi et les trajets** — l'activité des 15-64 ans et où travaillent
+  ceux qui ont un emploi, dans « De quoi ils vivent ».
+- **Qui fréquente ses écoles** — l'indice de position sociale de chaque école
+  et collège, comparé au département et à la France du même secteur.
+- **La délinquance enregistrée** — la base communale du SSMSI.
+- **La surface agricole** — le recensement agricole 2020.
+- **La participation aux élections nationales** depuis 2022.
+
+Au Mayet-de-Montagne : 8,9 consultations de généraliste par habitant en 2024,
+7,7 sans les médecins de plus de 65 ans ; 24 prélèvements d'eau sur douze
+mois, tous conformes ; 973 locaux sur 1 136 raccordables à la fibre, cuivre
+fermé fin 2030 ; 18 % de logements vacants, contre 15 % en 2012 ; 59 maisons
+vendues de 2023 à 2025, prix médian 52 000 €, 671 € le mètre carré contre
+1 188 € dans l'Allier ; 13 % des actifs se déclarent au chômage, 77 % vont
+travailler en voiture ; IPS de 93,7 à l'école Yves Duteil ; 1 512 hectares
+cultivés par les exploitations de la commune, à 91 % en prairies.
+
+**Ce qui a été vérifié, et comment.** Chaque collecte a été rapprochée de sa
+source sur Le Mayet-de-Montagne : les valeurs du recensement contre l'API de
+l'INSEE, cellule par cellule ; les prélèvements d'eau recomptés à part ; la
+surface agricole totale — 26,9 millions d'hectares — contre le chiffre
+qu'Agreste publie. Un recomptage indépendant des ventes immobilières trouvait
+une maison de plus : c'est lui qui se trompait, la vente portait aussi sur une
+parcelle de Ferrières-sur-Sichon, et la règle écarte les ventes à cheval sur
+deux communes.
+
+**Ce qui a été refusé :**
+
+- **La moyenne nationale de l'APL.** Calculée comme la note du fichier le
+  demande, elle donne 3,74 pour 2023 ; l'INSEE publie 3,8. Tant que l'écart
+  n'est pas expliqué, la page compare au seuil, pas à une moyenne d'ici. Pour
+  la même raison, Paris, Lyon et Marseille, que la DREES publie par
+  arrondissement, n'ont pas de bloc médecin : il faudrait recomposer une
+  moyenne.
+- **Le répertoire des logements sociaux (RPLS).** Il n'est publié que
+  logement par logement — 5,4 millions de lignes — et aucun décompte communal
+  n'est en données ouvertes nationales. Le logement social est lu par ses
+  occupants, au recensement.
+- **Les résultats au brevet par établissement** : le jeu national s'arrête à
+  la session 2021.
+- **La couverture mobile** : aucun jeu communal national trouvé, seulement des
+  cartes et des relevés départementaux.
+- **Les voix des candidats** : le bloc des votes donne la participation, les
+  blancs et les nuls ; les voix sont dans les fichiers cités.
+- **Une moyenne nationale de participation qui ne serait pas la bonne** : la
+  référence additionne les communes de métropole et des départements
+  d'outre-mer, et la page dit qu'elle n'est pas la participation officielle,
+  qui compte les Français de l'étranger.
+
+**Deux obstacles d'outillage.** Le site d'Agreste ne présente pas toute sa
+chaîne de certificats ; le collecteur fait ce que fait un navigateur — il va
+chercher l'intermédiaire à l'adresse que donne le certificat et l'ajoute aux
+autorités connues, sans jamais désactiver la vérification. Et depuis cet
+environnement, le tunnel coupe les gros fichiers de l'INSEE servis compressés,
+qui n'annoncent pas leur longueur : ils ont été repris par `curl -C -`, puis
+contrôlés par `unzip -t`.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
