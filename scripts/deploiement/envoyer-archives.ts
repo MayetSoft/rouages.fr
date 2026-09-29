@@ -164,9 +164,14 @@ export async function envoyerArchives(
   const hasard = randomBytes(12).toString('hex');
   const prefixe = `.deploiement-${hasard}-`;
   const script = `deballer-${hasard}.php`;
+  // Un témoin : le PHP le plus simple qui soit, déposé à côté. Le #101 a reçu
+  // un 520 jusque sur la requête sans jeton — ce n'est donc pas le POST qu'on
+  // arrête. Si le témoin répond et pas le script, c'est le script que
+  // l'hébergeur bloque ; si aucun ne répond, c'est PHP.
+  const temoin = `temoin-${hasard}.php`;
   const travail = mkdtempSync(join(tmpdir(), 'rouages-archives-'));
   const archives: string[] = [];
-  const distants = [script];
+  const distants = [script, temoin];
   try {
     const modele = readFileSync(join(fileURLToPath(new URL('.', import.meta.url)), 'deballer.php'), 'utf8');
     writeFileSync(
@@ -174,6 +179,10 @@ export async function envoyerArchives(
       modele
         .replace('__EMPREINTE__', createHash('sha256').update(jeton).digest('hex'))
         .replace('__PREFIXE__', prefixe),
+    );
+    writeFileSync(
+      join(travail, temoin),
+      "<?php\nheader('Content-Type: application/json');\necho json_encode(['temoin' => true, 'php' => PHP_VERSION]);\n",
     );
     for (let i = 0; !sonde && i * PAR_ARCHIVE < fichiers.length; i++) {
       const nom = `${i}.zip`;
@@ -194,10 +203,18 @@ export async function envoyerArchives(
     // fois tout arrivé.
     await lftp([
       ...archives.map((a) => `put ${q(join(travail, prefixe + a))} -o ${q(prefixe + a)}`),
+      `put ${q(join(travail, temoin))} -o ${q(temoin)}`,
       `put ${q(join(travail, script))} -o ${q(script)}`,
     ]);
 
-    const url = `${env('SITE_URL').replace(/\/$/, '')}/${script}`;
+    const site = env('SITE_URL').replace(/\/$/, '');
+    try {
+      const r = await fetch(`${site}/${temoin}`, { signal: AbortSignal.timeout(30_000) });
+      dire(`Témoin PHP : ${resumer(r, await r.text())}.`);
+    } catch (e) {
+      dire(`Témoin PHP : ${(e as Error).message}.`);
+    }
+    const url = `${site}/${script}`;
     // Une requête GET sans jeton d'abord, qui doit rendre le 403 du script :
     // si elle passe et que le POST échoue, c'est le POST qu'on arrête en
     // route (pare-feu de l'hébergeur ou de Cloudflare), pas PHP.

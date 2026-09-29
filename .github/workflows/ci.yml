@@ -31,14 +31,16 @@ jobs:
         run: npm run verifier-rattachement
       - name: Types
         run: npm run verifier-types
-      # Trois départements plutôt que 34 875 pages : le build complet prend
+      # Quatre départements plutôt que 34 875 pages : le build complet prend
       # six minutes et se refait de toute façon au déploiement. L'Allier pour
       # la commune de référence, le Finistère pour Quimper, Paris pour la plus
-      # grosse page.
+      # grosse page, la Meuse pour ses six villages détruits en 1914-1918,
+      # sans habitants : deux déploiements ont échoué sur l'un d'eux, que le
+      # contrôle ne construisait pas.
       - name: Build
         run: npx astro build
         env:
-          ROUAGES_DEPS: '03,29,75'
+          ROUAGES_DEPS: '03,29,55,75'
 
   fraicheur:
     # Contrôle non bloquant sur les branches : une fiche périmée n'empêche pas

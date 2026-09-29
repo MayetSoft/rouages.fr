@@ -855,7 +855,9 @@ function assemblerAges(commune: CommuneFiche): Ages | null {
 function assemblerDiplomes(commune: CommuneFiche): Diplomes | null {
   const d = diplomesDep.get(commune.dep);
   const c = d?.c[commune.code];
-  if (!d || !c || !c[0]) return null;
+  // Sans personne à compter, pas de parts : les villages détruits de la Meuse,
+  // sans habitants depuis 1916, figurent au recensement avec des effectifs nuls.
+  if (!d || !c || !c[0] || c[0].reduce((s, x) => s + x, 0) <= 0) return null;
   return { niveaux: d.niveaux, millesimes: d.millesimes, commune: c, departement: d.dep, france: d.france, maj: d.maj };
 }
 

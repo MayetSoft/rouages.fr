@@ -2513,6 +2513,20 @@ relèvent d'elle (`691`), et non du Rhône, dont elles montraient les comptes ;
 la Corse, la Martinique et la Guyane ont une collectivité unique, que la page
 nomme ainsi.
 
+### Deux déploiements tombés sur un village sans habitants ✔
+
+Les déploiements #102 et #103 ont échoué au build, sur la même page : Beaumont-
+en-Verdunois (55039), l'un des six villages de la Meuse détruits en 1916 et
+jamais reconstruits. Le recensement leur donne des effectifs nuls, et le bloc
+des diplômes calculait des parts sur zéro personne. Le contrôle des PR ne
+construisait que trois départements ; il construit désormais la Meuse aussi.
+
+Le déploiement #101, lui, est passé — par lots, en 2 h 47 : le déballage
+reçoit un 520 jusque sur une requête GET sans jeton, ce qui écarte un POST
+arrêté en route. Un témoin — le PHP le plus simple — est désormais déposé et
+appelé avant le script : s'il répond et pas le script, c'est le script que
+l'hébergeur bloque ; si aucun ne répond, c'est PHP.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
