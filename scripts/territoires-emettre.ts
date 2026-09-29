@@ -551,7 +551,7 @@ export function emettre(o: {
 
   if (o.echelons) {
     const n = ecrireEchelons(sortie, o.echelons);
-    dire(`${GRIS}Comptes du département et de la région : ${n} collectivités.${RAZ}`);
+    dire(`${GRIS}Comptes de l’intercommunalité, du département et de la région : ${n} collectivités.${RAZ}`);
   }
 
   if (o.dmto) {

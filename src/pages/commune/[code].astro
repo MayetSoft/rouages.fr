@@ -18,7 +18,14 @@
  */
 import Base from '../../layouts/Base.astro';
 import { construireReseau } from '../../modele/reseau.ts';
-import { communes, ficheCommune, journalCommune, metaTerritoires } from '../../modele/territoires.ts';
+import {
+  communes,
+  ficheCommune,
+  intercommunalite,
+  journalCommune,
+  lienIntercommunalite,
+  metaTerritoires,
+} from '../../modele/territoires.ts';
 import type { Verdict } from '../../modele/verdict.ts';
 import { urlSignaler } from '../../modele/signalement.ts';
 import Glose from '../../composants/Glose.astro';
@@ -368,7 +375,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <ul class="c-structures">
           {fiche.structures.map((s) => (
             <li>
-              <strong><Glose texte={s.nom} /></strong>
+              <strong>
+                {intercommunalite(s.siren) ? (
+                  <a href={lienIntercommunalite(s.siren)}><Glose texte={s.nom} /></a>
+                ) : (
+                  <Glose texte={s.nom} />
+                )}
+              </strong>
               <span class="v-nature">{s.natureLibelle}</span>
             </li>
           ))}

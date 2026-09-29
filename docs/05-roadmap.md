@@ -2660,11 +2660,43 @@ pas encore qu'on a vérifié ses chiffres.
 
 ### Lot 1 — Une page par intercommunalité
 
-Aucune source nouvelle : compétences transférées (BANATIC), comptes et flux
-perçus (OFGL), communes membres et leurs sièges au conseil, sur le modèle des
-pages de département et de région. La page de commune y renvoie depuis « Les
-structures dont elle dépend » et depuis chaque compétence exercée par
-l'intercommunalité. Au Mayet-de-Montagne : Vichy Communauté.
+Fait : `/intercommunalite/<SIREN>`, une page pour chacune des 1 264
+intercommunalités à fiscalité propre — communautés de communes,
+d'agglomération, urbaines, métropoles, établissements publics territoriaux du
+Grand Paris. Au Mayet-de-Montagne : Vichy Communauté, 39 communes.
+
+- **Ce que ses communes lui ont transféré**, d'après BANATIC, parmi les
+  compétences que le site décrit, avec celles que la loi impose à sa nature.
+- **Ses comptes** (OFGL, `ofgl-base-gfp`, budget principal), le même arbre de
+  postes que pour les autres échelons, avec la fiscalité reversée et la
+  fraction de TVA. Les sommes se vérifient à l'euro près pour les 1 262
+  groupements de 2025. La médiane est celle de la **strate** : communautés de
+  communes à fiscalité additionnelle (160) ou professionnelle unique (826),
+  d'agglomération (229), communautés urbaines et métropoles (34),
+  établissements publics territoriaux (11). Une médiane de tout l'échelon
+  comparerait une communauté rurale à une métropole. La Métropole de Lyon et
+  celle du Grand Paris, seules de leur espèce, n'ont pas de médiane.
+- **Ce qu'elle perçoit à la place des communes** : ordures ménagères,
+  versement mobilité.
+- **Ses communes**, avec leur population.
+
+La page de commune y renvoie depuis « Les structures dont elle dépend » et
+« Les comptes des échelons au-dessus », qui donne maintenant l'intercommunalité
+avant le département ; la page de département liste ses intercommunalités.
+`npx tsx scripts/comptes-emettre.ts --echelons` rafraîchit ces comptes seuls.
+
+**Refusé : le conseil communautaire.** La répartition des sièges est fixée par
+arrêté préfectoral, que rien ne publie en données ouvertes. Le répertoire
+national des élus ne la refait pas : à Vichy Communauté, il donne deux
+conseillers à Bost (183 habitants) et à Châtel-Montagne, aucun à Molles, deux à
+Saint-Rémy-en-Rollat là où le scrutin de 2026 en élit un — des suppléants et
+des vacances, sans doute. Additionner ces nombres donnerait un conseil qui
+n'existe pas.
+
+**À vérifier** : le bloc « De quoi le conseil est fait » de la page de commune
+prend ce même nombre du répertoire pour les sièges au conseil communautaire.
+Pour une commune de moins de mille habitants, c'est la seule source ; il faut
+savoir si le répertoire compte les suppléants avant de continuer à l'afficher.
 
 ### Lot 2 — Le sol et les logements
 

@@ -14,7 +14,7 @@ import {
   lienCollectivite,
   type Collectivite,
 } from '../modele/fiche-commune.ts';
-import { communes, metaTerritoires } from '../modele/territoires.ts';
+import { communes, intercommunalites, lienIntercommunalite, metaTerritoires } from '../modele/territoires.ts';
 
 interface Props {
   c: Collectivite;
@@ -44,6 +44,17 @@ const listes = deps
   .filter((d) => parDep.has(d))
   .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }))
   .map((d) => ({ d, ...parDep.get(d)! }));
+
+// Les intercommunalités qui ont au moins une commune dans le département ;
+// une région en compte trop pour une liste utile.
+const intercos =
+  c.echelon === 'departement'
+    ? intercommunalites(deps)
+        // La Métropole de Lyon est à la fois l'une et l'autre : elle seule sous
+        // sa page, et pas sous celle du Rhône.
+        .filter((e) => (c.code === '691' ? e.nature === 'MET69' : c.code === '69' ? e.nature !== 'MET69' : true))
+        .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+    : [];
 
 // L'échelon voisin : la région d'un département.
 const codeRegion = c.echelon === 'departement' ? meta?.codesRegion?.[deps[0]] : undefined;
@@ -108,6 +119,22 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
       </section>
     ) : (
       <p class="c-vide">Les comptes de cette collectivité n’ont pas pu être lus.</p>
+    )}
+    {intercos.length > 0 && (
+      <section class="p-echelons">
+        <h2 class="badge">Ses intercommunalités</h2>
+        <ul class="c-communes">
+          {intercos.map((e) => (
+            <li>
+              <a href={lienIntercommunalite(e.siren)}>{e.nom}</a>
+              <span class="c-departement-detail">
+                {`${e.communes.length.toLocaleString('fr-FR')} commune${e.communes.length > 1 ? 's' : ''}` +
+                  (e.deps.length > 1 ? `, dont ${e.communes.filter((x) => deps.includes(x.dep)).length.toLocaleString('fr-FR')} ici` : '')}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
     )}
     {listes.length > 0 && (
       <section class="p-echelons">

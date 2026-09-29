@@ -1,7 +1,7 @@
 ---
 /**
- * Le département et la région, depuis la page de la commune : deux chiffres
- * chacun, et le lien vers leurs comptes.
+ * L'intercommunalité, le département et la région, depuis la page de la
+ * commune : deux chiffres chacun, et le lien vers leur page.
  *
  * Le détail — lignes de tête, séries, tableau poste par poste — pesait une
  * vingtaine de kilo-octets, identiques sur les trois cents pages d'un même
@@ -16,7 +16,9 @@ interface Props {
 const { echelons } = Astro.props;
 const eur = (v: number) => `${v.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} €`;
 const qui = (e: ResumeEchelon) =>
-  e.collectivite.echelon === 'departement'
+  e.collectivite.echelon === 'intercommunalite'
+    ? `L’intercommunalité — ${e.collectivite.nom}`
+    : e.collectivite.echelon === 'departement'
     ? `Le département — ${e.collectivite.nom}`
     : COLLECTIVITES_UNIQUES.has(e.collectivite.code)
       ? `La collectivité unique — ${e.collectivite.nom}`
