@@ -17,14 +17,14 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import type { chargerGraphe } from '../src/modele/graphe.ts';
 import type { Repere } from '../src/modele/schemas.ts';
-import { ecrireFinances, medianesParStrate, STRATES } from './finances-emettre.ts';
+import { ecrireFinances, metaFinances, type ComptesCommunes } from './finances-emettre.ts';
 import { ecrireFlux, type FluxGroupements } from './flux-emettre.ts';
 import { ecrireEcoles, type Effectifs } from './ecoles-emettre.ts';
 import { ecrireElus, type Elus } from './elus-emettre.ts';
 import { ecrireMarches, ecrireSuitesMarches, type Marches } from './marches-emettre.ts';
 import { ecrireSru, type InventaireSru } from './sru-emettre.ts';
 import { ecrireDmto, type Dmto } from './dmto-emettre.ts';
-import { ecrireEchelons, reperesEchelons, type Echelons } from './echelons-emettre.ts';
+import { ecrireEchelons, type Echelons } from './echelons-emettre.ts';
 import { ecrireAssociations, type Associations } from './associations-emettre.ts';
 import { ecrirePopulations, type Populations } from './population-emettre.ts';
 import { ecrireConseils, type Conseils } from './conseils-emettre.ts';
@@ -91,13 +91,7 @@ export function emettre(o: {
   libelleDeCode: Map<string, string>;
   dateExport: string;
   natures: Map<string, string>;
-  finances: {
-    annee: number;
-    annees: number[];
-    series: Map<string, (number | null)[][]>;
-    parCommune: Map<string, (number | null)[]>;
-    statutParticulier: Map<string, string>;
-  } | null;
+  finances: ComptesCommunes | null;
   eau: Eau | null;
   services: Services | null;
   reperesGfp: Repere[];
@@ -129,10 +123,6 @@ export function emettre(o: {
   GRIS: string;
 }) {
   const { groupements, codesSuivis, dateExport, natures, finances, eau, services, sortie, dire, VERT, RAZ, GRIS } = o;
-  // Seuls les repères mesurés sur la commune : leur ordre doit correspondre
-  // colonne pour colonne aux séries collectées, sinon les médianes se
-  // décaleraient d'un repère sans que rien ne le signale.
-  const reperes = [...o.graphe.reperes.values()].filter((r) => r.echelon === 'commune');
 
   // Le découpage administratif vient d'un paquet npm plutôt que d'une API :
   // le registre est autrement plus fiable qu'un service web, et la version est
@@ -521,10 +511,8 @@ export function emettre(o: {
       ecrireFinances(
         sortie,
         dep,
-        finances.annee,
-        finances.annees,
+        finances,
         liste.map((c) => c.code),
-        finances.series,
       );
     }
 
@@ -562,7 +550,7 @@ export function emettre(o: {
   }
 
   if (o.echelons) {
-    const n = ecrireEchelons(sortie, reperesEchelons(reperes), o.echelons);
+    const n = ecrireEchelons(sortie, o.echelons);
     dire(`${GRIS}Comptes du département et de la région : ${n} collectivités.${RAZ}`);
   }
 
@@ -640,26 +628,7 @@ export function emettre(o: {
       : {}),
     ...(finances
       ? {
-          finances: {
-            annee: finances.annee,
-            // Les exercices de la série, du plus ancien au plus récent.
-            annees: finances.annees,
-            // L'ordre des repères est celui du contenu : les vecteurs de
-            // valeurs y font référence par position.
-            reperes: reperes.map((r) => ({ id: r.id, nom: r.nom, explication: r.explication, flux: r.flux })),
-            strates: STRATES.map((s) => s.libelle),
-            // Médiane par strate : la moyenne serait tirée par quelques
-            // communes atypiques, et c'est à la médiane qu'on se compare.
-            medianes: medianesParStrate(
-              reperes,
-              finances.parCommune,
-              new Map(communes.map((c) => [c.code, c.population ?? 0])),
-              finances.statutParticulier,
-            ),
-            // Rares — Paris seulement à ce jour — mais il faut le dire plutôt
-            // que de proposer une comparaison qui n'a pas de sens.
-            statutParticulier: Object.fromEntries(finances.statutParticulier),
-          },
+          finances: metaFinances(finances, new Map(communes.map((c) => [c.code, c.population ?? 0]))),
         }
       : {}),
   });

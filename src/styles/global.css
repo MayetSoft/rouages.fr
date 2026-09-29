@@ -939,6 +939,21 @@ a.p-sommaire-lien { text-decoration: none; }
 .pyr-tableau th[scope="row"], .pyr-tableau thead th:first-child { text-align: left; font-weight: 400; }
 .pyr-tableau thead th { font-weight: 600; color: var(--encre-douce); border-bottom: 1px solid var(--trait); }
 .pyr-tableau > summary { display: list-item; cursor: pointer; }
+/* Les comptes poste par poste : l'arbre en retrait, les totaux en gras, les « dont » en retrait et en plus discret. */
+.cpt > summary { display: list-item; cursor: pointer; }
+.cpt-defile { overflow-x: auto; }
+.cpt-tableau { border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; margin-top: .3rem; width: 100%; }
+.cpt-tableau caption { caption-side: top; text-align: left; font-size: .8rem; color: var(--encre-douce); padding: .2rem 0; }
+.cpt-tableau th, .cpt-tableau td { padding: .15rem .6rem .15rem 0; text-align: right; white-space: nowrap; }
+.cpt-tableau th[scope="row"], .cpt-tableau thead th:first-child { text-align: left; font-weight: 400; white-space: normal; }
+.cpt-tableau thead th { font-weight: 600; color: var(--encre-douce); border-bottom: 1px solid var(--trait); }
+.cpt-tableau .cpt-n0 th, .cpt-tableau .cpt-n0 td { font-weight: 600; border-top: 1px solid var(--trait); }
+.cpt-tableau .cpt-n1 th { padding-left: .9rem; }
+.cpt-tableau .cpt-n2 th { padding-left: 1.8rem; }
+.cpt-tableau .cpt-n3 th { padding-left: 2.7rem; }
+.cpt-tableau .cpt-n4 th { padding-left: 3.6rem; }
+.cpt-tableau .cpt-dont th, .cpt-tableau .cpt-dont td { color: var(--encre-douce); }
+.cpt-sur { font-size: .75rem; color: var(--encre-douce); }
 
 /* L'essentiel : un sommaire chiffré, chaque carte mène à son bloc. */
 .c-essentiel { margin: 1.2rem 0 .6rem; }

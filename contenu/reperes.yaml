@@ -1,53 +1,323 @@
 # Repères financiers.
 #
-# Ce que la commune encaisse et dépense réellement, en euros par habitant, tiré
-# des comptes publiés par l'OFGL. Un chiffre seul ne dit rien : chacun est donc
-# comparé à la médiane des communes de taille voisine, ce que le site
-# recommande par ailleurs de faire.
+# Ce que la commune encaisse et dépense réellement, tiré des comptes publiés par
+# l'OFGL : en euros, et en euros par habitant comparés à la médiane des communes
+# de taille voisine, ce que le site recommande par ailleurs de faire.
+#
+# L'ordre est celui du tableau poste par poste. Un poste qui a un `parent` en est
+# une part : les parts d'un même parent s'additionnent pour faire son total — au
+# centime près, l'ingestion le vérifie commune par commune —, sauf celles
+# marquées `dont`, qui n'en détaillent qu'une partie. Les postes `principal`
+# ont en plus leur ligne en tête du bloc, avec leur série depuis 2018.
 #
 # `agregat` doit reprendre exactement le libellé de l'OFGL — l'ingestion échoue
 # sinon. `flux` n'est renseigné que lorsque le repère correspond exactement à un
-# flux du réseau : « Impôts locaux » est plus large que la taxe foncière, on ne
-# les confond donc pas.
+# flux du réseau. `niveaux` dit quels comptes portent le poste : la commune, le
+# département, la région. Les explications sont écrites pour la commune ; sous
+# les comptes d'un département ou d'une région, seul le nom est repris.
 reperes:
-  - id: repere-dgf
-    nom: "Dotation de l'État"
-    agregat: "Dotation globale de fonctionnement"
-    flux: dgf
-    explication: "Ce que l'État verse à la commune, calculé par formule."
-    liens: [od-ofgl, wp-dgf]
-
+  # --- Ce qu'elle encaisse -------------------------------------------------
+  - id: repere-recettes-totales
+    nom: "Recettes totales"
+    agregat: "Recettes totales"
+    explication: "Tout ce que la collectivité a encaissé dans l'année, en fonctionnement et en investissement, emprunts compris."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-recettes-fonctionnement
+    nom: "Recettes de fonctionnement"
+    agregat: "Recettes de fonctionnement"
+    parent: repere-recettes-totales
+    principal: true
+    explication: "Les recettes courantes — impôts, dotations, produit des services — et les recettes exceptionnelles, hors ventes de biens."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-impots-taxes
+    nom: "Impôts et taxes"
+    agregat: "Impôts et taxes"
+    parent: repere-recettes-fonctionnement
+    explication: "Toutes les recettes de nature fiscale, diminuées de ce que la collectivité reverse et augmentées de ce qu'on lui reverse."
+    liens: [od-ofgl, ofgl-definitions]
   - id: repere-impots-locaux
     nom: "Impôts locaux"
     agregat: "Impôts locaux"
-    explication: >
-      Ce que la commune perçoit directement des contribuables. Plus large que la
-      seule taxe foncière : la mesure inclut les autres impôts directs locaux.
-    liens: [od-ofgl, wp-taxe-fonciere]
+    parent: repere-impots-taxes
+    explication: "Le produit des impôts directs locaux, taxes foncières surtout, augmenté de la fiscalité que la commune reçoit en reversement et diminué de celle qu'elle reverse. Ce n'est donc pas, à lui seul, ce que paient les contribuables de la commune."
+    liens: [od-ofgl, ofgl-definitions, wp-taxe-fonciere]
+  - id: repere-fiscalite-reversee
+    nom: "Fiscalité reversée, nette"
+    agregat: "Fiscalité reversée"
+    parent: repere-impots-locaux
+    niveaux: [commune, region]
+    explication: "Les reversements de fiscalité reçus, moins ceux versés, hors fonds nationaux — le plus souvent entre la commune et son intercommunalité. Négative quand la collectivité reverse plus qu'elle ne reçoit."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-impots-sur-place
+    nom: "Impôts levés par la commune"
+    difference: [repere-impots-locaux, repere-fiscalite-reversee]
+    parent: repere-impots-locaux
+    principal: true
+    niveaux: [commune]
+    explication: "Les impôts locaux moins la fiscalité reversée : ce que produisent les impôts directs de la commune elle-même, taxes foncières surtout. Les reversements qui passent par un fonds national y restent comptés, comme l'OFGL les compte."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-autres-impots
+    nom: "Autres impôts et taxes"
+    agregat: "Autres impôts et taxes"
+    parent: repere-impots-taxes
+    explication: "Les produits fiscaux autres que les impôts directs locaux, nets des reversements. Pour un département ou une région, c'est là que figure la fraction de TVA que l'État leur verse."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-tva
+    nom: "Fraction de TVA"
+    agregat: "TVA"
+    parent: repere-autres-impots
+    dont: true
+    niveaux: [departement, region]
+    explication: "La part du produit national de la TVA reversée à la collectivité."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-dmto
+    nom: "Droits de mutation, après péréquation"
+    agregat: "DMTO après péreq."
+    parent: repere-autres-impots
+    dont: true
+    niveaux: [departement]
+    explication: "Les droits perçus sur les ventes immobilières, après les prélèvements et attributions des fonds de péréquation."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-tsca
+    nom: "Taxe sur les conventions d'assurance"
+    agregat: "TSCA"
+    parent: repere-autres-impots
+    dont: true
+    niveaux: [departement]
+    explication: "La part de la taxe sur les contrats d'assurance reversée au département."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-ticpe
+    nom: "Taxe sur les produits énergétiques"
+    agregat: "TICPE"
+    parent: repere-autres-impots
+    dont: true
+    niveaux: [departement, region]
+    explication: "La part de la taxe intérieure de consommation sur les produits énergétiques reversée à la collectivité."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-cartes-grises
+    nom: "Cartes grises"
+    agregat: "Cartes grises"
+    parent: repere-autres-impots
+    dont: true
+    niveaux: [region]
+    explication: "Le produit de la taxe sur les certificats d'immatriculation, que chaque région fixe."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-concours-etat
+    nom: "Concours de l'État"
+    agregat: "Concours de l'Etat"
+    parent: repere-recettes-fonctionnement
+    explication: "Les dotations de l'État pour le fonctionnement, et ses compensations des exonérations d'impôts décidées par la loi."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-dgf
+    nom: "Dotation de l'État"
+    agregat: "Dotation globale de fonctionnement"
+    parent: repere-concours-etat
+    principal: true
+    flux: dgf
+    explication: "Ce que l'État verse à la commune, calculé par formule."
+    liens: [od-ofgl, ofgl-definitions, wp-dgf]
+  - id: repere-autres-dotations-fonctionnement
+    nom: "Autres dotations de fonctionnement"
+    agregat: "Autres dotations de fonctionnement"
+    parent: repere-concours-etat
+    explication: "Les dotations de fonctionnement de l'État autres que la dotation globale."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-compensations
+    nom: "Compensations fiscales"
+    agregat: "Péréquations et compensations fiscales"
+    parent: repere-concours-etat
+    explication: "Ce que l'État verse en compensation des exonérations d'impôts décidées par le législateur."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-subventions-recues
+    nom: "Subventions et participations reçues"
+    agregat: "Subventions reçues et participations"
+    parent: repere-recettes-fonctionnement
+    explication: "Ce que des tiers versent à la collectivité pour financer les services qu'elle assure."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-ventes
+    nom: "Ventes de biens et services"
+    agregat: "Ventes de biens et services"
+    parent: repere-recettes-fonctionnement
+    explication: "Ce que paient les usagers des services de la collectivité — la cantine ou la garderie, par exemple, pour une commune."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-autres-recettes-fonctionnement
+    nom: "Autres recettes de fonctionnement"
+    agregat: "Autres recettes de fonctionnement"
+    parent: repere-recettes-fonctionnement
+    explication: "Le solde des recettes de fonctionnement, pour l'essentiel des opérations exceptionnelles."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-recettes-investissement
+    nom: "Recettes d'investissement"
+    agregat: "Recettes d'investissement"
+    parent: repere-recettes-totales
+    explication: "Ce qui finance l'investissement : emprunts, subventions, remboursement de TVA, ventes de biens."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-emprunts
+    nom: "Emprunts nouveaux"
+    agregat: "Emprunts hors GAD"
+    parent: repere-recettes-investissement
+    explication: "Les emprunts souscrits dans l'année, hors opérations de gestion de trésorerie et de refinancement."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-fctva
+    nom: "Remboursement de TVA (FCTVA)"
+    agregat: "FCTVA"
+    parent: repere-recettes-investissement
+    explication: "Le remboursement par l'État d'une partie de la TVA payée sur les investissements passés."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-subventions-investissement
+    nom: "Subventions d'investissement reçues"
+    agregat: "Autres dotations et subventions"
+    parent: repere-recettes-investissement
+    explication: "Les dotations et subventions reçues de tiers pour financer des investissements de la collectivité."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-autres-recettes-investissement
+    nom: "Autres recettes d'investissement"
+    agregat: "Autres recettes d'investissement"
+    parent: repere-recettes-investissement
+    explication: "Le solde des recettes d'investissement : ce qui n'est ni emprunt, ni remboursement de TVA, ni subvention."
+    liens: [od-ofgl, ofgl-definitions]
 
+  # --- Ce qu'elle dépense --------------------------------------------------
+  - id: repere-depenses-totales
+    nom: "Dépenses totales"
+    agregat: "Dépenses totales"
+    explication: "Tout ce que la collectivité a dépensé dans l'année, en fonctionnement et en investissement, remboursement de la dette compris."
+    liens: [od-ofgl, ofgl-definitions]
   - id: repere-fonctionnement
     nom: "Dépenses de fonctionnement"
     agregat: "Dépenses de fonctionnement"
+    parent: repere-depenses-totales
+    principal: true
     explication: "Ce que coûte le fonctionnement courant : personnel, énergie, entretien, services."
-    liens: [od-ofgl, vp-budget-local]
-
+    liens: [od-ofgl, ofgl-definitions, vp-budget-local]
   - id: repere-personnel
     nom: "Frais de personnel"
     agregat: "Frais de personnel"
-    explication: "La part des dépenses de fonctionnement consacrée aux agents."
-    liens: [od-ofgl]
-
+    parent: repere-fonctionnement
+    principal: true
+    explication: "La part des dépenses de fonctionnement consacrée aux agents : traitements et charges."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-achats
+    nom: "Achats et charges externes"
+    agregat: "Achats et charges externes"
+    parent: repere-fonctionnement
+    explication: "Fournitures, énergie, prestations de services, loyers, assurances, entretien, communication."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-intervention
+    nom: "Dépenses d'intervention"
+    agregat: "Dépenses d'intervention"
+    parent: repere-fonctionnement
+    explication: "Les aides et subventions que la collectivité verse à des tiers : particuliers, associations, autres collectivités."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-subventions-privees
+    nom: "Subventions aux associations et au privé"
+    agregat: "Subventions aux personnes de droit privé"
+    parent: repere-intervention
+    dont: true
+    explication: "Les subventions versées à des personnes de droit privé, associations surtout."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-rsa
+    nom: "Allocations de RSA"
+    agregat: "Allocations RSA"
+    parent: repere-intervention
+    dont: true
+    niveaux: [departement]
+    explication: "Ce que le département verse au titre du revenu de solidarité active."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-apa
+    nom: "Allocations d'APA"
+    agregat: "Allocations APA"
+    parent: repere-intervention
+    dont: true
+    niveaux: [departement]
+    explication: "Ce que le département verse au titre de l'allocation personnalisée d'autonomie des personnes âgées."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-pch
+    nom: "Prestation de compensation du handicap"
+    agregat: "Allocations PCH"
+    parent: repere-intervention
+    dont: true
+    niveaux: [departement]
+    explication: "Ce que le département verse au titre de la prestation de compensation du handicap."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-hebergement
+    nom: "Frais d'hébergement"
+    agregat: "Frais d'hébergement"
+    parent: repere-intervention
+    dont: true
+    niveaux: [departement]
+    explication: "L'hébergement de personnes âgées, de personnes handicapées, de jeunes placés."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-sdis
+    nom: "Contribution aux pompiers (SDIS)"
+    agregat: "Contributions aux SDIS"
+    parent: repere-intervention
+    dont: true
+    niveaux: [departement]
+    explication: "Les contributions obligatoires aux services d'incendie et de secours."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-charges-financieres
+    nom: "Charges financières"
+    agregat: "Charges financières"
+    parent: repere-fonctionnement
+    explication: "Les intérêts de la dette, pour l'essentiel."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-autres-depenses-fonctionnement
+    nom: "Autres dépenses de fonctionnement"
+    agregat: "Autres dépenses de fonctionnement"
+    parent: repere-fonctionnement
+    explication: "Le solde des dépenses de fonctionnement, pour l'essentiel des opérations exceptionnelles."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-depenses-investissement
+    nom: "Dépenses d'investissement"
+    agregat: "Dépenses d'investissement"
+    parent: repere-depenses-totales
+    explication: "Ce qui modifie le patrimoine de la collectivité ou celui d'un tiers qu'elle aide, et le remboursement du capital de la dette."
+    liens: [od-ofgl, ofgl-definitions]
   - id: repere-equipement
     nom: "Dépenses d'équipement"
     agregat: "Dépenses d'équipement"
+    parent: repere-depenses-investissement
+    principal: true
     explication: "L'investissement : ce qui se construit ou se rénove cette année-là. Très variable d'une année sur l'autre."
-    liens: [od-ofgl, vp-budget-local]
+    liens: [od-ofgl, ofgl-definitions, vp-budget-local]
+  - id: repere-subventions-equipement
+    nom: "Subventions d'équipement versées"
+    agregat: "Subventions d'équipement versées"
+    parent: repere-depenses-investissement
+    explication: "Le soutien de la collectivité à des investissements réalisés par d'autres."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-autres-depenses-investissement
+    nom: "Autres dépenses d'investissement"
+    agregat: "Autres dépenses d'investissement"
+    parent: repere-depenses-investissement
+    explication: "Le solde des dépenses d'investissement : ni équipement, ni subvention, ni remboursement de dette."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-remboursements
+    nom: "Remboursement de la dette"
+    agregat: "Remboursements d'emprunts hors GAD"
+    parent: repere-depenses-investissement
+    explication: "Le capital des emprunts remboursé dans l'année, hors opérations de refinancement."
+    liens: [od-ofgl, ofgl-definitions]
 
+  # --- Ce qui reste, ce qui est dû ------------------------------------------
+  - id: repere-epargne-brute
+    nom: "Épargne brute"
+    agregat: "Epargne brute"
+    principal: true
+    explication: "Les recettes de fonctionnement moins les dépenses de fonctionnement : ce qui reste pour rembourser la dette et investir."
+    liens: [od-ofgl, ofgl-definitions]
   - id: repere-dette
     nom: "Encours de dette"
     agregat: "Encours de dette"
-    explication: "Ce qui reste à rembourser, tous emprunts confondus."
-    liens: [od-ofgl]
+    principal: true
+    explication: "Ce qui reste à rembourser au 31 décembre, tous emprunts confondus."
+    liens: [od-ofgl, ofgl-definitions]
+  - id: repere-annuite
+    nom: "Annuité de la dette"
+    agregat: "Annuité de la dette"
+    explication: "Ce que la dette a coûté dans l'année : le capital remboursé et les intérêts."
+    liens: [od-ofgl, ofgl-definitions]
 
   # --- Perçus par l'intercommunalité, pas par la commune --------------------
   # Les chercher dans les comptes communaux ne donnerait presque rien. Le site

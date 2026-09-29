@@ -596,11 +596,15 @@ const ctx = {
   // Par échelon : chaque base de l'OFGL n'est comptable que des agrégats que
   // le site y lit réellement.
   agregats: {
+    // Seuls les postes que les comptes des communes portent : les allocations
+    // de RSA n'y sont pas, et leur absence n'est pas une disparition.
     commune: new Set(
-      [...g.reperes.values()].filter((r) => r.echelon === 'commune').map((r) => r.agregat),
+      [...g.reperes.values()]
+        .filter((r) => r.echelon === 'commune' && r.niveaux.includes('commune'))
+        .flatMap((r) => (r.agregat ? [r.agregat] : [])),
     ),
     groupement: new Set(
-      [...g.reperes.values()].filter((r) => r.echelon === 'groupement').map((r) => r.agregat),
+      [...g.reperes.values()].filter((r) => r.echelon === 'groupement').flatMap((r) => (r.agregat ? [r.agregat] : [])),
     ),
   },
   meta,

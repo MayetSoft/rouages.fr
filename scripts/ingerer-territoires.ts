@@ -407,14 +407,13 @@ async function principal() {
     ),
   );
 
-  // Les comptes du département et de la région : les mêmes repères qu'à
-  // l'échelon communal, moins ceux qui n'y ont plus de sens — le module dit
-  // lesquels et pourquoi.
-  const { collecterEchelons, reperesEchelons } = await import('./echelons-emettre.ts');
+  // Les comptes du département et de la région : le même arbre de postes qu'à
+  // l'échelon communal, chacun gardant ceux que ses comptes portent.
+  const { collecterEchelons } = await import('./echelons-emettre.ts');
   const echelons = finances
     ? await tenter('Comptes du département et de la région', () =>
         collecterEchelons(
-          reperesEchelons(reperes),
+          reperes,
           finances.annee,
           async <T,>(url: string) => (await obstine(url)).json() as Promise<T>,
           (m) => dire(`${GRIS}${m}${RAZ}`),

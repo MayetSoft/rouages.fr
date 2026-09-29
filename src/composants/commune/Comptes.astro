@@ -4,23 +4,49 @@
  * une réglette dont le repère central est la médiane des communes de taille
  * voisine. La position du point vaut mieux qu'un pourcentage, qui demande un
  * calcul mental à chaque ligne.
+ *
+ * En tête, les lignes qui résument — ce qui entre et sort pour fonctionner, ce
+ * qui reste, ce qui s'investit, ce qui est dû —, avec leur série depuis 2018 et
+ * leur montant en euros. Dessous, tous les postes de l'OFGL, en euros et par
+ * habitant.
+ *
+ * Les impôts locaux d'une commune comprennent ce que d'autres collectivités lui
+ * reversent, son intercommunalité le plus souvent. Le bloc sépare les deux et
+ * le dit en une phrase : c'est l'erreur la plus facile à faire en lisant un
+ * compte communal.
  */
 import type { Finances } from '../../modele/fiche-commune.ts';
 import { debutSerie } from '../../modele/fiche-commune.ts';
 import { euros, evolutionDepuis } from '../../vues/graphiques.ts';
 import Repere from './Repere.astro';
+import TableauComptes from './TableauComptes.astro';
 
 interface Props {
   f: Finances;
 }
 const { f } = Astro.props;
 const lignes = f.reperes.filter((r) => r.valeur !== null);
+const entier = (v: number) => `${Math.round(Math.abs(v)).toLocaleString('fr-FR')} €`;
+
+// La phrase sur les impôts locaux, quand la fiscalité reversée n'est pas nulle.
+const poste = (id: string) => f.lignes.find((l) => l.id === id)?.montant ?? null;
+const locaux = poste('repere-impots-locaux');
+const reversee = poste('repere-fiscalite-reversee');
+const surPlace = poste('repere-impots-sur-place');
+const phraseImpots =
+  locaux !== null && reversee !== null && surPlace !== null && Math.round(reversee) !== 0
+    ? reversee > 0
+      ? `Sur ${entier(locaux)} d’impôts locaux, ${entier(reversee)} sont des reversements de fiscalité — ceux de ` +
+        `l’intercommunalité le plus souvent — : la commune en lève elle-même ${entier(surPlace)}.`
+      : `La commune lève ${entier(surPlace)} d’impôts et en reverse ${entier(reversee)} à d’autres collectivités — ` +
+        `à l’intercommunalité le plus souvent — : il lui reste ${entier(locaux)} d’impôts locaux.`
+    : null;
 ---
 <p class={f.statutParticulier ? 'p-strate p-strate--particulier' : 'p-strate'}>
   {f.statutParticulier
     ? 'Statut particulier : cette commune exerce aussi des fonctions départementales. ' +
       'Ses comptes ne se comparent à ceux d’aucune autre — les montants sont donnés seuls.'
-    : `Par habitant — sinon rien n’est comparable — et rapportés aux communes ${f.strate}.`}
+    : `Par habitant — sinon rien n’est comparable — et rapportés aux communes ${f.strate}. Le montant en euros suit.`}
 </p>
 <dl class="p-reperes">
   {lignes.map((r) => (
@@ -30,11 +56,20 @@ const lignes = f.reperes.filter((r) => r.valeur !== null);
       montant={euros(r.valeur!)}
       compare={r.mediane !== null ? { valeur: r.valeur!, mediane: r.mediane } : null}
       mediane={r.mediane !== null && r.mediane > 0 ? `médiane ${euros(r.mediane)}` : null}
+      detail={r.montant != null ? `soit ${r.montant < 0 ? '−' : ''}${entier(r.montant)} en ${f.annee}` : null}
       serie={{ valeurs: r.serie, annees: f.annees }}
       evolution={evolutionDepuis(r.evolution, debutSerie(r.serie, f.annees) ?? f.annees[0])}
     />
   ))}
 </dl>
+{phraseImpots && <p class="p-strate">{phraseImpots}</p>}
+<TableauComptes
+  lignes={f.lignes}
+  annee={f.annee}
+  legende={f.statutParticulier
+    ? `En euros et par habitant, en ${f.annee}.`
+    : `En euros et par habitant, en ${f.annee}. La médiane est celle des communes ${f.strate}, par habitant.`}
+/>
 <p class="p-source-territoire">
-  {`D’après les comptes des communes publiés par l’OFGL, de ${f.annees[0]} à ${f.annee}.`}
+  {`D’après les comptes des communes publiés par l’OFGL, de ${f.annees[0]} à ${f.annee}, budgets annexes compris. Ce que chaque poste comprend : `}<a href="https://data.ofgl.fr/pages/methodologie-agregats-financiers/" target="_blank" rel="noopener">les définitions de l’OFGL</a>{'.'}
 </p>

@@ -225,6 +225,7 @@ sources:
   - { id: anct-hlm, type: page_officielle, titre: "Demande de logement social", url: "https://www.demande-logement-social.gouv.fr/", consulte_le: 2026-09-05 }
 
   # --- Open data : les chiffres, vérifiables soi-même --------------------
+  - { id: ofgl-definitions, type: page_officielle, titre: "OFGL — définitions et formules des agrégats financiers : ce que chaque poste des comptes comprend, et où il se range", url: "https://data.ofgl.fr/pages/methodologie-agregats-financiers/", consulte_le: 2026-09-28 }
   - { id: od-ofgl, type: donnees_ouvertes, titre: "OFGL — finances des collectivités locales, commune par commune", url: "https://data.ofgl.fr/", consulte_le: 2026-09-05 }
   - { id: od-banatic, type: donnees_ouvertes, titre: "BANATIC — intercommunalités et répartition de leurs compétences", url: "https://www.banatic.interieur.gouv.fr/", consulte_le: 2026-09-05 }
   - { id: od-rne, type: donnees_ouvertes, titre: "Répertoire national des élus", url: "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/", consulte_le: 2026-09-05 }
