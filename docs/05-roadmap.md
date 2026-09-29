@@ -2501,6 +2501,32 @@ dans les autres impôts et taxes. Le tableau montre l'un et l'autre.
 `npx tsx scripts/comptes-emettre.ts` rejoue les comptes seuls, sans
 l'ingestion complète.
 
+**Une page par département et par région.** Les comptes de l'échelon
+au-dessus pesaient une vingtaine de kilo-octets sur chaque page de commune,
+identiques sur les trois cents communes d'un même département. Ils ont
+désormais leur page — `/departement/03`, `/region/84` —, et la commune garde,
+à la même place, deux chiffres et le lien : au Mayet-de-Montagne, la page
+passe de 129 à 107 Ko. Au passage, trois cas que le site traitait mal : les
+communes alsaciennes relèvent de la Collectivité européenne d'Alsace (`67A`),
+dont les comptes ne s'affichaient pas ; celles de la Métropole de Lyon
+relèvent d'elle (`691`), et non du Rhône, dont elles montraient les comptes ;
+la Corse, la Martinique et la Guyane ont une collectivité unique, que la page
+nomme ainsi.
+
+### Deux déploiements tombés sur un village sans habitants ✔
+
+Les déploiements #102 et #103 ont échoué au build, sur la même page : Beaumont-
+en-Verdunois (55039), l'un des six villages de la Meuse détruits en 1916 et
+jamais reconstruits. Le recensement leur donne des effectifs nuls, et le bloc
+des diplômes calculait des parts sur zéro personne. Le contrôle des PR ne
+construisait que trois départements ; il construit désormais la Meuse aussi.
+
+Le déploiement #101, lui, est passé — par lots, en 2 h 47 : le déballage
+reçoit un 520 jusque sur une requête GET sans jeton, ce qui écarte un POST
+arrêté en route. Un témoin — le PHP le plus simple — est désormais déposé et
+appelé avant le script : s'il répond et pas le script, c'est le script que
+l'hébergeur bloque ; si aucun ne répond, c'est PHP.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

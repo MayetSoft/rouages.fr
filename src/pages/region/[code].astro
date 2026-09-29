@@ -1,0 +1,15 @@
+---
+/** Les comptes d'une région — ou de la collectivité unique qui en exerce les compétences. */
+import PageCollectivite from '../../composants/PageCollectivite.astro';
+import { collectivitesPour, type Collectivite } from '../../modele/fiche-commune.ts';
+
+export function getStaticPaths() {
+  const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+  return collectivitesPour(filtre)
+    .filter((c) => c.echelon === 'region')
+    .map((c) => ({ params: { code: c.code }, props: { c } }));
+}
+
+const { c } = Astro.props as { c: Collectivite };
+---
+<PageCollectivite c={c} />

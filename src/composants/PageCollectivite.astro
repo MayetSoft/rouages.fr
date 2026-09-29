@@ -1,0 +1,126 @@
+---
+/**
+ * La page d'un département ou d'une région : ses comptes, poste par poste, et
+ * les chemins vers ses communes et vers l'échelon voisin.
+ *
+ * Chaque page de commune y renvoie, là où elle montrait autrefois ces comptes
+ * en entier.
+ */
+import Base from '../layouts/Base.astro';
+import ComptesCollectivite from './ComptesCollectivite.astro';
+import {
+  COLLECTIVITES_UNIQUES,
+  comptesCollectivite,
+  lienCollectivite,
+  type Collectivite,
+} from '../modele/fiche-commune.ts';
+import { communes, metaTerritoires } from '../modele/territoires.ts';
+
+interface Props {
+  c: Collectivite;
+}
+const { c } = Astro.props;
+const comptes = comptesCollectivite(c);
+const meta = metaTerritoires();
+const annee = comptes ? comptes.annees[comptes.annees.length - 1] : null;
+
+// Les départements dont les communes relèvent de cette collectivité : ceux de
+// la région, les deux départements alsaciens, ou le département lui-même.
+const deps =
+  c.echelon === 'region'
+    ? Object.entries(meta?.codesRegion ?? {}).filter(([, r]) => r === c.code).map(([d]) => d)
+    : c.code === '67A'
+      ? ['67', '68']
+      : c.code === '691'
+        ? ['69']
+        : [c.code];
+const parDep = new Map<string, { nom: string; n: number }>();
+for (const x of communes()) {
+  const e = parDep.get(x.dep) ?? { nom: x.depNom, n: 0 };
+  e.n++;
+  parDep.set(x.dep, e);
+}
+const listes = deps
+  .filter((d) => parDep.has(d))
+  .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }))
+  .map((d) => ({ d, ...parDep.get(d)! }));
+
+// L'échelon voisin : la région d'un département.
+const codeRegion = c.echelon === 'departement' ? meta?.codesRegion?.[deps[0]] : undefined;
+const nomRegion = c.echelon === 'departement' ? meta?.regions?.[deps[0]] : undefined;
+
+const unique = c.echelon === 'region' && COLLECTIVITES_UNIQUES.has(c.code);
+const badge = c.echelon === 'departement' ? 'Département' : unique ? 'Collectivité unique' : 'Région';
+const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (région)'}`;
+---
+<Base
+  titre={`Les comptes — ${titre}`}
+  description={`Ce que ${c.nom} encaisse et dépense${annee ? ` en ${annee}` : ''}, poste par poste, en euros et par habitant, comparé aux autres collectivités du même échelon.`}
+>
+  <div class="page page--etroite">
+    <p class="badge">
+      {badge}
+      {codeRegion && nomRegion && (
+        <>{' · '}<a href={lienCollectivite({ echelon: 'region', code: codeRegion, nom: nomRegion })}>{nomRegion}</a></>
+      )}
+    </p>
+    <h1>{titre}</h1>
+    <p class="resume">
+      {`Ce que la collectivité encaisse et dépense${annee ? ` en ${annee}` : ''}, poste par poste.`}
+    </p>
+    {c.code === '67A' && (
+      <p class="p-strate">
+        Depuis 2021, la Collectivité européenne d’Alsace exerce les compétences des départements du Bas-Rhin et du
+        Haut-Rhin : ses comptes sont ceux de l’un et de l’autre.
+      </p>
+    )}
+    {c.code === '691' && (
+      <p class="p-strate">
+        Sur son territoire, la Métropole de Lyon exerce les compétences du département : ses communes relèvent
+        d’elle, et non du Rhône, pour le RSA, les collèges ou les routes départementales.
+      </p>
+    )}
+    {c.code === '69' && (
+      <p class="p-strate">
+        Le Rhône n’exerce ses compétences que hors de la Métropole de Lyon, qui les exerce sur son propre territoire.
+      </p>
+    )}
+    {c.code === '75' && (
+      <p class="p-strate">
+        La Ville de Paris est à la fois commune et département : ces comptes sont les siens, budget principal seul. Ceux
+        de <a href="/commune/75056">la page de la commune</a> comprennent en plus ses budgets annexes.
+      </p>
+    )}
+    {unique && (
+      <p class="p-strate">
+        Une collectivité unique exerce à la fois les compétences d’un département et celles d’une région : ses comptes
+        sont ceux de l’un et de l’autre.
+      </p>
+    )}
+    {comptes ? (
+      <section class="p-finances p-echelons">
+        <h2 class="badge">{`Ses comptes, en ${annee}`}</h2>
+        <ComptesCollectivite
+          c={comptes}
+          echelon={c.echelon === 'departement' ? 'collectivités départementales' : 'collectivités régionales'}
+          maj={null}
+        />
+      </section>
+    ) : (
+      <p class="c-vide">Les comptes de cette collectivité n’ont pas pu être lus.</p>
+    )}
+    {listes.length > 0 && (
+      <section class="p-echelons">
+        <h2 class="badge">Ses communes</h2>
+        <ul class="c-departements">
+          {listes.map(({ d, nom, n }) => (
+            <li>
+              <a href={`/communes/${d}`}>{`${d} · ${nom}`}</a>
+              <span class="c-departement-detail">{`${n.toLocaleString('fr-FR')} commune${n > 1 ? 's' : ''}`}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+</Base>

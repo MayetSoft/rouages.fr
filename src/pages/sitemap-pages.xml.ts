@@ -9,6 +9,7 @@ import type { APIRoute } from 'astro';
 import { construireReseau } from '../modele/reseau.ts';
 import { plan } from '../modele/sitemap.ts';
 import { communes } from '../modele/territoires.ts';
+import { collectivites, lienCollectivite } from '../modele/fiche-commune.ts';
 
 export const GET: APIRoute = ({ site }) => {
   const base = site?.href.replace(/\/$/, '') ?? 'https://rouages.fr';
@@ -17,5 +18,7 @@ export const GET: APIRoute = ({ site }) => {
   // jusqu'aux communes, en plus de leurs propres plans.
   const departements = [...new Set(communes().map((c) => c.dep))].map((d) => `/communes/${d}`);
   const noeuds = construireReseau().noeuds.map((n) => `/n/${n.id}`);
-  return plan(base, [...fixes, ...departements, ...noeuds]);
+  // Les comptes des départements et des régions, une page chacun.
+  const echelons = collectivites().map(lienCollectivite);
+  return plan(base, [...fixes, ...departements, ...echelons, ...noeuds]);
 };

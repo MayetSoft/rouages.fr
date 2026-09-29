@@ -34,7 +34,7 @@ const nom = (l: LigneCompte) => (l.dont ? `dont ${l.nom.charAt(0).toLowerCase()}
 {montrees.length > 0 && (
   <details class="p-service-groupe cpt" open>
     <summary class="p-service-famille">Toutes les recettes et les dépenses, poste par poste</summary>
-    <div class="cpt-defile">
+    <div class="cpt-defile" tabindex="0" role="region" aria-label="Les comptes, poste par poste — le tableau défile sur les petits écrans">
       <table class="cpt-tableau">
         <caption>{legende}</caption>
         <thead>

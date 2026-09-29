@@ -209,7 +209,7 @@ const droitLocal = DROIT_LOCAL.has(commune.dep) && !(plus.associations && plus.a
  * « Une vente immobilière » tient dans une pastille, « Ce que rapporte une
  * vente immobilière » non.
  */
-const echelonsMontres = plus.comptesEchelons.some((c) => c.reperes.some((r) => r.valeur !== null));
+const echelonsMontres = plus.echelons.length > 0;
 const sommaire: [string, string, unknown][] = [
   ['habitants', 'Les habitants', plus.histoire || plus.etatCivil || plus.ages],
   ['niveaux', 'Niveau de vie et diplômes', plus.niveauDeVie || plus.diplomes],
@@ -420,7 +420,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {echelonsMontres && (
       <section id="echelons" class="p-finances p-echelons">
         <h2 class="badge">Les comptes des échelons au-dessus</h2>
-        <Echelons comptes={plus.comptesEchelons} maj={plus.echelonsMaj} />
+        <Echelons echelons={plus.echelons} />
       </section>
     )}
 
