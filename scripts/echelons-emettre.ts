@@ -28,7 +28,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Repere } from '../src/modele/schemas.ts';
-import { aSerie, controlerSommes, parHabitant, partiels, PROFONDEUR, reperesDe } from './finances-emettre.ts';
+import { aSerie, controlerSommes, lireJson, parHabitant, partiels, PROFONDEUR, reperesDe } from './finances-emettre.ts';
 
 const BASE = 'https://data.ofgl.fr/api/explore/v2.1/catalog/datasets';
 
@@ -103,7 +103,7 @@ async function collecterUn(
         `agregat="${r.agregat}" and type_de_budget="Budget principal" and ` +
           `exer>=${voulues[0]} and exer<=${voulues[voulues.length - 1]}`,
       )}`;
-    const lignes = await json<LigneEchelon[]>(url);
+    const lignes = await lireJson(() => json<LigneEchelon[]>(url));
     if (lignes.length === 0) {
       throw new Error(`l'agrégat « ${r.agregat} » ne renvoie rien dans ${jeu} : le libellé a-t-il changé ?`);
     }

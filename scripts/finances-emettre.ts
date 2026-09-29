@@ -36,6 +36,22 @@ export function strateDe(population: number): number {
   return STRATES.findIndex((s) => population < s.max);
 }
 
+/**
+ * Un export JSON de l'OFGL, relu s'il arrive tronqué. Les plus gros pèsent une
+ * cinquantaine de mégaoctets ; la connexion en a coupé un à 865 Ko, et la
+ * reprise de `obstine` ne couvre que la requête, pas la lecture du corps.
+ */
+export async function lireJson<T>(lire: () => Promise<T>, essais = 4): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await lire();
+    } catch (e) {
+      if (i >= essais - 1) throw e;
+      await new Promise((ok) => setTimeout(ok, 5000 * (i + 1)));
+    }
+  }
+}
+
 /** Les repères qu'un échelon porte, dans l'ordre du contenu : c'est celui des fichiers. */
 export function reperesDe(niveau: 'commune' | 'departement' | 'region', tous: Repere[]): Repere[] {
   return tous.filter((r) => r.echelon === 'commune' && r.niveaux.includes(niveau));
@@ -145,7 +161,7 @@ export async function collecterFinances(
       `&where=${encodeURIComponent(
         `agregat="${r.agregat}" and annee_join in (${voulues.map((a) => `"${a}"`).join(',')})`,
       )}`;
-    const lignes = (await (await obstine(url)).json()) as LigneOfgl[];
+    const lignes = await lireJson(async () => (await (await obstine(url)).json()) as LigneOfgl[]);
     if (lignes.length === 0) {
       throw new Error(
         `l'agrégat « ${r.agregat} » (repère ${r.id}) ne renvoie rien : le libellé a-t-il changé à l'OFGL ?`,
