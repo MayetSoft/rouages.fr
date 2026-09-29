@@ -1,0 +1,79 @@
+---
+/**
+ * Les comptes d'un département ou d'une région, sur la page de la collectivité.
+ *
+ * Ils étaient sur chaque page de commune : vingt kilo-octets identiques sur
+ * les trois cents pages d'un même département. La commune garde deux chiffres
+ * et un lien ; le détail vit ici, une fois.
+ *
+ * Pas de strate : ces échelons sont trop peu nombreux pour qu'une strate ait
+ * un sens. La médiane porte sur l'échelon entier, et la page dit sur combien
+ * de collectivités. Mêmes lignes de tête et même tableau que pour une
+ * commune, avec ce que ces comptes ont en propre : le RSA, l'APA, la PCH, les
+ * pompiers chez le département, les cartes grises chez la région, et la
+ * fraction de TVA qui a remplacé l'essentiel de leurs impôts locaux.
+ */
+import type { ComptesEchelon } from '../modele/fiche-commune.ts';
+import { debutSerie } from '../modele/fiche-commune.ts';
+import { euros, evolutionDepuis } from '../vues/graphiques.ts';
+import Repere from './commune/Repere.astro';
+import TableauComptes from './commune/TableauComptes.astro';
+
+interface Props {
+  c: ComptesEchelon;
+  /** Le mot qui désigne l'échelon au pluriel : « départements », « régions ». */
+  echelon: string;
+  maj: string | null;
+}
+const { c, echelon, maj } = Astro.props;
+const lignes = c.reperes.filter((r) => r.valeur !== null);
+const annee = c.annees[c.annees.length - 1];
+const entier = (v: number) => `${v < 0 ? '−' : ''}${Math.round(Math.abs(v)).toLocaleString('fr-FR')}\u00a0€`;
+---
+<p class="p-strate">
+  {`Par habitant, et rapportés aux ${c.effectif.toLocaleString('fr-FR')} ${echelon} dont l’OFGL publie les comptes. Le montant en euros suit.`}
+</p>
+<dl class="p-reperes">
+  {lignes.map((r) => {
+    // Quand le repère n'est pas renseigné partout, la médiane ne porte que
+    // sur ceux qui le déclarent : le dire évite de faire passer une poignée
+    // de cas particuliers pour la norme de l'échelon.
+    const partiel = r.effectif > 0 && r.effectif < c.effectif;
+    const aMediane = r.mediane !== null && r.mediane > 0;
+    return (
+      <Repere
+        nom={r.nom}
+        montant={euros(r.valeur!)}
+        compare={aMediane
+          ? {
+              valeur: r.valeur!,
+              mediane: r.mediane!,
+              reference: partiel ? 'la médiane de celles qui en déclarent' : 'la médiane de l’échelon',
+            }
+          : null}
+        mediane={aMediane
+          ? `médiane ${euros(r.mediane!)}` + (partiel ? ` sur ${r.effectif.toLocaleString('fr-FR')}` : '')
+          : null}
+        detail={r.montant != null ? `soit ${entier(r.montant)} en ${annee}` : null}
+        serie={{ valeurs: r.serie, annees: c.annees }}
+        evolution={evolutionDepuis(r.evolution, debutSerie(r.serie, c.annees) ?? c.annees[0])}
+      />
+    );
+  })}
+</dl>
+<TableauComptes
+  lignes={c.lignes}
+  annee={annee}
+  effectif={c.effectif}
+  legende={`En euros et par habitant, en ${annee}. La médiane est celle des ${c.effectif.toLocaleString('fr-FR')} ${echelon}, par habitant — ou de ceux qui déclarent le poste, quand leur nombre est précisé.`}
+/>
+<p class="p-strate">
+  Les impôts locaux d’un département ou d’une région sont minces, parfois négatifs : depuis la réforme de 2021,
+  l’essentiel de ce qu’ils levaient est remplacé par une fraction de la TVA nationale, que l’OFGL range dans les
+  autres impôts et taxes.
+</p>
+<p class="p-source-territoire">
+  {`D’après les comptes des collectivités publiés par l’OFGL` +
+    (maj ? ` (${maj})` : '') +
+    ', budget principal seul — les budgets annexes sont comptés à part. Ce que chaque poste comprend : '}<a href="https://data.ofgl.fr/pages/methodologie-agregats-financiers/" target="_blank" rel="noopener">les définitions de l’OFGL</a>{'.'}
+</p>

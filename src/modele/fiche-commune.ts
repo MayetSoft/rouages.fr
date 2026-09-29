@@ -1077,47 +1077,169 @@ function assemblerAssociations(commune: CommuneFiche, population: number): Assoc
 /** Le seuil de 5 000 habitants décide du destinataire de la part communale. */
 const SEUIL_PART_COMMUNALE = 5000;
 
-function assemblerEchelons(commune: CommuneFiche): ComptesEchelon[] {
+/* ------------------------------------------------------------------ *
+ * Le département et la région : une page chacun, un lien depuis la commune.
+ * ------------------------------------------------------------------ */
+
+export type Echelon = 'departement' | 'region';
+
+/** Une collectivité au-dessus de la commune, telle que l'OFGL en publie les comptes. */
+export interface Collectivite {
+  echelon: Echelon;
+  /** Le code de l'OFGL : celui du département, ou « 67A », « 691 » pour les cas qui suivent. */
+  code: string;
+  nom: string;
+}
+
+/**
+ * Deux collectivités à statut particulier que l'OFGL range parmi les
+ * départements : la Collectivité européenne d'Alsace, qui exerce depuis 2021
+ * les compétences des deux départements alsaciens, et la Métropole de Lyon,
+ * qui exerce celles du département sur son territoire — le Rhône garde le
+ * reste.
+ */
+const NOMS_PARTICULIERS: Record<string, string> = {
+  '67A': "Collectivité européenne d'Alsace",
+  '691': 'Métropole de Lyon',
+};
+
+/**
+ * Collectivités uniques : elles exercent les compétences du département et de
+ * la région, et l'OFGL les range parmi les régions. Leur page le dit.
+ */
+export const COLLECTIVITES_UNIQUES = new Set(['02', '03', '94']);
+
+/** Le nom de chaque département, d'après l'index des communes. */
+const nomsDepartements = national<{ deps: Record<string, string> }>('index.json');
+
+function nomDe(echelon: Echelon, code: string): string | null {
+  if (echelon === 'departement') return NOMS_PARTICULIERS[code] ?? nomsDepartements()?.deps?.[code] ?? null;
+  const meta = metaFichier();
+  const dep = Object.entries(meta?.codesRegion ?? {}).find(([, r]) => r === code)?.[0];
+  return dep ? (meta?.regions?.[dep] ?? null) : null;
+}
+
+/**
+ * Les collectivités dont relèvent les départements retenus — le filtre
+ * `ROUAGES_DEPS` des builds partiels —, ou toutes sans filtre.
+ */
+export function collectivitesPour(filtre?: string[]): Collectivite[] {
+  const toutes = collectivites();
+  if (!filtre || filtre.length === 0) return toutes;
+  const regions = new Set(filtre.map((d) => metaFichier()?.codesRegion?.[d]).filter(Boolean));
+  const departements = new Set(
+    filtre.flatMap((d) => (d === '67' || d === '68' ? ['67A'] : d === '69' ? ['69', '691'] : [d])),
+  );
+  return toutes.filter((c) => (c.echelon === 'departement' ? departements.has(c.code) : regions.has(c.code)));
+}
+
+/** Toutes les collectivités dont l'OFGL publie les comptes, pour engendrer leurs pages. */
+export function collectivites(): Collectivite[] {
   const e = echelonsFichier();
   if (!e) return [];
-  const out: ComptesEchelon[] = [];
-  const lireEchelon = (c: ComptesFichier | null, code: string | undefined, nom: string) => {
-    if (!c || !code) return;
-    const f = c.h[code];
-    if (!f) return;
-    // Les explications de `reperes.yaml` parlent de la commune : elles
-    // seraient fausses ici, et le bloc dit lui-même ce qu'il montre.
-    const lignes = lignesDe(c.reperes, c.principaux, f, (i) => c.medianes[i] ?? null).map((l, i) => ({
-      ...l,
-      effectif: c.effectifs[i] ?? c.effectif,
-    }));
-    out.push({
-      nom,
-      annees: c.annees,
-      effectif: c.effectif,
-      reperes: c.principaux.map((i, k) => {
-        const serie = f[0][k] ?? [];
-        return {
-          id: c.reperes[i].id,
-          nom: c.reperes[i].nom,
-          explication: '',
-          valeur: lignes[i].parHabitant,
-          montant: lignes[i].montant,
-          mediane: c.medianes[i] ?? null,
-          effectif: c.effectifs[i] ?? c.effectif,
-          serie,
-          evolution: variation(serie),
-        };
-      }),
-      lignes,
-    });
-  };
-  lireEchelon(e.departements, commune.dep, `Le département — ${commune.depNom}`);
-  const meta = metaFichier();
-  const nom = meta?.regions?.[commune.dep];
-  const code = meta?.codesRegion?.[commune.dep];
-  if (nom) lireEchelon(e.regions, code, `La région — ${nom}`);
+  const out: Collectivite[] = [];
+  for (const [echelon, c] of [['departement', e.departements], ['region', e.regions]] as const) {
+    for (const code of Object.keys(c?.h ?? {})) {
+      const nom = nomDe(echelon, code);
+      if (nom) out.push({ echelon, code, nom });
+    }
+  }
   return out;
+}
+
+/**
+ * Le département et la région d'une commune, tels que l'OFGL les publie. Le
+ * Bas-Rhin et le Haut-Rhin relèvent de la Collectivité européenne d'Alsace ;
+ * une commune de la Métropole de Lyon relève d'elle, et non du Rhône ; en
+ * Corse, en Martinique et en Guyane, la collectivité unique est rangée parmi
+ * les régions.
+ */
+export function collectivitesDeCommune(commune: CommuneFiche, structures: StructureFiche[]): Collectivite[] {
+  const e = echelonsFichier();
+  if (!e) return [];
+  const out: Collectivite[] = [];
+  const dep =
+    commune.dep === '67' || commune.dep === '68'
+      ? '67A'
+      : commune.dep === '69' && structures.some((s) => s.nature === 'MET69')
+        ? '691'
+        : commune.dep;
+  if (e.departements?.h[dep]) {
+    const nom = nomDe('departement', dep);
+    if (nom) out.push({ echelon: 'departement', code: dep, nom });
+  }
+  const reg = metaFichier()?.codesRegion?.[commune.dep];
+  if (reg && e.regions?.h[reg]) {
+    const nom = nomDe('region', reg);
+    if (nom) out.push({ echelon: 'region', code: reg, nom });
+  }
+  return out;
+}
+
+/** Les comptes d'une collectivité, prêts à afficher sur sa page. */
+export function comptesCollectivite(c: Collectivite): ComptesEchelon | null {
+  const e = echelonsFichier();
+  const fichier = c.echelon === 'departement' ? e?.departements : e?.regions;
+  const f = fichier?.h[c.code];
+  if (!fichier || !f) return null;
+  // Les explications de `reperes.yaml` parlent de la commune : elles seraient
+  // fausses ici, et la page dit elle-même ce qu'elle montre.
+  const lignes = lignesDe(fichier.reperes, fichier.principaux, f, (i) => fichier.medianes[i] ?? null).map((l, i) => ({
+    ...l,
+    explication: '',
+    effectif: fichier.effectifs[i] ?? fichier.effectif,
+  }));
+  return {
+    nom: c.nom,
+    annees: fichier.annees,
+    effectif: fichier.effectif,
+    reperes: fichier.principaux.map((i, k) => {
+      const serie = f[0][k] ?? [];
+      return {
+        id: fichier.reperes[i].id,
+        nom: fichier.reperes[i].nom,
+        explication: '',
+        valeur: lignes[i].parHabitant,
+        montant: lignes[i].montant,
+        mediane: fichier.medianes[i] ?? null,
+        effectif: fichier.effectifs[i] ?? fichier.effectif,
+        serie,
+        evolution: variation(serie),
+      };
+    }),
+    lignes,
+  };
+}
+
+/** Ce que la page de la commune garde d'un échelon : deux chiffres et le lien vers ses comptes. */
+export interface ResumeEchelon {
+  collectivite: Collectivite;
+  lien: string;
+  annee: number;
+  /** Euros par habitant, au dernier exercice. */
+  recettes: number | null;
+  depenses: number | null;
+}
+
+export function lienCollectivite(c: Collectivite): string {
+  return `/${c.echelon}/${c.code}`;
+}
+
+function assemblerEchelons(commune: CommuneFiche, structures: StructureFiche[]): ResumeEchelon[] {
+  return collectivitesDeCommune(commune, structures).flatMap((c) => {
+    const comptes = comptesCollectivite(c);
+    if (!comptes) return [];
+    const par = (id: string) => comptes.lignes.find((l) => l.id === id)?.parHabitant ?? null;
+    return [
+      {
+        collectivite: c,
+        lien: lienCollectivite(c),
+        annee: comptes.annees[comptes.annees.length - 1],
+        recettes: par('repere-recettes-totales'),
+        depenses: par('repere-depenses-totales'),
+      },
+    ];
+  });
 }
 
 function assemblerDmto(commune: CommuneFiche, population: number): Dmto | null {
@@ -1181,7 +1303,8 @@ export interface ComplementsFiche {
   finances: Finances | null;
   fluxPercus: FluxPercu[];
   anneesFlux: number[];
-  comptesEchelons: ComptesEchelon[];
+  /** Le département et la région : leurs comptes ont leur propre page. */
+  echelons: ResumeEchelon[];
   echelonsMaj: string | null;
   dmto: Dmto | null;
   eau: ServiceEau | null;
@@ -1216,7 +1339,7 @@ export function complementsFiche(
     finances: assemblerFinances(commune, population),
     fluxPercus: assemblerFluxPercus(structures),
     anneesFlux: fluxFichier()?.annees ?? [],
-    comptesEchelons: assemblerEchelons(commune),
+    echelons: assemblerEchelons(commune, structures),
     echelonsMaj: echelonsFichier()?.maj ?? null,
     dmto: assemblerDmto(commune, population),
     eau: assemblerEau(commune),

@@ -2501,6 +2501,18 @@ dans les autres impôts et taxes. Le tableau montre l'un et l'autre.
 `npx tsx scripts/comptes-emettre.ts` rejoue les comptes seuls, sans
 l'ingestion complète.
 
+**Une page par département et par région.** Les comptes de l'échelon
+au-dessus pesaient une vingtaine de kilo-octets sur chaque page de commune,
+identiques sur les trois cents communes d'un même département. Ils ont
+désormais leur page — `/departement/03`, `/region/84` —, et la commune garde,
+à la même place, deux chiffres et le lien : au Mayet-de-Montagne, la page
+passe de 129 à 107 Ko. Au passage, trois cas que le site traitait mal : les
+communes alsaciennes relèvent de la Collectivité européenne d'Alsace (`67A`),
+dont les comptes ne s'affichaient pas ; celles de la Métropole de Lyon
+relèvent d'elle (`691`), et non du Rhône, dont elles montraient les comptes ;
+la Corse, la Martinique et la Guyane ont une collectivité unique, que la page
+nomme ainsi.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

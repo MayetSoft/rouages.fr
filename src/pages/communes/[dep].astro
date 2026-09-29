@@ -8,6 +8,7 @@
  */
 import Base from '../../layouts/Base.astro';
 import { communes, metaTerritoires, type CommuneIndex } from '../../modele/territoires.ts';
+import { collectivitesPour, lienCollectivite } from '../../modele/fiche-commune.ts';
 
 export function getStaticPaths() {
   const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
@@ -27,15 +28,29 @@ const { dep } = Astro.params;
 const { liste } = Astro.props as { liste: CommuneIndex[] };
 const nom = liste[0]?.depNom ?? dep;
 const region = metaTerritoires()?.regions?.[dep];
+// Les collectivités dont ces communes relèvent, et dont les comptes ont leur page.
+const echelons = collectivitesPour([dep]);
+const regionPage = echelons.find((c) => c.echelon === 'region');
 ---
 <Base
   titre={`Les communes — ${nom}`}
   description={`Les ${liste.length} communes du département ${nom} (${dep}) : pour chacune, qui exerce quoi, ses comptes, son élection et ses services.`}
 >
   <div class="page page--etroite">
-    <p class="badge"><a href="/communes">Communes</a>{region ? ` · ${region}` : ''}</p>
+    <p class="badge">
+      <a href="/communes">Communes</a>
+      {region && (regionPage ? <>{' · '}<a href={lienCollectivite(regionPage)}>{region}</a></> : ` · ${region}`)}
+    </p>
     <h1>{`${nom} (${dep})`}</h1>
     <p class="resume">{`${liste.length.toLocaleString('fr-FR')} communes.`}</p>
+    {echelons.length > 0 && (
+      <p class="c-echelons-detail">
+        {'Les comptes, poste par poste : '}
+        {echelons.map((c, i) => (
+          <>{i > 0 && ' · '}<a href={lienCollectivite(c)}>{c.nom}</a></>
+        ))}
+      </p>
+    )}
     <ul class="c-communes">
       {liste.map((c) => (
         <li>

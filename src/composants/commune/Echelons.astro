@@ -1,87 +1,43 @@
 ---
 /**
- * Les comptes du département, puis ceux de la région.
+ * Le département et la région, depuis la page de la commune : deux chiffres
+ * chacun, et le lien vers leurs comptes.
  *
- * La page nomme le département pour les collèges, les routes, l'aide sociale,
- * sans dire ce qu'il dépense. Pas de strate ici : ces échelons sont trop peu
- * nombreux pour qu'une strate ait un sens. La médiane porte sur l'échelon
- * entier, et le bloc dit sur combien de collectivités.
- *
- * Mêmes lignes de tête et même tableau que pour la commune, avec ce que ces
- * comptes ont en propre : le RSA, l'APA, la PCH, les pompiers chez le
- * département, les cartes grises chez la région, et la fraction de TVA qui a
- * remplacé l'essentiel de leurs impôts locaux.
+ * Le détail — lignes de tête, séries, tableau poste par poste — pesait une
+ * vingtaine de kilo-octets, identiques sur les trois cents pages d'un même
+ * département. Il a sa page, une fois par collectivité ; la commune garde de
+ * quoi situer l'ordre de grandeur, et le chemin pour aller plus loin.
  */
-import type { ComptesEchelon } from '../../modele/fiche-commune.ts';
-import { debutSerie } from '../../modele/fiche-commune.ts';
-import { euros, evolutionDepuis } from '../../vues/graphiques.ts';
-import Repere from './Repere.astro';
-import TableauComptes from './TableauComptes.astro';
+import { COLLECTIVITES_UNIQUES, type ResumeEchelon } from '../../modele/fiche-commune.ts';
 
 interface Props {
-  comptes: ComptesEchelon[];
-  maj: string | null;
+  echelons: ResumeEchelon[];
 }
-const { comptes, maj } = Astro.props;
-const aMontrer = comptes
-  .map((c) => ({ c, lignes: c.reperes.filter((r) => r.valeur !== null) }))
-  .filter((x) => x.lignes.length > 0);
-const entier = (v: number) => `${v < 0 ? '−' : ''}${Math.round(Math.abs(v)).toLocaleString('fr-FR')} €`;
+const { echelons } = Astro.props;
+const eur = (v: number) => `${v.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} €`;
+const qui = (e: ResumeEchelon) =>
+  e.collectivite.echelon === 'departement'
+    ? `Le département — ${e.collectivite.nom}`
+    : COLLECTIVITES_UNIQUES.has(e.collectivite.code)
+      ? `La collectivité unique — ${e.collectivite.nom}`
+      : `La région — ${e.collectivite.nom}`;
 ---
-{aMontrer.map(({ c, lignes }) => {
-  const annee = c.annees[c.annees.length - 1];
-  return (
-    <>
-      <h3 class="p-titre-echelon">{`${c.nom}, en ${annee}`}</h3>
-      <p class="p-strate">
-        {`Par habitant, et rapportés aux ${c.effectif.toLocaleString('fr-FR')} collectivités du même échelon. Le montant en euros suit.`}
-      </p>
-      <dl class="p-reperes">
-        {lignes.map((r) => {
-          // Quand le repère n'est pas renseigné partout, la médiane ne porte que
-          // sur ceux qui le déclarent : le dire évite de faire passer une
-          // poignée de cas particuliers pour la norme de l'échelon.
-          const partiel = r.effectif > 0 && r.effectif < c.effectif;
-          const aMediane = r.mediane !== null && r.mediane > 0;
-          return (
-            <Repere
-              nom={r.nom}
-              montant={euros(r.valeur!)}
-              compare={aMediane
-                ? {
-                    valeur: r.valeur!,
-                    mediane: r.mediane!,
-                    reference: partiel ? 'la médiane de celles qui en déclarent' : 'la médiane de l’échelon',
-                  }
-                : null}
-              mediane={aMediane
-                ? `médiane ${euros(r.mediane!)}` + (partiel ? ` sur ${r.effectif.toLocaleString('fr-FR')}` : '')
-                : null}
-              detail={r.montant != null ? `soit ${entier(r.montant)} en ${annee}` : null}
-              serie={{ valeurs: r.serie, annees: c.annees }}
-              evolution={evolutionDepuis(r.evolution, debutSerie(r.serie, c.annees) ?? c.annees[0])}
-            />
-          );
-        })}
-      </dl>
-      <TableauComptes
-        lignes={c.lignes}
-        annee={annee}
-        effectif={c.effectif}
-        legende={`En euros et par habitant, en ${annee}. La médiane est celle des ${c.effectif.toLocaleString('fr-FR')} collectivités de l’échelon, par habitant — ou de celles qui déclarent le poste, quand le nombre est précisé.`}
-      />
-    </>
-  );
-})}
-{aMontrer.length > 0 && (
-  <p class="p-strate">
-    Les impôts locaux d’un département ou d’une région sont minces, parfois négatifs : depuis la réforme de 2021,
-    l’essentiel de ce qu’ils levaient est remplacé par une fraction de la TVA nationale, que l’OFGL range dans les
-    autres impôts et taxes.
-  </p>
-)}
-<p class="p-source-territoire">
-  {`D’après les comptes des collectivités publiés par l’OFGL` +
-    (maj ? ` (${maj})` : '') +
-    ', budget principal seul — les budgets annexes sont comptés à part.'}
-</p>
+<ul class="c-echelons">
+  {echelons.map((e) => (
+    <li>
+      <a class="c-echelons-nom" href={e.lien}>{qui(e)}</a>
+      {e.recettes !== null && e.depenses !== null && (
+        <span class="c-echelons-detail">
+          {`En ${e.annee}, ${eur(e.recettes)} encaissés et ${eur(e.depenses)} dépensés par habitant. `}
+          <a href={e.lien}>Ses comptes, poste par poste</a>
+        </span>
+      )}
+      {e.collectivite.echelon === 'departement' && e.collectivite.code === '75' && (
+        <span class="c-echelons-detail">
+          La Ville de Paris est à la fois commune et département : ce sont les mêmes comptes, ici sans les budgets
+          annexes que ceux de la commune comprennent.
+        </span>
+      )}
+    </li>
+  ))}
+</ul>
