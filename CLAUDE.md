@@ -25,6 +25,7 @@ npm run valider              structure, références, règles éditoriales
 npm run verifier-recherche   le classement des communes homonymes
 npm run verifier-journal     la fenêtre et les plafonds du journal
 npm run verifier-rattachement  les annonces du BODACC rattachées à la bonne commune
+npm run verifier-types       les types, fichiers .astro compris — `tsc` seul ne les voit pas
 npm run build                valide puis génère (le build refuse un contenu invalide)
 npm run relire               les fiches encore à vérifier contre leur source
 npm run veille               l'état des sources surveillées

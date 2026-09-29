@@ -34,6 +34,8 @@ interface Meta {
   reserves?: Record<string, string>;
   aDefaut?: Record<string, 'region' | 'departement' | 'etat'>;
   regions?: Record<string, string>;
+  /** Le code de la région de chaque département, tel que l'OFGL le publie : c'est lui qui nomme la page `/region/XX`. */
+  codesRegion?: Record<string, string>;
   natures: Record<string, string>;
   couverture?: Record<string, number>;
   services?: { familles: string[]; sdis?: Record<string, string> };
