@@ -229,8 +229,26 @@ export async function collecterFinances(
 }
 
 /**
+ * Les postes qui, à cet échelon, ne détaillent plus qu'une partie de leur
+ * parent : une de leurs sœurs n'y existe pas. Sous les impôts locaux d'une
+ * région, la fiscalité reversée est seule — les impôts levés sur place sont
+ * propres aux communes — et la donner comme leur décomposition serait faux.
+ */
+export function partiels(reperes: Repere[], tous: Repere[]): Set<string> {
+  const ici = new Set(reperes.map((r) => r.id));
+  const out = new Set<string>();
+  for (const r of reperes) {
+    if (!r.parent || r.dont) continue;
+    const soeurs = tous.filter((x) => x.echelon === 'commune' && x.parent === r.parent && !x.dont);
+    if (soeurs.some((x) => !ici.has(x.id))) out.add(r.id);
+  }
+  return out;
+}
+
+/**
  * Pour chaque poste dont toutes les parts sont données — aucune n'est un
- * « dont » —, la somme des parts doit refaire le total. On compte les écarts
+ * « dont », aucune ne manque à l'échelon —, la somme des parts doit refaire le
+ * total. On compte les écarts
  * de plus d'un euro ; au-delà d'un pour mille des collectivités, c'est que
  * l'arbre de `reperes.yaml` ne dit plus ce que l'OFGL calcule.
  */
@@ -239,10 +257,12 @@ export function controlerSommes(
   montant: (id: string, code: string) => number | null,
   codes: string[],
   dire: (m: string) => void,
+  incomplets: Set<string> = new Set(),
 ): number {
   let graves = 0;
   for (const parent of reperes) {
     const parts = reperes.filter((r) => r.parent === parent.id && !r.dont);
+    if (parts.some((r) => incomplets.has(r.id))) continue;
     if (parts.length === 0) continue;
     let controles = 0;
     let ecarts = 0;

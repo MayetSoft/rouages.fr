@@ -28,7 +28,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Repere } from '../src/modele/schemas.ts';
-import { aSerie, controlerSommes, parHabitant, PROFONDEUR, reperesDe } from './finances-emettre.ts';
+import { aSerie, controlerSommes, parHabitant, partiels, PROFONDEUR, reperesDe } from './finances-emettre.ts';
 
 const BASE = 'https://data.ofgl.fr/api/explore/v2.1/catalog/datasets';
 
@@ -44,6 +44,8 @@ export interface ComptesEchelon {
   annees: number[];
   /** Les repères de cet échelon, dans l'ordre des vecteurs. */
   reperes: Repere[];
+  /** Ceux qui, faute d'une sœur à cet échelon, ne détaillent qu'une partie de leur parent. */
+  partiels: Set<string>;
   /** La position, dans `reperes`, de ceux qui ont leur ligne en tête. */
   principaux: number[];
   /** Code de la collectivité -> pour chaque repère de tête, les euros par habitant de chaque exercice. */
@@ -77,6 +79,7 @@ async function collecterUn(
   jeu: string,
   colonneCode: string,
   reperes: Repere[],
+  tous: Repere[],
   annee: number,
   json: <T>(url: string) => Promise<T>,
   dire: (m: string) => void,
@@ -123,7 +126,8 @@ async function collecterUn(
   if (codes.size === 0) return null;
 
   const rangDe = new Map(lus.map((r, i) => [r.id, i]));
-  controlerSommes(lus, (id, code) => bruts[rangDe.get(id)!]?.get(code)?.m[dernier] ?? null, [...codes], dire);
+  const incomplets = partiels(lus, tous);
+  controlerSommes(lus, (id, code) => bruts[rangDe.get(id)!]?.get(code)?.m[dernier] ?? null, [...codes], dire, incomplets);
 
   const series = new Map<string, (number | null)[][]>();
   const montants = new Map<string, (number | null)[]>();
@@ -150,7 +154,7 @@ async function collecterUn(
   }
   const effectif = Math.max(0, ...effectifs);
   dire(`  ${jeu} : ${codes.size} collectivités, ${lus.length} postes, ${annees[0]} à ${annees[dernier]}.`);
-  return { annees, reperes: lus, principaux, series, montants, populations, medianes, effectifs, effectif };
+  return { annees, reperes: lus, partiels: incomplets, principaux, series, montants, populations, medianes, effectifs, effectif };
 }
 
 export async function collecterEchelons(
@@ -163,8 +167,8 @@ export async function collecterEchelons(
   const reg = reperesDe('region', tous);
   if (dep.length === 0 && reg.length === 0) return null;
   dire(`Comptes du département (${dep.length} postes) et de la région (${reg.length}) :`);
-  const departements = await collecterUn('ofgl-base-departements', 'dep_code', dep, annee, json, dire);
-  const regions = await collecterUn('ofgl-base-regions', 'reg_code', reg, annee, json, dire);
+  const departements = await collecterUn('ofgl-base-departements', 'dep_code', dep, tous, annee, json, dire);
+  const regions = await collecterUn('ofgl-base-regions', 'reg_code', reg, tous, annee, json, dire);
   if (!departements && !regions) return null;
   return { departements, regions, maj: new Date().toISOString().slice(0, 10) };
 }
@@ -188,7 +192,12 @@ export function ecrireEchelons(sortie: string, e: Echelons): number {
     }
     return {
       annees: c.annees,
-      reperes: c.reperes.map((r) => ({ id: r.id, nom: r.nom, parent: r.parent, dont: r.dont || undefined })),
+      reperes: c.reperes.map((r) => ({
+        id: r.id,
+        nom: r.nom,
+        parent: r.parent,
+        dont: r.dont || c.partiels.has(r.id) || undefined,
+      })),
       principaux: c.principaux,
       medianes: c.medianes,
       effectifs: c.effectifs,

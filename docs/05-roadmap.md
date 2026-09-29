@@ -2461,6 +2461,46 @@ contre 24 % dans l'Allier et 34 % en France, 4 % un bac + 5 ou plus ; 25 %
 n'ont aucun diplôme, contre 30 % en 2017. Le niveau de vie médian entre dans
 « L'essentiel ».
 
+### Toutes les recettes et les dépenses, en euros et par habitant ✔
+
+Le bloc des comptes montrait six lignes, dont deux seulement de recettes : la
+dotation de l'État et les impôts locaux. L'OFGL publie pourtant tout l'arbre —
+recettes et dépenses de fonctionnement et d'investissement, poste par poste — et
+le site l'affiche désormais, pour la commune, le département et la région :
+
+- **En tête, huit lignes** avec leur réglette, leur médiane et leur série depuis
+  2018, et désormais leur montant en euros : recettes et dépenses de
+  fonctionnement, impôts levés par la commune, dotation de l'État, frais de
+  personnel, dépenses d'équipement, épargne brute, encours de dette.
+- **Dessous, un tableau poste par poste** : montant, euros par habitant, médiane.
+  Les parts d'un poste sont en retrait sous lui ; « dont » marque celles qui
+  n'en détaillent qu'une partie. Chez le département : RSA, APA, PCH, pompiers,
+  droits de mutation, fraction de TVA ; chez la région : cartes grises.
+- **L'arbre vient de `contenu/reperes.yaml`**, qui dit pour chaque poste son
+  parent, s'il est un « dont », s'il a sa ligne en tête, et quels échelons le
+  portent.
+- **Les sommes sont contrôlées à l'ingestion**, commune par commune : les parts
+  de chaque poste doivent refaire son total. Aucun écart sur les 34 778
+  communes, les 97 départements et les 17 régions. Une ligne absente à l'OFGL
+  vaut zéro — c'est ce que le contrôle montre pour la dotation globale (515
+  absences) et les autres impôts (631).
+
+**Une erreur corrigée au passage.** La ligne « Impôts locaux » était expliquée
+comme « ce que la commune perçoit directement des contribuables ». D'après les
+définitions de l'OFGL, elle comprend la fiscalité reversée — pour l'essentiel
+ce que l'intercommunalité reverse. Le site sépare désormais les deux : au
+Mayet-de-Montagne, sur 716 280 € d'impôts locaux en 2025, 245 408 € viennent
+de Vichy Communauté, et la commune en lève elle-même 470 872 € — contre
+260 160 € en 2018, le reversement restant stable.
+
+Chez un département ou une région, les impôts locaux sont minces, parfois
+négatifs — −72,9 M€ pour Auvergne-Rhône-Alpes : l'essentiel de ce qu'ils
+levaient est remplacé depuis 2021 par une fraction de TVA, que l'OFGL range
+dans les autres impôts et taxes. Le tableau montre l'un et l'autre.
+
+`npx tsx scripts/comptes-emettre.ts` rejoue les comptes seuls, sans
+l'ingestion complète.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
