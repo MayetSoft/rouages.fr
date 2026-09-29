@@ -190,7 +190,7 @@ export async function collecterFinances(
   // l'euro par habitant sur la population que l'OFGL retient pour le premier.
   //
   // Un second terme absent compte pour zéro. L'OFGL n'écrit pas la ligne d'un
-  // poste que la commune n'a pas : 3 807 communes n'ont pas de fiscalité
+  // poste que la commune n'a pas : 3 905 communes n'ont pas de fiscalité
   // reversée en 2025, 515 pas de dotation globale, 631 pas d'autres impôts —
   // et pour ces deux derniers, le contrôle des sommes ci-dessous tombe juste
   // sur les 34 778 communes en les comptant pour zéro. C'est donc ce que
