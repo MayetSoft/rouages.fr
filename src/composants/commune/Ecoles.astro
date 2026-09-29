@@ -28,7 +28,27 @@ const nom = (s: string) =>
     .replace(/^Ecole\b/, 'École')
     .replace(/^College\b/, 'Collège');
 const rentrees = [...new Set(e.etablissements.map((x) => e.rentrees[x.type]))];
+// Au-delà de vingt établissements — Paris en compte près de huit cents —, un
+// tableau pèserait plus que tout le reste de la page : on donne l'étendue.
+const LIMITE = 20;
+const long = e.etablissements.length > LIMITE;
+const etendue = (type: 'école' | 'collège') => {
+  const x = e.etablissements.filter((y) => y.type === type).sort((a, b) => a.ips - b.ips);
+  if (x.length === 0) return null;
+  const pluriel = type === 'école' ? 'écoles' : 'collèges';
+  return x.length === 1
+    ? `un${type === 'école' ? 'e' : ''} ${type}, d’indice ${n(x[0].ips)}`
+    : `${x.length.toLocaleString('fr-FR')} ${pluriel}, d’un indice de ${n(x[0].ips)} (${nom(x[0].nom)}) à ${n(x.at(-1)!.ips)} (${nom(x.at(-1)!.nom)})`;
+};
 ---
+{long && (
+  <p class="mesure">
+    {`À la rentrée ${rentrees.join(' et ')} : ${[etendue('école'), etendue('collège')].filter(Boolean).join(' ; ')}. ` +
+      `Pour comparer : ${depNom}, ${n(ref('école', 'public').dep)} dans les écoles publiques et ${n(ref('école', 'privé').dep)} dans les privées ; ` +
+      `France, ${n(ref('école', 'public').france)} et ${n(ref('école', 'privé').france)}.`}
+  </p>
+)}
+{!long && (
 <div class="cpt-defile" tabindex="0" role="region" aria-label="Les écoles — le tableau défile sur les petits écrans">
 <table class="cpt-tableau">
   <caption>{`Indice de position sociale, rentrée ${rentrees.join(' et ')}`}</caption>
@@ -52,6 +72,7 @@ const rentrees = [...new Set(e.etablissements.map((x) => e.rentrees[x.type]))];
   </tbody>
 </table>
 </div>
+)}
 <p class="p-strate">
   {'L’indice résume les conditions sociales et culturelles des familles des élèves, d’après la profession de leurs parents surtout : ' +
     'plus il est haut, plus les élèves viennent de milieux favorisés. Il décrit qui fréquente l’établissement, pas ce qu’on y enseigne. ' +

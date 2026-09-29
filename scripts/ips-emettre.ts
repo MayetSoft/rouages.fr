@@ -20,7 +20,7 @@
  */
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { codeCommune, ecrireParDepartement, lignesCsv, telechargerSiAbsent } from './par-departement.ts';
+import { codeCommune, communeDe, ecrireParDepartement, lignesCsv, telechargerSiAbsent } from './par-departement.ts';
 
 const API = 'https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets';
 export const JEUX = { ecole: 'fr-en-ips-ecoles-ap2022', college: 'fr-en-ips-colleges-ap2023' } as const;
@@ -68,7 +68,8 @@ export async function lireIps(
         continue;
       }
       const ips = num(v[col.ips]);
-      const code = codeCommune(v[col.code_insee_de_la_commune] ?? '');
+      // Paris, Lyon et Marseille sont rangés par arrondissement : la page est celle de la commune.
+      const code = communeDe(codeCommune(v[col.code_insee_de_la_commune] ?? ''));
       if (ips === null || !/^\d[\dAB]\d{3}$/.test(code)) continue;
       const secteur = /priv/i.test(v[col.secteur]) ? 'privé' : 'public';
       if (!communes.has(code)) communes.set(code, []);

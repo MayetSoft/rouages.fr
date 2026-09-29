@@ -27,7 +27,7 @@ const emploi = (x: number[] | null | undefined) => (x && x[0] > 0 ? x[1] / x[0] 
 const ref = (f: (x: number[] | null | undefined) => number | null) =>
   [aDep && f(aDep) !== null ? `${depNom} ${pc(f(aDep)!)}` : null, aFr && f(aFr) !== null ? `France ${pc(f(aFr)!)}` : null].filter(Boolean).join(', ');
 // Cases des trajets : 0 actifs en emploi, 1 dans la commune, 2 ailleurs dans le département, 3 autre département de la région,
-// 4 autre région, 5 hors métropole, 6 sans transport, 7 à pied, 8 deux-roues, 9 voiture, 10 transports en commun.
+// 4 autre région, 5 hors métropole, 6 sans transport, 7 à pied, 8 vélo, 9 deux-roues motorisé, 10 voiture, 11 transports en commun.
 const n = e.navettes;
 const nFr = e.france[1];
 const partN = (x: number[] | null | undefined, i: number) => (x && x[0] > 0 ? x[i] / x[0] : null);
@@ -46,8 +46,9 @@ const partN = (x: number[] | null | undefined, i: number) => (x && x[0] > 0 ? x[
   <p class="mesure">
     {`Parmi ceux qui travaillent, ${pc(partN(n, 1)!)} le font dans la commune, ${pc(partN(n, 2)!)} ailleurs dans le département` +
       `, ${pc((n[3] + n[4] + n[5]) / n[0])} plus loin. `}
-    {`${pc(partN(n, 9)!)} s’y rendent en voiture` + (nFr ? ` (France ${pc(partN(nFr, 9)!)})` : '') +
-      `, ${pc(partN(n, 10)!)} en transports en commun, ${pc((n[7] + n[8]) / n[0])} à pied ou à deux-roues.`}
+    {`${pc(partN(n, 10)!)} s’y rendent en voiture` + (nFr ? ` (France ${pc(partN(nFr, 10)!)})` : '') +
+      `, ${pc(partN(n, 11)!)} en transports en commun, ${pc((n[7] + n[8] + n[9]) / n[0])} à pied ou à deux-roues ; ` +
+      `${pc(partN(n, 6)!)} déclarent ne pas se déplacer pour travailler.`}
   </p>
 )}
 <p class="p-strate">
