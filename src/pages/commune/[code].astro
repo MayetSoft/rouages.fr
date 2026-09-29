@@ -291,7 +291,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </p>
     )}
 
-    <Essentiel plus={plus} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
+    <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
 
     {entrees.length > 1 && (
       <nav class="p-sommaire c-sommaire" aria-label="Les blocs de cette commune">
@@ -358,7 +358,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {vie.votes && (
       <section id="votes" class="p-scrutin">
         <h2 class="badge">Comment la commune vote aux élections nationales</h2>
-        <Votes scrutins={vie.votes.scrutins} resultats={vie.votes.resultats} maj={vie.votes.maj} />
+        <Votes scrutins={vie.votes.scrutins} resultats={vie.votes.resultats} voix={vie.votes.voix} maj={vie.votes.maj} />
       </section>
     )}
 
@@ -653,7 +653,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {vie.sante && (
       <section id="sante">
         <h2 class="badge">Voir un médecin généraliste</h2>
-        <Sante s={vie.sante} />
+        <Sante s={vie.sante} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />
       </section>
     )}
 

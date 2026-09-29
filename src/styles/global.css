@@ -976,3 +976,7 @@ a.p-sommaire-lien { text-decoration: none; }
 .journal-depuis { font-size: .9rem; color: var(--accent); margin: .4rem 0; }
 .journal-marque { display: inline-block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--sur-accent); background: var(--accent); border-radius: 4px; padding: 0 .3rem; margin-right: .35rem; }
 .p-service-reste { font-size: .85rem; color: var(--encre-douce); margin: .35rem 0 0; }
+/* Les voix aux élections nationales : un scrutin par ligne, les candidats à la suite. */
+.p-votes-voix { margin: .3rem 0 0; display: grid; gap: .45rem; font-size: .9rem; }
+.p-votes-voix dt { font-weight: 600; }
+.p-votes-voix dd { margin: 0; }

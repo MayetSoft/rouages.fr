@@ -15,7 +15,13 @@ import { parDepartement, type CommuneFiche } from './fiche-commune.ts';
  * Les fichiers, tels que les collecteurs les écrivent.
  * ------------------------------------------------------------------ */
 
-type SanteDep = { maj: string; annees: number[]; c: Record<string, [number | null, number | null][]> };
+type SanteDep = {
+  maj: string;
+  annees: number[];
+  dep: (number | null)[] | null;
+  france: (number | null)[] | null;
+  c: Record<string, [number | null, number | null][]>;
+};
 type EauQualiteDep = { maj: string; du: string; au: string; c: Record<string, [number, number, number, number, string | null, string, string]> };
 type FibreDep = { maj: string; trimestre: string; annees: number[]; c: Record<string, [number, number, string, string, number[]]> };
 type Valeurs = (number[] | null)[];
@@ -60,7 +66,13 @@ const delinquanceDep = parDepartement<DelinquanceDep>('delinquance');
 const agricultureDep = parDepartement<AgricultureDep>('agriculture');
 const energieDep = parDepartement<EnergieDep>('energie');
 export type Participation = [number, number, number, number, number];
-type VotesDep = { maj: string; scrutins: { id: string; nom: string; date: string; france: Participation | null }[]; c: Record<string, (Participation | null)[]> };
+/** Les premiers candidats ou listes [libellé, voix], les voix des autres, le nombre de circonscriptions. */
+export type Voix = [[string, number][], number, number];
+type VotesDep = {
+  maj: string;
+  scrutins: { id: string; nom: string; date: string; france: Participation | null }[];
+  c: Record<string, [Participation | null, Voix | null][]>;
+};
 const votesDep = parDepartement<VotesDep>('votes');
 
 /* ------------------------------------------------------------------ *
@@ -71,6 +83,11 @@ export interface Sante {
   annees: number[];
   /** Par année : l'APL aux généralistes, puis aux généralistes de 65 ans ou moins. */
   apl: [number | null, number | null][];
+  /** Moyennes pondérées par la population, comme l'INSEE les publie. */
+  departement: (number | null)[] | null;
+  france: (number | null)[] | null;
+  /** Paris, Lyon, Marseille : chaque arrondissement, la dernière année. */
+  arrondissements: { code: string; apl: number }[];
   maj: string;
 }
 
@@ -200,6 +217,7 @@ export interface Energie {
 export interface Votes {
   scrutins: VotesDep['scrutins'];
   resultats: (Participation | null)[];
+  voix: (Voix | null)[];
   maj: string;
 }
 
@@ -221,11 +239,21 @@ export interface ComplementsVie {
  * Les assemblages.
  * ------------------------------------------------------------------ */
 
+/** Les arrondissements de Paris, Lyon et Marseille, par le préfixe de leur code. */
+const ARRONDISSEMENTS: Record<string, RegExp> = { '75056': /^751\d\d$/, '69123': /^6938\d$/, '13055': /^132\d\d$/ };
+
 function sante(c: CommuneFiche): Sante | null {
   const d = santeDep.get(c.dep);
   const x = d?.c[c.code];
   if (!d || !x || !x.some((a) => a[0] !== null)) return null;
-  return { annees: d.annees, apl: x, maj: d.maj };
+  const motif = ARRONDISSEMENTS[c.code];
+  const dernier = d.annees.length - 1;
+  const arrondissements = motif
+    ? Object.entries(d.c)
+        .filter(([code, v]) => motif.test(code) && v[dernier]?.[0] != null)
+        .map(([code, v]) => ({ code, apl: v[dernier][0]! }))
+    : [];
+  return { annees: d.annees, apl: x, departement: d.dep ?? null, france: d.france ?? null, arrondissements, maj: d.maj };
 }
 
 function eau(c: CommuneFiche): EauRobinet | null {
@@ -334,8 +362,8 @@ function energie(c: CommuneFiche): Energie | null {
 function votes(c: CommuneFiche): Votes | null {
   const d = votesDep.get(c.dep);
   const x = d?.c[c.code];
-  if (!d || !x || !x.some((r) => r && r[0] > 0)) return null;
-  return { scrutins: d.scrutins, resultats: x, maj: d.maj };
+  if (!d || !x || !x.some((r) => r[0] && r[0][0] > 0)) return null;
+  return { scrutins: d.scrutins, resultats: x.map((r) => r[0]), voix: x.map((r) => r[1]), maj: d.maj };
 }
 
 export function complementsVie(c: CommuneFiche): ComplementsVie {

@@ -1,6 +1,6 @@
 ---
 /**
- * L'essentiel, en haut de la page : cinq à sept chiffres, chacun renvoyant au
+ * L'essentiel, en haut de la page : cinq à dix chiffres, chacun renvoyant au
  * bloc qui l'explique.
  *
  * La page d'une commune dépasse dix écrans, et la plupart des lecteurs ne
@@ -10,16 +10,18 @@
  * remonter, et elle ne montre que ceux que la page porte vraiment.
  */
 import type { ComplementsFiche } from '../../modele/fiche-commune.ts';
+import type { ComplementsVie } from '../../modele/fiche-vie.ts';
 
 interface Props {
   plus: ComplementsFiche;
+  vie: ComplementsVie;
   population: number;
   /** Les faits datés du journal, sur sa fenêtre de six mois. */
   faits: number;
   /** Le plafond au-delà duquel le journal ne compte plus. */
   plafond: number;
 }
-const { plus, population, faits, plafond } = Astro.props;
+const { plus, vie, population, faits, plafond } = Astro.props;
 const nb = (v: number) => v.toLocaleString('fr-FR');
 const pc = (v: number) => `${v.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} %`;
 // Au dixième là où le bloc l'écrit au dixième : la carte ne doit pas dire 41 % quand le bloc dit 40,8 %.
@@ -51,6 +53,42 @@ if (nv && nv.mediane !== null) {
     nom: 'Niveau de vie médian',
     valeur: `${euros(nv.mediane)} par an`,
     detail: nv.metropole?.mediane != null ? `France métropolitaine ${euros(nv.metropole.mediane)}` : null,
+  });
+}
+
+// Le médecin : l'accès aux généralistes, au dixième comme dans le bloc.
+const sante = vie.sante;
+if (sante) {
+  const i = sante.apl.findLastIndex((a) => a[0] !== null);
+  const un = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const fr = sante.france?.[i];
+  cartes.push({
+    id: 'sante',
+    nom: 'Accès aux généralistes',
+    valeur: `${un(sante.apl[i][0]!)} consultations par an`,
+    detail: fr != null ? `France ${un(fr)} ; sous-dotée à 2,5` : 'sous-dotée à 2,5',
+  });
+}
+
+// Le prix d'une maison, quand il y a assez de ventes pour une médiane.
+const maisons = vie.immobilier?.commune;
+if (maisons && maisons.prixMaison !== null) {
+  cartes.push({
+    id: 'logements',
+    nom: 'Prix médian d’une maison',
+    valeur: euros(maisons.prixMaison),
+    detail: `${nb(maisons.maisons)} ventes de ${vie.immobilier!.annees[0]} à ${vie.immobilier!.annees.at(-1)}`,
+  });
+}
+
+// La fibre : la part des locaux raccordables, arrondie comme dans le bloc.
+const fibre = vie.fibre;
+if (fibre && fibre.locaux > 0) {
+  cartes.push({
+    id: 'reseaux',
+    nom: 'Raccordables à la fibre',
+    valeur: pc(Math.round((fibre.raccordables / fibre.locaux) * 100)),
+    detail: fibre.finCuivre ? `cuivre fermé fin ${fibre.finCuivre}` : `des ${nb(fibre.locaux)} locaux`,
   });
 }
 
