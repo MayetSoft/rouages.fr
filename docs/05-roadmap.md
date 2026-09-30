@@ -2869,9 +2869,24 @@ réécrit ces fichiers seul.
 
 - **Comparer deux communes**, bloc par bloc, sur une page qui ne calcule rien
   de plus que les pages qu'elle rapproche.
-- **Couverture mobile** — à retenter : aucune donnée communale nationale
-  trouvée aux deux premiers sondages ; l'Arcep publie une « base de
-  population » dont il faudra voir si elle porte la couverture par commune.
+- **Couverture mobile** — cherché le 30 septembre (décision 7). Ce que publie
+  l'Arcep dans « Mon réseau mobile » (données du 30 juin 2026) :
+  - **les cartes de couverture théorique** : des polygones par opérateur et
+    par technologie, de 28 à 380 Mo chacun compressés. Un taux de couverture
+    par commune exigerait de les croiser avec les contours communaux, que le
+    site n'a pas. La « base de population » est une grille géographique, pas
+    un tableau par commune ;
+  - **les sites mobiles** (`data.arcep.fr/mobile/sites/`, 20 Mo, 125 542
+    lignes, Latin-1) : un site par opérateur, avec sa commune, la 4G, la 5G, et
+    s'il relève d'une zone blanche ou du dispositif de couverture ciblée.
+    Joignable d'ici. Au Mayet-de-Montagne : six sites — Orange un, SFR deux,
+    Bouygues Telecom deux, Free un —, tous en 4G, trois en 5G.
+
+  Le second se publie en un jour, à une condition : dire que ce sont des
+  antennes et non une couverture. Un site dans la commune voisine peut la
+  couvrir, et un site ici ne couvre pas tout son territoire ; 21 329 communes
+  seulement ont un site. La page renverrait à la carte de l'Arcep pour savoir
+  si l'on capte à une adresse.
 
 ## Phase 3 — Élargir
 
