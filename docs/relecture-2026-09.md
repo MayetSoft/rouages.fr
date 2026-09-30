@@ -30,7 +30,7 @@ La colonne « vérifiée par » distingue trois degrés :
 Elles sont publiées avec leur réserve, et `npm run relire` les liste. Chacune
 demande une page que seul ton navigateur peut ouvrir.
 
-- [ ] **1.1 — Révision ou modification du PLU.** La fiche
+- [x] **1.1 — Révision ou modification du PLU.** La fiche
   [« Faire évoluer le PLU »](https://rouages.fr/n/modifier-le-plu), étape 1, dit :
   > « Changer les orientations du projet d'aménagement et de développement
   > durables impose la révision ; tout le reste relève de la modification. »
@@ -48,7 +48,18 @@ demande une page que seul ton navigateur peut ouvrir.
   Si les autres cas y figurent encore, l'étape 1 est à réécrire ; sinon, il
   suffit de repasser `confiance: etabli`.
 
-- [ ] **1.2 — Le silence de la MDPH.** La fiche
+  **Tranché le 30 septembre (option 4b, extrait + Cerema).** Le texte en
+  vigueur depuis le 26 mai 2026, lu par recherche web : « Le plan local
+  d'urbanisme est révisé lorsque [l'EPCI] ou la commune décide de changer les
+  orientations définies par le projet d'aménagement et de développement
+  durables, excepté dans les cas mentionnés aux deuxième à cinquième alinéas de
+  l'article L. 153-36 et dans les autres cas prévus par la loi. » L'ANIL citait
+  l'ancienne version. Le Cerema donne les quatre exceptions (énergie
+  renouvelable, zones d'accélération, servitude de résidence principale, recul
+  du trait de côte) ; l'étape les nomme, rappelle qu'une procédure engagée avant
+  le 26 mai 2026 suit les anciennes règles, et passe établie.
+
+- [x] **1.2 — Le silence de la MDPH.** La fiche
   [« Demander une aide à la MDPH »](https://rouages.fr/n/saisir-la-mdph), levier
   « noter la date », dit :
   > « Au bout de quatre mois sans réponse, la demande est rejetée d'office, et
@@ -66,7 +77,14 @@ demande une page que seul ton navigateur peut ouvrir.
   « conservez l'accusé de réception : c'est lui qui dit si, et quand, le délai
   de recours a commencé à courir » — à condition que tu confirmes la règle.
 
-- [ ] **1.3 — Les dérogations au collège.** La fiche
+  **Tranché le 30 septembre (option 4b, secondaire).** La règle est confirmée
+  par un avocat au barreau de Bordeaux (Village de la justice, 7 septembre
+  2026), qui cite l'article R142-1-1, III, du code de la sécurité sociale : les
+  délais « ne sont opposables qu'à la condition d'avoir été mentionnés, ainsi
+  que les voies de recours, […] en cas de décision implicite, dans l'accusé de
+  réception de la demande ». Le piège dit désormais cela, et nomme sa source.
+
+- [x] **1.3 — Les dérogations au collège.** La fiche
   [« Connaître le collège de secteur »](https://rouages.fr/n/choisir-son-college),
   étape 3, dit que la demande s'adresse au directeur académique et qu'elle est
   examinée « dans la limite des places restant après l'inscription des élèves du
@@ -82,38 +100,57 @@ demande une page que seul ton navigateur peut ouvrir.
   **À lire :** la notice de dérogation de la direction académique de l'Allier.
   Si elle donne la liste et l'ordre, je les ajoute et la fiche passe établie.
 
+  **Tranché le 30 septembre (option 4b, page lue).** Service-public.fr, fiche
+  [F2322](https://www.service-public.gouv.fr/particuliers/vosdroits/F2322)
+  vérifiée par la DILA le 20 mars 2026, donne la demande au directeur
+  académique, avant l'inscription, et l'ordre : élève handicapé, prise en charge
+  médicale importante près du collège, boursier au mérite, boursier sur
+  critères sociaux, frère ou sœur dans le collège, parcours scolaire
+  particulier. Le domicile en limite de secteur n'y figure pas. L'étape reprend
+  cette liste en nommant sa source ; le texte national qui la fixe n'a pas été
+  lu.
+
 ---
 
 ## 2. Ce que toi seul peux vérifier d'un coup d'œil
 
-- [ ] **2.1 — Le PLUi de Vichy Communauté est-il déjà en vigueur ?** La
-  [page du Mayet-de-Montagne](https://rouages.fr/commune/03165) dit, sous « Ce
-  qui peut s'y construire » :
-  > « La commune est couverte par un plan local d'urbanisme intercommunal
-  > sectoriel, approuvé le 31 mars 2022. […] Un plan local d'urbanisme
-  > intercommunal a été approuvé le 8 janvier 2026, pour 15 communes. Approuvé
-  > n'est pas opposable : […] tant que ces formalités ne sont pas faites, c'est
-  > le document ci-dessus qui fonde les permis. »
+- [x] **2.1 — Le PLUi de Vichy Communauté est-il déjà en vigueur ?** La
+  page du Mayet-de-Montagne annonçait, sous « Ce qui peut s'y construire », un
+  « plan local d'urbanisme intercommunal approuvé le 8 janvier 2026, pour 15
+  communes », « pas encore opposable ».
 
-  **Le risque, et il est réel.** Le second document vient du Géoportail, où il
-  est à l'état « approuvé » et non « opposable ». Mais huit mois après
-  l'approbation, les formalités de publicité sont très probablement faites : le
-  Géoportail peut simplement ne pas avoir été mis à jour. Si c'est le cas, le
-  site dit aux habitants du Mayet qu'un plan ne s'applique pas alors qu'il
-  s'applique — et il le dit à 4 809 communes où la même lenteur de mise à jour
-  est possible. Tu sais sans doute ce qu'il en est pour Vichy Communauté.
+  **Réponse (mainteneur, 30 septembre)** : deux PLUi coexistent, celui de la
+  Montagne bourbonnaise et celui de Vichy, pas encore harmonisés.
 
-  **Si le plan est en vigueur :** la règle retenue — ne publier l'état
-  « approuvé » que s'il est postérieur à l'horizon de l'enquête SuDocUH — ne
-  suffit pas. Il faudrait un âge maximal, ou reformuler en « le Géoportail le
-  donne encore comme approuvé mais pas opposable ».
+  **Ce que la vérification a trouvé : le bloc était faux.** Les quinze communes
+  du document du Géoportail sont exactement celles de la Montagne
+  bourbonnaise — le rattachement du Mayet est juste. Mais le 8 janvier 2026
+  n'est pas une approbation : c'est l'arrêté 2026-005 du président de Vichy
+  Communauté, qui annexe à tous les documents du territoire le règlement local
+  de publicité modifié. Il vise « le PLUi valant SCoT de la Montagne
+  Bourbonnaise approuvé […] le 31 mars 2022, modifié […] le 29 septembre 2022
+  puis du 11 décembre 2025 » — pièce `200071363_procedure_20260108_A.pdf` du
+  Géoportail, et [page de Vichy Communauté](https://www.vichy-communaute.fr/plui-montagne-bourbonnaise/).
+  La date du Géoportail est celle de la dernière procédure déposée, et son état
+  « approuvé » ne veut pas dire « pas encore opposable » : il en porte des
+  centaines datés de 2022. Le bloc dit désormais seulement qu'une version datée
+  du 8 janvier 2026 est publiée, ce que peut être cette date, et renvoie à son
+  règlement. Il paraît sur 12 779 communes au lieu de 4 809, puisqu'on ne trie
+  plus sur un état qui ne dit rien.
 
-- [ ] **2.2 — Qui organise le transport scolaire au Mayet ?** La fiche
+  À noter : la [page du PLU du Mayet](https://www.vichy-communaute.fr/plu-mayet-de-montagne/)
+  sur le site de Vichy Communauté donne encore le PLU communal de 2011 et un
+  PLUi « en cours d'élaboration ». Elle date d'avant 2022.
+
+- [x] **2.2 — Qui organise le transport scolaire au Mayet ?** La fiche
   [« Inscrire un enfant au transport scolaire »](https://rouages.fr/n/inscrire-au-transport-scolaire)
   ne tranche pas : la région, ou l'autorité organisatrice de la mobilité si la
-  commune est dans son ressort. Le Mayet est dans celui de Vichy Communauté.
-  Est-ce Vichy Communauté qui inscrit les élèves du Mayet, ou la région par
-  convention ? La réponse dirait si la fiche est lisible pour un habitant.
+  commune est dans son ressort.
+
+  **Réponse (mainteneur, 30 septembre)** : Vichy Communauté — « Vichy
+  Communauté organise les transports scolaires sur son territoire »
+  ([page](https://www.vichy-communaute.fr/services/se-deplacer/transport-scolaire/)).
+  La fiche est juste pour le Mayet : c'est le cas « AOM dans son ressort ».
 
 ---
 

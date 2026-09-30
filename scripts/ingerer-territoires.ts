@@ -552,7 +552,7 @@ async function principal() {
     ),
   );
 
-  // Ce que l'enquête annuelle ne peut pas voir : un document approuvé après sa
+  // Ce que l'enquête annuelle ne peut pas voir : une version déposée après sa
   // clôture. Le Géoportail est alimenté au fil de l'eau par les collectivités.
   const { collecterPlu } = await import('./plu-emettre.ts');
   const plu = await tenter('Géoportail de l’urbanisme', () =>
@@ -767,6 +767,10 @@ async function principal() {
   const { collecterDae, ecrireDae } = await import('./dae-emettre.ts');
   const dae = await tenter('Défibrillateurs', () => collecterDae(lireJson, enCache('Géo’DAE (78 Mo)'), CACHE, grise));
   if (dae) grise(`${ecrireDae(SORTIE, dae)} départements de défibrillateurs écrits.`);
+
+  const { collecterGares, ecrireGares } = await import('./gares-emettre.ts');
+  const gares = await tenter('Gares de voyageurs', () => collecterGares(lireJson, grise));
+  if (gares) grise(`${ecrireGares(SORTIE, gares)} départements de gares écrits.`);
 
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>

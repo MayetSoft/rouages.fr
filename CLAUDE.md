@@ -34,7 +34,7 @@ npx tsx scripts/comptes-emettre.ts  les comptes seuls (communes, départements, 
 ```
 
 `npm run territoires` dure une quarantaine de minutes et touche plus de trente
-sources — dont quarante et une collectes facultatives, isolées : celle qui échoue laisse en
+sources — dont quarante-deux collectes facultatives, isolées : celle qui échoue laisse en
 place les fichiers de l'ingestion précédente plutôt que de tout emporter. Ce qui
 reste fatal, ce sont les référentiels dont dépend la structure du réseau,
 BANATIC et le découpage.

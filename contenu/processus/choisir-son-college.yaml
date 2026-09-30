@@ -4,10 +4,10 @@
 # affecte l'élève et accorde les dérogations — deux autorités pour une même
 # rentrée, et la confusion entre elles fait écrire au mauvais guichet.
 #
-# Les critères de priorité des dérogations n'ont pu être lus sur aucune page
-# officielle : les sites du ministère et des académies refusent les requêtes de
-# cet environnement. L'étape qui les mentionne reste à confirmer, et la fiche
-# avec elle.
+# Les critères de priorité des dérogations n'ont pu être lus ni sur le site du
+# ministère ni sur ceux des académies, qui refusent les requêtes de cet
+# environnement. Ils le sont sur Service-public.fr (fiche F2322, vérifiée par la
+# DILA le 20 mars 2026), source secondaire que l'étape cite et nomme.
 processus:
   - id: choisir-son-college
     nom: "Connaître le collège de secteur, et en demander un autre"
@@ -17,10 +17,10 @@ processus:
     sortie: "Une affectation dans le collège de secteur, ou dans un autre par dérogation"
     decideur: rectorat
     competences: [colleges]
-    liens: [ced-l213-1, code-education]
-    verifie_le: 2026-09-23
+    liens: [ced-l213-1, code-education, sp-inscription-college]
+    verifie_le: 2026-09-30
     perime_apres_mois: 12
-    confiance: a_confirmer
+    confiance: etabli
 
     etapes:
       - ordre: 1
@@ -38,9 +38,9 @@ processus:
       - ordre: 3
         acteur: rectorat
         action: "Examen des demandes de dérogation"
-        note: "La demande s'adresse au directeur académique. Les dérogations sont examinées dans la limite des places restant après l'inscription des élèves du secteur, selon des critères de priorité fixés nationalement."
-        liens: [code-education]
-        confiance: a_confirmer
+        note: "La demande s'adresse au directeur académique, avant l'inscription. Elle n'est accordée que s'il reste de la place une fois inscrits les élèves du secteur. Quand les demandes dépassent les places, l'ordre de priorité est le suivant : élève handicapé, élève qui a besoin d'une prise en charge médicale importante près du collège demandé, boursier au mérite, boursier sur critères sociaux, élève dont un frère ou une sœur est déjà dans ce collège, élève qui suit un parcours particulier (section sportive, classe internationale). D'après Service-public.fr : le texte national qui fixe cet ordre n'a pas pu être lu."
+        liens: [sp-inscription-college, code-education]
+        confiance: etabli
 
     leviers:
       - id: lire-la-deliberation-de-secteur

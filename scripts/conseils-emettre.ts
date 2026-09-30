@@ -24,10 +24,17 @@
  *
  * **Ce qu'on refuse encore : le nombre total de sièges d'une intercommunalité.**
  * Compter les lignes du répertoire donne 81 pour CA Vichy Communauté, qui en
- * publie 77, et ne rattache ses élus qu'à 38 de ses 39 communes. Le nombre de
- * représentants d'une commune, lui, est une donnée de ligne et non un agrégat :
- * il est repris tel quel, et il a l'avantage de couvrir les communes de moins
- * de mille habitants, que le fichier des résultats ignore.
+ * publie 77, et ne rattache ses élus qu'à 38 de ses 39 communes.
+ *
+ * **Le nombre de représentants d'une commune n'est pas publié non plus.** Le
+ * répertoire ne dit pas qui est titulaire et qui est suppléant, et ses
+ * effectifs se contredisent : à Vichy Communauté, Bost (183 habitants) y a deux
+ * conseillers communautaires, Vendat (2 292) un seul, Molles aucun ; sur les
+ * quelque dix mille communes de moins de trois cents habitants, 192 en ont deux,
+ * dispersées dans cent intercommunalités — la marque d'une saisie, pas d'un
+ * accord local. Le compte `cc` reste collecté pour mesurer l'écart ; la page
+ * prend les sièges dans les résultats du scrutin, qui n'en portent qu'à partir
+ * de mille habitants.
  */
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -71,7 +78,7 @@ export interface ConseilCommune {
   age: [number, number, number];
   /** Par groupe : son index dans `GROUPES`, puis le nombre. */
   p: [number, number][];
-  /** Représentants de la commune au conseil communautaire, s'il y en a. */
+  /** Lignes du répertoire rattachées à la commune au conseil communautaire — non publié, voir l'en-tête. */
   cc: number;
 }
 
@@ -162,9 +169,8 @@ export async function collecterConseils(
     return null;
   }
 
-  // Les représentants au conseil communautaire : une donnée de ligne, reprise
-  // telle quelle. Son intérêt est de couvrir les communes de moins de mille
-  // habitants, dont le fichier des résultats ne porte aucun siège.
+  // Les représentants au conseil communautaire, comptés pour mesurer l'écart
+  // avec les résultats du scrutin : la page ne les affiche pas (voir l'en-tête).
   let avecCc = 0;
   if (communautaires) {
     const fichierCc = join(cache, 'rne-conseillers-communautaires.csv');

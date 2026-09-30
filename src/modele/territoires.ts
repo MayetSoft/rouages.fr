@@ -116,7 +116,7 @@ type UrbanismeDep = {
 
 /**
  * Ce que le Géoportail de l'urbanisme sait et que l'enquête annuelle ignore :
- * un document approuvé après sa clôture, donc pas encore opposable.
+ * une version déposée après sa clôture.
  */
 type PluDep = {
   maj: string;
@@ -409,11 +409,12 @@ export interface Fiche {
     jusquau: string;
     maj: string;
     /**
-     * Le document approuvé après la clôture de l'enquête, que le Géoportail
-     * connaît et qu'elle ne pouvait pas voir. Approuvé n'est pas opposable :
-     * il ne s'applique qu'une fois les transmissions et publicités faites.
+     * La version la plus récente déposée au Géoportail, quand elle est
+     * postérieure à la clôture de l'enquête. Sa date est celle de la dernière
+     * procédure — approbation, modification, mise à jour des annexes —, et son
+     * état déclaré ne dit pas si elle s'applique : voir `scripts/plu-emettre.ts`.
      */
-    aVenir: { type: string; approuve: string; communes: number; reglement: string } | null;
+    geoportail: { type: string; date: string; communes: number; reglement: string } | null;
   } | null;
   /**
    * Ce qui est prélevé ici, et par qui.
@@ -627,7 +628,7 @@ function assemblerUrbanisme(
     totalPartout: u.total,
     jusquau: u.jusquau,
     maj: u.maj,
-    aVenir: v ? { type: v.t, approuve: v.d, communes: v.n, reglement: v.r } : null,
+    geoportail: v ? { type: v.t, date: v.d, communes: v.n, reglement: v.r } : null,
   };
 }
 
@@ -725,15 +726,17 @@ function assemblerConseil(
   const f = e?.c[c.code];
   if (!e || !f) return null;
   const conseil = structures.find((st) => FISCALITE_PROPRE.has(st.nature));
-  // Le répertoire des élus couvre toutes les communes, y compris celles de
-  // moins de mille habitants dont le fichier des résultats ne porte aucun
-  // siège : c'est lui qui fait foi sur le nombre de représentants.
+  // Le nombre de représentants au conseil communautaire vient des seuls
+  // résultats du scrutin. Le répertoire des élus n'en fait pas foi : il ne
+  // distingue pas titulaires et suppléants, et ses effectifs se contredisent
+  // — à Vichy Communauté, deux conseillers pour Bost (183 habitants), un seul
+  // pour Vendat (2 292), aucun pour Molles. Sous mille habitants, le site dit
+  // comment les représentants sont désignés, pas combien ils sont.
   const k = enCache(cacheConseils, c.dep, `dep/${c.dep}-conseils.json`);
   const comp = k?.c[c.code];
-  const cc = comp?.cc ?? f.cc;
   return {
     sieges: f.cm,
-    siegesCc: cc,
+    siegesCc: f.cc,
     ou: conseil?.nom ?? null,
     elus: comp?.n ?? 0,
     femmes: comp?.f ?? 0,
@@ -745,7 +748,7 @@ function assemblerConseil(
       .filter((g) => g.nom),
     femmesPartout: k?.femmes ?? 0,
     agePartout: k?.age ?? 0,
-    designes: f.cc === 0 && cc > 0 && !!conseil,
+    designes: f.cc === 0 && !!conseil,
     scrutin: e.scrutin,
     maj: k?.maj ?? null,
   };

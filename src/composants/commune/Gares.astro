@@ -1,0 +1,46 @@
+---
+/**
+ * Les gares de voyageurs de la commune, ou la plus proche de sa mairie. Ce
+ * n'est pas une desserte : rien ne dit ici quels trains s'y arrêtent.
+ */
+import type { Gares } from '../../modele/fiche-vie.ts';
+import Glose from '../Glose.astro';
+
+interface Props {
+  g: Gares;
+}
+const { g } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const voy = (v: number) => `${nf(v)} voyageur${v > 1 ? 's' : ''}`;
+const p = g.proche;
+---
+{g.ici.length === 1 && (
+  <p class="mesure">
+    <Glose texte={`Une gare SNCF de voyageurs, ${g.ici[0].nom} : ${voy(g.ici[0].voyageurs)} en ${g.annee}, selon l’estimation de SNCF.`} />
+  </p>
+)}
+{g.ici.length > 1 && (
+  <>
+    <p class="mesure"><Glose texte={`${g.ici.length} gares SNCF de voyageurs. Leurs voyageurs en ${g.annee}, selon l’estimation de SNCF :`} /></p>
+    <ul class="c-structures">
+      {g.ici.map((x) => <li>{`${x.nom} — ${voy(x.voyageurs)}`}</li>)}
+    </ul>
+  </>
+)}
+{p && (
+  <p class="mesure">
+    <Glose texte="Pas de gare SNCF de voyageurs dans la commune. La plus proche de la mairie est celle de " />{p.nom}
+    {p.nom.toLowerCase().startsWith(p.commune.toLowerCase()) ? '' : <>{', à '}<a href={`/commune/${p.code}`}>{p.commune}</a></>}
+    {`, à ${p.km.toLocaleString('fr-FR')} km à vol d’oiseau : ${voy(p.voyageurs)} en ${g.annee}, selon l’estimation de SNCF.`}
+  </p>
+)}
+<p class="p-strate">
+  <Glose texte={'Seules comptent les gares de SNCF : une station du RER exploitée par la RATP, ou une ligne hors du réseau national comme les Chemins de fer de Provence, n’y figure pas. ' +
+    'Une gare n’est retenue que si elle a eu des voyageurs en ' + g.annee + ' : la liste de SNCF compte aussi des gares fermées. ' +
+    'Le site ne dit pas quels trains s’y arrêtent ni combien de fois par jour : une halte desservie deux fois par jour y pèse autant qu’une grande gare, sinon par ses voyageurs.' +
+    (p ? ' La distance est mesurée depuis la mairie, en ligne droite : par la route, elle est plus longue.' : '')} />
+</p>
+<p class="p-source-territoire">
+  {`D’après SNCF Gares & Connexions : la liste des gares de voyageurs et leur fréquentation, estimée d’après la billetterie de SNCF, hors billets vendus par des tiers (${g.maj}).` +
+    (p ? ' La position des mairies vient de l’annuaire de l’administration.' : '')}
+</p>

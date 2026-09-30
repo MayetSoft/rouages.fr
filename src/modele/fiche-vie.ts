@@ -11,6 +11,7 @@
  * publie pas.
  */
 import { parDepartement, type CommuneFiche } from './fiche-commune.ts';
+import { communes } from './territoires.ts';
 
 /* ------------------------------------------------------------------ *
  * Les fichiers, tels que les collecteurs les écrivent.
@@ -89,6 +90,12 @@ type DaeDep = { maj: string; c: Record<string, [number, number]> };
 type AccidentsDep = { maj: string; annees: number[]; c: Record<string, [number, number, number]> };
 const daeDep = parDepartement<DaeDep>('dae');
 const accidentsDep = parDepartement<AccidentsDep>('accidents');
+type GaresDep = {
+  maj: string;
+  annee: number;
+  c: Record<string, { g: [string, number][] } | { p: [string, string, number, number] }>;
+};
+const garesDep = parDepartement<GaresDep>('gares');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -325,6 +332,17 @@ export interface Route {
   maj: string;
 }
 
+/**
+ * Les gares de voyageurs de la commune ; à défaut, la plus proche de sa
+ * mairie, à vol d'oiseau. Rien sur les trains qui s'y arrêtent.
+ */
+export interface Gares {
+  ici: { nom: string; voyageurs: number }[];
+  proche: { nom: string; code: string; commune: string; km: number; voyageurs: number } | null;
+  annee: number;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -344,6 +362,7 @@ export interface ComplementsVie {
   caf: Caf | null;
   defibrillateurs: Defibrillateurs | null;
   route: Route | null;
+  gares: Gares | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -555,6 +574,25 @@ function route(c: CommuneFiche): Route | null {
   return { debut: d.annees[0], fin: d.annees[d.annees.length - 1], accidents, tues, blesses, maj: d.maj };
 }
 
+let nomsCommunes: Map<string, string> | null = null;
+
+function gares(c: CommuneFiche): Gares | null {
+  const d = garesDep.get(c.dep);
+  const f = d?.c[c.code];
+  if (!d || !f) return null;
+  if ('g' in f) {
+    return { ici: f.g.map(([nom, voyageurs]) => ({ nom, voyageurs })), proche: null, annee: d.annee, maj: d.maj };
+  }
+  nomsCommunes ??= new Map(communes().map((x) => [x.code, x.nom]));
+  const [nom, code, km, voyageurs] = f.p;
+  return {
+    ici: [],
+    proche: { nom, code, commune: nomsCommunes.get(code) ?? code, km, voyageurs },
+    annee: d.annee,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -575,5 +613,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     caf: caf(c),
     defibrillateurs: defibrillateurs(c),
     route: route(c),
+    gares: gares(c),
   };
 }
