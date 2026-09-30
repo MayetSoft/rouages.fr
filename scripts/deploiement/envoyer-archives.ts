@@ -201,18 +201,37 @@ export async function envoyerArchives(
 
     // Les archives d'abord, le script en dernier : il n'est appelable qu'une
     // fois tout arrivé.
+    // Le 30 septembre, un test.php déposé à la main par le gestionnaire de
+    // fichiers répondait, et le témoin déposé ici non (520), depuis la même
+    // machine : ce qui les distingue, c'est le dépôt en FTP et l'appel aussitôt
+    // après. La sonde relève donc les droits tels que déposés, réessaie après
+    // une attente, puis après un chmod 644 ; le déploiement fait le chmod
+    // d'emblée.
+    const chmod = [`chmod 644 ${q(temoin)}`, `chmod 644 ${q(script)}`];
     await lftp([
       ...archives.map((a) => `put ${q(join(travail, prefixe + a))} -o ${q(prefixe + a)}`),
       `put ${q(join(travail, temoin))} -o ${q(temoin)}`,
       `put ${q(join(travail, script))} -o ${q(script)}`,
+      ...(sonde ? [`cls -l ${q(temoin)} ${q(script)}`] : chmod),
     ]);
 
     const site = env('SITE_URL').replace(/\/$/, '');
-    try {
-      const r = await fetch(`${site}/${temoin}`, { signal: AbortSignal.timeout(30_000) });
-      dire(`Témoin PHP : ${resumer(r, await r.text())}.`);
-    } catch (e) {
-      dire(`Témoin PHP : ${(e as Error).message}.`);
+    const voirTemoin = async (quand: string): Promise<boolean> => {
+      try {
+        const r = await fetch(`${site}/${temoin}`, { signal: AbortSignal.timeout(30_000) });
+        dire(`Témoin PHP ${quand} : ${resumer(r, await r.text())}.`);
+        return r.ok;
+      } catch (e) {
+        dire(`Témoin PHP ${quand} : ${(e as Error).message}.`);
+        return false;
+      }
+    };
+    if (!(await voirTemoin('aussitôt déposé')) && sonde) {
+      await new Promise((ok) => setTimeout(ok, 30_000));
+      if (!(await voirTemoin('trente secondes après'))) {
+        await lftp([...chmod, `cls -l ${q(temoin)} ${q(script)}`]);
+        await voirTemoin('après chmod 644');
+      }
     }
     const url = `${site}/${script}`;
     // Une requête GET sans jeton d'abord, qui doit rendre le 403 du script :
