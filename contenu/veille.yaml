@@ -483,6 +483,15 @@ surveillances:
     url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares/records?limit=1"
     lien: od-sncf-frequentation
 
+  # Un fichier par région, republié chaque nuit ; la collecte les prend tous.
+  - id: datatourisme
+    nom: "DATAtourisme — lieux à voir"
+    alimente: "le patrimoine, les sites naturels et les itinéraires de la commune"
+    type: datagouv-ressource
+    url: "5b598be088ee387c0c353714"
+    ressource: "datatourisme-reg-ara.csv"
+    lien: od-datatourisme
+
   - id: merimee
     nom: "Mérimée — monuments historiques"
     alimente: "les monuments historiques de la commune"

@@ -808,6 +808,12 @@ async function principal() {
   );
   if (monuments) grise(`${ecrireMonuments(SORTIE, monuments)} départements de monuments écrits.`);
 
+  const { collecterLieux, ecrireLieux } = await import('./lieux-emettre.ts');
+  const lieux = await tenter('Lieux à voir', () =>
+    collecterLieux(lireJson, enCache('DATAtourisme — lieux, par région (400 Mo)'), CACHE, grise),
+  );
+  if (lieux) grise(`${ecrireLieux(SORTIE, lieux)} départements de lieux écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),
