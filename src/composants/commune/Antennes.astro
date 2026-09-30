@@ -1,0 +1,46 @@
+---
+/**
+ * Les sites mobiles installés sur la commune, opérateur par opérateur. Des
+ * antennes, pas une couverture : la page le dit, et renvoie à la carte de
+ * l'Arcep pour savoir si l'on capte à une adresse.
+ */
+import type { Antennes } from '../../modele/fiche-vie.ts';
+import { enFrancais } from '../../modele/urbanisme.ts';
+
+interface Props {
+  a: Antennes;
+}
+const { a } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const sites = (n: number) => `${nf(n)} site${n > 1 ? 's' : ''}`;
+const total = a.operateurs.reduce((s, o) => s + o.sites, 0);
+const g4 = a.operateurs.reduce((s, o) => s + o.g4, 0);
+const g5 = a.operateurs.reduce((s, o) => s + o.g5, 0);
+const technos = (n: number, x4: number, x5: number) =>
+  (x4 === n ? (n > 1 ? 'tous en 4G' : 'en 4G') : x4 === 0 ? 'aucun en 4G' : `dont ${nf(x4)} en 4G`) +
+  (x5 === 0 ? '' : x5 === n ? (n > 1 ? ' et en 5G' : ' et en 5G') : `, dont ${nf(x5)} en 5G`);
+const au = enFrancais(a.au);
+---
+{total === 0 ? (
+  <p class="mesure">
+    {`Aucun site de téléphonie mobile installé sur la commune au ${au}. Elle peut être couverte par ceux des communes voisines.`}
+  </p>
+) : (
+  <>
+    <p class="mesure">
+      {`${sites(total)} de téléphonie mobile installé${total > 1 ? 's' : ''} sur la commune au ${au}, ${technos(total, g4, g5)}.`}
+    </p>
+    <ul class="c-structures">
+      {a.operateurs.map((o) => <li>{`${o.nom} : ${sites(o.sites)}, ${technos(o.sites, o.g4, o.g5)}`}</li>)}
+    </ul>
+  </>
+)}
+<p class="p-strate">
+  Ce sont des antennes, pas une couverture&nbsp;: un site d’une commune voisine peut couvrir celle-ci, et un site
+  d’ici ne couvre pas tout son territoire. Un site partagé entre opérateurs compte une fois pour chacun.
+  Pour savoir si l’on capte à une adresse, et avec quel opérateur,{' '}
+  <a href="https://monreseaumobile.arcep.fr/" target="_blank" rel="noopener">la carte de l’Arcep</a>.
+</p>
+<p class="p-source-territoire">
+  {`D’après la liste des sites que l’Arcep collecte chaque trimestre auprès des opérateurs : sites ouverts commercialement, d’une puissance rayonnée de plus de 5 W (${a.maj}).`}
+</p>

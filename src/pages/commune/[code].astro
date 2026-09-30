@@ -71,6 +71,7 @@ import Caf from '../../composants/commune/Caf.astro';
 import Defibrillateurs from '../../composants/commune/Defibrillateurs.astro';
 import Route from '../../composants/commune/Route.astro';
 import Gares from '../../composants/commune/Gares.astro';
+import Antennes from '../../composants/commune/Antennes.astro';
 import { complementsVie } from '../../modele/fiche-vie.ts';
 
 export function getStaticPaths() {
@@ -271,6 +272,7 @@ const sommaire: [string, string, unknown][] = [
   ['defibrillateurs', 'Les défibrillateurs', vie.defibrillateurs],
   ['ecoles', 'Les écoles', vie.ecoles],
   ['reseaux', 'Eau, fibre, énergie', vie.eau || vie.fibre || vie.energie],
+  ['mobile', 'Les antennes mobiles', vie.antennes],
   ['securite', 'La délinquance', vie.delinquance],
   ['route', 'Les accidents de la route', vie.route],
   ['gares', 'Le train', vie.gares],
@@ -754,6 +756,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="reseaux">
         <h2 class="badge">Les réseaux qui y arrivent</h2>
         <Reseaux eau={vie.eau} fibre={vie.fibre} energie={vie.energie} />
+      </section>
+    )}
+
+    {vie.antennes && (
+      <section id="mobile">
+        <h2 class="badge">Les antennes de téléphonie mobile</h2>
+        <Antennes a={vie.antennes} />
       </section>
     )}
 

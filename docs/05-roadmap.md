@@ -2869,24 +2869,22 @@ réécrit ces fichiers seul.
 
 - **Comparer deux communes**, bloc par bloc, sur une page qui ne calcule rien
   de plus que les pages qu'elle rapproche.
-- **Couverture mobile** — cherché le 30 septembre (décision 7). Ce que publie
-  l'Arcep dans « Mon réseau mobile » (données du 30 juin 2026) :
-  - **les cartes de couverture théorique** : des polygones par opérateur et
-    par technologie, de 28 à 380 Mo chacun compressés. Un taux de couverture
-    par commune exigerait de les croiser avec les contours communaux, que le
-    site n'a pas. La « base de population » est une grille géographique, pas
-    un tableau par commune ;
-  - **les sites mobiles** (`data.arcep.fr/mobile/sites/`, 20 Mo, 125 542
-    lignes, Latin-1) : un site par opérateur, avec sa commune, la 4G, la 5G, et
-    s'il relève d'une zone blanche ou du dispositif de couverture ciblée.
-    Joignable d'ici. Au Mayet-de-Montagne : six sites — Orange un, SFR deux,
-    Bouygues Telecom deux, Free un —, tous en 4G, trois en 5G.
+- **Antennes mobiles** ✔ (`antennes-emettre.ts`, demandé le 30 septembre) :
+  les sites que l'Arcep collecte chaque trimestre auprès des opérateurs — ouverts
+  commercialement, plus de 5 W —, par commune et par opérateur, avec la 4G et
+  la 5G. Le dernier trimestre est lu dans le dossier de l'Arcep. Le fichier se
+  dit en UTF-8 et arrive en Latin-1 : la collecte essaie l'un puis l'autre.
+  129 043 sites d'opérateur dans 21 460 communes, douze opérateurs avec
+  l'outre-mer. Au Mayet-de-Montagne, au 30 juin 2026 : six sites — Orange un,
+  SFR deux, Bouygues Telecom deux, Free un —, tous en 4G, trois en 5G.
 
-  Le second se publie en un jour, à une condition : dire que ce sont des
-  antennes et non une couverture. Un site dans la commune voisine peut la
-  couvrir, et un site ici ne couvre pas tout son territoire ; 21 329 communes
-  seulement ont un site. La page renverrait à la carte de l'Arcep pour savoir
-  si l'on capte à une adresse.
+  **Ce que le bloc ne dit pas : la couverture.** Un site voisin peut couvrir
+  la commune, un site d'ici ne la couvre pas toute ; la page le dit et renvoie
+  à la carte de l'Arcep. Les cartes de couverture théorique, elles, sont des
+  polygones par opérateur et par technologie — de 28 à 380 Mo compressés
+  chacun — qu'on ne ramènerait à la commune qu'avec ses contours. Un site
+  partagé compte une fois par opérateur : l'identifiant de partage n'est
+  renseigné que pour certains programmes, on ne sait pas les réunir tous.
 
 ## Phase 3 — Élargir
 

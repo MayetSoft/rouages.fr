@@ -483,6 +483,14 @@ surveillances:
     url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares/records?limit=1"
     lien: od-sncf-frequentation
 
+  # Un dossier par trimestre ; la collecte prend le dernier.
+  - id: arcep-sites-mobiles
+    nom: "Arcep — sites mobiles"
+    alimente: "les antennes de téléphonie mobile de la commune"
+    type: disponibilite
+    url: "https://data.arcep.fr/mobile/sites/"
+    lien: od-arcep-sites-mobiles
+
   # Chaque année ajoute ses fichiers au même jeu, sous un nom qui change : la
   # collecte les reconnaît ; ici, on voit arriver les caractéristiques.
   - id: onisr-baac
