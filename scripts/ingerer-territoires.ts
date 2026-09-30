@@ -734,6 +734,28 @@ async function principal() {
   const votes = await tenter('Élections nationales', () => collecterVotes(enCache('Résultats des élections nationales (240 Mo)'), CACHE, grise));
   if (votes) grise(`${ecrireVotes(SORTIE, votes)} départements de votes nationaux écrits.`);
 
+  const { collecterArtificialisation, ecrireArtificialisation } = await import('./artificialisation-emettre.ts');
+  const conso = await tenter('Consommation d’espaces', () =>
+    collecterArtificialisation(enCache('Consommation d’espaces du Cerema (33 Mo)'), CACHE, grise),
+  );
+  if (conso) grise(`${ecrireArtificialisation(SORTIE, conso)} départements de consommation d’espaces écrits.`);
+
+  const { collecterRadon, ecrireRadon } = await import('./radon-emettre.ts');
+  const radon = await tenter('Potentiel radon', () => collecterRadon(enCache('Zonage radon (1 Mo)'), CACHE, grise));
+  if (radon) grise(`${ecrireRadon(SORTIE, radon)} départements de zonage radon écrits.`);
+
+  // Les départements de l'ingestion précédente : l'index de celle-ci n'est
+  // écrit que plus bas, et l'ADEME s'interroge département par département.
+  const { collecterDpe, ecrireDpe } = await import('./dpe-emettre.ts');
+  const dpe = await tenter('Diagnostics de performance énergétique', () =>
+    collecterDpe(
+      lireJson,
+      Object.keys((JSON.parse(readFileSync(join(SORTIE, 'index.json'), 'utf8')) as { deps: Record<string, string> }).deps),
+      grise,
+    ),
+  );
+  if (dpe) grise(`${ecrireDpe(SORTIE, dpe)} départements de DPE écrits.`);
+
   // Les annonces légales des entreprises : décomptes par commune, et les
   // dernières annonces des sociétés, que le journal reprend. Avant l'émetteur
   // principal, qui rassemble le journal ; le rattachement lit le découpage

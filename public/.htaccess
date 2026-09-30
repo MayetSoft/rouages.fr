@@ -17,6 +17,18 @@
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^(.+)/$ /$1 [R=301,L]
 
+  # Une page peut porter le nom d'un dossier : `communes.html` et `communes/`,
+  # la liste des départements et celle de leurs communes. Apache ajoute alors
+  # la barre finale au nom du dossier (`DirectorySlash`) avant toute
+  # réécriture, et `/communes/` finissait en 403, faute d'index. On sert la
+  # page à cette adresse. `DirectorySlash Off` serait plus net, mais un
+  # hébergeur qui ne l'autorise pas dans un .htaccess répond 500 sur tout le
+  # site.
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_FILENAME} ^(.+?)/?$
+  RewriteCond %1.html -f
+  RewriteRule ^(.+)/$ /$1.html [L]
+
   # /n/abf  ->  /n/abf.html, sans redirection visible.
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d

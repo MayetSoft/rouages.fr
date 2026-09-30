@@ -63,6 +63,8 @@ import Reseaux from '../../composants/commune/Reseaux.astro';
 import Delinquance from '../../composants/commune/Delinquance.astro';
 import Agriculture from '../../composants/commune/Agriculture.astro';
 import Votes from '../../composants/commune/Votes.astro';
+import Sols from '../../composants/commune/Sols.astro';
+import Dpe from '../../composants/commune/Dpe.astro';
 import { complementsVie } from '../../modele/fiche-vie.ts';
 
 export function getStaticPaths() {
@@ -227,6 +229,9 @@ const droitLocal = DROIT_LOCAL.has(commune.dep) && !(plus.associations && plus.a
  * vente immobilière » non.
  */
 const echelonsMontres = plus.echelons.length > 0;
+const risquesGaspar = !!fiche?.risques && (fiche.risques.recenses.length > 0 || fiche.risques.catnat.length > 0);
+const risquesMontres = risquesGaspar || !!vie.radon;
+const ZONES_RADON = ['', 'potentiel faible', 'potentiel faible, mais des facteurs géologiques peuvent faciliter son passage dans les bâtiments', 'potentiel significatif'];
 const sommaire: [string, string, unknown][] = [
   ['habitants', 'Les habitants', plus.histoire || plus.etatCivil || plus.ages],
   ['niveaux', 'Revenus, emploi, diplômes', plus.niveauDeVie || plus.diplomes || vie.emploi],
@@ -240,10 +245,12 @@ const sommaire: [string, string, unknown][] = [
   ['intercommunalite', 'L’intercommunalité', plus.fluxPercus.length > 0],
   ['echelons', 'Les échelons', echelonsMontres],
   ['logements', 'Les logements', vie.parc || vie.immobilier],
+  ['dpe', 'Les étiquettes énergétiques', vie.dpe],
   ['vente', 'Une vente immobilière', dmtoDernier >= 0],
   ['urbanisme', 'Ce qui peut s’y construire', fiche?.urbanisme],
   ['construit', 'Ce qui s’y construit', fiche?.logements],
-  ['risques', 'Les risques', fiche?.risques && (fiche.risques.recenses.length > 0 || fiche.risques.catnat.length > 0)],
+  ['sols', 'Les sols consommés', vie.artificialisation],
+  ['risques', 'Les risques', risquesMontres],
   ['logement-social', 'Le logement social', plus.sru],
   ['marches', 'Les marchés', plus.marches.length > 0],
   ['deliberations', 'Les délibérations', plus.deliberations.length > 0],
@@ -469,6 +476,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
+    {vie.dpe && (
+      <section id="dpe" class="p-logements">
+        <h2 class="badge">L’étiquette énergétique des logements vendus ou loués</h2>
+        <Dpe d={vie.dpe} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />
+      </section>
+    )}
+
     {plus.dmto && dmtoDernier >= 0 && (
       <section id="vente" class="p-finances p-dmto">
         <h2 class="badge">Ce que rapporte une vente immobilière</h2>
@@ -544,10 +558,17 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
-    {fiche?.risques && (fiche.risques.recenses.length > 0 || fiche.risques.catnat.length > 0) && (
+    {vie.artificialisation && (
+      <section id="sols">
+        <h2 class="badge">Les terres naturelles, agricoles et forestières consommées</h2>
+        <Sols a={vie.artificialisation} />
+      </section>
+    )}
+
+    {risquesMontres && (
       <section id="risques">
         <h2 class="badge">À quoi la commune est exposée</h2>
-        {fiche.risques.recenses.length > 0 && (
+        {fiche?.risques && fiche.risques.recenses.length > 0 && (
           <p class="mesure">
             <strong>Recensés au dossier départemental</strong>&nbsp;:
             {' '}{fiche.risques.recenses
@@ -555,7 +576,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
               .join(', ')}.
           </p>
         )}
-        {fiche.risques.catnat.length > 0 && (
+        {fiche?.risques && fiche.risques.catnat.length > 0 && (
           <p class="mesure">
             <strong>Reconnaissances de catastrophe naturelle depuis 1982</strong>&nbsp;:
             {' '}{fiche.risques.catnat
@@ -568,7 +589,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
               .join(', ')}.
           </p>
         )}
-        {fiche.risques.plans.length > 0 && (
+        {fiche?.risques && fiche.risques.plans.length > 0 && (
           <p class="mesure">
             <strong>Plans de prévention</strong>&nbsp;:
             {' '}{fiche.risques.plans
@@ -576,6 +597,24 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
               .join(' ; ')}.
           </p>
         )}
+        {vie.radon && (
+          <p class="mesure">
+            <strong>Radon</strong>&nbsp;:
+            {vie.radon.zones.length === 1
+              ? ` zone ${vie.radon.zones[0]} sur 3, ${ZONES_RADON[vie.radon.zones[0]]}.`
+              : ` zones ${vie.radon.zones.join(' et ')} sur 3, selon les communes qui l’ont formée.`}
+            {vie.radon.zones.includes(3) &&
+              ' Le vendeur ou le bailleur d’un logement situé en zone 3 doit en informer l’acquéreur ou le locataire.'}
+          </p>
+        )}
+        {vie.radon && (
+          <p class="p-source-territoire">
+            Le radon est un gaz radioactif d’origine naturelle, qui vient du sol. L’arrêté du 27 juin 2018 range chaque
+            commune dans l’une de trois zones, d’après le potentiel de ses sols&nbsp;; le zonage est celui des communes
+            au 1er janvier 2016, publié par l’Autorité de sûreté nucléaire{vie.radon.publie ? ` en ${vie.radon.publie}` : ''}.
+          </p>
+        )}
+        {fiche?.risques && risquesGaspar && (
         <p class="p-source-territoire">
           D’après GASPAR, la base du ministère de la Transition écologique ({fiche.risques.maj}).
           Les risques recensés et les catastrophes reconnues sont deux listes distinctes&nbsp;: la
@@ -584,6 +623,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             ? ` Document d’information communal publié en ${fiche.risques.dicrim}.`
             : ' Aucun document d’information communal recensé.'}
         </p>
+        )}
       </section>
     )}
 

@@ -1,0 +1,51 @@
+---
+/**
+ * Les espaces naturels, agricoles et forestiers que la commune a consommés
+ * depuis 2011, année par année : ce que la loi Climat et résilience compte
+ * pour sa trajectoire vers le « zéro artificialisation nette ».
+ *
+ * L'objectif est national — moitié moins de 2021 à 2031 que de 2011 à 2021 —
+ * et décliné par la planification régionale puis locale. La page le dit, pour
+ * qu'on ne lise pas le chiffre d'une commune comme un plafond qu'elle aurait
+ * dépassé ou tenu.
+ */
+import type { Artificialisation } from '../../modele/fiche-vie.ts';
+import { tendance } from '../../vues/graphiques.ts';
+
+interface Props {
+  a: Artificialisation;
+}
+const { a } = Astro.props;
+// Deux décimales sous l'hectare, une jusqu'à cent : « 11,1 ha », pas « 11 ha ».
+const h = (v: number) => `${v.toLocaleString('fr-FR', { maximumFractionDigits: v < 1 ? 2 : v < 100 ? 1 : 0 })} ha`;
+const fin = a.annees[a.annees.length - 1] + 1;
+const part = a.surface > 0 ? (a.total / a.surface) * 100 : null;
+const pc = (v: number) =>
+  v > 0 && v < 0.01 ? 'moins de 0,01 %' : `${v.toLocaleString('fr-FR', { maximumFractionDigits: v < 1 ? 2 : 1 })} %`;
+const trace = tendance(a.serie, a.annees, h);
+const nb = fin - 2021;
+---
+<p class="mesure">
+  {a.total > 0
+    ? `${h(a.total)} consommés du 1er janvier ${a.annees[0]} au 1er janvier ${fin}` +
+      (part !== null ? `, soit ${pc(part)} de la surface de la commune (${a.surface.toLocaleString('fr-FR')} ha)` : '') +
+      ` — dont ${h(a.habitat)} pour l’habitat et ${h(a.activites)} pour les activités.`
+    : `Aucun espace naturel, agricole ou forestier consommé du 1er janvier ${a.annees[0]} au 1er janvier ${fin}.`}
+  {trace && a.total > 0 && <Fragment set:html={` ${trace}`} />}
+</p>
+{a.reference !== null && a.depuis !== null && a.total > 0 && (
+  <p class="mesure">
+    {`${h(a.reference)} de 2011 à 2021, la décennie que la loi prend pour référence ; ${h(a.depuis)} en ${nb} an${nb > 1 ? 's' : ''} depuis.`}
+  </p>
+)}
+<p class="p-strate">
+  {'La loi Climat et résilience de 2021 fixe un objectif national : consommer de 2021 à 2031 moitié moins d’espaces naturels, agricoles et forestiers que de 2011 à 2021, puis plus aucune artificialisation nette en 2050. Il se décline dans la planification régionale, puis dans le '}
+  <a href="/n/planification-scot">schéma de cohérence territoriale</a>
+  {' et le '}<a href="/n/redaction-plu">plan local d’urbanisme</a>
+  {' : ce n’est pas un plafond fixé commune par commune.'}
+</p>
+<p class="p-source-territoire">
+  {`D’après les fichiers fonciers retraités par le Cerema pour le portail national de l’artificialisation (${a.maj}). ` +
+    'Est comptée « la création ou l’extension effective d’espaces urbanisés » (article 194 de la loi Climat et résilience). ' +
+    'L’habitat et les activités ne font pas tout le total : il comprend aussi les routes, le rail, les usages mixtes et ceux qui ne sont pas connus.'}
+</p>

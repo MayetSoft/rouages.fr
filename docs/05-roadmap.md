@@ -2395,6 +2395,32 @@ le code, le `cf-ray` et le titre de la page, retente un 52x, et commence par
 une requête sans jeton qui doit rendre le 403 du script — ce qui sépare
 « PHP ne répond pas » de « le POST est arrêté en route ».
 
+**Diagnostic, le 30 septembre : la protection de l'hébergeur.** Le témoin et
+la sonde sans jeton rendent eux aussi un 520. Le journal d'accès d'Apache de
+septembre compte 207 000 lignes, jusqu'aux 404 sur des `.php` inexistants, et
+aucune pour `temoin-*.php` ni `deballer-*.php` ; le journal d'erreurs n'en dit
+rien non plus. Un `test.php` créé à la main depuis cPanel répond, à un client
+qui n'est pas un navigateur, par un 403 « Accès interdit — Request ID » qui
+n'est ni la page de Cloudflare ni celle d'Apache. Une requête vers un fichier
+PHP qui existe est donc arrêtée devant Apache — vraisemblablement par
+TigerProtect, l'anti-robot d'o2switch. À faire dans cPanel : le désactiver
+pour rouages.fr (le site est statique ; le seul PHP est le script de
+déballage, gardé par son jeton et effacé après usage), puis relancer « Sonder
+le déballage ». Une liste blanche d'adresses ne servirait à rien : les
+machines de GitHub changent d'adresse à chaque job.
+
+TigerProtect désactivé le même jour, la requête atteint PHP et échoue : un
+500 au corps vide, avec un navigateur comme avec la sonde, et rien dans le
+journal d'erreurs d'Apache — PHP tourne sans doute à côté, sous PHP-FPM ou
+LSAPI, qui journalise ailleurs. Reste à voir dans cPanel la version et le
+gestionnaire PHP du domaine.
+
+Le même journal d'erreurs a montré autre chose : `/communes` finissait en
+403. Apache ajoute la barre finale au nom d'un dossier avant toute réécriture
+(`DirectorySlash`), et `communes/` n'a pas d'index — la page est
+`communes.html`. Le `.htaccess` sert désormais cette page à `/communes/` ;
+essayé contre un Apache 2.4 local avec le même fichier.
+
 Le même déploiement a buté sur une seconde limite : GitHub arrête un job au
 bout de six heures, et soixante-huit mille fichiers un par un n'y tiennent
 pas. Arrêté en route, il n'aurait déposé aucun manifeste, et le suivant
@@ -2698,17 +2724,36 @@ prend ce même nombre du répertoire pour les sièges au conseil communautaire.
 Pour une commune de moins de mille habitants, c'est la seule source ; il faut
 savoir si le répertoire compte les suppléants avant de continuer à l'afficher.
 
-### Lot 2 — Le sol et les logements
+### Lot 2 — Le sol et les logements ✔
 
-- **Artificialisation** — hectares consommés par commune depuis 2009 (Cerema,
-  republié par le service statistique du ministère de la transition
-  écologique ; jeux trouvés sur data.gouv), relié au bloc « Ce qui peut s'y
-  construire » et au SCoT, avec l'objectif de zéro artificialisation nette.
-- **Performance énergétique des logements** — part des étiquettes F et G
-  d'après la base des DPE de l'ADEME (joignable ; agrégation par commune à
-  faire côté ADEME, la base compte des millions de diagnostics).
-- **Radon** — la catégorie de chaque commune (jeu de l'autorité de sûreté
-  nucléaire trouvé sur data.gouv), rapprochée des risques.
+Trois collectes de plus, chacune lancée seule ou avec l'ingestion :
+
+- **Les terres consommées** (`artificialisation-emettre.ts`, Cerema) : les
+  hectares d'espaces naturels, agricoles et forestiers consommés chaque année
+  du 1er janvier 2011 au 1er janvier 2025, l'habitat et les activités, la
+  décennie 2011-2021 que la loi Climat et résilience prend pour référence et
+  ce qui a suivi — les totaux tels que le Cerema les publie, pas des sommes
+  d'années arrondies. La page dit que l'objectif de moitié moins en 2021-2031
+  est national, décliné par la planification régionale puis le SCoT et le
+  PLU : pas un plafond communal. Au Mayet-de-Montagne : 11,09 ha, dont
+  10,24 ha de 2011 à 2021 et 0,85 ha depuis. Chaque millésime du Cerema est un
+  jeu distinct sur data.gouv ; l'adresse est fixée dans le collecteur.
+- **Le radon** (`radon-emettre.ts`, ASN) : la zone de l'arrêté du 27 juin
+  2018, sur les communes au 1er janvier 2016, reportée sur les communes
+  actuelles par le découpage ; 72 communes fusionnées en réunissent deux et la
+  page le dit. Toutes les communes du site sauf quatre, recréées depuis. En
+  zone 3, l'information de l'acquéreur ou du locataire est obligatoire
+  (article R125-23 du code de l'environnement, vérifié). Au
+  Mayet-de-Montagne : zone 3, que GASPAR ne recense pas.
+- **Les étiquettes énergétiques** (`dpe-emettre.ts`, ADEME) : l'ADEME agrège
+  elle-même, une requête par département, une minute en tout. Des
+  diagnostics, pas des logements — faits à la vente ou à la location, parfois
+  deux fois pour le même logement —, et seulement depuis la méthode de juillet
+  2021. En dessous de vingt diagnostics, la page donne des nombres, pas une
+  part. Au Mayet-de-Montagne : 364 diagnostics, 54 % en F ou G, contre 18 %
+  dans l'Allier et 10 % en France. Seule l'interdiction de louer un logement
+  G depuis 2025 est citée : un projet de loi de 2026 propose d'assouplir la
+  suite du calendrier.
 
 ### Lot 3 — Ce que l'État et la CAF versent
 

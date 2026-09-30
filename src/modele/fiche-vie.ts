@@ -2,7 +2,8 @@
  * Ce que la page d'une commune dit de la vie qu'on y mène : se soigner, l'eau
  * du robinet, la fibre, l'électricité et le gaz, le logement et son prix,
  * l'emploi et les trajets, les écoles, la délinquance enregistrée, la terre
- * agricole et les votes.
+ * agricole et les votes ; le sol consommé, le radon et les étiquettes
+ * énergétiques des logements.
  *
  * Chaque jeu est écrit par son collecteur (`scripts/*-emettre.ts`), un fichier
  * par département. Ce module ne calcule rien qu'une page ne puisse refaire à
@@ -74,6 +75,12 @@ type VotesDep = {
   c: Record<string, [Participation | null, Voix | null][]>;
 };
 const votesDep = parDepartement<VotesDep>('votes');
+type ConsoDep = { maj: string; annees: number[]; c: Record<string, [number[], number, number, number, number, number | null, number | null]> };
+type RadonDep = { maj: string; arrete: string; publie?: string | null; c: Record<string, number[]> };
+type DpeDep = { maj: string; base: string; dep: number[] | null; france: number[]; c: Record<string, number[]> };
+const consoDep = parDepartement<ConsoDep>('artificialisation');
+const radonDep = parDepartement<RadonDep>('radon');
+const dpeDep = parDepartement<DpeDep>('dpe');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -221,6 +228,40 @@ export interface Votes {
   maj: string;
 }
 
+/** Les espaces naturels, agricoles et forestiers consommés, en hectares. */
+export interface Artificialisation {
+  annees: number[];
+  /** Chaque année, du 1er janvier au 1er janvier suivant. */
+  serie: number[];
+  total: number;
+  habitat: number;
+  activites: number;
+  /** La décennie de référence de la loi, 2011 à 2021, et ce qui a suivi. */
+  reference: number | null;
+  depuis: number | null;
+  /** La surface de la commune. */
+  surface: number;
+  maj: string;
+}
+
+export interface Radon {
+  /** Les zones, de 1 à 3 ; plusieurs quand la commune en a réuni plusieurs. */
+  zones: number[];
+  arrete: string;
+  /** L'année de publication du fichier. */
+  publie: string | null;
+  maj: string;
+}
+
+/** Diagnostics de performance énergétique, par étiquette de A à G. */
+export interface Dpe {
+  commune: number[];
+  departement: number[] | null;
+  france: number[];
+  base: string;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -233,6 +274,9 @@ export interface ComplementsVie {
   agriculture: Agriculture | null;
   energie: Energie | null;
   votes: Votes | null;
+  artificialisation: Artificialisation | null;
+  radon: Radon | null;
+  dpe: Dpe | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -366,6 +410,29 @@ function votes(c: CommuneFiche): Votes | null {
   return { scrutins: d.scrutins, resultats: x.map((r) => r[0]), voix: x.map((r) => r[1]), maj: d.maj };
 }
 
+function artificialisation(c: CommuneFiche): Artificialisation | null {
+  const d = consoDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x) return null;
+  // La loi compare 2021-2031 à 2011-2021 : le Cerema publie les deux totaux.
+  const [serie, habitat, activites, surface, total, reference, depuis] = x;
+  return { annees: d.annees, serie, total, habitat, activites, reference, depuis, surface, maj: d.maj };
+}
+
+function radon(c: CommuneFiche): Radon | null {
+  const d = radonDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x || x.length === 0) return null;
+  return { zones: x, arrete: d.arrete, publie: d.publie ?? null, maj: d.maj };
+}
+
+function dpe(c: CommuneFiche): Dpe | null {
+  const d = dpeDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x || x.reduce((s, n) => s + n, 0) === 0) return null;
+  return { commune: x, departement: d.dep, france: d.france, base: d.base, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -379,5 +446,8 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     agriculture: agriculture(c),
     energie: energie(c),
     votes: votes(c),
+    artificialisation: artificialisation(c),
+    radon: radon(c),
+    dpe: dpe(c),
   };
 }
