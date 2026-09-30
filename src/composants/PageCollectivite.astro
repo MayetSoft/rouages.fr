@@ -8,6 +8,7 @@
  */
 import Base from '../layouts/Base.astro';
 import ComptesCollectivite from './ComptesCollectivite.astro';
+import ChambreComptes from './ChambreComptes.astro';
 import {
   COLLECTIVITES_UNIQUES,
   comptesCollectivite,
@@ -116,6 +117,7 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
           echelon={c.echelon === 'departement' ? 'collectivités départementales' : 'collectivités régionales'}
           maj={null}
         />
+        <ChambreComptes codeRegion={c.echelon === 'region' ? c.code : meta?.codesRegion?.[deps[0]]} nom={c.nom} />
       </section>
     ) : (
       <p class="c-vide">Les comptes de cette collectivité n’ont pas pu être lus.</p>

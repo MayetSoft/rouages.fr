@@ -64,6 +64,7 @@ import Delinquance from '../../composants/commune/Delinquance.astro';
 import Agriculture from '../../composants/commune/Agriculture.astro';
 import Votes from '../../composants/commune/Votes.astro';
 import Sols from '../../composants/commune/Sols.astro';
+import ChambreComptes from '../../composants/ChambreComptes.astro';
 import Dpe from '../../composants/commune/Dpe.astro';
 import { complementsVie } from '../../modele/fiche-vie.ts';
 
@@ -436,6 +437,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <h2 class="badge">{`Ses comptes, en ${plus.finances.annee}`}</h2>
         <Comptes f={plus.finances} />
         <Demarches bloc="comptes" />
+        <ChambreComptes codeRegion={meta?.codesRegion?.[commune.dep]} nom={commune.nom} />
       </section>
     )}
 
