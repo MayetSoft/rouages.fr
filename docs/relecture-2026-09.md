@@ -86,34 +86,43 @@ demande une page que seul ton navigateur peut ouvrir.
 
 ## 2. Ce que toi seul peux vérifier d'un coup d'œil
 
-- [ ] **2.1 — Le PLUi de Vichy Communauté est-il déjà en vigueur ?** La
-  [page du Mayet-de-Montagne](https://rouages.fr/commune/03165) dit, sous « Ce
-  qui peut s'y construire » :
-  > « La commune est couverte par un plan local d'urbanisme intercommunal
-  > sectoriel, approuvé le 31 mars 2022. […] Un plan local d'urbanisme
-  > intercommunal a été approuvé le 8 janvier 2026, pour 15 communes. Approuvé
-  > n'est pas opposable : […] tant que ces formalités ne sont pas faites, c'est
-  > le document ci-dessus qui fonde les permis. »
+- [x] **2.1 — Le PLUi de Vichy Communauté est-il déjà en vigueur ?** La
+  page du Mayet-de-Montagne annonçait, sous « Ce qui peut s'y construire », un
+  « plan local d'urbanisme intercommunal approuvé le 8 janvier 2026, pour 15
+  communes », « pas encore opposable ».
 
-  **Le risque, et il est réel.** Le second document vient du Géoportail, où il
-  est à l'état « approuvé » et non « opposable ». Mais huit mois après
-  l'approbation, les formalités de publicité sont très probablement faites : le
-  Géoportail peut simplement ne pas avoir été mis à jour. Si c'est le cas, le
-  site dit aux habitants du Mayet qu'un plan ne s'applique pas alors qu'il
-  s'applique — et il le dit à 4 809 communes où la même lenteur de mise à jour
-  est possible. Tu sais sans doute ce qu'il en est pour Vichy Communauté.
+  **Réponse (mainteneur, 30 septembre)** : deux PLUi coexistent, celui de la
+  Montagne bourbonnaise et celui de Vichy, pas encore harmonisés.
 
-  **Si le plan est en vigueur :** la règle retenue — ne publier l'état
-  « approuvé » que s'il est postérieur à l'horizon de l'enquête SuDocUH — ne
-  suffit pas. Il faudrait un âge maximal, ou reformuler en « le Géoportail le
-  donne encore comme approuvé mais pas opposable ».
+  **Ce que la vérification a trouvé : le bloc était faux.** Les quinze communes
+  du document du Géoportail sont exactement celles de la Montagne
+  bourbonnaise — le rattachement du Mayet est juste. Mais le 8 janvier 2026
+  n'est pas une approbation : c'est l'arrêté 2026-005 du président de Vichy
+  Communauté, qui annexe à tous les documents du territoire le règlement local
+  de publicité modifié. Il vise « le PLUi valant SCoT de la Montagne
+  Bourbonnaise approuvé […] le 31 mars 2022, modifié […] le 29 septembre 2022
+  puis du 11 décembre 2025 » — pièce `200071363_procedure_20260108_A.pdf` du
+  Géoportail, et [page de Vichy Communauté](https://www.vichy-communaute.fr/plui-montagne-bourbonnaise/).
+  La date du Géoportail est celle de la dernière procédure déposée, et son état
+  « approuvé » ne veut pas dire « pas encore opposable » : il en porte des
+  centaines datés de 2022. Le bloc dit désormais seulement qu'une version datée
+  du 8 janvier 2026 est publiée, ce que peut être cette date, et renvoie à son
+  règlement. Il paraît sur 12 779 communes au lieu de 4 809, puisqu'on ne trie
+  plus sur un état qui ne dit rien.
 
-- [ ] **2.2 — Qui organise le transport scolaire au Mayet ?** La fiche
+  À noter : la [page du PLU du Mayet](https://www.vichy-communaute.fr/plu-mayet-de-montagne/)
+  sur le site de Vichy Communauté donne encore le PLU communal de 2011 et un
+  PLUi « en cours d'élaboration ». Elle date d'avant 2022.
+
+- [x] **2.2 — Qui organise le transport scolaire au Mayet ?** La fiche
   [« Inscrire un enfant au transport scolaire »](https://rouages.fr/n/inscrire-au-transport-scolaire)
   ne tranche pas : la région, ou l'autorité organisatrice de la mobilité si la
-  commune est dans son ressort. Le Mayet est dans celui de Vichy Communauté.
-  Est-ce Vichy Communauté qui inscrit les élèves du Mayet, ou la région par
-  convention ? La réponse dirait si la fiche est lisible pour un habitant.
+  commune est dans son ressort.
+
+  **Réponse (mainteneur, 30 septembre)** : Vichy Communauté — « Vichy
+  Communauté organise les transports scolaires sur son territoire »
+  ([page](https://www.vichy-communaute.fr/services/se-deplacer/transport-scolaire/)).
+  La fiche est juste pour le Mayet : c'est le cas « AOM dans son ressort ».
 
 ---
 

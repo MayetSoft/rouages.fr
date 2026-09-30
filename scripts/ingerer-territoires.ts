@@ -552,7 +552,7 @@ async function principal() {
     ),
   );
 
-  // Ce que l'enquête annuelle ne peut pas voir : un document approuvé après sa
+  // Ce que l'enquête annuelle ne peut pas voir : une version déposée après sa
   // clôture. Le Géoportail est alimenté au fil de l'eau par les collectivités.
   const { collecterPlu } = await import('./plu-emettre.ts');
   const plu = await tenter('Géoportail de l’urbanisme', () =>

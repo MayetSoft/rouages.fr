@@ -2772,6 +2772,24 @@ GitHub : le workflow « Sonder des sources » (`scripts/sonder-sources.ts`) le
 montre, et c'est lui qu'on relancera pour voir si un plan du site ou un flux
 permettrait un jour de lister les rapports par collectivité.
 
+### Le plan « approuvé mais pas encore opposable » ne l'était pas ✔
+
+La relecture de septembre avait signalé le risque (point 2.1). Il était
+plus grave que prévu. Au Mayet-de-Montagne, le « PLUi approuvé le 8 janvier
+2026 » du Géoportail est le PLUi de la Montagne bourbonnaise de 2022 : le
+8 janvier est un arrêté de mise à jour des annexes, qui ajoute le règlement de
+publicité modifié à tous les documents de Vichy Communauté. La date
+`datappro` est celle de la dernière procédure déposée, pas de l'approbation.
+L'état 07, lui, reste sur des centaines de documents de 2022 : il ne dit pas
+qu'un document attend ses formalités.
+
+Le site affirmait donc à 4 809 communes qu'un plan ne s'appliquait pas
+encore. Il dit maintenant, pour les 12 779 où le Géoportail porte une version
+plus récente que l'enquête SuDocUH, que cette version existe, à quelle date,
+ce que peut être cette date, et où lire son règlement. Il ne dit plus ce
+qui s'applique : c'est la mairie qui le sait. `npx tsx scripts/plu-emettre.ts`
+réécrit ces fichiers seul.
+
 ### Lot 3 — Ce que l'État et la CAF versent ✔
 
 - **Dotations de l'État** ✔ (`dotations-emettre.ts`) : la dotation globale de

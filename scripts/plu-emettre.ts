@@ -7,19 +7,30 @@
  * les collectivités elles-mêmes. Les deux ne disent pas la même chose, et
  * l'écart est précisément ce qu'un habitant a besoin de savoir.
  *
- * Le standard CNIG distingue deux états que le langage courant confond :
+ * Le Géoportail donne, pour chaque document, un état et une date. **Ni l'un ni
+ * l'autre ne dit ce qu'on croirait.**
  *
- *   — **03, « opposable »** : le document est approuvé *et* a fait l'objet de
- *     toutes les transmissions et publicités nécessaires. C'est lui qui fonde
- *     un permis aujourd'hui ;
- *   — **07, « approuvé »** : la délibération d'approbation est prise, mais ces
- *     formalités ne sont pas achevées. Le document ne s'applique pas encore.
+ *   — L'état 07, « approuvé », ne signifie pas « pas encore opposable » : le
+ *     service en porte des centaines datés de 2022, et des dizaines d'avant
+ *     2015, jamais repassés à 03. C'est l'état que la collectivité a déclaré en
+ *     déposant, rien de plus.
+ *   — La date, `datappro`, est celle de la **dernière procédure** déposée, pas
+ *     celle de l'approbation. Une modification, une simple mise à jour des
+ *     annexes la font avancer.
  *
- * Le Mayet-de-Montagne est le cas d'école : SuDocUH donne un document
- * intercommunal approuvé le 31 mars 2022, et le Géoportail un plan
- * intercommunal de Vichy Communauté approuvé le 8 janvier 2026 mais encore à
- * l'état 07. Dire « le plan de 2026 s'applique » serait faux ; ne rien dire
- * laisserait un habitant préparer son projet sur un texte en sursis.
+ * Le Mayet-de-Montagne est le cas d'école. SuDocUH donne le plan
+ * intercommunal de la Montagne bourbonnaise, approuvé le 31 mars 2022. Le
+ * Géoportail donne un « PLUi » des mêmes quinze communes, à l'état 07, daté du
+ * 8 janvier 2026. Ce 8 janvier est l'arrêté 2026-005 du président de Vichy
+ * Communauté, qui annexe à tous les documents du territoire le règlement local
+ * de publicité modifié : le plan est celui de 2022, modifié en septembre 2022 et
+ * en décembre 2025. Le site a d'abord annoncé un plan « approuvé mais pas encore
+ * opposable » — c'était faux, et à 4 809 communes à la fois.
+ *
+ * Ce qu'on en tire est donc plus modeste et exact : **la version la plus
+ * récente que la collectivité a déposée**, quel que soit son état, avec sa date
+ * et son règlement, quand elle est postérieure à ce que l'enquête a pu voir. Le
+ * site ne dit pas ce qu'elle change.
  *
  * **Le périmètre réel d'un plan intercommunal** est l'autre apport. Le plan de
  * Vichy Communauté ne couvre que quinze des trente-neuf communes du
@@ -38,8 +49,9 @@
  * non à la commune — sans géométrie, on ne peut pas dire laquelle de ces zones
  * couvre une adresse, et le prétendre serait pire que se taire.
  */
-import { writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { DOCUMENTS } from '../src/modele/urbanisme.ts';
 
 /** Le service de la Géoplateforme qui expose le Géoportail de l'urbanisme. */
@@ -73,7 +85,7 @@ function normaliser(brut: string | null): string {
 export interface PluDocument {
   /** Le type, ramené au vocabulaire de `DOCUMENTS`. */
   t: string;
-  /** Date d'approbation, AAAA-MM-JJ. */
+  /** Date de la dernière procédure déposée — pas forcément une approbation —, AAAA-MM-JJ. */
   d: string;
   /** Combien de communes ce document couvre — un plan intercommunal en couvre plusieurs. */
   n: number;
@@ -82,19 +94,16 @@ export interface PluDocument {
 }
 
 export interface PluCommune {
-  /**
-   * Le document opposable au Géoportail. Collecté pour servir de garde-fou —
-   * il n'est pas publié, voir l'en-tête.
-   */
+  /** Le dernier document déposé à l'état « opposable » (03). */
   o?: PluDocument;
-  /** Le document approuvé mais pas encore opposable, absent s'il n'y en a pas. */
+  /** Le dernier document déposé à l'état « approuvé » (07) — voir l'en-tête : ce n'est pas « pas encore opposable ». */
   a?: PluDocument;
 }
 
 export interface Plu {
   maj: string;
   communes: Map<string, PluCommune>;
-  /** Combien de communes attendent un document approuvé mais pas encore opposable. */
+  /** Combien de communes ont un document déposé à l'état « approuvé » plus récent que tout document « opposable ». */
   enAttente: number;
 }
 
@@ -228,9 +237,9 @@ export async function collecterPlu(
     }
   }
 
-  // Un document seulement approuvé n'est une nouvelle que s'il est postérieur
-  // à l'opposable : sinon c'est une trace ancienne, pas une échéance. Et une
-  // date illisible ne permet rien d'en dire.
+  // Un document déposé « approuvé » ne compte que s'il est postérieur à
+  // l'opposable : sinon c'est une trace ancienne. Et une date illisible ne
+  // permet rien d'en dire.
   for (const [insee, f] of communes) {
     if (f.a && !f.a.d) delete f.a;
     if (f.a && f.o && f.a.d <= f.o.d) delete f.a;
@@ -240,7 +249,7 @@ export async function collecterPlu(
 
   dire(
     `Géoportail de l’urbanisme : ${communes.size.toLocaleString('fr-FR')} communes situées, ` +
-      `dont ${enAttente.toLocaleString('fr-FR')} avec un document approuvé mais pas encore opposable.`,
+      `${enAttente.toLocaleString('fr-FR')} avec une dernière version déposée à l’état « approuvé ».`,
   );
 
   return { maj: new Date().toISOString().slice(0, 10), communes, enAttente };
@@ -249,17 +258,15 @@ export async function collecterPlu(
 /**
  * N'écrit que ce dont on peut répondre.
  *
- * Le Géoportail sert ici une seule chose : **un document approuvé que SuDocUH
- * ne pouvait pas connaître**. L'enquête dit elle-même jusqu'à quelle date elle
- * a vu les approbations ; au-delà, elle est muette par construction, et ce que
- * le Géoportail ajoute est une nouvelle. En deçà, les deux sources ont eu la
- * même occasion de voir le document et n'en disent pas la même chose — sans
- * moyen de trancher, le site se tait plutôt que de choisir.
+ * Le Géoportail sert ici une seule chose : **une version que SuDocUH ne
+ * pouvait pas connaître**. L'enquête dit elle-même jusqu'à quelle date elle a
+ * vu les approbations ; au-delà, elle est muette par construction. En deçà, les
+ * deux sources ont eu la même occasion de voir le document et n'en disent pas
+ * toujours la même chose — sans moyen de trancher, le site se tait plutôt que de
+ * choisir.
  *
- * Le filtre coûte cher et c'est voulu : sur les 7 535 communes que le
- * Géoportail porte à l'état « approuvé », il en reste environ 4 900. Les
- * autres sont des lignes jamais repassées à l'état « opposable » — le fichier
- * en compte encore des dizaines datées d'avant 2015.
+ * On retient la plus récente des deux, opposable ou approuvée : l'état déclaré
+ * ne dit pas si le document s'applique (voir l'en-tête).
  */
 export function ecrirePlu(
   sortie: string,
@@ -272,12 +279,50 @@ export function ecrirePlu(
   let n = 0;
   for (const code of [...codes].sort()) {
     const f = p.communes.get(code);
-    if (!f?.a) continue;
-    if (horizonSudocuh && f.a.d <= horizonSudocuh) continue;
-    c[code] = { a: f.a };
+    // Une date à venir est une erreur de saisie : le service en porte.
+    const recent = [f?.o, f?.a]
+      .filter((x): x is PluDocument => !!x?.d && x.d <= p.maj)
+      .sort((x, y) => y.d.localeCompare(x.d))[0];
+    if (!recent) continue;
+    if (horizonSudocuh && recent.d <= horizonSudocuh) continue;
+    c[code] = { a: recent };
     n++;
   }
-  if (n === 0) return 0;
-  writeFileSync(join(sortie, 'dep', `${dep}-plu.json`), JSON.stringify({ maj: p.maj, c }));
+  const fichier = join(sortie, 'dep', `${dep}-plu.json`);
+  if (n === 0) {
+    // Un fichier d'une ingestion précédente dirait encore ce qui n'est plus.
+    if (existsSync(fichier)) rmSync(fichier);
+    return 0;
+  }
+  writeFileSync(fichier, JSON.stringify({ maj: p.maj, c }));
   return n;
+}
+
+// Lancé seul — `tsx scripts/plu-emettre.ts` — : relit le Géoportail et
+// réécrit les fichiers `dep/XX-plu.json`, avec l'horizon et les communes de
+// chaque `dep/XX-urbanisme.json` déjà en place.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const sortie = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'public', 'territoires');
+  const json = async <T,>(url: string): Promise<T> => {
+    for (let essai = 1; ; essai++) {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`${r.status}`);
+        return (await r.json()) as T;
+      } catch (e) {
+        if (essai >= 4) throw e;
+        await new Promise((ok) => setTimeout(ok, 2000 * essai));
+      }
+    }
+  };
+  const p = await collecterPlu(json, console.log);
+  if (p) {
+    let n = 0;
+    for (const f of readdirSync(join(sortie, 'dep')).filter((x) => x.endsWith('-urbanisme.json')).sort()) {
+      const dep = f.slice(0, -'-urbanisme.json'.length);
+      const u = JSON.parse(readFileSync(join(sortie, 'dep', f), 'utf8')) as { jusquau: string; c: Record<string, unknown> };
+      n += ecrirePlu(sortie, dep, Object.keys(u.c), p, u.jusquau);
+    }
+    console.log(`${n.toLocaleString('fr-FR')} communes avec une version plus récente que l’enquête.`);
+  }
 }

@@ -116,7 +116,7 @@ type UrbanismeDep = {
 
 /**
  * Ce que le Géoportail de l'urbanisme sait et que l'enquête annuelle ignore :
- * un document approuvé après sa clôture, donc pas encore opposable.
+ * une version déposée après sa clôture.
  */
 type PluDep = {
   maj: string;
@@ -409,11 +409,12 @@ export interface Fiche {
     jusquau: string;
     maj: string;
     /**
-     * Le document approuvé après la clôture de l'enquête, que le Géoportail
-     * connaît et qu'elle ne pouvait pas voir. Approuvé n'est pas opposable :
-     * il ne s'applique qu'une fois les transmissions et publicités faites.
+     * La version la plus récente déposée au Géoportail, quand elle est
+     * postérieure à la clôture de l'enquête. Sa date est celle de la dernière
+     * procédure — approbation, modification, mise à jour des annexes —, et son
+     * état déclaré ne dit pas si elle s'applique : voir `scripts/plu-emettre.ts`.
      */
-    aVenir: { type: string; approuve: string; communes: number; reglement: string } | null;
+    geoportail: { type: string; date: string; communes: number; reglement: string } | null;
   } | null;
   /**
    * Ce qui est prélevé ici, et par qui.
@@ -627,7 +628,7 @@ function assemblerUrbanisme(
     totalPartout: u.total,
     jusquau: u.jusquau,
     maj: u.maj,
-    aVenir: v ? { type: v.t, approuve: v.d, communes: v.n, reglement: v.r } : null,
+    geoportail: v ? { type: v.t, date: v.d, communes: v.n, reglement: v.r } : null,
   };
 }
 

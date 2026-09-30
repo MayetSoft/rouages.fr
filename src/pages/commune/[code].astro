@@ -530,21 +530,21 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             </span>
           </p>
         )}
-        {urb.aVenir && (
-          <p class="c-urbanisme-a-venir">
-            {`${ARTICLE_DOCUMENT[urb.aVenir.type] === 'une' ? 'Une' : 'Un'} ` +
-              `${NOM_DOCUMENT[urb.aVenir.type] ?? urb.aVenir.type} a été approuvé le ` +
-              `${enFrancais(urb.aVenir.approuve)}` +
-              (urb.aVenir.communes > 1
-                ? `, pour ${urb.aVenir.communes} communes`
-                : '') +
+        {urb.geoportail && (
+          <p class="c-urbanisme-geoportail">
+            {`Le Géoportail de l’urbanisme publie pour la commune ${ARTICLE_DOCUMENT[urb.geoportail.type] ?? 'un'} ` +
+              `${NOM_DOCUMENT[urb.geoportail.type] ?? urb.geoportail.type} ` +
+              `daté${ARTICLE_DOCUMENT[urb.geoportail.type] === 'une' ? 'e' : ''} du ` +
+              `${enFrancais(urb.geoportail.date)}` +
+              (urb.geoportail.communes > 1 ? `, commun à ${urb.geoportail.communes} communes` : '') +
               '.'}
             <span class="c-urbanisme-prise">
-              Approuvé n’est pas opposable&nbsp;: le document ne s’applique qu’une fois la
-              délibération transmise au préfet et publiée. Tant que ces formalités ne sont pas
-              faites, c’est le document ci-dessus qui fonde les permis.
-              {urb.aVenir.reglement && (
-                <> <a href={urb.aVenir.reglement}>Son règlement est publié</a>.</>
+              Cette date est celle de la dernière procédure que la collectivité y a déposée — une
+              approbation, une modification ou une simple mise à jour des annexes —, et l’enquête
+              citée plus bas ne pouvait pas la voir. Le site ne dit pas ce qu’elle a changé&nbsp;: la
+              mairie dit quelle version s’applique.
+              {urb.geoportail.reglement && (
+                <> <a href={urb.geoportail.reglement}>Le règlement de cette version est publié</a>.</>
               )}
             </span>
           </p>
@@ -566,8 +566,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
               : '') +
             '. Le document lui-même — son règlement, son zonage, le plan de la parcelle — se ' +
             'consulte en mairie, et le plus souvent sur le Géoportail de l’urbanisme.' +
-            (urb.aVenir
-              ? ` Le document approuvé du ${enFrancais(urb.aVenir.approuve)} vient du Géoportail,` +
+            (urb.geoportail
+              ? ` La version du ${enFrancais(urb.geoportail.date)} vient du Géoportail,` +
                 ' qui est alimenté au fil de l’eau par les collectivités.'
               : '')}
         </p>
