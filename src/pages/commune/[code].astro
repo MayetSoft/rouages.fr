@@ -67,6 +67,7 @@ import Sols from '../../composants/commune/Sols.astro';
 import ChambreComptes from '../../composants/ChambreComptes.astro';
 import Dpe from '../../composants/commune/Dpe.astro';
 import Dotations from '../../composants/commune/Dotations.astro';
+import Caf from '../../composants/commune/Caf.astro';
 import { complementsVie } from '../../modele/fiche-vie.ts';
 
 export function getStaticPaths() {
@@ -244,6 +245,7 @@ const sommaire: [string, string, unknown][] = [
   ['comptes', 'Ses comptes', plus.finances],
   ['dotations', 'Les dotations de l’État', vie.dotations],
   ['ccas', 'Le CCAS', plus.centres],
+  ['caf', 'Les allocataires de la CAF', vie.caf],
   ['preleve', 'Ce qui est prélevé ici', fiche?.fiscalite],
   ['intercommunalite', 'L’intercommunalité', plus.fluxPercus.length > 0],
   ['echelons', 'Les échelons', echelonsMontres],
@@ -455,6 +457,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <h2 class="badge">L’action sociale : le CCAS</h2>
         <CentresSociaux cs={plus.centres} />
         <Demarches bloc="ccas" />
+      </section>
+    )}
+
+    {vie.caf && (
+      <section id="caf" class="p-finances">
+        <h2 class="badge">Les allocataires de la CAF</h2>
+        <Caf c={vie.caf} />
       </section>
     )}
 

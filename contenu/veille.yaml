@@ -453,6 +453,13 @@ surveillances:
     url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/dotations-communes/records?select=exercice&group_by=exercice&limit=20"
     lien: od-ofgl-dotations-communes
 
+  - id: cnaf-prestations-communes
+    nom: "CNAF — allocataires par commune"
+    alimente: "les foyers allocataires de la CAF"
+    type: disponibilite
+    url: "https://data.caf.fr/api/explore/v2.1/catalog/datasets/s_ben_com_f/records?select=dtreffre&group_by=dtreffre&limit=20"
+    lien: od-cnaf-prestations-communes
+
   - id: sirene-etablissements
     nom: "SIRENE — établissements, copie Opendatasoft"
     alimente: "les établissements actifs et employeurs de chaque commune, par secteur"

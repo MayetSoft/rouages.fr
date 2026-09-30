@@ -404,3 +404,8 @@ sigles:
     developpe: "Agence des opérateurs de réseaux d'énergie"
     definition: "Association des gestionnaires de réseaux de distribution d'électricité et de gaz, qui en publie les données de consommation."
     liens: [od-agence-ore]
+  - id: sigle-cnaf
+    sigle: CNAF
+    developpe: "Caisse nationale des allocations familiales"
+    definition: "Tête du réseau des caisses d'allocations familiales, qui en publie les données d'allocataires."
+    liens: [od-cnaf-prestations-communes]

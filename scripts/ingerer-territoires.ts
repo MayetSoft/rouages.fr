@@ -760,6 +760,10 @@ async function principal() {
   const dotations = await tenter('Dotations de l’État', () => collecterDotations(obstine, lireJson, grise));
   if (dotations) grise(`${ecrireDotations(SORTIE, dotations)} départements de dotations écrits.`);
 
+  const { collecterCaf, ecrireCaf } = await import('./caf-emettre.ts');
+  const caf = await tenter('Allocataires de la CAF', () => collecterCaf(obstine, grise));
+  if (caf) grise(`${ecrireCaf(SORTIE, caf)} départements d’allocataires de la CAF écrits.`);
+
   // Les annonces légales des entreprises : décomptes par commune, et les
   // dernières annonces des sociétés, que le journal reprend. Avant l'émetteur
   // principal, qui rassemble le journal ; le rattachement lit le découpage

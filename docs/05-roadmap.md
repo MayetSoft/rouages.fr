@@ -2772,7 +2772,7 @@ GitHub : le workflow « Sonder des sources » (`scripts/sonder-sources.ts`) le
 montre, et c'est lui qu'on relancera pour voir si un plan du site ou un flux
 permettrait un jour de lister les rapports par collectivité.
 
-### Lot 3 — Ce que l'État et la CAF versent
+### Lot 3 — Ce que l'État et la CAF versent ✔
 
 - **Dotations de l'État** ✔ (`dotations-emettre.ts`) : la dotation globale de
   fonctionnement notifiée à chaque commune de 2018 à 2026, et ses parts la
@@ -2789,9 +2789,15 @@ permettrait un jour de lister les rapports par collectivité.
   fichier : la page la donne à part. Au Mayet-de-Montagne : 432 707 € en
   2026, +10 % depuis 2018 ; 603 communes n'en reçoivent plus aucune, Paris
   depuis 2022.
-- **CAF** — accueil du jeune enfant, foyers allocataires du RSA et des aides
-  au logement. Le portail de la CNAF est joignable et publie à l'EPCI ; la
-  finesse communale reste à confirmer.
+- **CAF** ✔ (`caf-emettre.ts`) : les foyers allocataires de chaque commune en
+  décembre, de 2020 à 2024 — au moins une prestation, personnes couvertes, et
+  parmi eux RSA, prime d'activité, aide au logement, allocations familiales,
+  accueil du jeune enfant. Le portail de la CNAF publie bien à la commune
+  (`s_ben_com_f`). Nombres arrondis à 5 par la CAF, que la page dit ; Paris,
+  Lyon et Marseille, publiées par arrondissement, sont des sommes d'arrondis
+  précédées d'« environ ». Le taux de couverture de l'accueil du jeune enfant
+  n'existe qu'au-delà de 10 000 habitants : pas repris. Au Mayet-de-Montagne :
+  250 foyers en décembre 2024, dont 35 au RSA et 90 à la prime d'activité.
 
 ### Lot 4 — Se déplacer, et la sécurité
 

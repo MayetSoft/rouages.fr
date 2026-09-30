@@ -1,0 +1,47 @@
+---
+/**
+ * Les foyers allocataires de la CAF en décembre de la dernière année publiée :
+ * combien perçoivent au moins une prestation, et parmi eux le RSA, la prime
+ * d'activité, une aide au logement, les allocations familiales, une prestation
+ * d'accueil du jeune enfant. Des nombres arrondis à 5 par la CAF elle-même.
+ */
+import type { Caf } from '../../modele/fiche-vie.ts';
+import { variation, debutSerie } from '../../modele/fiche-commune.ts';
+import { evolutionDepuis, tendance } from '../../vues/graphiques.ts';
+
+interface Props {
+  c: Caf;
+}
+const { c } = Astro.props;
+const n = (v: number) => `${c.somme ? 'environ ' : ''}${v.toLocaleString('fr-FR')}`;
+const trace = tendance(c.serie, c.annees, (v) => `${v.toLocaleString('fr-FR')} foyers`);
+const evol = evolutionDepuis(variation(c.serie), debutSerie(c.serie, c.annees));
+const lignes: [string, number, string | null][] = [
+  ['le revenu de solidarité active', c.rsa, '/n/rsa'],
+  ['la prime d’activité', c.primeActivite, null],
+  ['une aide au logement', c.logement, null],
+  ['les allocations familiales', c.familiales, null],
+  ['une prestation d’accueil du jeune enfant', c.jeuneEnfant, null],
+];
+---
+<p class="mesure">
+  {`En décembre ${c.annee}, ${n(c.foyers)} foyers percevaient au moins une prestation de la CAF — ${n(c.personnes)} personnes couvertes` +
+    (evol ? ` ; ${evol.replace(/^([+−]\d+ %)/, '$1 de foyers')}` : '') + '.'}
+  {trace && <Fragment set:html={` ${trace}`} />}
+</p>
+<dl class="p-dotations">
+  {lignes.map(([nom, v, lien]) => (
+    <div>
+      <dt>{lien ? <a href={lien}>{nom.charAt(0).toUpperCase() + nom.slice(1)}</a> : nom.charAt(0).toUpperCase() + nom.slice(1)}</dt>
+      <dd>{v > 0 ? `${n(v)} foyers` : 'moins de 3'}</dd>
+    </div>
+  ))}
+</dl>
+<p class="p-strate">
+  {'Un foyer peut percevoir plusieurs prestations : les lignes ne s’additionnent pas. La CAF arrondit chaque nombre à 5 — 7 devient 5, 12 devient 10 —, et « moins de 3 » est ce qu’un zéro arrondi peut cacher.' +
+    (c.somme ? ' La commune est publiée par arrondissement : ses nombres sont des sommes d’arrondis, à quelques unités près.' : '') +
+    ' Les allocataires de la Mutualité sociale agricole n’y sont pas.'}
+</p>
+<p class="p-source-territoire">
+  {`D’après les données communales de la Caisse nationale des allocations familiales, foyers allocataires au titre du mois de décembre (${c.maj}).`}
+</p>

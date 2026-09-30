@@ -83,6 +83,8 @@ const radonDep = parDepartement<RadonDep>('radon');
 const dpeDep = parDepartement<DpeDep>('dpe');
 type DotationsDep = { maj: string; annees: number[]; c: Record<string, [(number | null)[], (number | null)[] | null, number[]]> };
 const dotationsDep = parDepartement<DotationsDep>('dotations');
+type CafDep = { maj: string; annees: number[]; c: Record<string, [(number[] | null)[], number]> };
+const cafDep = parDepartement<CafDep>('caf');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -284,6 +286,24 @@ export interface Dotations {
   maj: string;
 }
 
+/** Les foyers allocataires de la CAF en décembre, arrondis à 5 par elle. */
+export interface Caf {
+  annee: number;
+  foyers: number;
+  personnes: number;
+  rsa: number;
+  primeActivite: number;
+  logement: number;
+  familiales: number;
+  jeuneEnfant: number;
+  /** Les foyers de chaque année, pour la tendance. */
+  serie: (number | null)[];
+  annees: number[];
+  /** Paris, Lyon, Marseille : une somme d'arrondissements, donc d'arrondis. */
+  somme: boolean;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -300,6 +320,7 @@ export interface ComplementsVie {
   radon: Radon | null;
   dpe: Dpe | null;
   dotations: Dotations | null;
+  caf: Caf | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -473,6 +494,28 @@ function dotations(c: CommuneFiche): Dotations | null {
   };
 }
 
+function caf(c: CommuneFiche): Caf | null {
+  const d = cafDep.get(c.dep);
+  const x = d?.c[c.code];
+  const n = x?.[0][x[0].length - 1];
+  if (!d || !x || !n || n[0] <= 0) return null;
+  const [foyers, personnes, rsa, primeActivite, logement, familiales, jeuneEnfant] = n;
+  return {
+    annee: d.annees[d.annees.length - 1],
+    foyers,
+    personnes,
+    rsa,
+    primeActivite,
+    logement,
+    familiales,
+    jeuneEnfant,
+    serie: x[0].map((a) => a?.[0] ?? null),
+    annees: d.annees,
+    somme: x[1] === 1,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -490,5 +533,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     radon: radon(c),
     dpe: dpe(c),
     dotations: dotations(c),
+    caf: caf(c),
   };
 }
