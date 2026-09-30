@@ -468,6 +468,21 @@ surveillances:
     ressource: "geodae.csv"
     lien: od-geodae
 
+  - id: sncf-gares
+    nom: "SNCF — gares de voyageurs"
+    alimente: "les gares de la commune, ou la plus proche"
+    type: disponibilite
+    url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/gares-de-voyageurs/records?limit=1"
+    lien: od-sncf-gares
+
+  # La fréquentation paraît à l'été de l'année suivante : une colonne de plus.
+  - id: sncf-frequentation
+    nom: "SNCF — fréquentation des gares"
+    alimente: "les voyageurs de chaque gare"
+    type: disponibilite
+    url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares/records?limit=1"
+    lien: od-sncf-frequentation
+
   # Chaque année ajoute ses fichiers au même jeu, sous un nom qui change : la
   # collecte les reconnaît ; ici, on voit arriver les caractéristiques.
   - id: onisr-baac

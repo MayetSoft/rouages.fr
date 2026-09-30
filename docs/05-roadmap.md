@@ -2719,10 +2719,15 @@ Saint-Rémy-en-Rollat là où le scrutin de 2026 en élit un — des suppléants
 des vacances, sans doute. Additionner ces nombres donnerait un conseil qui
 n'existe pas.
 
-**À vérifier** : le bloc « De quoi le conseil est fait » de la page de commune
-prend ce même nombre du répertoire pour les sièges au conseil communautaire.
-Pour une commune de moins de mille habitants, c'est la seule source ; il faut
-savoir si le répertoire compte les suppléants avant de continuer à l'afficher.
+**Vérifié, et retiré (30 septembre)** : la page de commune prenait ce même
+nombre du répertoire pour les sièges au conseil communautaire. Le fichier n'a
+aucune colonne qui distingue titulaire et suppléant. Sur les quelque dix mille
+communes de moins de trois cents habitants, 9 785 y ont un conseiller et 192
+en ont deux, dispersées dans cent intercommunalités : ce n'est pas un accord
+local, qui vaudrait pour toutes les petites communes d'un même groupement.
+La page prend désormais les sièges dans les résultats du scrutin, qui n'en
+portent qu'à partir de mille habitants ; en dessous, elle dit comment les
+représentants sont désignés, pas combien ils sont.
 
 ### Lot 2 — Le sol et les logements ✔
 
@@ -2772,6 +2777,24 @@ GitHub : le workflow « Sonder des sources » (`scripts/sonder-sources.ts`) le
 montre, et c'est lui qu'on relancera pour voir si un plan du site ou un flux
 permettrait un jour de lister les rapports par collectivité.
 
+### Le plan « approuvé mais pas encore opposable » ne l'était pas ✔
+
+La relecture de septembre avait signalé le risque (point 2.1). Il était
+plus grave que prévu. Au Mayet-de-Montagne, le « PLUi approuvé le 8 janvier
+2026 » du Géoportail est le PLUi de la Montagne bourbonnaise de 2022 : le
+8 janvier est un arrêté de mise à jour des annexes, qui ajoute le règlement de
+publicité modifié à tous les documents de Vichy Communauté. La date
+`datappro` est celle de la dernière procédure déposée, pas de l'approbation.
+L'état 07, lui, reste sur des centaines de documents de 2022 : il ne dit pas
+qu'un document attend ses formalités.
+
+Le site affirmait donc à 4 809 communes qu'un plan ne s'appliquait pas
+encore. Il dit maintenant, pour les 12 779 où le Géoportail porte une version
+plus récente que l'enquête SuDocUH, que cette version existe, à quelle date,
+ce que peut être cette date, et où lire son règlement. Il ne dit plus ce
+qui s'applique : c'est la mairie qui le sait. `npx tsx scripts/plu-emettre.ts`
+réécrit ces fichiers seul.
+
 ### Lot 3 — Ce que l'État et la CAF versent ✔
 
 - **Dotations de l'État** ✔ (`dotations-emettre.ts`) : la dotation globale de
@@ -2805,8 +2828,20 @@ permettrait un jour de lister les rapports par collectivité.
   transport.data.gouv.fr (802 jeux, joignable) ne publie aucun fichier national
   des arrêts rattachés aux communes : il faudrait lire les centaines de flux
   GTFS et placer chaque arrêt dans sa commune par sa position, donc disposer
-  des contours communaux, que le site n'a pas. Un premier pas plus simple
-  existe : les gares de voyageurs du réseau ferré national, un seul jeu.
+  des contours communaux, que le site n'a pas. Les horaires GTFS restent à
+  faire (décision du 30 septembre : 6b, plus tard).
+- **Gares SNCF** ✔ (`gares-emettre.ts`, décision 6a) : les gares de voyageurs
+  de SNCF Gares & Connexions jointes à leur fréquentation 2024 par code UIC ;
+  une gare sans voyageurs est écartée, la liste comptant des gares fermées.
+  Une commune sans gare reçoit la plus proche de sa mairie, à vol d'oiseau —
+  position prise dans l'annuaire de l'administration, écartée hors de la
+  métropole ou au-delà de 80 km (7 fiches de mairie fausses, à trois mille
+  kilomètres). Deux limites dites sur la page : ce ne sont que les gares de
+  SNCF — les gares du RER A exploitées par la RATP (Rueil-Malmaison, Chatou,
+  Saint-Maur) et les Chemins de fer de Provence n'y sont pas, d'où aucune
+  « gare la plus proche » en Île-de-France, en Corse et outre-mer —, et rien
+  n'y dit la desserte. 2 766 gares dans 2 432 communes ; au Mayet-de-Montagne,
+  pas de gare, Vichy à 19,3 km.
 - **Accidents de la route** ✔ (`accidents-emettre.ts`) : les accidents
   corporels, les tués et les blessés sur les cinq dernières années publiées
   (2020-2024), d'après les bases de l'ONISR — une année seule, dans une petite
@@ -2834,9 +2869,24 @@ permettrait un jour de lister les rapports par collectivité.
 
 - **Comparer deux communes**, bloc par bloc, sur une page qui ne calcule rien
   de plus que les pages qu'elle rapproche.
-- **Couverture mobile** — à retenter : aucune donnée communale nationale
-  trouvée aux deux premiers sondages ; l'Arcep publie une « base de
-  population » dont il faudra voir si elle porte la couverture par commune.
+- **Couverture mobile** — cherché le 30 septembre (décision 7). Ce que publie
+  l'Arcep dans « Mon réseau mobile » (données du 30 juin 2026) :
+  - **les cartes de couverture théorique** : des polygones par opérateur et
+    par technologie, de 28 à 380 Mo chacun compressés. Un taux de couverture
+    par commune exigerait de les croiser avec les contours communaux, que le
+    site n'a pas. La « base de population » est une grille géographique, pas
+    un tableau par commune ;
+  - **les sites mobiles** (`data.arcep.fr/mobile/sites/`, 20 Mo, 125 542
+    lignes, Latin-1) : un site par opérateur, avec sa commune, la 4G, la 5G, et
+    s'il relève d'une zone blanche ou du dispositif de couverture ciblée.
+    Joignable d'ici. Au Mayet-de-Montagne : six sites — Orange un, SFR deux,
+    Bouygues Telecom deux, Free un —, tous en 4G, trois en 5G.
+
+  Le second se publie en un jour, à une condition : dire que ce sont des
+  antennes et non une couverture. Un site dans la commune voisine peut la
+  couvrir, et un site ici ne couvre pas tout son territoire ; 21 329 communes
+  seulement ont un site. La page renverrait à la carte de l'Arcep pour savoir
+  si l'on capte à une adresse.
 
 ## Phase 3 — Élargir
 
