@@ -9,8 +9,12 @@ name: Sonder le déballage
 on:
   workflow_dispatch:
 
+# Sa propre file, pas celle des déploiements : dans celle-là, la sonde
+# attendait la fin d'un déploiement de trois heures, et le suivant l'annulait
+# en se mettant en attente — c'est arrivé le 30 septembre. Elle ne touche à
+# aucun fichier du site : son script porte un nom tiré au hasard et s'efface.
 concurrency:
-  group: deploiement
+  group: sonde-deballage
   cancel-in-progress: false
 
 jobs:
