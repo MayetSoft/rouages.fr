@@ -798,6 +798,16 @@ async function principal() {
   );
   if (antennes) grise(`${ecrireAntennes(SORTIE, antennes)} départements de sites mobiles écrits.`);
 
+  const { collecterProduction, ecrireProduction } = await import('./production-emettre.ts');
+  const production = await tenter('Production d’électricité', () => collecterProduction(lireJson, grise));
+  if (production) grise(`${ecrireProduction(SORTIE, production)} départements de production écrits.`);
+
+  const { collecterMonuments, ecrireMonuments } = await import('./monuments-emettre.ts');
+  const monuments = await tenter('Monuments historiques', () =>
+    collecterMonuments(enCache('Base Mérimée — monuments historiques (100 Mo)'), CACHE, grise),
+  );
+  if (monuments) grise(`${ecrireMonuments(SORTIE, monuments)} départements de monuments écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),

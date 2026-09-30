@@ -1,0 +1,60 @@
+---
+/**
+ * L'électricité produite dans la commune, par filière : installations,
+ * puissance, énergie injectée sur le réseau en un an. Ni nom d'installation,
+ * ni autoconsommation — voir `scripts/production-emettre.ts`.
+ */
+import type { Production } from '../../modele/fiche-vie.ts';
+import { enFrancais } from '../../modele/urbanisme.ts';
+
+interface Props {
+  p: Production;
+}
+const { p } = Astro.props;
+const nf = (v: number, d = 0) => v.toLocaleString('fr-FR', { maximumFractionDigits: d });
+const puissance = (kw: number) => (kw >= 1000 ? `${nf(kw / 1000, 1)} MW` : `${nf(kw)} kW`);
+const energie = (mwh: number) => (mwh >= 1000 ? `${nf(mwh / 1000, 1)} GWh` : `${nf(mwh)} MWh`);
+const inst = (n: number) => `${nf(n)} installation${n > 1 ? 's' : ''}`;
+const n = p.filieres.reduce((s, f) => s + f.installations, 0);
+const kw = p.filieres.reduce((s, f) => s + f.kw, 0);
+const mwh = p.filieres.reduce((s, f) => s + f.mwh, 0);
+// Une énergie inconnue ou partielle fait du total un minimum ; toute inconnue, on ne dit rien.
+const toutInconnu = p.filieres.every((f) => f.energie === 'inconnue');
+const minimum = !toutInconnu && p.filieres.some((f) => f.energie !== 'connue');
+const injecte = (f: Production['filieres'][number]) =>
+  f.energie === 'inconnue'
+    ? 'énergie injectée non publiée'
+    : `${f.energie === 'partielle' ? 'au moins ' : ''}${energie(f.mwh)} injectés`;
+const au = enFrancais(p.au);
+const seule = p.filieres.length === 1 ? p.filieres[0] : null;
+---
+{n === 0 ? (
+  <p class="mesure">{`Aucune installation de production d’électricité raccordée au réseau dans la commune au ${au}.`}</p>
+) : (
+  <>
+    <p class="mesure">
+      {`${inst(n)} de production d’électricité raccordée${n > 1 ? 's' : ''} au réseau au ${au}` +
+        (seule ? `, toutes en ${seule.nom.toLowerCase()}` : '') +
+        ` : ${puissance(kw)} de puissance installée.` +
+        (toutInconnu
+          ? ' Le registre ne dit pas ce qu’elles ont injecté sur le réseau.'
+          : ` Sur un an, ${n > 1 ? 'elles ont' : 'elle a'} injecté ${minimum ? 'au moins ' : ''}${energie(mwh)} sur le réseau.`)}
+    </p>
+    {!seule && (
+      <ul class="c-structures">
+        {p.filieres.map((f) => (
+          <li>{`${f.nom} : ${inst(f.installations)}, ${puissance(f.kw)}, ${injecte(f)}`}</li>
+        ))}
+      </ul>
+    )}
+  </>
+)}
+<p class="p-strate">
+  C’est l’électricité injectée sur le réseau&nbsp;: la part qu’une installation consomme elle-même n’y figure pas.
+  Une installation est comptée dans la commune où elle est raccordée, et celles de moins de 36&nbsp;kW sont regroupées
+  par le registre, commune par commune. Quand certaines lignes du registre ne portent pas l’énergie injectée, le total
+  est un minimum, et la page le dit.
+</p>
+<p class="p-source-territoire">
+  {`D’après le registre national des installations de production et de stockage d’électricité, tenu par RTE à partir des données des gestionnaires de réseau (${p.maj}). Le stockage n’est pas compté.`}
+</p>

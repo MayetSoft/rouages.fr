@@ -206,7 +206,7 @@ acteurs:
     echelon: etat
     pouvoirs: [executif]
     resume: "Rend un avis, parfois conforme, sur les projets situés en périmètre de protection du patrimoine."
-    liens: [wp-abf, code-patrimoine, cpat-l632-2]
+    liens: [wp-abf, code-patrimoine, cpat-l632-2, cpat-l621-30]
     verifie_le: 2026-09-22
     confiance: etabli
 

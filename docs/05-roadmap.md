@@ -2860,10 +2860,27 @@ réécrit ces fichiers seul.
 
 ### Lot 5 — Énergie produite et patrimoine
 
-- **Production d'électricité renouvelable** par commune et par filière,
-  d'après l'Agence ORE (à sonder, même portail que la consommation).
-- **Monuments historiques** (immeubles protégés, jeu du ministère de la
-  culture sur data.gouv) **et équipements culturels** (à sonder).
+- **Production d'électricité** ✔ (`production-emettre.ts`) : par commune et
+  par filière, installations, puissance, énergie injectée sur un an, d'après
+  le registre national que tient RTE (au 31 juillet 2026, portail ODRÉ). La
+  production communale de l'Agence ORE s'arrête à 2016. Ce que la page dit du
+  registre : l'énergie est celle injectée, autoconsommation exclue ; la
+  commune est celle du point de livraison ; les installations de moins de
+  36 kW sont regroupées. Aucun nom d'installation — certains sont ceux de
+  personnes —, et le stockage n'est pas compté. Des lignes ne portent pas
+  l'énergie : la filière dit « non publiée », et le total devient « au
+  moins » (2 697 filières-communes partielles, 1 074 inconnues). 1,2 million
+  d'installations solaires dans 27 382 communes ; au Mayet-de-Montagne,
+  50 installations solaires, 1,5 MW, 1,8 GWh injectés.
+- **Monuments historiques** ✔ (`monuments-emettre.ts`) : les immeubles
+  protégés de la base Mérimée (46 301 notices hors renvois, 16 126 communes),
+  classés ou inscrits, avec un lien vers leur notice sur POP. La commune d'une
+  notice est celle de la protection, reportée sur la commune actuelle ; un
+  immeuble sur deux communes compte dans chacune. La page dit ce que cela
+  change aux abords — l'architecte des Bâtiments de France, et les 500 mètres
+  de l'article L621-30, vérifié par recherche web — et qu'elle n'a pas les
+  périmètres. Au Mayet-de-Montagne : aucun ; à Vichy : 51, dont 4 classés.
+  Les **équipements culturels** restent à sonder.
 
 ### Lot 6 — Outils
 
