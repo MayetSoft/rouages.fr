@@ -16,7 +16,11 @@ const classes = m.liste.filter((x) => x.classe).length;
 const nf = (v: number) => v.toLocaleString('fr-FR');
 ---
 {n === 0 ? (
-  <p class="mesure">Aucun immeuble de la commune n’est protégé au titre des monuments historiques.</p>
+  <p class="mesure">
+    Aucun immeuble de la commune n’est protégé au titre des monuments historiques, ni classé ni inscrit. Une église,
+    une chapelle peuvent faire partie de son patrimoine sans cette protection&nbsp;: elle ne dit que ce que l’État a
+    choisi de protéger.
+  </p>
 ) : (
   <>
     <p class="mesure">
