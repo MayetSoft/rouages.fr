@@ -12,11 +12,11 @@ processus:
     decideur: mdph
     competences: [handicap]
     liens: [casf-r241-33, mdph77-recours, code-action-sociale]
-    verifie_le: 2026-09-23
+    verifie_le: 2026-09-30
     perime_apres_mois: 12
-    # Repassé à confirmer à la relecture du 23 septembre, pour le levier sur la
-    # date de la demande. Voir docs/relecture-2026-09.md.
-    confiance: a_confirmer
+    # Repassé à confirmer à la relecture du 23 septembre pour le levier sur la
+    # date de la demande ; corrigé et rétabli le 30. Voir docs/relecture-2026-09.md.
+    confiance: etabli
 
     etapes:
       - ordre: 1
@@ -60,13 +60,13 @@ processus:
         aupres_de: "Personne : c'est à garder soi-même"
         difficulte: faible
         ancre_etape: 2
-        piege: "Au bout de quatre mois sans réponse, la demande est rejetée d'office, et le délai du recours préalable commence à courir sans qu'aucun courrier ne l'annonce."
-        liens: [casf-r241-33]
-        # Probablement trop fort : en règle générale, les délais de recours contre
-        # un rejet implicite ne sont opposables que si l'accusé de réception en a
-        # fait mention. Le rejet à quatre mois est vérifié, pas la seconde moitié
-        # de la phrase.
-        confiance: a_confirmer
+        piege: "Au bout de quatre mois sans réponse, la demande est rejetée d'office, sans courrier. Les deux mois du recours préalable courent alors, mais seulement si l'accusé de réception de la demande indiquait ce délai et les voies de recours : c'est lui qu'il faut garder, avec sa date. D'après un avocat au barreau de Bordeaux, qui cite l'article R142-1-1 du code de la sécurité sociale."
+        liens: [casf-r241-33, vj-recours-mdph]
+        # La première rédaction disait que le délai court « sans qu'aucun
+        # courrier ne l'annonce » : c'était trop fort. Le rejet à quatre mois
+        # est dans R241-33 ; la condition d'opposabilité vient d'une source
+        # secondaire, nommée dans le texte. Vérifié le 30 septembre.
+        confiance: etabli
       - id: conciliation-avant-recours
         quoi: "Demander une conciliation avant le recours préalable"
         quand: "Dans les deux mois de la décision"

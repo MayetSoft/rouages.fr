@@ -26,24 +26,27 @@ processus:
     decideur: conseil-municipal
     competences: [redaction-plu, delivrance-autorisation-urbanisme]
     liens: [cu-l153-31, cu-l153-36, loi-huwart, od-gpu]
-    verifie_le: 2026-09-22
+    verifie_le: 2026-09-30
     perime_apres_mois: 12
-    # Repassé à confirmer à la relecture du 23 septembre : l'étape 1 dépend du
-    # texte de L153-31 réécrit par la loi du 26 novembre 2025, que cet
-    # environnement ne peut pas lire. Voir docs/relecture-2026-09.md.
-    confiance: a_confirmer
+    # Repassé à confirmer à la relecture du 23 septembre, rétabli le 30 : le
+    # texte de L153-31 en vigueur depuis le 26 mai 2026 a été lu par recherche
+    # web (Légifrance refuse cet environnement), et le Cerema le confirme avec
+    # ses exceptions. Voir docs/relecture-2026-09.md.
+    confiance: etabli
 
     etapes:
       - ordre: 1
         acteur: conseil-municipal
         action: "Choix de la procédure : révision ou modification"
-        note: "Le partage ne se négocie pas. Changer les orientations du projet d'aménagement et de développement durables impose la révision ; tout le reste relève de la modification. C'est donc l'objet visé qui décide de la lourdeur, pas la volonté de la collectivité. Sous plan intercommunal, la délibération appartient au conseil communautaire."
+        note: "Le partage ne se négocie pas. Changer les orientations du projet d'aménagement et de développement durables impose la révision ; tout le reste relève de la modification. Quatre exceptions font passer un tel changement par la modification : soutenir la production d'énergie renouvelable, délimiter des zones d'accélération pour ses installations, délimiter les secteurs soumis à une servitude de résidence principale, délimiter les zones exposées au recul du trait de côte. C'est donc l'objet visé qui décide de la lourdeur, pas la volonté de la collectivité. Ce partage vaut depuis le 26 mai 2026 ; une procédure engagée avant cette date suit les règles antérieures. Sous plan intercommunal, la délibération appartient au conseil communautaire. D'après le texte de l'article et le Cerema."
         liens: [cu-l153-31, cu-l153-36, loi-huwart, cerema-evolution-plu]
-        # Les sources se contredisent : le Cerema limite la révision aux
-        # orientations du projet d'aménagement, l'ANIL y ajoute la réduction des
-        # espaces protégés et l'ouverture à l'urbanisation — comme le faisait la
-        # version antérieure de l'article. Seul le texte en vigueur tranche.
-        confiance: a_confirmer
+        # L'ANIL ajoutait la réduction des espaces protégés et l'ouverture à
+        # l'urbanisation : c'est la version antérieure de L153-31. Le texte en
+        # vigueur au 26 mai 2026 — « excepté dans les cas mentionnés aux
+        # deuxième à cinquième alinéas de l'article L. 153-36 et dans les autres
+        # cas prévus par la loi » — et le Cerema tranchent. Vérifié le 30
+        # septembre par recherche web.
+        confiance: etabli
       - ordre: 2
         acteur: conseil-municipal
         action: "Délibération de prescription et modalités de la concertation"

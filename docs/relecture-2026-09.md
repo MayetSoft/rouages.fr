@@ -30,7 +30,7 @@ La colonne « vérifiée par » distingue trois degrés :
 Elles sont publiées avec leur réserve, et `npm run relire` les liste. Chacune
 demande une page que seul ton navigateur peut ouvrir.
 
-- [ ] **1.1 — Révision ou modification du PLU.** La fiche
+- [x] **1.1 — Révision ou modification du PLU.** La fiche
   [« Faire évoluer le PLU »](https://rouages.fr/n/modifier-le-plu), étape 1, dit :
   > « Changer les orientations du projet d'aménagement et de développement
   > durables impose la révision ; tout le reste relève de la modification. »
@@ -48,7 +48,18 @@ demande une page que seul ton navigateur peut ouvrir.
   Si les autres cas y figurent encore, l'étape 1 est à réécrire ; sinon, il
   suffit de repasser `confiance: etabli`.
 
-- [ ] **1.2 — Le silence de la MDPH.** La fiche
+  **Tranché le 30 septembre (option 4b, extrait + Cerema).** Le texte en
+  vigueur depuis le 26 mai 2026, lu par recherche web : « Le plan local
+  d'urbanisme est révisé lorsque [l'EPCI] ou la commune décide de changer les
+  orientations définies par le projet d'aménagement et de développement
+  durables, excepté dans les cas mentionnés aux deuxième à cinquième alinéas de
+  l'article L. 153-36 et dans les autres cas prévus par la loi. » L'ANIL citait
+  l'ancienne version. Le Cerema donne les quatre exceptions (énergie
+  renouvelable, zones d'accélération, servitude de résidence principale, recul
+  du trait de côte) ; l'étape les nomme, rappelle qu'une procédure engagée avant
+  le 26 mai 2026 suit les anciennes règles, et passe établie.
+
+- [x] **1.2 — Le silence de la MDPH.** La fiche
   [« Demander une aide à la MDPH »](https://rouages.fr/n/saisir-la-mdph), levier
   « noter la date », dit :
   > « Au bout de quatre mois sans réponse, la demande est rejetée d'office, et
@@ -66,7 +77,14 @@ demande une page que seul ton navigateur peut ouvrir.
   « conservez l'accusé de réception : c'est lui qui dit si, et quand, le délai
   de recours a commencé à courir » — à condition que tu confirmes la règle.
 
-- [ ] **1.3 — Les dérogations au collège.** La fiche
+  **Tranché le 30 septembre (option 4b, secondaire).** La règle est confirmée
+  par un avocat au barreau de Bordeaux (Village de la justice, 7 septembre
+  2026), qui cite l'article R142-1-1, III, du code de la sécurité sociale : les
+  délais « ne sont opposables qu'à la condition d'avoir été mentionnés, ainsi
+  que les voies de recours, […] en cas de décision implicite, dans l'accusé de
+  réception de la demande ». Le piège dit désormais cela, et nomme sa source.
+
+- [x] **1.3 — Les dérogations au collège.** La fiche
   [« Connaître le collège de secteur »](https://rouages.fr/n/choisir-son-college),
   étape 3, dit que la demande s'adresse au directeur académique et qu'elle est
   examinée « dans la limite des places restant après l'inscription des élèves du
@@ -81,6 +99,16 @@ demande une page que seul ton navigateur peut ouvrir.
 
   **À lire :** la notice de dérogation de la direction académique de l'Allier.
   Si elle donne la liste et l'ordre, je les ajoute et la fiche passe établie.
+
+  **Tranché le 30 septembre (option 4b, page lue).** Service-public.fr, fiche
+  [F2322](https://www.service-public.gouv.fr/particuliers/vosdroits/F2322)
+  vérifiée par la DILA le 20 mars 2026, donne la demande au directeur
+  académique, avant l'inscription, et l'ordre : élève handicapé, prise en charge
+  médicale importante près du collège, boursier au mérite, boursier sur
+  critères sociaux, frère ou sœur dans le collège, parcours scolaire
+  particulier. Le domicile en limite de secteur n'y figure pas. L'étape reprend
+  cette liste en nommant sa source ; le texte national qui la fixe n'a pas été
+  lu.
 
 ---
 
