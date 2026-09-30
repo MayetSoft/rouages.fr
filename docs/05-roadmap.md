@@ -2801,9 +2801,12 @@ permettrait un jour de lister les rapports par collectivité.
 
 ### Lot 4 — Se déplacer, et la sécurité
 
-- **Transports en commun** — arrêts et lignes qui desservent la commune,
-  d'après transport.data.gouv.fr (joignable). Le plus lourd du plan : des
-  centaines de flux à lire et à rattacher aux communes.
+- **Transports en commun** — reporté, à faire comme un chantier à part.
+  transport.data.gouv.fr (802 jeux, joignable) ne publie aucun fichier national
+  des arrêts rattachés aux communes : il faudrait lire les centaines de flux
+  GTFS et placer chaque arrêt dans sa commune par sa position, donc disposer
+  des contours communaux, que le site n'a pas. Un premier pas plus simple
+  existe : les gares de voyageurs du réseau ferré national, un seul jeu.
 - **Accidents de la route** ✔ (`accidents-emettre.ts`) : les accidents
   corporels, les tués et les blessés sur les cinq dernières années publiées
   (2020-2024), d'après les bases de l'ONISR — une année seule, dans une petite
