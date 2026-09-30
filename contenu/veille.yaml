@@ -446,6 +446,13 @@ surveillances:
     url: "https://data.ademe.fr/data-fair/api/v1/datasets/meg-83tjwtg8dyz4vv7h1dqe?select=updatedAt,count"
     lien: od-ademe-dpe
 
+  - id: ofgl-dotations-communes
+    nom: "OFGL — dotations des communes"
+    alimente: "la dotation globale de fonctionnement et ses parts"
+    type: disponibilite
+    url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/dotations-communes/records?select=exercice&group_by=exercice&limit=20"
+    lien: od-ofgl-dotations-communes
+
   - id: sirene-etablissements
     nom: "SIRENE — établissements, copie Opendatasoft"
     alimente: "les établissements actifs et employeurs de chaque commune, par secteur"

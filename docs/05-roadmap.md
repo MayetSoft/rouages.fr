@@ -2774,10 +2774,21 @@ permettrait un jour de lister les rapports par collectivité.
 
 ### Lot 3 — Ce que l'État et la CAF versent
 
-- **Dotations de l'État par commune** — DGF forfaitaire, dotation de
-  solidarité rurale, dotation nationale de péréquation. Source primaire à
-  trouver à la DGCL ; un jeu de LexImpact existe sur data.gouv mais n'est pas
-  la source. Relié au flux « dotations » du graphe.
+- **Dotations de l'État** ✔ (`dotations-emettre.ts`) : la dotation globale de
+  fonctionnement notifiée à chaque commune de 2018 à 2026, et ses parts la
+  dernière année — forfaitaire, solidarité rurale et ses trois fractions,
+  solidarité urbaine, péréquation, et outre-mer la dotation d'aménagement.
+  Source : les notifications de la DGCL, que l'OFGL republie
+  (`dotations-communes`) ; le site de la DGCL, qui les publie aussi, ne se
+  prête pas à une collecte. Deux contrôles, comme pour les comptes : la DGF
+  est la somme de ses parts, la DSR celle de ses fractions — exacts pour
+  toutes les communes en 2018 et en 2026 ; de 2 à 19 communes nouvelles s'en
+  écartent en 2021-2023 et en 2025 d'un montant que le fichier ne détaille
+  pas, et leurs parts ne sont pas affichées pour ces années-là. La dotation
+  des communes nouvelles, créée en 2024, est hors du total « DGF » du
+  fichier : la page la donne à part. Au Mayet-de-Montagne : 432 707 € en
+  2026, +10 % depuis 2018 ; 603 communes n'en reçoivent plus aucune, Paris
+  depuis 2022.
 - **CAF** — accueil du jeune enfant, foyers allocataires du RSA et des aides
   au logement. Le portail de la CNAF est joignable et publie à l'EPCI ; la
   finesse communale reste à confirmer.

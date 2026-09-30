@@ -980,3 +980,10 @@ a.p-sommaire-lien { text-decoration: none; }
 .p-votes-voix { margin: .3rem 0 0; display: grid; gap: .45rem; font-size: .9rem; }
 .p-votes-voix dt { font-weight: 600; }
 .p-votes-voix dd { margin: 0; }
+
+/* Les dotations de l'État : une ligne par part, le montant à droite. */
+.p-dotations { margin: .6rem 0; display: grid; gap: .3rem; }
+.p-dotations > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .1rem 1rem; align-items: baseline; }
+.p-dotations dt { font-size: .88rem; }
+.p-dotations dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; }
+.p-dotations .c-incise { display: block; text-align: right; }

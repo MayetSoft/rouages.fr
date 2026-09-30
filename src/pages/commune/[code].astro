@@ -66,6 +66,7 @@ import Votes from '../../composants/commune/Votes.astro';
 import Sols from '../../composants/commune/Sols.astro';
 import ChambreComptes from '../../composants/ChambreComptes.astro';
 import Dpe from '../../composants/commune/Dpe.astro';
+import Dotations from '../../composants/commune/Dotations.astro';
 import { complementsVie } from '../../modele/fiche-vie.ts';
 
 export function getStaticPaths() {
@@ -241,6 +242,7 @@ const sommaire: [string, string, unknown][] = [
   ['votes', 'Les votes nationaux', vie.votes],
   ['qui-exerce', 'Qui exerce quoi', lignes.length > 0],
   ['comptes', 'Ses comptes', plus.finances],
+  ['dotations', 'Les dotations de l’État', vie.dotations],
   ['ccas', 'Le CCAS', plus.centres],
   ['preleve', 'Ce qui est prélevé ici', fiche?.fiscalite],
   ['intercommunalite', 'L’intercommunalité', plus.fluxPercus.length > 0],
@@ -438,6 +440,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <Comptes f={plus.finances} />
         <Demarches bloc="comptes" />
         <ChambreComptes codeRegion={meta?.codesRegion?.[commune.dep]} nom={commune.nom} />
+      </section>
+    )}
+
+    {vie.dotations && (
+      <section id="dotations" class="p-finances">
+        <h2 class="badge">Ce que l’État lui verse</h2>
+        <Dotations d={vie.dotations} />
       </section>
     )}
 

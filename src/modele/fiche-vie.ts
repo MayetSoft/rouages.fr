@@ -81,6 +81,8 @@ type DpeDep = { maj: string; base: string; dep: number[] | null; france: number[
 const consoDep = parDepartement<ConsoDep>('artificialisation');
 const radonDep = parDepartement<RadonDep>('radon');
 const dpeDep = parDepartement<DpeDep>('dpe');
+type DotationsDep = { maj: string; annees: number[]; c: Record<string, [(number | null)[], (number | null)[] | null, number[]]> };
+const dotationsDep = parDepartement<DotationsDep>('dotations');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -262,6 +264,26 @@ export interface Dpe {
   maj: string;
 }
 
+/** La DGF notifiée chaque année, et ce qui la compose la dernière. */
+export interface Dotations {
+  annees: number[];
+  dgf: (number | null)[];
+  /** La dotation des communes nouvelles, hors du total « DGF » de la DGCL. */
+  communeNouvelle: (number | null)[] | null;
+  /** Nul quand les parts de la dernière année ne font pas le total. */
+  parts: {
+    forfaitaire: number;
+    dsu: number;
+    dsr: number;
+    dnp: number;
+    dacom: number;
+    bourgCentre: number;
+    perequation: number;
+    cible: number;
+  } | null;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -277,6 +299,7 @@ export interface ComplementsVie {
   artificialisation: Artificialisation | null;
   radon: Radon | null;
   dpe: Dpe | null;
+  dotations: Dotations | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -433,6 +456,23 @@ function dpe(c: CommuneFiche): Dpe | null {
   return { commune: x, departement: d.dep, france: d.france, base: d.base, maj: d.maj };
 }
 
+function dotations(c: CommuneFiche): Dotations | null {
+  const d = dotationsDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x || !x[0].some((v) => v !== null && v > 0)) return null;
+  const [dgf, cn, p] = x;
+  const [forfaitaire, dsu, dsr, dnp, dacom, bourgCentre, perequation, cible] = p;
+  const derniere = dgf[dgf.length - 1] ?? 0;
+  const ok = Math.abs(forfaitaire + dsu + dsr + dnp + dacom - derniere) <= 1;
+  return {
+    annees: d.annees,
+    dgf,
+    communeNouvelle: cn,
+    parts: ok ? { forfaitaire, dsu, dsr, dnp, dacom, bourgCentre, perequation, cible } : null,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -449,5 +489,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     artificialisation: artificialisation(c),
     radon: radon(c),
     dpe: dpe(c),
+    dotations: dotations(c),
   };
 }

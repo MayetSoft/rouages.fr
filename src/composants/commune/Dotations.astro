@@ -1,0 +1,73 @@
+---
+/**
+ * Ce que l'État verse à la commune au titre de la dotation globale de
+ * fonctionnement : le total notifié chaque année depuis 2018, et ses parts la
+ * dernière année. Les comptes, plus haut, disent ce qui a été encaissé ; ici,
+ * c'est ce que la DGCL a attribué, et pourquoi.
+ */
+import type { Dotations } from '../../modele/fiche-vie.ts';
+import { variation, debutSerie } from '../../modele/fiche-commune.ts';
+import { evolutionDepuis, tendance } from '../../vues/graphiques.ts';
+
+interface Props {
+  d: Dotations;
+}
+const { d } = Astro.props;
+const eur = (v: number) => `${Math.round(v).toLocaleString('fr-FR')} €`;
+const annee = d.annees[d.annees.length - 1];
+const total = d.dgf[d.dgf.length - 1] ?? 0;
+const trace = tendance(d.dgf, d.annees, eur);
+const evol = evolutionDepuis(variation(d.dgf), debutSerie(d.dgf, d.annees));
+// Une DGF tombée à zéro : on rappelle d'où elle vient plutôt qu'un « −100 % ».
+const i0 = d.dgf.findIndex((v) => v !== null && v > 0);
+const premiere = i0 >= 0 ? ([d.annees[i0], d.dgf[i0]!] as const) : null;
+const cn = d.communeNouvelle?.[d.communeNouvelle.length - 1] ?? 0;
+const p = d.parts;
+const fractions = p
+  ? [
+      ['bourg-centre', p.bourgCentre],
+      ['péréquation', p.perequation],
+      ['cible', p.cible],
+    ].filter(([, v]) => (v as number) > 0)
+  : [];
+const lignes = p
+  ? ([
+      ['Dotation forfaitaire', p.forfaitaire, null],
+      [
+        'Dotation de solidarité rurale',
+        p.dsr,
+        fractions.length > 1 ? `dont ${fractions.map(([n, v]) => `${eur(v as number)} au titre de la fraction ${n}`).join(', ')}` : fractions.length === 1 ? `fraction ${fractions[0][0]}` : null,
+      ],
+      ['Dotation de solidarité urbaine', p.dsu, null],
+      ['Dotation nationale de péréquation', p.dnp, null],
+      ['Dotation d’aménagement des communes d’outre-mer', p.dacom, null],
+    ] as [string, number, string | null][]).filter(([, v]) => v > 0)
+  : [];
+---
+<p class="mesure">
+  {total > 0
+    ? `En ${annee}, l’État lui a attribué ${eur(total)} de dotation globale de fonctionnement` + (evol ? ` (${evol})` : '') + '.'
+    : `En ${annee}, l’État ne lui a attribué aucune dotation globale de fonctionnement` +
+      (premiere ? ` ; elle en avait reçu ${eur(premiere[1])} en ${premiere[0]}.` : '.')}
+  {trace && <Fragment set:html={` ${trace}`} />}
+</p>
+{lignes.length > 0 && (
+  <dl class="p-dotations">
+    {lignes.map(([nom, v, detail]) => (
+      <div>
+        <dt>{nom}</dt>
+        <dd>{eur(v)}{detail && <span class="c-incise">{` — ${detail}`}</span>}</dd>
+      </div>
+    ))}
+  </dl>
+)}
+{cn > 0 && <p class="mesure">{`S’y ajoute la dotation des communes nouvelles : ${eur(cn)}.`}</p>}
+<p class="p-strate">
+  La dotation globale de fonctionnement des communes réunit la dotation forfaitaire, la dotation de solidarité
+  rurale — destinée pour l’essentiel aux communes de moins de 10&nbsp;000 habitants, en trois fractions —, la
+  dotation de solidarité urbaine et la dotation nationale de péréquation.
+</p>
+<p class="p-source-territoire">
+  {`D’après les montants notifiés par la Direction générale des collectivités locales, tels que l’OFGL les republie (${d.maj}). ` +
+    'Les comptes, plus haut, disent ce que la commune a encaissé ; ces montants sont ceux que l’État lui a attribués pour l’année.'}
+</p>

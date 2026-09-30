@@ -756,6 +756,10 @@ async function principal() {
   );
   if (dpe) grise(`${ecrireDpe(SORTIE, dpe)} départements de DPE écrits.`);
 
+  const { collecterDotations, ecrireDotations } = await import('./dotations-emettre.ts');
+  const dotations = await tenter('Dotations de l’État', () => collecterDotations(obstine, lireJson, grise));
+  if (dotations) grise(`${ecrireDotations(SORTIE, dotations)} départements de dotations écrits.`);
+
   // Les annonces légales des entreprises : décomptes par commune, et les
   // dernières annonces des sociétés, que le journal reprend. Avant l'émetteur
   // principal, qui rassemble le journal ; le rattachement lit le découpage
