@@ -1,0 +1,65 @@
+---
+/**
+ * Les étiquettes énergétiques des diagnostics établis dans la commune depuis
+ * juillet 2021, comparées au département et à la France.
+ *
+ * Des diagnostics, pas des logements : un DPE se fait à la vente ou à la
+ * location, et le parc qui ne change pas de main n'y est pas. En dessous de
+ * vingt diagnostics, une part ne voudrait rien dire : on donne les nombres.
+ */
+import type { Dpe } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  d: Dpe;
+  depNom: string | null;
+}
+const { d, depNom } = Astro.props;
+const ETIQ = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+const total = (v: number[]) => v.reduce((s, x) => s + x, 0);
+const n = total(d.commune);
+const assez = n >= 20;
+const pc = (v: number, t: number) => `${Math.round((v / t) * 100).toLocaleString('fr-FR')} %`;
+const fg = (v: number[]) => pc(v[5] + v[6], total(v));
+const lignes = [
+  { nom: 'La commune', v: d.commune },
+  ...(depNom && d.departement ? [{ nom: depNom, v: d.departement }] : []),
+  { nom: 'France', v: d.france },
+];
+---
+<p class="mesure">
+  {assez
+    ? `Sur les ${n.toLocaleString('fr-FR')} diagnostics établis depuis juillet 2021, ${fg(d.commune)} classent le logement F ou G` +
+      (depNom && d.departement ? ` — ${depNom} : ${fg(d.departement)}` : '') +
+      ` ; France : ${fg(d.france)}.`
+    : `${n} diagnostic${n > 1 ? 's' : ''} établi${n > 1 ? 's' : ''} depuis juillet 2021, dont ${d.commune[5] + d.commune[6]} en F ou G : trop peu pour en tirer une part.`}
+</p>
+{assez && (
+  <div class="cpt-defile" tabindex="0" role="region" aria-label="Les étiquettes énergétiques — le tableau défile sur les petits écrans">
+    <table class="cpt-tableau">
+      <caption>Part des diagnostics, par étiquette</caption>
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          {ETIQ.map((e) => <th scope="col">{e}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {lignes.map(({ nom, v }) => (
+          <tr>
+            <th scope="row">{nom}</th>
+            {v.map((x) => <td>{pc(x, total(v))}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+<p class="p-strate">
+  Un diagnostic est établi à la vente ou à la location : ces chiffres décrivent les logements qui ont changé de
+  propriétaire ou de locataire, pas le parc entier, et un logement diagnostiqué deux fois compte deux fois. Depuis le
+  1er janvier 2025, un logement classé G ne peut plus faire l’objet d’un nouveau bail.
+</p>
+<p class="p-source-territoire">
+  {`D’après la base des diagnostics de performance énergétique de l’ADEME (mise à jour du ${d.base.split('-').reverse().join('/')}), ` +
+    'logements existants, depuis la méthode de juillet 2021 ; les diagnostics antérieurs, faits autrement, ne sont pas mêlés.'}
+</p>

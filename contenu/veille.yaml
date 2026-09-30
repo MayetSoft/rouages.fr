@@ -420,6 +420,32 @@ surveillances:
     ressource: "indicateurs"
     lien: od-agreste-sau
 
+  # Le Cerema publie chaque millésime dans un jeu distinct : cette ligne voit
+  # une ressource republiée, pas le millésime suivant, qu'il faut aller
+  # chercher et dont l'adresse est fixée dans `artificialisation-emettre.ts`.
+  - id: cerema-conso-enaf
+    nom: "Cerema — consommation d'espaces"
+    alimente: "les espaces naturels, agricoles et forestiers consommés"
+    type: datagouv-ressource
+    url: "6a01b9280dd2d45907e5fc61"
+    ressource: "conso_com.csv"
+    lien: od-cerema-conso-enaf
+
+  - id: asn-radon
+    nom: "ASN — potentiel radon des communes"
+    alimente: "la zone radon de la commune"
+    type: datagouv-ressource
+    url: "53834c53a3a72906c7ec5c4c"
+    ressource: "ma commune (csv)"
+    lien: od-asn-radon
+
+  - id: ademe-dpe
+    nom: "ADEME — diagnostics de performance énergétique"
+    alimente: "les étiquettes énergétiques des logements"
+    type: disponibilite
+    url: "https://data.ademe.fr/data-fair/api/v1/datasets/meg-83tjwtg8dyz4vv7h1dqe?select=updatedAt,count"
+    lien: od-ademe-dpe
+
   - id: sirene-etablissements
     nom: "SIRENE — établissements, copie Opendatasoft"
     alimente: "les établissements actifs et employeurs de chaque commune, par secteur"

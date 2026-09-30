@@ -6,7 +6,8 @@
  * Chaque collecte en réécrivait sa propre copie ; les dix venues avec la santé,
  * l'eau du robinet, la fibre et les autres passent par ici.
  */
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 export function departementDe(code: string): string {
@@ -56,6 +57,30 @@ export function ecrireParDepartement<T>(
     ecrits++;
   }
   return ecrits;
+}
+
+/**
+ * Les communes actuelles, et le report vers elles des codes qui ne le sont
+ * plus : une commune déléguée ou associée renvoie à son chef-lieu, un
+ * arrondissement municipal à sa commune. Pour une source publiée sur un
+ * découpage ancien — le zonage du radon date du 1er janvier 2016.
+ */
+export function reportsDuDecoupage(): { actuelles: Set<string>; reports: Map<string, string> } {
+  const chemin = createRequire(import.meta.url).resolve('@etalab/decoupage-administratif/data/communes.json');
+  const toutes = JSON.parse(readFileSync(chemin, 'utf8')) as {
+    code: string;
+    type: string;
+    chefLieu?: string;
+    commune?: string;
+  }[];
+  const actuelles = new Set(toutes.filter((c) => c.type === 'commune-actuelle').map((c) => c.code));
+  const reports = new Map<string, string>();
+  for (const c of toutes) {
+    if (c.type === 'commune-actuelle' || actuelles.has(c.code)) continue;
+    const vers = c.chefLieu ?? c.commune;
+    if (vers && actuelles.has(vers)) reports.set(c.code, vers);
+  }
+  return { actuelles, reports };
 }
 
 /** Une médiane, sur une liste qu'on a le droit de trier. */
