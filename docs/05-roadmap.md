@@ -2828,8 +2828,20 @@ réécrit ces fichiers seul.
   transport.data.gouv.fr (802 jeux, joignable) ne publie aucun fichier national
   des arrêts rattachés aux communes : il faudrait lire les centaines de flux
   GTFS et placer chaque arrêt dans sa commune par sa position, donc disposer
-  des contours communaux, que le site n'a pas. Un premier pas plus simple
-  existe : les gares de voyageurs du réseau ferré national, un seul jeu.
+  des contours communaux, que le site n'a pas. Les horaires GTFS restent à
+  faire (décision du 30 septembre : 6b, plus tard).
+- **Gares SNCF** ✔ (`gares-emettre.ts`, décision 6a) : les gares de voyageurs
+  de SNCF Gares & Connexions jointes à leur fréquentation 2024 par code UIC ;
+  une gare sans voyageurs est écartée, la liste comptant des gares fermées.
+  Une commune sans gare reçoit la plus proche de sa mairie, à vol d'oiseau —
+  position prise dans l'annuaire de l'administration, écartée hors de la
+  métropole ou au-delà de 80 km (7 fiches de mairie fausses, à trois mille
+  kilomètres). Deux limites dites sur la page : ce ne sont que les gares de
+  SNCF — les gares du RER A exploitées par la RATP (Rueil-Malmaison, Chatou,
+  Saint-Maur) et les Chemins de fer de Provence n'y sont pas, d'où aucune
+  « gare la plus proche » en Île-de-France, en Corse et outre-mer —, et rien
+  n'y dit la desserte. 2 766 gares dans 2 432 communes ; au Mayet-de-Montagne,
+  pas de gare, Vichy à 19,3 km.
 - **Accidents de la route** ✔ (`accidents-emettre.ts`) : les accidents
   corporels, les tués et les blessés sur les cinq dernières années publiées
   (2020-2024), d'après les bases de l'ONISR — une année seule, dans une petite

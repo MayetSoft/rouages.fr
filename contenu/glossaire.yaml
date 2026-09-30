@@ -414,6 +414,19 @@ sigles:
     developpe: "Défibrillateur automatisé externe"
     definition: "Appareil qui analyse le rythme cardiaque et délivre un choc électrique si nécessaire, utilisable par tout public ; Géo'DAE en est la base nationale."
     liens: [od-geodae]
+  - id: sigle-ratp
+    sigle: RATP
+    developpe: "Régie autonome des transports parisiens"
+    definition: "Établissement public qui exploite le métro, une partie du RER et des bus d'Île-de-France. Ses gares ne sont pas dans la liste de SNCF."
+  - id: sigle-rer
+    sigle: RER
+    developpe: "Réseau express régional d'Île-de-France"
+    definition: "Lignes de train de banlieue qui traversent Paris, exploitées selon les tronçons par la RATP ou par SNCF."
+  - id: sigle-sncf
+    sigle: SNCF
+    developpe: "Société nationale des chemins de fer français"
+    definition: "Groupe public ferroviaire. Sa filiale SNCF Gares & Connexions gère les gares de voyageurs et en publie la liste et la fréquentation."
+    liens: [od-sncf-gares]
   - id: sigle-onisr
     sigle: ONISR
     developpe: "Observatoire national interministériel de la sécurité routière"

@@ -768,6 +768,10 @@ async function principal() {
   const dae = await tenter('Défibrillateurs', () => collecterDae(lireJson, enCache('Géo’DAE (78 Mo)'), CACHE, grise));
   if (dae) grise(`${ecrireDae(SORTIE, dae)} départements de défibrillateurs écrits.`);
 
+  const { collecterGares, ecrireGares } = await import('./gares-emettre.ts');
+  const gares = await tenter('Gares de voyageurs', () => collecterGares(lireJson, grise));
+  if (gares) grise(`${ecrireGares(SORTIE, gares)} départements de gares écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),
