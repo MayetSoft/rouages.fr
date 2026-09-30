@@ -1,0 +1,66 @@
+---
+/**
+ * Ce qui mérite une visite, d'après les offices de tourisme. Une base de
+ * promotion, pas un inventaire : la page le dit, et ne montre ni commerce ni
+ * hébergement — voir `scripts/lieux-emettre.ts`.
+ */
+import type { Lieux } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  l: Lieux;
+}
+const { l } = Astro.props;
+const MONTRES = 15;
+
+/**
+ * Plusieurs fiches pour un même lieu — « Aventure Nature : pour les 3-4 ans »,
+ * « … pour les 5-6 ans » — se regroupent sous leur nom commun.
+ */
+function regrouper(noms: string[]): string[] {
+  const prefixe = (n: string) => n.split(' : ')[0].trim();
+  const compte = new Map<string, number>();
+  for (const n of noms) compte.set(prefixe(n), (compte.get(prefixe(n)) ?? 0) + 1);
+  const vus = new Set<string>();
+  const out: string[] = [];
+  for (const n of noms) {
+    const p = prefixe(n);
+    const k = compte.get(p) ?? 1;
+    if (k === 1) out.push(n);
+    else if (!vus.has(p)) {
+      vus.add(p);
+      out.push(`${p} (${k} fiches)`);
+    }
+  }
+  return out;
+}
+
+const familles = [
+  { titre: 'Patrimoine', noms: regrouper(l.patrimoine) },
+  { titre: 'Sites naturels', noms: regrouper(l.nature) },
+  { titre: 'Itinéraires', noms: regrouper(l.itineraires) },
+].filter((f) => f.noms.length > 0);
+---
+{familles.length === 0 ? (
+  <p class="mesure">
+    Les offices de tourisme n’ont décrit dans la base nationale aucun lieu de patrimoine, site naturel ou itinéraire
+    dans la commune.
+  </p>
+) : (
+  familles.map((f) => (
+    <>
+      <h3 class="p-titre-echelon">{f.titre}</h3>
+      <ul class="c-structures">
+        {f.noms.slice(0, MONTRES).map((n) => <li>{n}</li>)}
+      </ul>
+      {f.noms.length > MONTRES && <p class="p-strate">{`Et ${f.noms.length - MONTRES} autres.`}</p>}
+    </>
+  ))
+)}
+<p class="p-strate">
+  C’est ce que les offices de tourisme ont choisi de décrire, pas un inventaire&nbsp;: le petit patrimoine — lavoirs,
+  croix, fontaines — n’y figure que là où un office l’a saisi, et aucune base nationale ouverte ne le recense. La
+  commune est celle qu’indique la fiche. Ni commerce, ni hébergement, ni événement.
+</p>
+<p class="p-source-territoire">
+  {`D’après DATAtourisme, la base nationale des données touristiques alimentée par les offices de tourisme (${l.maj}).`}
+</p>

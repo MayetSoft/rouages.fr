@@ -102,6 +102,8 @@ type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<st
 const productionDep = parDepartement<ProductionDep>('production');
 type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
 const monumentsDep = parDepartement<MonumentsDep>('monuments');
+type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
+const lieuxDep = parDepartement<LieuxDep>('lieux');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -378,6 +380,18 @@ export interface Monuments {
   maj: string;
 }
 
+/**
+ * Ce qui mérite une visite, d'après les offices de tourisme (DATAtourisme) :
+ * patrimoine, sites naturels, itinéraires. Rien n'est une réponse aussi — mais
+ * une réponse sur ce qu'ils ont saisi, pas sur ce qui existe.
+ */
+export interface Lieux {
+  patrimoine: string[];
+  nature: string[];
+  itineraires: string[];
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -401,6 +415,7 @@ export interface ComplementsVie {
   antennes: Antennes | null;
   production: Production | null;
   monuments: Monuments | null;
+  lieux: Lieux | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -669,6 +684,13 @@ function monuments(c: CommuneFiche): Monuments | null {
   };
 }
 
+function lieux(c: CommuneFiche): Lieux | null {
+  const d = lieuxDep.get(c.dep);
+  if (!d) return null;
+  const [patrimoine, nature, itineraires] = d.c[c.code] ?? [[], [], []];
+  return { patrimoine, nature, itineraires, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -693,5 +715,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     antennes: antennes(c),
     production: production(c),
     monuments: monuments(c),
+    lieux: lieux(c),
   };
 }

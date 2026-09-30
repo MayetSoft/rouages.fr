@@ -2881,6 +2881,20 @@ réécrit ces fichiers seul.
   de l'article L621-30, vérifié par recherche web — et qu'elle n'a pas les
   périmètres. Au Mayet-de-Montagne : aucun ; à Vichy : 51, dont 4 classés.
   Les **équipements culturels** restent à sonder.
+- **À voir** ✔ (`lieux-emettre.ts`, demandé le 30 septembre en complément des
+  monuments) : d'après DATAtourisme, la base que tiennent les offices de
+  tourisme — un fichier par région, republié chaque nuit. Trois familles
+  seulement : patrimoine (églises, chapelles, musées, lieux de mémoire,
+  moulins, lavoirs…), sites naturels, itinéraires. Tout ce qui est aussi un
+  commerce, un hébergement, un prestataire ou un événement est écarté — ce
+  sont ces fiches qui portent des noms de personnes —, et la catégorie
+  générique « site culturel » ne suffit pas (médiathèques, cinémas). La
+  commune est retrouvée par code postal et nom, le fichier n'ayant pas de
+  code INSEE (565 fiches sans correspondance sur 62 865). La page dit que ce
+  n'est pas un inventaire : le petit patrimoine n'y est que là où un office
+  l'a saisi. Au Mayet-de-Montagne : l'église Saint-Jean-Baptiste, l'Osarium,
+  la stèle du Cluzel, le lac des Moines, treize itinéraires — dont des fiches
+  du plan d'eau de Saint-Clément que l'office rattache au Mayet.
 
 ### Lot 6 — Outils
 
