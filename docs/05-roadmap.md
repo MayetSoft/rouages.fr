@@ -2755,6 +2755,23 @@ Trois collectes de plus, chacune lancée seule ou avec l'ingestion :
   G depuis 2025 est citée : un projet de loi de 2026 propose d'assouplir la
   suite du calendrier.
 
+### Les rapports de la chambre régionale des comptes — un renvoi, pas une donnée
+
+Demandé le 30 septembre : afficher les recommandations de la Cour des comptes
+en regard des chiffres. Ce qui existe en données ouvertes ne le permet pas :
+les rapports d'observations des chambres régionales sur data.gouv s'arrêtent
+à 2019, les recommandations de la Cour à mai 2018, et le suivi annuel des
+recommandations n'existe qu'en PDF, à l'échelle nationale. Afficher ces
+rapports anciens comme une liste ferait lire « aucun contrôle » là où il y en
+a peut-être eu un depuis. Les pages de commune, d'intercommunalité, de
+département et de région renvoient donc à la recherche de leur chambre sur
+ccomptes.fr (`src/vues/chambre-comptes.ts`).
+
+ccomptes.fr ne répond ni depuis l'environnement de développement ni depuis
+GitHub : le workflow « Sonder des sources » (`scripts/sonder-sources.ts`) le
+montre, et c'est lui qu'on relancera pour voir si un plan du site ou un flux
+permettrait un jour de lister les rapports par collectivité.
+
 ### Lot 3 — Ce que l'État et la CAF versent
 
 - **Dotations de l'État par commune** — DGF forfaitaire, dotation de
