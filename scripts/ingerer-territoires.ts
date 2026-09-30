@@ -772,6 +772,12 @@ async function principal() {
   const gares = await tenter('Gares de voyageurs', () => collecterGares(lireJson, grise));
   if (gares) grise(`${ecrireGares(SORTIE, gares)} départements de gares écrits.`);
 
+  const { collecterAntennes, ecrireAntennes } = await import('./antennes-emettre.ts');
+  const antennes = await tenter('Sites mobiles', () =>
+    collecterAntennes(async (url) => (await obstine(url)).text(), enCache('Arcep — sites mobiles (20 Mo)'), CACHE, grise),
+  );
+  if (antennes) grise(`${ecrireAntennes(SORTIE, antennes)} départements de sites mobiles écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),

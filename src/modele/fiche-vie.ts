@@ -96,6 +96,8 @@ type GaresDep = {
   c: Record<string, { g: [string, number][] } | { p: [string, string, number, number] }>;
 };
 const garesDep = parDepartement<GaresDep>('gares');
+type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Record<string, [number, number, number, number][]> };
+const antennesDep = parDepartement<AntennesDep>('antennes');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -343,6 +345,17 @@ export interface Gares {
   maj: string;
 }
 
+/**
+ * Les sites mobiles installés sur la commune, par opérateur ; aucun est une
+ * réponse. Des antennes, pas une couverture.
+ */
+export interface Antennes {
+  operateurs: { nom: string; sites: number; g4: number; g5: number }[];
+  /** La date de la liste, AAAA-MM-JJ : le dernier jour du trimestre. */
+  au: string;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -363,6 +376,7 @@ export interface ComplementsVie {
   defibrillateurs: Defibrillateurs | null;
   route: Route | null;
   gares: Gares | null;
+  antennes: Antennes | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -593,6 +607,19 @@ function gares(c: CommuneFiche): Gares | null {
   };
 }
 
+const FIN_TRIMESTRE = ['03-31', '06-30', '09-30', '12-31'];
+
+function antennes(c: CommuneFiche): Antennes | null {
+  const d = antennesDep.get(c.dep);
+  const m = d ? /^(\d{4})_T([1-4])$/.exec(d.trimestre) : null;
+  if (!d || !m) return null;
+  return {
+    operateurs: (d.c[c.code] ?? []).map(([i, sites, g4, g5]) => ({ nom: d.operateurs[i] ?? '', sites, g4, g5 })),
+    au: `${m[1]}-${FIN_TRIMESTRE[Number(m[2]) - 1]}`,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -614,5 +641,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     defibrillateurs: defibrillateurs(c),
     route: route(c),
     gares: gares(c),
+    antennes: antennes(c),
   };
 }
