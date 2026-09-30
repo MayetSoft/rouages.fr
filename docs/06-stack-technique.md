@@ -251,35 +251,17 @@ ingestions, et le manifeste déposé à la fin rend le pari inutile ensuite.
 L'entrée **complet** de `workflow_dispatch` revient à la comparaison taille et
 date, c'est-à-dire à tout renvoyer.
 
-### Par archives, quand beaucoup de fichiers changent
+### Par lots, quand beaucoup de fichiers changent
 
 Un bloc de plus sur la page de commune modifie trente-cinq mille fichiers, et
-le FTP coûte une connexion de données par fichier : trois heures et demie par
-publication, et deux échecs sur un seul fichier coupé en route. Au-delà de
-trois cents fichiers, `scripts/deploiement/envoyer-archives.ts` les regroupe
-par deux mille dans des archives zip — une vingtaine de fichiers —, les envoie
-avec un petit script PHP, `deballer.php`, puis appelle ce script en HTTPS pour
-les ouvrir sur place.
+le FTP coûte une connexion de données par fichier : deux à trois heures et
+demie par publication.
 
-Le script n'existe que le temps du déploiement, sous un nom tiré au hasard, et
-il est effacé avec les archives même en cas d'échec. Il ne connaît que
-l'empreinte du jeton `DEPLOI_JETON`, jamais le jeton. Il refuse les chemins qui
-remontent ou sortent des caractères du site, tout fichier exécutable par le
-serveur, tout fichier caché hors `.htaccess` et `.rouages` à la racine, et
-écrit chaque fichier sous un nom temporaire avant de le renommer. Les archives
-commencent par un point, que `.htaccess` refuse de servir.
-
-Sans jeton, sous le seuil, ou au moindre échec — PHP absent, Cloudflare qui
-bloque l'appel —, l'envoi retombe sur le miroir fichier par fichier, qui
-renvoie ce qui manque : déballer deux fois le même fichier ne fait rien.
-
-Ce miroir-là part par lots de quatre mille fichiers (`manifeste.ts lots`), et
+L'envoi part par lots de quatre mille fichiers (`manifeste.ts lots`), et
 le manifeste de ce qui est en ligne est déposé après chaque lot. GitHub arrête
 un job au bout de six heures : passé cinq heures dix, aucun lot n'est plus
 commencé, l'étape échoue en le disant, sans rien effacer ni déposer le
 manifeste final, et le déploiement suivant reprend où celui-ci s'est arrêté.
-Le workflow « Sonder le déballage » dépose le script seul, l'appelle et
-l'efface : une minute pour savoir si le déballage marche, sans déployer.
 
 ### Le garde-fou
 
@@ -307,10 +289,6 @@ détruire quoi que ce soit : il se contente d'ajouter.
 | `FTP_UTILISATEUR` · `FTP_MOTDEPASSE` | le compte FTP |
 | `FTP_RACINE` | la racine du site, `public_html` par défaut |
 | `CLOUDFLARE_ZONE` · `CLOUDFLARE_JETON` | facultatifs : sans eux, le dépôt réussit mais avertit que le cache n'est pas purgé |
-| `DEPLOI_JETON` | facultatif : une chaîne aléatoire longue ; sans elle, l'envoi reste fichier par fichier |
-
-La variable de dépôt `SITE_URL` (et non un secret) donne l'adresse publique
-par laquelle le script est appelé ; `https://rouages.fr` par défaut.
 
 `workflow_dispatch` accepte une entrée **simulation** qui exécute le miroir en
 `--dry-run` : de quoi vérifier ce qui serait écrit avant de l'écrire.

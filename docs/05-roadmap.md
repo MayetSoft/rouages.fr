@@ -2365,7 +2365,22 @@ La source est la copie de SIRENE que tient Opendatasoft, agrégeable côté
 serveur : un département répond en deux secondes, la France en moins de deux
 minutes. Rien n'est nommé.
 
-### Déployer par archives ✔ *(à activer : secret `DEPLOI_JETON`)*
+### Déployer par archives — retiré le 30 septembre
+
+**Le mécanisme est retiré** : `scripts/deploiement/`, le workflow « Sonder le
+déballage » et le secret `DEPLOI_JETON` ne servent plus. Le déploiement reste
+le miroir FTP par lots, avec son envoi sous nom temporaire et sa seconde
+passe. La raison, établie par la sonde le 30 septembre : devant Apache, la
+couche d'o2switch qui s'annonce « o2switch-PowerBoost-v3 » sert les pages
+statiques aux machines de GitHub, mais leur refuse tout PHP — même un
+`test.php` créé à la main, qui répond à n'importe quel autre client : 520 par
+Cloudflare, 403 puis 453 en appelant le serveur directement, et cela encore
+après que toutes les protections réglables du domaine ont été coupées. Le
+fichier, ses droits, son propriétaire et son contenu ont été écartés un à un.
+Une refonte de l'hébergement est attendue ; si le besoin revient d'ici là, la
+voie qui ne dépend pas de l'hébergeur est un déballage lancé par une tâche
+cron sur le serveur, sans aucun appel HTTP. Ce qui suit est l'historique.
+
 
 Chaque nouveauté de la page de commune coûtait trois heures et demie de
 déploiement — trente-cinq mille fichiers, une connexion FTP chacun — et deux
@@ -2658,8 +2673,7 @@ source sondée puis vérifiée contre elle-même sur Le Mayet-de-Montagne, `npm 
 verifier-types`, `npm run valider`, build sur le périmètre de l'intégration
 continue, une entrée ici et une surveillance dans la veille.
 
-**Contrainte de rythme.** Tant que le déploiement par archives ne fonctionne pas,
-un lot qui touche toutes les pages de commune coûte un envoi complet de près de
+**Contrainte de rythme.** Le déploiement par archives étant retiré, un lot qui touche toutes les pages de commune coûte un envoi complet de près de
 trois heures. D'où l'ordre : le lot 0 d'abord, puis des lots assez gros pour
 qu'un envoi en vaille la peine — pas une PR par source.
 
@@ -2678,11 +2692,8 @@ pas encore qu'on a vérifié ses chiffres.
   PR (Settings → Actions → General) ; sinon la branche est poussée et le
   journal donne le lien. Premier passage à faire : c'est aussi celui des dix
   collectes de la PR #10 dans la chaîne entière.
-- **Déploiement par archives.** Bloqué côté hébergeur : aucun PHP ne s'exécute
-  sur rouages.fr. Ce qu'il faut regarder dans le cPanel d'o2switch — journal
-  d'erreurs, version de PHP du domaine, pare-feu applicatif — est noté dans
-  « Déployer par archives ». Demande l'accès du mainteneur ; rien d'autre ne
-  l'attend.
+- **Déploiement par archives.** Retiré le 30 septembre : l'hébergeur refuse
+  tout PHP aux machines de GitHub. Voir « Déployer par archives ».
 
 ### Lot 1 — Une page par intercommunalité
 
