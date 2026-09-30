@@ -152,17 +152,37 @@ async function telechargerEnCache(
   }
 }
 
+/**
+ * Un flux coupé en route ne lève pas d'erreur : il laisse un fichier tronqué.
+ * La réingestion du 30 septembre 2026 a perdu ainsi les trois tables du
+ * recensement servies par Melodi — des archives incomplètes, qu'`unzip` a
+ * refusées (code 9). On compare donc à la longueur annoncée, et on recommence.
+ */
 async function telecharger(url: string, vers: string): Promise<void> {
-  const r = await obstine(url);
-  if (!r.body) throw new Error(`${url} : réponse sans corps`);
-  const flux = createWriteStream(vers);
   const { Readable } = await import('node:stream');
-  await new Promise<void>((ok, ko) => {
-    Readable.fromWeb(r.body as Parameters<typeof Readable.fromWeb>[0])
-      .pipe(flux)
-      .on('finish', () => ok())
-      .on('error', ko);
-  });
+  for (let essai = 1; ; essai++) {
+    const r = await obstine(url);
+    if (!r.body) throw new Error(`${url} : réponse sans corps`);
+    const attendu = Number(r.headers.get('content-length') ?? 0);
+    const flux = createWriteStream(vers);
+    let coupe = false;
+    await new Promise<void>((ok, ko) => {
+      Readable.fromWeb(r.body as Parameters<typeof Readable.fromWeb>[0])
+        .on('error', ko)
+        .pipe(flux)
+        .on('finish', () => ok())
+        .on('error', ko);
+    }).catch((e) => {
+      if (essai >= 4) throw e;
+      coupe = true;
+    });
+    const recu = existsSync(vers) ? statSync(vers).size : 0;
+    // Une réponse compressée à la volée n'annonce que sa taille compressée.
+    const compresse = !!r.headers.get('content-encoding');
+    if (!coupe && (!attendu || compresse || recu === attendu)) return;
+    if (essai >= 4) throw new Error(`${url} : ${recu} octets reçus sur ${attendu}, quatre fois de suite`);
+    dire(`${GRIS}  ${recu} octets reçus sur ${attendu}, on recommence${RAZ}`);
+  }
 }
 
 /**
