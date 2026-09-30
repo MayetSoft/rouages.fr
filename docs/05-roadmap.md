@@ -2884,8 +2884,14 @@ réécrit ces fichiers seul.
 
 ### Lot 6 — Outils
 
-- **Comparer deux communes**, bloc par bloc, sur une page qui ne calcule rien
-  de plus que les pages qu'elle rapproche.
+- **Comparer deux communes** ✔ (`/comparer?a=03165&b=03310`,
+  `src/client/comparer.ts`) : la page charge les deux pages de commune déjà
+  publiées et en rapproche les sections de même identifiant, dans l'ordre de
+  la première. Rien n'est recalculé, donc aucun chiffre ne peut dériver de
+  celui de la page d'origine ; un bloc absent d'un côté le dit. Les deux
+  communes sont dans l'adresse : une comparaison se partage comme un lien.
+  Chaque page de commune y renvoie depuis son en-tête. Sans JavaScript, la
+  page le dit.
 - **Antennes mobiles** ✔ (`antennes-emettre.ts`, demandé le 30 septembre) :
   les sites que l'Arcep collecte chaque trimestre auprès des opérateurs — ouverts
   commercialement, plus de 5 W —, par commune et par opérateur, avec la 4G et

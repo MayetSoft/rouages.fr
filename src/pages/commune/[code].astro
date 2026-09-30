@@ -297,7 +297,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     <h1>{commune.nom}</h1>
     <p class="resume">
       {commune.population.toLocaleString('fr-FR')} habitants · code postal {commune.cp} ·
-      code INSEE {commune.code}
+      code INSEE {commune.code} ·{' '}
+      <a href={`/comparer?a=${commune.code}`}>la comparer à une autre</a>
     </p>
     {!fiche && (
       <p class="c-vide">
