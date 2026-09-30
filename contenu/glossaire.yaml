@@ -409,3 +409,13 @@ sigles:
     developpe: "Caisse nationale des allocations familiales"
     definition: "Tête du réseau des caisses d'allocations familiales, qui en publie les données d'allocataires."
     liens: [od-cnaf-prestations-communes]
+  - id: sigle-dae
+    sigle: DAE
+    developpe: "Défibrillateur automatisé externe"
+    definition: "Appareil qui analyse le rythme cardiaque et délivre un choc électrique si nécessaire, utilisable par tout public ; Géo'DAE en est la base nationale."
+    liens: [od-geodae]
+  - id: sigle-onisr
+    sigle: ONISR
+    developpe: "Observatoire national interministériel de la sécurité routière"
+    definition: "Service statistique de la sécurité routière, qui publie chaque année les bases des accidents corporels de la circulation."
+    liens: [od-onisr-baac]

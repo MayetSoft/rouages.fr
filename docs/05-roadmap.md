@@ -2804,10 +2804,21 @@ permettrait un jour de lister les rapports par collectivité.
 - **Transports en commun** — arrêts et lignes qui desservent la commune,
   d'après transport.data.gouv.fr (joignable). Le plus lourd du plan : des
   centaines de flux à lire et à rattacher aux communes.
-- **Accidents de la route** — bases annuelles de l'observatoire
-  interministériel de la sécurité routière (à sonder).
-- **Défibrillateurs** déclarés à Géo'DAE (base nationale publiée sur
-  data.gouv).
+- **Accidents de la route** ✔ (`accidents-emettre.ts`) : les accidents
+  corporels, les tués et les blessés sur les cinq dernières années publiées
+  (2020-2024), d'après les bases de l'ONISR — une année seule, dans une petite
+  commune, dirait surtout le hasard. Blessés hospitalisés et légers réunis. Les
+  fichiers changent de nom et, en 2022, de nom de colonne (`Accident_Id`) : la
+  collecte s'y attend. Au total 268 751 accidents et 16 372 tués ; au
+  Mayet-de-Montagne, 4 accidents, 5 blessés, aucun tué.
+- **Défibrillateurs** ✔ (`dae-emettre.ts`) : Géo'DAE, fiches validées,
+  appareils en fonctionnement, hors mobiles et doublons signalés — l'état
+  « actif » n'est pas exigé, la moitié des fiches le laissent vide. Ni nom
+  d'appareil ni exploitant, qui peut être une personne : la page renvoie à la
+  carte nationale. La déclaration est obligatoire pour tout exploitant (décret
+  du 27 décembre 2018, arrêté du 29 octobre 2019, vérifiés). 138 074 appareils
+  dans 17 044 communes ; au Mayet-de-Montagne, 4 dont 1 à l'extérieur — deux
+  au même supermarché, probablement le même appareil déclaré deux fois.
 
 ### Lot 5 — Énergie produite et patrimoine
 

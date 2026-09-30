@@ -85,6 +85,10 @@ type DotationsDep = { maj: string; annees: number[]; c: Record<string, [(number 
 const dotationsDep = parDepartement<DotationsDep>('dotations');
 type CafDep = { maj: string; annees: number[]; c: Record<string, [(number[] | null)[], number]> };
 const cafDep = parDepartement<CafDep>('caf');
+type DaeDep = { maj: string; c: Record<string, [number, number]> };
+type AccidentsDep = { maj: string; annees: number[]; c: Record<string, [number, number, number]> };
+const daeDep = parDepartement<DaeDep>('dae');
+const accidentsDep = parDepartement<AccidentsDep>('accidents');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -304,6 +308,23 @@ export interface Caf {
   maj: string;
 }
 
+/** Les défibrillateurs déclarés à Géo'DAE ; zéro est une réponse. */
+export interface Defibrillateurs {
+  appareils: number;
+  exterieurs: number;
+  maj: string;
+}
+
+/** Les accidents corporels de la circulation, sur plusieurs années ; zéro est une réponse. */
+export interface Route {
+  debut: number;
+  fin: number;
+  accidents: number;
+  tues: number;
+  blesses: number;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -321,6 +342,8 @@ export interface ComplementsVie {
   dpe: Dpe | null;
   dotations: Dotations | null;
   caf: Caf | null;
+  defibrillateurs: Defibrillateurs | null;
+  route: Route | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -516,6 +539,22 @@ function caf(c: CommuneFiche): Caf | null {
   };
 }
 
+// Une commune absente des deux fichiers n'a rien de déclaré : la page le dit,
+// tant que le fichier du département existe.
+function defibrillateurs(c: CommuneFiche): Defibrillateurs | null {
+  const d = daeDep.get(c.dep);
+  if (!d) return null;
+  const [appareils, exterieurs] = d.c[c.code] ?? [0, 0];
+  return { appareils, exterieurs, maj: d.maj };
+}
+
+function route(c: CommuneFiche): Route | null {
+  const d = accidentsDep.get(c.dep);
+  if (!d) return null;
+  const [accidents, tues, blesses] = d.c[c.code] ?? [0, 0, 0];
+  return { debut: d.annees[0], fin: d.annees[d.annees.length - 1], accidents, tues, blesses, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -534,5 +573,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     dpe: dpe(c),
     dotations: dotations(c),
     caf: caf(c),
+    defibrillateurs: defibrillateurs(c),
+    route: route(c),
   };
 }
