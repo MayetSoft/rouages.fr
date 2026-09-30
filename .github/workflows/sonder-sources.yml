@@ -22,3 +22,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsx scripts/sonder-sources.ts
+      # Le même essai par curl, qui dit où la connexion s'arrête : résolution,
+      # connexion, négociation TLS. Une adresse par hôte suffit.
+      - name: Chemin réseau
+        run: |
+          for u in https://www.ccomptes.fr/robots.txt; do
+            getent hosts "$(echo "$u" | cut -d/ -f3)" || echo "résolution impossible"
+            curl -sS -m 30 -o /dev/null -w "%{http_code} en %{time_total} s (connexion %{time_connect} s, TLS %{time_appconnect} s) vers %{remote_ip}\n" "$u" || true
+            curl -sS -4 -m 30 -o /dev/null -w "IPv4 : %{http_code} vers %{remote_ip}\n" "$u" || true
+          done

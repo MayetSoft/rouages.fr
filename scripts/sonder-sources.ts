@@ -58,6 +58,11 @@ for (const s of SONDES) {
     }
     if (!s.motifs?.length || r.status >= 400) console.log(`  début : ${court(corps, 400)}`);
   } catch (e) {
-    console.log(`\n## ${s.url}\n  échec après ${Date.now() - debut} ms : ${(e as Error).message}`);
+    // « fetch failed » ne dit rien : la cause — délai, refus, nom inconnu — est dessous.
+    const cause = (e as Error & { cause?: { code?: string; message?: string } }).cause;
+    console.log(
+      `\n## ${s.url}\n  échec après ${Date.now() - debut} ms : ${(e as Error).message}` +
+        (cause ? ` — ${cause.code ?? ''} ${cause.message ?? ''}` : ''),
+    );
   }
 }
