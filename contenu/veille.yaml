@@ -483,6 +483,14 @@ surveillances:
     url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares/records?limit=1"
     lien: od-sncf-frequentation
 
+  # Le titre du jeu porte la date du registre ; la collecte la lit là.
+  - id: rte-registre-production
+    nom: "RTE — registre des installations de production"
+    alimente: "l'électricité produite dans la commune"
+    type: disponibilite
+    url: "https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/registre-national-installation-production-stockage-electricite-agrege/records?limit=1"
+    lien: od-rte-registre-production
+
   # Un dossier par trimestre ; la collecte prend le dernier.
   - id: arcep-sites-mobiles
     nom: "Arcep — sites mobiles"

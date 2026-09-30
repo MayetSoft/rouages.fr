@@ -396,6 +396,7 @@ sources:
   - { id: wp-reseau-initiative-publique, type: wikipedia, titre: "Réseau d'initiative publique", url: "https://fr.wikipedia.org/wiki/R%C3%A9seau_d%27initiative_publique", consulte_le: 2026-09-12 }
   - { id: arcep-connexion, type: page_officielle, titre: "Ma connexion internet — l'éligibilité adresse par adresse", url: "https://maconnexioninternet.arcep.fr/", consulte_le: 2026-09-12 }
   - { id: od-arcep-cartes, type: donnees_ouvertes, titre: "Cartes et données de l'Arcep — couverture fixe et mobile", url: "https://www.arcep.fr/cartes-et-donnees.html", consulte_le: 2026-09-12 }
+  - { id: od-rte-registre-production, type: donnees_ouvertes, titre: "RTE — registre national des installations de production et de stockage d'électricité", url: "https://odre.opendatasoft.com/explore/dataset/registre-national-installation-production-stockage-electricite-agrege/", consulte_le: 2026-09-30 }
   - { id: od-arcep-sites-mobiles, type: donnees_ouvertes, titre: "Arcep, Mon réseau mobile — les sites mobiles ouverts commercialement, par opérateur et par commune", url: "https://www.data.gouv.fr/datasets/mon-reseau-mobile", consulte_le: 2026-09-30 }
   - { id: arcep-mon-reseau-mobile, type: page_officielle, titre: "Mon réseau mobile — la carte de couverture de l'Arcep, opérateur par opérateur", url: "https://monreseaumobile.arcep.fr/", consulte_le: 2026-09-30 }
 

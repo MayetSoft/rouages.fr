@@ -98,6 +98,8 @@ type GaresDep = {
 const garesDep = parDepartement<GaresDep>('gares');
 type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Record<string, [number, number, number, number][]> };
 const antennesDep = parDepartement<AntennesDep>('antennes');
+type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<string, [number, number, number, number, 0 | 1 | 2][]> };
+const productionDep = parDepartement<ProductionDep>('production');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -356,6 +358,18 @@ export interface Antennes {
   maj: string;
 }
 
+/**
+ * L'électricité produite dans la commune, par filière, d'après le registre
+ * national des installations ; aucune installation est une réponse. L'énergie
+ * est celle injectée sur le réseau sur un an, autoconsommation exclue.
+ */
+export interface Production {
+  /** `energie` : connue, partielle — un minimum —, ou inconnue. */
+  filieres: { nom: string; installations: number; kw: number; mwh: number; energie: 'connue' | 'partielle' | 'inconnue' }[];
+  au: string;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -377,6 +391,7 @@ export interface ComplementsVie {
   route: Route | null;
   gares: Gares | null;
   antennes: Antennes | null;
+  production: Production | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -620,6 +635,22 @@ function antennes(c: CommuneFiche): Antennes | null {
   };
 }
 
+function production(c: CommuneFiche): Production | null {
+  const d = productionDep.get(c.dep);
+  if (!d) return null;
+  return {
+    filieres: (d.c[c.code] ?? []).map(([i, installations, kw, mwh, e]) => ({
+      nom: d.filieres[i] ?? '',
+      installations,
+      kw,
+      mwh,
+      energie: e === 2 ? 'inconnue' : e === 1 ? 'partielle' : 'connue',
+    })),
+    au: d.au,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -642,5 +673,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     route: route(c),
     gares: gares(c),
     antennes: antennes(c),
+    production: production(c),
   };
 }

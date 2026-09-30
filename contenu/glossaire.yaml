@@ -422,6 +422,11 @@ sigles:
     sigle: RER
     developpe: "Réseau express régional d'Île-de-France"
     definition: "Lignes de train de banlieue qui traversent Paris, exploitées selon les tronçons par la RATP ou par SNCF."
+  - id: sigle-rte
+    sigle: RTE
+    developpe: "Réseau de transport d'électricité"
+    definition: "Gestionnaire du réseau de lignes à haute et très haute tension. La loi le charge de tenir le registre national des installations de production d'électricité."
+    liens: [od-rte-registre-production]
   - id: sigle-sncf
     sigle: SNCF
     developpe: "Société nationale des chemins de fer français"
