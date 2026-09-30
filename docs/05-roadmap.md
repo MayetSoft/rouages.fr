@@ -2624,6 +2624,127 @@ environnement, le tunnel coupe les gros fichiers de l'INSEE servis compressés,
 qui n'annoncent pas leur longueur : ils ont été repris par `curl -C -`, puis
 contrôlés par `unzip -t`.
 
+## Plan d'octobre 2026 : sept lots
+
+Toutes les pistes proposées après les PR #10 et #11 ont été retenues. Elles sont
+rangées en lots, un lot par PR. Chaque lot se termine de la même façon : chaque
+source sondée puis vérifiée contre elle-même sur Le Mayet-de-Montagne, `npm run
+verifier-types`, `npm run valider`, build sur le périmètre de l'intégration
+continue, une entrée ici et une surveillance dans la veille.
+
+**Contrainte de rythme.** Tant que le déploiement par archives ne fonctionne pas,
+un lot qui touche toutes les pages de commune coûte un envoi complet de près de
+trois heures. D'où l'ordre : le lot 0 d'abord, puis des lots assez gros pour
+qu'un envoi en vaille la peine — pas une PR par source.
+
+État des sources au 29 septembre 2026, sondées depuis l'environnement de
+développement : « joignable » veut dire qu'on a lu le catalogue ou le fichier,
+pas encore qu'on a vérifié ses chiffres.
+
+### Lot 0 — Fiabiliser avant d'ajouter
+
+- **Réingérer en intégration continue.** Fait : le workflow « Réingestion
+  des territoires » (`.github/workflows/reingerer.yml`), déclenché à la main,
+  lance `npm run territoires` sur le réseau de GitHub, refait le contrôle de
+  `ci.yml` — une PR ouverte par le jeton du workflow ne le relance pas — et
+  ouvre une PR avec les fichiers réécrits, les collectes en échec et le
+  nombre de fichiers par jeu. Il faut autoriser GitHub Actions à ouvrir des
+  PR (Settings → Actions → General) ; sinon la branche est poussée et le
+  journal donne le lien. Premier passage à faire : c'est aussi celui des dix
+  collectes de la PR #10 dans la chaîne entière.
+- **Déploiement par archives.** Bloqué côté hébergeur : aucun PHP ne s'exécute
+  sur rouages.fr. Ce qu'il faut regarder dans le cPanel d'o2switch — journal
+  d'erreurs, version de PHP du domaine, pare-feu applicatif — est noté dans
+  « Déployer par archives ». Demande l'accès du mainteneur ; rien d'autre ne
+  l'attend.
+
+### Lot 1 — Une page par intercommunalité
+
+Fait : `/intercommunalite/<SIREN>`, une page pour chacune des 1 264
+intercommunalités à fiscalité propre — communautés de communes,
+d'agglomération, urbaines, métropoles, établissements publics territoriaux du
+Grand Paris. Au Mayet-de-Montagne : Vichy Communauté, 39 communes.
+
+- **Ce que ses communes lui ont transféré**, d'après BANATIC, parmi les
+  compétences que le site décrit, avec celles que la loi impose à sa nature.
+- **Ses comptes** (OFGL, `ofgl-base-gfp`, budget principal), le même arbre de
+  postes que pour les autres échelons, avec la fiscalité reversée et la
+  fraction de TVA. Les sommes se vérifient à l'euro près pour les 1 262
+  groupements de 2025. La médiane est celle de la **strate** : communautés de
+  communes à fiscalité additionnelle (160) ou professionnelle unique (826),
+  d'agglomération (229), communautés urbaines et métropoles (34),
+  établissements publics territoriaux (11). Une médiane de tout l'échelon
+  comparerait une communauté rurale à une métropole. La Métropole de Lyon et
+  celle du Grand Paris, seules de leur espèce, n'ont pas de médiane.
+- **Ce qu'elle perçoit à la place des communes** : ordures ménagères,
+  versement mobilité.
+- **Ses communes**, avec leur population.
+
+La page de commune y renvoie depuis « Les structures dont elle dépend » et
+« Les comptes des échelons au-dessus », qui donne maintenant l'intercommunalité
+avant le département ; la page de département liste ses intercommunalités.
+`npx tsx scripts/comptes-emettre.ts --echelons` rafraîchit ces comptes seuls.
+
+**Refusé : le conseil communautaire.** La répartition des sièges est fixée par
+arrêté préfectoral, que rien ne publie en données ouvertes. Le répertoire
+national des élus ne la refait pas : à Vichy Communauté, il donne deux
+conseillers à Bost (183 habitants) et à Châtel-Montagne, aucun à Molles, deux à
+Saint-Rémy-en-Rollat là où le scrutin de 2026 en élit un — des suppléants et
+des vacances, sans doute. Additionner ces nombres donnerait un conseil qui
+n'existe pas.
+
+**À vérifier** : le bloc « De quoi le conseil est fait » de la page de commune
+prend ce même nombre du répertoire pour les sièges au conseil communautaire.
+Pour une commune de moins de mille habitants, c'est la seule source ; il faut
+savoir si le répertoire compte les suppléants avant de continuer à l'afficher.
+
+### Lot 2 — Le sol et les logements
+
+- **Artificialisation** — hectares consommés par commune depuis 2009 (Cerema,
+  republié par le service statistique du ministère de la transition
+  écologique ; jeux trouvés sur data.gouv), relié au bloc « Ce qui peut s'y
+  construire » et au SCoT, avec l'objectif de zéro artificialisation nette.
+- **Performance énergétique des logements** — part des étiquettes F et G
+  d'après la base des DPE de l'ADEME (joignable ; agrégation par commune à
+  faire côté ADEME, la base compte des millions de diagnostics).
+- **Radon** — la catégorie de chaque commune (jeu de l'autorité de sûreté
+  nucléaire trouvé sur data.gouv), rapprochée des risques.
+
+### Lot 3 — Ce que l'État et la CAF versent
+
+- **Dotations de l'État par commune** — DGF forfaitaire, dotation de
+  solidarité rurale, dotation nationale de péréquation. Source primaire à
+  trouver à la DGCL ; un jeu de LexImpact existe sur data.gouv mais n'est pas
+  la source. Relié au flux « dotations » du graphe.
+- **CAF** — accueil du jeune enfant, foyers allocataires du RSA et des aides
+  au logement. Le portail de la CNAF est joignable et publie à l'EPCI ; la
+  finesse communale reste à confirmer.
+
+### Lot 4 — Se déplacer, et la sécurité
+
+- **Transports en commun** — arrêts et lignes qui desservent la commune,
+  d'après transport.data.gouv.fr (joignable). Le plus lourd du plan : des
+  centaines de flux à lire et à rattacher aux communes.
+- **Accidents de la route** — bases annuelles de l'observatoire
+  interministériel de la sécurité routière (à sonder).
+- **Défibrillateurs** déclarés à Géo'DAE (base nationale publiée sur
+  data.gouv).
+
+### Lot 5 — Énergie produite et patrimoine
+
+- **Production d'électricité renouvelable** par commune et par filière,
+  d'après l'Agence ORE (à sonder, même portail que la consommation).
+- **Monuments historiques** (immeubles protégés, jeu du ministère de la
+  culture sur data.gouv) **et équipements culturels** (à sonder).
+
+### Lot 6 — Outils
+
+- **Comparer deux communes**, bloc par bloc, sur une page qui ne calcule rien
+  de plus que les pages qu'elle rapproche.
+- **Couverture mobile** — à retenter : aucune donnée communale nationale
+  trouvée aux deux premiers sondages ; l'Arcep publie une « base de
+  population » dont il faudra voir si elle porte la couverture par commune.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

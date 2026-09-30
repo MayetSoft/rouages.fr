@@ -1,8 +1,9 @@
 /**
- * Les comptes seuls : ceux des communes, du département et de la région, sans
- * les trente minutes de l'ingestion complète.
+ * Les comptes seuls : ceux des communes, de l'intercommunalité, du département
+ * et de la région, sans les quarante minutes de l'ingestion complète.
  *
- *   tsx scripts/comptes-emettre.ts
+ *   tsx scripts/comptes-emettre.ts              tous les comptes
+ *   tsx scripts/comptes-emettre.ts --echelons   sans ceux des communes
  *
  * Réécrit `dep/XX-finances.json`, `echelons.json` et la partie « finances » de
  * `meta.json`, en reprenant la liste des communes de `index.json`. Utile quand
@@ -35,24 +36,31 @@ const obstine = async (url: string): Promise<Response> => {
 };
 
 const tous = [...chargerGraphe().reperes.values()];
-const c = await collecterFinances(tous, obstine, console.log);
-if (!c) process.exit(1);
-const index = JSON.parse(readFileSync(join(sortie, 'index.json'), 'utf8')) as {
-  c: [string, string, string, string, number][];
-};
-const parDep = new Map<string, string[]>();
-for (const [code, , , dep] of index.c) {
-  if (!parDep.has(dep)) parDep.set(dep, []);
-  parDep.get(dep)!.push(code);
-}
-let n = 0;
-for (const [dep, codes] of parDep) {
-  if (existsSync(join(sortie, 'dep', `${dep}.json`))) n += ecrireFinances(sortie, dep, c, codes);
-}
-console.log(`${n} communes écrites dans ${parDep.size} départements.`);
 const chemin = join(sortie, 'meta.json');
-const meta = JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, unknown>;
-meta.finances = metaFinances(c, new Map(index.c.map((x) => [x[0], x[4]])));
-writeFileSync(chemin, JSON.stringify(meta));
-const e = await collecterEchelons(tous, c.annee, async (url) => (await obstine(url)).json(), console.log);
-if (e) console.log(`${ecrireEchelons(sortie, e)} départements et régions écrits.`);
+const meta = JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, unknown> & { finances?: { annee: number } };
+
+// `--echelons` : les comptes de l'intercommunalité, du département et de la
+// région seuls, à l'exercice des comptes communaux déjà écrits.
+let annee = meta.finances?.annee;
+if (!process.argv.includes('--echelons') || !annee) {
+  const c = await collecterFinances(tous, obstine, console.log);
+  if (!c) process.exit(1);
+  const index = JSON.parse(readFileSync(join(sortie, 'index.json'), 'utf8')) as {
+    c: [string, string, string, string, number][];
+  };
+  const parDep = new Map<string, string[]>();
+  for (const [code, , , dep] of index.c) {
+    if (!parDep.has(dep)) parDep.set(dep, []);
+    parDep.get(dep)!.push(code);
+  }
+  let n = 0;
+  for (const [dep, codes] of parDep) {
+    if (existsSync(join(sortie, 'dep', `${dep}.json`))) n += ecrireFinances(sortie, dep, c, codes);
+  }
+  console.log(`${n} communes écrites dans ${parDep.size} départements.`);
+  meta.finances = metaFinances(c, new Map(index.c.map((x) => [x[0], x[4]])));
+  writeFileSync(chemin, JSON.stringify(meta));
+  annee = c.annee;
+}
+const e = await collecterEchelons(tous, annee, async (url) => (await obstine(url)).json(), console.log);
+if (e) console.log(`${ecrireEchelons(sortie, e)} intercommunalités, départements et régions écrits.`);

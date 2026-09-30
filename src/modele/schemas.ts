@@ -358,8 +358,12 @@ export const Repere = z.object({
   /**
    * Les échelons dont les comptes portent ce poste. Les allocations de RSA ne
    * se trouvent que chez le département, les cartes grises que chez la région.
+   * L'intercommunalité est celle à fiscalité propre, dont l'OFGL publie les
+   * comptes.
    */
-  niveaux: z.array(z.enum(['commune', 'departement', 'region'])).default(['commune', 'departement', 'region']),
+  niveaux: z
+    .array(z.enum(['commune', 'intercommunalite', 'departement', 'region']))
+    .default(['commune', 'intercommunalite', 'departement', 'region']),
   /**
    * L'échelon où la mesure a un sens.
    *

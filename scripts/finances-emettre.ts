@@ -53,7 +53,7 @@ export async function lireJson<T>(lire: () => Promise<T>, essais = 4): Promise<T
 }
 
 /** Les repères qu'un échelon porte, dans l'ordre du contenu : c'est celui des fichiers. */
-export function reperesDe(niveau: 'commune' | 'departement' | 'region', tous: Repere[]): Repere[] {
+export function reperesDe(niveau: 'commune' | 'intercommunalite' | 'departement' | 'region', tous: Repere[]): Repere[] {
   return tous.filter((r) => r.echelon === 'commune' && r.niveaux.includes(niveau));
 }
 

@@ -1,15 +1,17 @@
 ---
 /**
- * Les comptes d'un département ou d'une région, sur la page de la collectivité.
+ * Les comptes d'une intercommunalité, d'un département ou d'une région, sur la
+ * page de la collectivité.
  *
  * Ils étaient sur chaque page de commune : vingt kilo-octets identiques sur
  * les trois cents pages d'un même département. La commune garde deux chiffres
  * et un lien ; le détail vit ici, une fois.
  *
- * Pas de strate : ces échelons sont trop peu nombreux pour qu'une strate ait
- * un sens. La médiane porte sur l'échelon entier, et la page dit sur combien
- * de collectivités. Mêmes lignes de tête et même tableau que pour une
- * commune, avec ce que ces comptes ont en propre : le RSA, l'APA, la PCH, les
+ * Pas de strate pour le département et la région : ils sont trop peu nombreux
+ * pour qu'une strate ait un sens. La médiane porte sur l'échelon entier, et la
+ * page dit sur combien de collectivités. L'intercommunalité, elle, se compare
+ * à celles de sa strate (`c.strate`). Mêmes lignes de tête et même tableau que
+ * pour une commune, avec ce que ces comptes ont en propre : le RSA, l'APA, la PCH, les
  * pompiers chez le département, les cartes grises chez la région, et la
  * fraction de TVA qui a remplacé l'essentiel de leurs impôts locaux.
  */
@@ -24,14 +26,20 @@ interface Props {
   /** Le mot qui désigne l'échelon au pluriel : « départements », « régions ». */
   echelon: string;
   maj: string | null;
+  /** La note sur la fraction de TVA des départements et des régions. */
+  noteTva?: boolean;
 }
-const { c, echelon, maj } = Astro.props;
+const { c, maj, noteTva = true } = Astro.props;
+const echelon = c.strate ?? Astro.props.echelon;
+const sansMediane = c.effectif === 0;
 const lignes = c.reperes.filter((r) => r.valeur !== null);
 const annee = c.annees[c.annees.length - 1];
 const entier = (v: number) => `${v < 0 ? '−' : ''}${Math.round(Math.abs(v)).toLocaleString('fr-FR')}\u00a0€`;
 ---
 <p class="p-strate">
-  {`Par habitant, et rapportés aux ${c.effectif.toLocaleString('fr-FR')} ${echelon} dont l’OFGL publie les comptes. Le montant en euros suit.`}
+  {sansMediane
+    ? 'Par habitant, puis en euros. Seule de son espèce, la collectivité n’a pas de médiane à laquelle se comparer.'
+    : `Par habitant, et rapportés aux ${c.effectif.toLocaleString('fr-FR')} ${echelon} dont l’OFGL publie les comptes. Le montant en euros suit.`}
 </p>
 <dl class="p-reperes">
   {lignes.map((r) => {
@@ -48,7 +56,11 @@ const entier = (v: number) => `${v < 0 ? '−' : ''}${Math.round(Math.abs(v)).to
           ? {
               valeur: r.valeur!,
               mediane: r.mediane!,
-              reference: partiel ? 'la médiane de celles qui en déclarent' : 'la médiane de l’échelon',
+              reference: partiel
+                ? 'la médiane de celles qui en déclarent'
+                : c.strate
+                  ? 'la médiane de la strate'
+                  : 'la médiane de l’échelon',
             }
           : null}
         mediane={aMediane
@@ -65,13 +77,18 @@ const entier = (v: number) => `${v < 0 ? '−' : ''}${Math.round(Math.abs(v)).to
   lignes={c.lignes}
   annee={annee}
   effectif={c.effectif}
-  legende={`En euros et par habitant, en ${annee}. La médiane est celle des ${c.effectif.toLocaleString('fr-FR')} ${echelon}, par habitant — ou de ceux qui déclarent le poste, quand leur nombre est précisé.`}
+  legende={sansMediane
+    ? `En euros et par habitant, en ${annee}.`
+    : `En euros et par habitant, en ${annee}. La médiane est celle des ${c.effectif.toLocaleString('fr-FR')} ${echelon}, par habitant — ou de celles qui déclarent le poste, quand leur nombre est précisé.`}
 />
-<p class="p-strate">
-  Les impôts locaux d’un département ou d’une région sont minces, parfois négatifs : depuis la réforme de 2021,
-  l’essentiel de ce qu’ils levaient est remplacé par une fraction de la TVA nationale, que l’OFGL range dans les
-  autres impôts et taxes.
-</p>
+{noteTva && (
+  <p class="p-strate">
+    Les impôts locaux d’un département ou d’une région sont minces, parfois négatifs : depuis la réforme de 2021,
+    l’essentiel de ce qu’ils levaient est remplacé par une fraction de la TVA nationale, que l’OFGL range dans les
+    autres impôts et taxes.
+  </p>
+)}
+<slot />
 <p class="p-source-territoire">
   {`D’après les comptes des collectivités publiés par l’OFGL` +
     (maj ? ` (${maj})` : '') +

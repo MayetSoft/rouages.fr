@@ -12,9 +12,10 @@
 #
 # `agregat` doit reprendre exactement le libellé de l'OFGL — l'ingestion échoue
 # sinon. `flux` n'est renseigné que lorsque le repère correspond exactement à un
-# flux du réseau. `niveaux` dit quels comptes portent le poste : la commune, le
-# département, la région. Les explications sont écrites pour la commune ; sous
-# les comptes d'un département ou d'une région, seul le nom est repris.
+# flux du réseau. `niveaux` dit quels comptes portent le poste : la commune,
+# l'intercommunalité à fiscalité propre, le département, la région. Les
+# explications sont écrites pour la commune ; sous les comptes d'un autre
+# échelon, seul le nom est repris.
 reperes:
   # --- Ce qu'elle encaisse -------------------------------------------------
   - id: repere-recettes-totales
@@ -45,7 +46,7 @@ reperes:
     nom: "Fiscalité reversée, nette"
     agregat: "Fiscalité reversée"
     parent: repere-impots-locaux
-    niveaux: [commune, region]
+    niveaux: [commune, intercommunalite, region]
     explication: "Les reversements de fiscalité reçus, moins ceux versés, hors fonds nationaux — le plus souvent entre la commune et son intercommunalité. Négative quand la collectivité reverse plus qu'elle ne reçoit."
     liens: [od-ofgl, ofgl-definitions]
   - id: repere-impots-sur-place
@@ -67,7 +68,7 @@ reperes:
     agregat: "TVA"
     parent: repere-autres-impots
     dont: true
-    niveaux: [departement, region]
+    niveaux: [intercommunalite, departement, region]
     explication: "La part du produit national de la TVA reversée à la collectivité."
     liens: [od-ofgl, ofgl-definitions]
   - id: repere-dmto

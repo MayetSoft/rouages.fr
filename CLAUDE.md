@@ -45,6 +45,12 @@ séries communales Sitadel (500 Mo), trois années de ventes immobilières DVF
 recensement (230 Mo) et le référentiel FINESS (244 Mo). `--cache` les
 réutilise, et sans lui il faut compter le téléchargement en plus.
 
+La réingestion complète se lance aussi en intégration continue : workflow
+« Réingestion des territoires » (onglet Actions, à la main). Il tourne sur le
+réseau de GitHub, qui joint les sources sans tunnel, refait le contrôle de la
+CI et ouvre une PR avec les fichiers réécrits et la liste des collectes en
+échec. C'est la voie à préférer pour tout rafraîchir.
+
 Chaque collecte de `scripts/*-emettre.ts` se lance aussi seule — `npx tsx
 scripts/dvf-emettre.ts` — et réécrit ses fichiers `dep/XX-<jeu>.json`. Depuis
 ici, le tunnel coupe parfois un gros téléchargement sans erreur : le

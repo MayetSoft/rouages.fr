@@ -1,0 +1,13 @@
+---
+/** Une intercommunalité à fiscalité propre : communauté de communes, d'agglomération, urbaine, métropole. */
+import PageIntercommunalite from '../../composants/PageIntercommunalite.astro';
+import { intercommunalites, type Intercommunalite } from '../../modele/territoires.ts';
+
+export function getStaticPaths() {
+  const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+  return intercommunalites(filtre).map((e) => ({ params: { siren: e.siren }, props: { e } }));
+}
+
+const { e } = Astro.props as { e: Intercommunalite };
+---
+<PageIntercommunalite e={e} />

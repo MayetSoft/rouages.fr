@@ -223,6 +223,12 @@ export interface ComptesEchelon {
   nom: string;
   annees: number[];
   effectif: number;
+  /**
+   * La strate à laquelle la collectivité est comparée, au pluriel — « communautés
+   * d'agglomération » —, ou `null` quand la médiane porte sur l'échelon entier.
+   * Une intercommunalité seule de son espèce n'a pas de médiane du tout.
+   */
+  strate?: string | null;
   reperes: (Repere & { effectif: number })[];
   lignes: LigneCompte[];
 }
@@ -598,6 +604,14 @@ type ComptesFichier = {
 };
 type EchelonsFichier = {
   maj: string;
+  /** Les intercommunalités à fiscalité propre, par SIREN, comparées à leur strate. */
+  intercommunalites?: (ComptesFichier & {
+    strates?: {
+      de: Record<string, string>;
+      medianes: Record<string, (number | null)[]>;
+      effectifs: Record<string, number[]>;
+    };
+  }) | null;
   departements: ComptesFichier | null;
   regions: ComptesFichier | null;
 };
@@ -1083,7 +1097,16 @@ const SEUIL_PART_COMMUNALE = 5000;
  * Le département et la région : une page chacun, un lien depuis la commune.
  * ------------------------------------------------------------------ */
 
-export type Echelon = 'departement' | 'region';
+export type Echelon = 'intercommunalite' | 'departement' | 'region';
+
+/** Les strates des intercommunalités, telles que `scripts/echelons-emettre.ts` les forme. */
+export const STRATES_INTERCOS: Record<string, string> = {
+  'CC-FPU': 'communautés de communes à fiscalité professionnelle unique',
+  'CC-FA': 'communautés de communes à fiscalité additionnelle',
+  CA: 'communautés d’agglomération',
+  'CU-M': 'communautés urbaines et métropoles',
+  EPT: 'établissements publics territoriaux du Grand Paris',
+};
 
 /** Une collectivité au-dessus de la commune, telle que l'OFGL en publie les comptes. */
 export interface Collectivite {
@@ -1160,6 +1183,12 @@ export function collectivitesDeCommune(commune: CommuneFiche, structures: Struct
   const e = echelonsFichier();
   if (!e) return [];
   const out: Collectivite[] = [];
+  // L'intercommunalité d'abord : c'est l'échelon le plus proche. Une commune du
+  // Grand Paris en a deux, son établissement public territorial et la
+  // Métropole.
+  for (const s of structures) {
+    if (e.intercommunalites?.h[s.siren]) out.push({ echelon: 'intercommunalite', code: s.siren, nom: s.nom });
+  }
   const dep =
     commune.dep === '67' || commune.dep === '68'
       ? '67A'
@@ -1181,9 +1210,27 @@ export function collectivitesDeCommune(commune: CommuneFiche, structures: Struct
 /** Les comptes d'une collectivité, prêts à afficher sur sa page. */
 export function comptesCollectivite(c: Collectivite): ComptesEchelon | null {
   const e = echelonsFichier();
-  const fichier = c.echelon === 'departement' ? e?.departements : e?.regions;
-  const f = fichier?.h[c.code];
-  if (!fichier || !f) return null;
+  const brut =
+    c.echelon === 'intercommunalite' ? e?.intercommunalites : c.echelon === 'departement' ? e?.departements : e?.regions;
+  const f = brut?.h[c.code];
+  if (!brut || !f) return null;
+  // Une intercommunalité se compare à celles de sa strate ; sans strate — la
+  // Métropole de Lyon, celle du Grand Paris —, à aucune.
+  const strate = c.echelon === 'intercommunalite' ? (e?.intercommunalites?.strates?.de[c.code] ?? null) : undefined;
+  const fichier =
+    strate === undefined
+      ? brut
+      : strate === null
+        ? { ...brut, medianes: brut.medianes.map(() => null), effectifs: brut.effectifs.map(() => 0), effectif: 0 }
+        : (() => {
+            const effectifs = e!.intercommunalites!.strates!.effectifs[strate] ?? [];
+            return {
+              ...brut,
+              medianes: e!.intercommunalites!.strates!.medianes[strate] ?? [],
+              effectifs,
+              effectif: Math.max(0, ...effectifs),
+            };
+          })();
   // Les explications de `reperes.yaml` parlent de la commune : elles seraient
   // fausses ici, et la page dit elle-même ce qu'elle montre.
   const lignes = lignesDe(fichier.reperes, fichier.principaux, f, (i) => fichier.medianes[i] ?? null).map((l, i) => ({
@@ -1195,6 +1242,7 @@ export function comptesCollectivite(c: Collectivite): ComptesEchelon | null {
     nom: c.nom,
     annees: fichier.annees,
     effectif: fichier.effectif,
+    strate: strate === undefined ? null : strate === null ? null : (STRATES_INTERCOS[strate] ?? null),
     reperes: fichier.principaux.map((i, k) => {
       const serie = f[0][k] ?? [];
       return {
@@ -1259,7 +1307,12 @@ function assemblerDmto(commune: CommuneFiche, population: number): Dmto | null {
   };
 }
 
-function assemblerFluxPercus(structures: StructureFiche[]): FluxPercu[] {
+/** Les exercices des séries de `flux.json`. */
+export function anneesFlux(): number[] {
+  return fluxFichier()?.annees ?? [];
+}
+
+export function assemblerFluxPercus(structures: StructureFiche[]): FluxPercu[] {
   const flux = fluxFichier();
   if (!flux) return [];
   const out: FluxPercu[] = [];

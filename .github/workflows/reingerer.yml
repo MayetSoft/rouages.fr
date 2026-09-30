@@ -1,0 +1,133 @@
+name: Réingestion des territoires
+
+# `npm run territoires` réécrit `public/territoires/` depuis une trentaine de
+# sources. Il ne tournait que dans l'environnement de développement, dont le
+# tunnel coupe les gros téléchargements sans erreur : ici, sur le réseau de
+# GitHub, il joint les sources directement. Le résultat part dans une branche
+# et une pull request : on relit le diff avant qu'il n'arrive en ligne.
+#
+# Déclenché à la main seulement. Compter une heure, téléchargements compris.
+#
+# Une PR ouverte avec le jeton du workflow ne déclenche pas les autres
+# workflows : le contrôle de `ci.yml` est donc refait ici, avant de pousser,
+# et une ingestion qui ne le passe pas ne produit pas de PR.
+#
+# Pour que le workflow puisse ouvrir la PR, il faut cocher « Allow GitHub
+# Actions to create and approve pull requests » (Settings → Actions →
+# General). Sans cela la branche est poussée quand même, et le journal donne
+# le lien pour ouvrir la PR à la main.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: reingestion
+  cancel-in-progress: false
+
+jobs:
+  reingerer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Ingérer
+        # Une collecte facultative qui échoue laisse ses fichiers d'avant en
+        # place et le script continue ; seuls BANATIC et le découpage sont
+        # fatals. On garde le journal pour dire dans la PR ce qui a échoué.
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: |
+          set -o pipefail
+          npm run territoires 2>&1 | tee ingestion.log
+
+      - name: Relever les collectes en échec
+        if: always()
+        run: |
+          sed 's/\x1b\[[0-9;]*m//g' ingestion.log > ingestion-brut.log || true
+          grep -B1 'ne seront pas réécrits' ingestion-brut.log \
+            | grep -v -e 'ne seront pas réécrits' -e '^--$' > echecs.txt || true
+          if [ -s echecs.txt ]; then
+            echo "::warning::$(wc -l < echecs.txt) collecte(s) en échec, voir le résumé"
+          fi
+          df -h / | tail -1
+
+      - name: Contrôler comme la CI
+        run: |
+          npm run valider
+          npm run verifier-recherche
+          npm run verifier-journal
+          npm run verifier-rattachement
+          npm run verifier-reseau
+          npm run verifier-types
+          ROUAGES_DEPS='03,29,55,75' npx astro build
+
+      - name: Pousser une branche et ouvrir la PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain public/territoires)" ]; then
+            echo "::notice::Aucun fichier n'a changé : rien à proposer."
+            exit 0
+          fi
+          jour=$(date -u +%Y-%m-%d)
+          branche="reingestion/$jour-${GITHUB_RUN_ID}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branche"
+          git add public/territoires
+          git commit -q -m "Territoires : réingestion du $jour"
+          git push -q origin "$branche"
+
+          # Le corps de la PR : les collectes en échec, puis le nombre de
+          # fichiers réécrits par jeu de données (`dep/XX-<jeu>.json`).
+          {
+            echo "Réingestion complète lancée à la main ([journal]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))."
+            echo
+            echo "Le contrôle de la CI (validation, recherche, journal, rattachement, réseau, types, build de l'Allier, du Finistère, de la Meuse et de Paris) est passé dans le même job : une PR ouverte par le workflow ne relance pas \`ci.yml\`."
+            echo
+            if [ -s echecs.txt ]; then
+              echo "## Collectes en échec"
+              echo
+              echo "Leurs fichiers de l'ingestion précédente sont restés en place."
+              echo
+              sed 's/^/- /' echecs.txt
+            else
+              echo "Aucune collecte en échec."
+            fi
+            echo
+            echo "## Fichiers réécrits"
+            echo
+            echo '| Jeu | Fichiers |'
+            echo '|---|---:|'
+            git diff --name-only HEAD~1 -- public/territoires \
+              | sed -E 's#^public/territoires/##; s#^dep/[0-9AB]+-##; s#\.json$##' \
+              | sort | uniq -c | sort -rn \
+              | awk '{print "| " $2 " | " $1 " |"}'
+          } > corps.md
+          cat corps.md >> "$GITHUB_STEP_SUMMARY"
+
+          if ! gh pr create --base "${GITHUB_REF_NAME}" --head "$branche" \
+               --title "Territoires : réingestion du $jour" --body-file corps.md; then
+            echo "::warning::La PR n'a pas pu être ouverte (réglage « Allow GitHub Actions to create and approve pull requests » ?). La branche est poussée : $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${GITHUB_REF_NAME}...$branche?expand=1"
+          fi
+
+      - name: Garder le journal
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingestion
+          path: |
+            ingestion.log
+            echecs.txt
+          if-no-files-found: ignore
+          retention-days: 14

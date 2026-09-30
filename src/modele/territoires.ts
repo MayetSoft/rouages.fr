@@ -750,3 +750,102 @@ function assemblerConseil(
     maj: k?.maj ?? null,
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * L'intercommunalité à fiscalité propre : une page chacune.
+ * ------------------------------------------------------------------ */
+
+export interface Intercommunalite {
+  siren: string;
+  nom: string;
+  nature: string;
+  natureLibelle: string;
+  /** Ses communes, de la plus peuplée à la moins peuplée. */
+  communes: CommuneIndex[];
+  population: number;
+  /** Les départements de ses communes : une intercommunalité sur douze environ en couvre plusieurs. */
+  deps: string[];
+  /**
+   * Les compétences de Rouages que ses communes lui ont transférées, d'après
+   * BANATIC — et, pour chacune, si la loi l'impose à sa nature juridique.
+   */
+  competences: { id: string; parLoi: boolean }[];
+  maj: string;
+}
+
+let toutesIntercos: Map<string, Intercommunalite> | undefined;
+
+/**
+ * Toutes les intercommunalités à fiscalité propre, lues une fois dans les
+ * fichiers de structure de chaque département. Une intercommunalité à cheval
+ * sur deux départements figure dans les deux fichiers : ses communes sont
+ * réunies ici, et ses compétences, identiques d'un fichier à l'autre, prises
+ * une fois.
+ */
+function intercosParSiren(): Map<string, Intercommunalite> {
+  if (toutesIntercos) return toutesIntercos;
+  const out = new Map<string, Intercommunalite>();
+  const m = metaTerritoires();
+  const toutes = communes();
+  const parCode = new Map(toutes.map((c) => [c.code, c]));
+  for (const dep of new Set(toutes.map((c) => c.dep))) {
+    const d = enCache(cacheDep, dep, `dep/${dep}.json`);
+    if (!m || !d) continue;
+    const ici = new Map<number, Intercommunalite>();
+    for (const [i, [siren, nom, nature, codes]] of d.g.entries()) {
+      if (!FISCALITE_PROPRE.has(nature)) continue;
+      let e = out.get(siren);
+      if (!e) {
+        const ids = [...new Set(codes.flatMap((k) => m.codes[k] ?? []))].sort();
+        e = {
+          siren,
+          nom,
+          nature,
+          natureLibelle: m.natures[nature] ?? nature,
+          communes: [],
+          population: 0,
+          deps: [],
+          competences: ids.map((id) => ({ id, parLoi: (m.obligatoires?.[id] ?? []).includes(nature) })),
+          maj: d.maj,
+        };
+        out.set(siren, e);
+      }
+      ici.set(i, e);
+    }
+    for (const [code, , , groupes] of d.c) {
+      const c = parCode.get(code);
+      if (!c) continue;
+      for (const i of groupes) {
+        const e = ici.get(i);
+        if (!e || e.communes.some((x) => x.code === code)) continue;
+        e.communes.push(c);
+        e.population += c.population;
+        if (!e.deps.includes(dep)) e.deps.push(dep);
+      }
+    }
+  }
+  for (const e of out.values()) {
+    e.communes.sort((a, b) => b.population - a.population || a.nom.localeCompare(b.nom, 'fr'));
+    e.deps.sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+  }
+  // Une structure sans commune dans l'index — dissoute depuis, ou mal
+  // rattachée — n'aurait qu'une page vide.
+  for (const [siren, e] of out) if (e.communes.length === 0) out.delete(siren);
+  toutesIntercos = out;
+  return out;
+}
+
+/** Les intercommunalités qui ont au moins une commune dans les départements retenus, ou toutes. */
+export function intercommunalites(filtre?: string[]): Intercommunalite[] {
+  const toutes = [...intercosParSiren().values()];
+  if (!filtre || filtre.length === 0) return toutes;
+  return toutes.filter((e) => e.deps.some((d) => filtre.includes(d)));
+}
+
+export function intercommunalite(siren: string): Intercommunalite | null {
+  return intercosParSiren().get(siren) ?? null;
+}
+
+export function lienIntercommunalite(siren: string): string {
+  return `/intercommunalite/${siren}`;
+}

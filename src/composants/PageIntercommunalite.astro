@@ -1,0 +1,150 @@
+---
+/**
+ * La page d'une intercommunalité à fiscalité propre : ce que ses communes lui
+ * ont transféré, ses comptes comparés à ceux de sa strate, ce qu'elle perçoit
+ * à la place des communes, et ses communes.
+ *
+ * La page de chaque commune membre y renvoie. Le conseil communautaire n'y est
+ * pas : la répartition des sièges est fixée par arrêté préfectoral, que rien ne
+ * publie en données ouvertes, et le répertoire national des élus ne la refait
+ * pas — suppléants et sièges vacants la faussent d'une commune à l'autre.
+ */
+import Base from '../layouts/Base.astro';
+import ComptesCollectivite from './ComptesCollectivite.astro';
+import FluxPercus from './commune/FluxPercus.astro';
+import Glose from './Glose.astro';
+import {
+  anneesFlux,
+  assemblerFluxPercus,
+  collectivites,
+  comptesCollectivite,
+  lienCollectivite,
+} from '../modele/fiche-commune.ts';
+import { construireReseau } from '../modele/reseau.ts';
+import type { Intercommunalite } from '../modele/territoires.ts';
+
+interface Props {
+  e: Intercommunalite;
+}
+const { e } = Astro.props;
+const comptes = comptesCollectivite({ echelon: 'intercommunalite', code: e.siren, nom: e.nom });
+const annee = comptes ? comptes.annees[comptes.annees.length - 1] : null;
+const flux = assemblerFluxPercus([e]);
+
+const reseau = construireReseau();
+const noeuds = new Map(reseau.noeuds.map((n) => [n.id, n]));
+const competences = e.competences
+  .map((c) => ({ ...c, noeud: noeuds.get(c.id) }))
+  .filter((c): c is typeof c & { noeud: NonNullable<typeof c.noeud> } => !!c.noeud)
+  .sort((a, b) => a.noeud.nom.localeCompare(b.noeud.nom, 'fr'));
+
+// Le département de chaque commune a sa page ; l'Alsace est une seule
+// collectivité, rangée sous « 67A ».
+const pagesDep = new Map(collectivites().filter((c) => c.echelon === 'departement').map((c) => [c.code, c]));
+const departements = e.deps.flatMap((d) => {
+  const c = pagesDep.get(d === '67' || d === '68' ? '67A' : d);
+  return c ? [c] : [];
+});
+const uniques = [...new Map(departements.map((c) => [c.code, c])).values()];
+
+// La note sur l'attribution de compensation ne vaut que pour la fiscalité
+// professionnelle unique : communautés de communes qui l'ont choisie,
+// d'agglomération, urbaines, métropoles.
+const fpu = !!comptes?.strate && /professionnelle unique|agglomération|urbaines/.test(comptes.strate);
+const montant = (id: string) => comptes?.lignes.find((l) => l.id === id)?.montant ?? null;
+const tva = (montant('repere-tva') ?? 0) > 0;
+// Quand ce qu'elle reverse dépasse ce qu'elle lève, ses impôts et taxes sont
+// négatifs : c'est le cas de la Métropole du Grand Paris. Le dire évite de
+// lire une erreur.
+const reverse = montant('repere-fiscalite-reversee');
+const negatifs = (montant('repere-impots-taxes') ?? 0) < 0 && reverse !== null && reverse < 0;
+const milliards = (v: number) =>
+  Math.abs(v) >= 1e9
+    ? `${(Math.abs(v) / 1e9).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} milliards d’euros`
+    : `${Math.round(Math.abs(v) / 1e6).toLocaleString('fr-FR')} millions d’euros`;
+const n = e.communes.length;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+---
+<Base
+  titre={e.nom}
+  description={`${e.natureLibelle} de ${nf(n)} commune${n > 1 ? 's' : ''} : ce que ses communes lui ont transféré, ce qu’elle encaisse et dépense${annee ? ` en ${annee}` : ''}, et ce qu’elle perçoit.`}
+>
+  <div class="page page--etroite">
+    <p class="badge">
+      {e.natureLibelle}
+      {uniques.map((c) => (
+        <>{' · '}<a href={lienCollectivite(c)}>{c.nom}</a></>
+      ))}
+    </p>
+    <h1>{e.nom}</h1>
+    <p class="resume">
+      {`${nf(n)} commune${n > 1 ? 's' : ''}, ${nf(e.population)} habitants. Ce que ses communes lui ont transféré, ` +
+        `ce qu’elle encaisse et dépense, et ce qu’elle perçoit à leur place.`}
+    </p>
+
+    {competences.length > 0 && (
+      <section id="competences">
+        <h2 class="badge">Ce que ses communes lui ont transféré</h2>
+        <ul class="c-structures">
+          {competences.map((c) => (
+            <li>
+              <a href={`/n/${c.noeud.id}`}><Glose texte={c.noeud.court} /></a>
+              {c.parLoi && <span class="v-nature">transfert prévu par la loi</span>}
+            </li>
+          ))}
+        </ul>
+        <p class="p-source-territoire">
+          {`D’après les transferts de compétences déclarés à BANATIC (${e.maj}), parmi celles que le site décrit. ` +
+            'Une compétence exercée sans transfert déclaré — par convention, par exemple — n’y figure pas.'}
+        </p>
+      </section>
+    )}
+
+    {comptes ? (
+      <section id="comptes" class="p-finances p-echelons">
+        <h2 class="badge">{`Ses comptes, en ${annee}`}</h2>
+        <ComptesCollectivite c={comptes} echelon="intercommunalités" maj={null} noteTva={false}>
+          {negatifs && (
+            <p class="p-strate">
+              {`Ses impôts et taxes sont négatifs : elle reverse plus qu’elle ne lève — ${milliards(reverse!)} de fiscalité reversée nette en ${annee}. Ses recettes de fonctionnement, nettes de ces reversements, en sont d’autant plus minces.`}
+            </p>
+          )}
+          {(fpu || tva) && (
+            <p class="p-strate">
+              {(fpu
+                ? 'Une intercommunalité à fiscalité professionnelle unique perçoit l’impôt économique de ses communes et leur en reverse une part, l’attribution de compensation : sa fiscalité reversée est le plus souvent négative. '
+                : '') +
+                (tva
+                  ? 'Depuis la réforme de 2021, une fraction de la TVA nationale remplace la taxe d’habitation que l’intercommunalité percevait ; l’OFGL la range dans les autres impôts et taxes.'
+                  : '')}
+            </p>
+          )}
+        </ComptesCollectivite>
+      </section>
+    ) : (
+      <p class="c-vide">Les comptes de cette intercommunalité n’ont pas pu être lus.</p>
+    )}
+
+    {flux.length > 0 && (
+      <section id="percu" class="p-finances p-flux-percus">
+        <h2 class="badge">Ce qu’elle perçoit à la place des communes</h2>
+        <FluxPercus liste={flux} annees={anneesFlux()} />
+      </section>
+    )}
+
+    <section id="communes" class="p-echelons">
+      <h2 class="badge">{`Ses ${nf(n)} communes`}</h2>
+      <ul class="c-communes">
+        {e.communes.map((c) => (
+          <li>
+            <a href={`/commune/${c.code}`}>{c.nom}</a>
+            <span class="c-departement-detail">{`${nf(c.population)} hab.`}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="p-source-territoire">
+        D’après les populations légales de l’INSEE. Les montants par habitant des comptes sont ceux de l’OFGL, qui divise par la population totale de l’intercommunalité : les deux chiffres ne coïncident pas tout à fait.
+      </p>
+    </section>
+  </div>
+</Base>
