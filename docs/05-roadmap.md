@@ -2395,6 +2395,26 @@ le code, le `cf-ray` et le titre de la page, retente un 52x, et commence par
 une requête sans jeton qui doit rendre le 403 du script — ce qui sépare
 « PHP ne répond pas » de « le POST est arrêté en route ».
 
+**Diagnostic, le 30 septembre : la protection de l'hébergeur.** Le témoin et
+la sonde sans jeton rendent eux aussi un 520. Le journal d'accès d'Apache de
+septembre compte 207 000 lignes, jusqu'aux 404 sur des `.php` inexistants, et
+aucune pour `temoin-*.php` ni `deballer-*.php` ; le journal d'erreurs n'en dit
+rien non plus. Un `test.php` créé à la main depuis cPanel répond, à un client
+qui n'est pas un navigateur, par un 403 « Accès interdit — Request ID » qui
+n'est ni la page de Cloudflare ni celle d'Apache. Une requête vers un fichier
+PHP qui existe est donc arrêtée devant Apache — vraisemblablement par
+TigerProtect, l'anti-robot d'o2switch. À faire dans cPanel : le désactiver
+pour rouages.fr (le site est statique ; le seul PHP est le script de
+déballage, gardé par son jeton et effacé après usage), puis relancer « Sonder
+le déballage ». Une liste blanche d'adresses ne servirait à rien : les
+machines de GitHub changent d'adresse à chaque job.
+
+Le même journal d'erreurs a montré autre chose : `/communes` finissait en
+403. Apache ajoute la barre finale au nom d'un dossier avant toute réécriture
+(`DirectorySlash`), et `communes/` n'a pas d'index — la page est
+`communes.html`. Le `.htaccess` sert désormais cette page à `/communes/` ;
+essayé contre un Apache 2.4 local avec le même fichier.
+
 Le même déploiement a buté sur une seconde limite : GitHub arrête un job au
 bout de six heures, et soixante-huit mille fichiers un par un n'y tiennent
 pas. Arrêté en route, il n'aurait déposé aucun manifeste, et le suivant
