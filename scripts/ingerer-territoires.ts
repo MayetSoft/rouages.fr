@@ -756,6 +756,24 @@ async function principal() {
   );
   if (dpe) grise(`${ecrireDpe(SORTIE, dpe)} départements de DPE écrits.`);
 
+  const { collecterDotations, ecrireDotations } = await import('./dotations-emettre.ts');
+  const dotations = await tenter('Dotations de l’État', () => collecterDotations(obstine, lireJson, grise));
+  if (dotations) grise(`${ecrireDotations(SORTIE, dotations)} départements de dotations écrits.`);
+
+  const { collecterCaf, ecrireCaf } = await import('./caf-emettre.ts');
+  const caf = await tenter('Allocataires de la CAF', () => collecterCaf(obstine, grise));
+  if (caf) grise(`${ecrireCaf(SORTIE, caf)} départements d’allocataires de la CAF écrits.`);
+
+  const { collecterDae, ecrireDae } = await import('./dae-emettre.ts');
+  const dae = await tenter('Défibrillateurs', () => collecterDae(lireJson, enCache('Géo’DAE (78 Mo)'), CACHE, grise));
+  if (dae) grise(`${ecrireDae(SORTIE, dae)} départements de défibrillateurs écrits.`);
+
+  const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
+  const accidents = await tenter('Accidents de la route', () =>
+    collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),
+  );
+  if (accidents) grise(`${ecrireAccidents(SORTIE, accidents)} départements d’accidents de la route écrits.`);
+
   // Les annonces légales des entreprises : décomptes par commune, et les
   // dernières annonces des sociétés, que le journal reprend. Avant l'émetteur
   // principal, qui rassemble le journal ; le rattachement lit le découpage

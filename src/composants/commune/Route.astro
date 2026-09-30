@@ -1,0 +1,28 @@
+---
+/**
+ * Les accidents corporels de la circulation survenus sur le territoire de la
+ * commune, sur cinq ans : une année seule, dans une petite commune, dirait
+ * surtout le hasard.
+ */
+import type { Route } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  r: Route;
+}
+const { r } = Astro.props;
+const nb = (v: number, un: string, plusieurs: string) =>
+  v === 0 ? `aucun ${un}` : `${v.toLocaleString('fr-FR')} ${v > 1 ? plusieurs : un}`;
+---
+<p class="mesure">
+  {r.accidents === 0
+    ? `Aucun accident corporel de la circulation enregistré sur la commune de ${r.debut} à ${r.fin}.`
+    : `De ${r.debut} à ${r.fin}, ${r.accidents.toLocaleString('fr-FR')} accident${r.accidents > 1 ? 's' : ''} corporel${r.accidents > 1 ? 's' : ''} de la circulation sur la commune : ` +
+      `${nb(r.tues, 'tué', 'tués')}, ${nb(r.blesses, 'blessé', 'blessés')}.`}
+</p>
+<p class="p-strate">
+  Un accident corporel implique au moins un véhicule et fait au moins une victime ; il est compté là où il a eu lieu,
+  pas au domicile des victimes. Est compté comme tué qui décède dans les trente jours.
+</p>
+<p class="p-source-territoire">
+  {`D’après les bases annuelles des accidents corporels de l’Observatoire national interministériel de la sécurité routière (${r.maj}), établies par les forces de l’ordre.`}
+</p>

@@ -2755,25 +2755,73 @@ Trois collectes de plus, chacune lancée seule ou avec l'ingestion :
   G depuis 2025 est citée : un projet de loi de 2026 propose d'assouplir la
   suite du calendrier.
 
-### Lot 3 — Ce que l'État et la CAF versent
+### Les rapports de la chambre régionale des comptes — un renvoi, pas une donnée
 
-- **Dotations de l'État par commune** — DGF forfaitaire, dotation de
-  solidarité rurale, dotation nationale de péréquation. Source primaire à
-  trouver à la DGCL ; un jeu de LexImpact existe sur data.gouv mais n'est pas
-  la source. Relié au flux « dotations » du graphe.
-- **CAF** — accueil du jeune enfant, foyers allocataires du RSA et des aides
-  au logement. Le portail de la CNAF est joignable et publie à l'EPCI ; la
-  finesse communale reste à confirmer.
+Demandé le 30 septembre : afficher les recommandations de la Cour des comptes
+en regard des chiffres. Ce qui existe en données ouvertes ne le permet pas :
+les rapports d'observations des chambres régionales sur data.gouv s'arrêtent
+à 2019, les recommandations de la Cour à mai 2018, et le suivi annuel des
+recommandations n'existe qu'en PDF, à l'échelle nationale. Afficher ces
+rapports anciens comme une liste ferait lire « aucun contrôle » là où il y en
+a peut-être eu un depuis. Les pages de commune, d'intercommunalité, de
+département et de région renvoient donc à la recherche de leur chambre sur
+ccomptes.fr (`src/vues/chambre-comptes.ts`).
+
+ccomptes.fr ne répond ni depuis l'environnement de développement ni depuis
+GitHub : le workflow « Sonder des sources » (`scripts/sonder-sources.ts`) le
+montre, et c'est lui qu'on relancera pour voir si un plan du site ou un flux
+permettrait un jour de lister les rapports par collectivité.
+
+### Lot 3 — Ce que l'État et la CAF versent ✔
+
+- **Dotations de l'État** ✔ (`dotations-emettre.ts`) : la dotation globale de
+  fonctionnement notifiée à chaque commune de 2018 à 2026, et ses parts la
+  dernière année — forfaitaire, solidarité rurale et ses trois fractions,
+  solidarité urbaine, péréquation, et outre-mer la dotation d'aménagement.
+  Source : les notifications de la DGCL, que l'OFGL republie
+  (`dotations-communes`) ; le site de la DGCL, qui les publie aussi, ne se
+  prête pas à une collecte. Deux contrôles, comme pour les comptes : la DGF
+  est la somme de ses parts, la DSR celle de ses fractions — exacts pour
+  toutes les communes en 2018 et en 2026 ; de 2 à 19 communes nouvelles s'en
+  écartent en 2021-2023 et en 2025 d'un montant que le fichier ne détaille
+  pas, et leurs parts ne sont pas affichées pour ces années-là. La dotation
+  des communes nouvelles, créée en 2024, est hors du total « DGF » du
+  fichier : la page la donne à part. Au Mayet-de-Montagne : 432 707 € en
+  2026, +10 % depuis 2018 ; 603 communes n'en reçoivent plus aucune, Paris
+  depuis 2022.
+- **CAF** ✔ (`caf-emettre.ts`) : les foyers allocataires de chaque commune en
+  décembre, de 2020 à 2024 — au moins une prestation, personnes couvertes, et
+  parmi eux RSA, prime d'activité, aide au logement, allocations familiales,
+  accueil du jeune enfant. Le portail de la CNAF publie bien à la commune
+  (`s_ben_com_f`). Nombres arrondis à 5 par la CAF, que la page dit ; Paris,
+  Lyon et Marseille, publiées par arrondissement, sont des sommes d'arrondis
+  précédées d'« environ ». Le taux de couverture de l'accueil du jeune enfant
+  n'existe qu'au-delà de 10 000 habitants : pas repris. Au Mayet-de-Montagne :
+  250 foyers en décembre 2024, dont 35 au RSA et 90 à la prime d'activité.
 
 ### Lot 4 — Se déplacer, et la sécurité
 
-- **Transports en commun** — arrêts et lignes qui desservent la commune,
-  d'après transport.data.gouv.fr (joignable). Le plus lourd du plan : des
-  centaines de flux à lire et à rattacher aux communes.
-- **Accidents de la route** — bases annuelles de l'observatoire
-  interministériel de la sécurité routière (à sonder).
-- **Défibrillateurs** déclarés à Géo'DAE (base nationale publiée sur
-  data.gouv).
+- **Transports en commun** — reporté, à faire comme un chantier à part.
+  transport.data.gouv.fr (802 jeux, joignable) ne publie aucun fichier national
+  des arrêts rattachés aux communes : il faudrait lire les centaines de flux
+  GTFS et placer chaque arrêt dans sa commune par sa position, donc disposer
+  des contours communaux, que le site n'a pas. Un premier pas plus simple
+  existe : les gares de voyageurs du réseau ferré national, un seul jeu.
+- **Accidents de la route** ✔ (`accidents-emettre.ts`) : les accidents
+  corporels, les tués et les blessés sur les cinq dernières années publiées
+  (2020-2024), d'après les bases de l'ONISR — une année seule, dans une petite
+  commune, dirait surtout le hasard. Blessés hospitalisés et légers réunis. Les
+  fichiers changent de nom et, en 2022, de nom de colonne (`Accident_Id`) : la
+  collecte s'y attend. Au total 268 751 accidents et 16 372 tués ; au
+  Mayet-de-Montagne, 4 accidents, 5 blessés, aucun tué.
+- **Défibrillateurs** ✔ (`dae-emettre.ts`) : Géo'DAE, fiches validées,
+  appareils en fonctionnement, hors mobiles et doublons signalés — l'état
+  « actif » n'est pas exigé, la moitié des fiches le laissent vide. Ni nom
+  d'appareil ni exploitant, qui peut être une personne : la page renvoie à la
+  carte nationale. La déclaration est obligatoire pour tout exploitant (décret
+  du 27 décembre 2018, arrêté du 29 octobre 2019, vérifiés). 138 074 appareils
+  dans 17 044 communes ; au Mayet-de-Montagne, 4 dont 1 à l'extérieur — deux
+  au même supermarché, probablement le même appareil déclaré deux fois.
 
 ### Lot 5 — Énergie produite et patrimoine
 

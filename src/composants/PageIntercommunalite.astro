@@ -13,6 +13,7 @@ import Base from '../layouts/Base.astro';
 import ComptesCollectivite from './ComptesCollectivite.astro';
 import FluxPercus from './commune/FluxPercus.astro';
 import Glose from './Glose.astro';
+import ChambreComptes from './ChambreComptes.astro';
 import {
   anneesFlux,
   assemblerFluxPercus,
@@ -21,7 +22,7 @@ import {
   lienCollectivite,
 } from '../modele/fiche-commune.ts';
 import { construireReseau } from '../modele/reseau.ts';
-import type { Intercommunalite } from '../modele/territoires.ts';
+import { metaTerritoires, type Intercommunalite } from '../modele/territoires.ts';
 
 interface Props {
   e: Intercommunalite;
@@ -120,6 +121,7 @@ const nf = (v: number) => v.toLocaleString('fr-FR');
             </p>
           )}
         </ComptesCollectivite>
+        <ChambreComptes codeRegion={metaTerritoires()?.codesRegion?.[e.deps[0]]} nom={e.nom.replace(/^(CC|CA|CU)\s+/, '')} />
       </section>
     ) : (
       <p class="c-vide">Les comptes de cette intercommunalité n’ont pas pu être lus.</p>

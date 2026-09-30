@@ -1,0 +1,30 @@
+---
+/**
+ * Les défibrillateurs que leurs exploitants ont déclarés dans la commune. Ni
+ * leur nom ni celui de l'exploitant : la carte nationale donne les
+ * emplacements, et c'est là qu'on les cherche en cas d'urgence.
+ */
+import type { Defibrillateurs } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  d: Defibrillateurs;
+}
+const { d } = Astro.props;
+const n = d.appareils;
+---
+<p class="mesure">
+  {n === 0
+    ? 'Aucun défibrillateur déclaré en fonctionnement dans la commune.'
+    : `${n.toLocaleString('fr-FR')} défibrillateur${n > 1 ? 's' : ''} déclaré${n > 1 ? 's' : ''} en fonctionnement` +
+      (d.exterieurs > 0
+        ? `, dont ${d.exterieurs.toLocaleString('fr-FR')} installé${d.exterieurs > 1 ? 's' : ''} à l’extérieur.`
+        : ', tous à l’intérieur d’un bâtiment.')}
+  {' '}<a href="https://geodae.atlasante.fr/" target="_blank" rel="noopener">{n === 0 ? 'Les plus proches, sur la carte nationale' : 'Leurs emplacements, sur la carte nationale'}</a>{'.'}
+</p>
+<p class="p-strate">
+  Tout exploitant d’un défibrillateur doit le déclarer dans la base nationale Géo’DAE. Ce sont eux qui la tiennent : un
+  appareil non déclaré n’y figure pas, et un même appareil y est parfois déclaré deux fois.
+</p>
+<p class="p-source-territoire">
+  {`D’après Géo’DAE, la base nationale des défibrillateurs publiée par Atlasanté (${d.maj}) : fiches validées, appareils en fonctionnement, hors appareils mobiles et doublons signalés.`}
+</p>

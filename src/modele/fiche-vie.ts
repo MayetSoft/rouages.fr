@@ -81,6 +81,14 @@ type DpeDep = { maj: string; base: string; dep: number[] | null; france: number[
 const consoDep = parDepartement<ConsoDep>('artificialisation');
 const radonDep = parDepartement<RadonDep>('radon');
 const dpeDep = parDepartement<DpeDep>('dpe');
+type DotationsDep = { maj: string; annees: number[]; c: Record<string, [(number | null)[], (number | null)[] | null, number[]]> };
+const dotationsDep = parDepartement<DotationsDep>('dotations');
+type CafDep = { maj: string; annees: number[]; c: Record<string, [(number[] | null)[], number]> };
+const cafDep = parDepartement<CafDep>('caf');
+type DaeDep = { maj: string; c: Record<string, [number, number]> };
+type AccidentsDep = { maj: string; annees: number[]; c: Record<string, [number, number, number]> };
+const daeDep = parDepartement<DaeDep>('dae');
+const accidentsDep = parDepartement<AccidentsDep>('accidents');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -262,6 +270,61 @@ export interface Dpe {
   maj: string;
 }
 
+/** La DGF notifiée chaque année, et ce qui la compose la dernière. */
+export interface Dotations {
+  annees: number[];
+  dgf: (number | null)[];
+  /** La dotation des communes nouvelles, hors du total « DGF » de la DGCL. */
+  communeNouvelle: (number | null)[] | null;
+  /** Nul quand les parts de la dernière année ne font pas le total. */
+  parts: {
+    forfaitaire: number;
+    dsu: number;
+    dsr: number;
+    dnp: number;
+    dacom: number;
+    bourgCentre: number;
+    perequation: number;
+    cible: number;
+  } | null;
+  maj: string;
+}
+
+/** Les foyers allocataires de la CAF en décembre, arrondis à 5 par elle. */
+export interface Caf {
+  annee: number;
+  foyers: number;
+  personnes: number;
+  rsa: number;
+  primeActivite: number;
+  logement: number;
+  familiales: number;
+  jeuneEnfant: number;
+  /** Les foyers de chaque année, pour la tendance. */
+  serie: (number | null)[];
+  annees: number[];
+  /** Paris, Lyon, Marseille : une somme d'arrondissements, donc d'arrondis. */
+  somme: boolean;
+  maj: string;
+}
+
+/** Les défibrillateurs déclarés à Géo'DAE ; zéro est une réponse. */
+export interface Defibrillateurs {
+  appareils: number;
+  exterieurs: number;
+  maj: string;
+}
+
+/** Les accidents corporels de la circulation, sur plusieurs années ; zéro est une réponse. */
+export interface Route {
+  debut: number;
+  fin: number;
+  accidents: number;
+  tues: number;
+  blesses: number;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -277,6 +340,10 @@ export interface ComplementsVie {
   artificialisation: Artificialisation | null;
   radon: Radon | null;
   dpe: Dpe | null;
+  dotations: Dotations | null;
+  caf: Caf | null;
+  defibrillateurs: Defibrillateurs | null;
+  route: Route | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -433,6 +500,61 @@ function dpe(c: CommuneFiche): Dpe | null {
   return { commune: x, departement: d.dep, france: d.france, base: d.base, maj: d.maj };
 }
 
+function dotations(c: CommuneFiche): Dotations | null {
+  const d = dotationsDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x || !x[0].some((v) => v !== null && v > 0)) return null;
+  const [dgf, cn, p] = x;
+  const [forfaitaire, dsu, dsr, dnp, dacom, bourgCentre, perequation, cible] = p;
+  const derniere = dgf[dgf.length - 1] ?? 0;
+  const ok = Math.abs(forfaitaire + dsu + dsr + dnp + dacom - derniere) <= 1;
+  return {
+    annees: d.annees,
+    dgf,
+    communeNouvelle: cn,
+    parts: ok ? { forfaitaire, dsu, dsr, dnp, dacom, bourgCentre, perequation, cible } : null,
+    maj: d.maj,
+  };
+}
+
+function caf(c: CommuneFiche): Caf | null {
+  const d = cafDep.get(c.dep);
+  const x = d?.c[c.code];
+  const n = x?.[0][x[0].length - 1];
+  if (!d || !x || !n || n[0] <= 0) return null;
+  const [foyers, personnes, rsa, primeActivite, logement, familiales, jeuneEnfant] = n;
+  return {
+    annee: d.annees[d.annees.length - 1],
+    foyers,
+    personnes,
+    rsa,
+    primeActivite,
+    logement,
+    familiales,
+    jeuneEnfant,
+    serie: x[0].map((a) => a?.[0] ?? null),
+    annees: d.annees,
+    somme: x[1] === 1,
+    maj: d.maj,
+  };
+}
+
+// Une commune absente des deux fichiers n'a rien de déclaré : la page le dit,
+// tant que le fichier du département existe.
+function defibrillateurs(c: CommuneFiche): Defibrillateurs | null {
+  const d = daeDep.get(c.dep);
+  if (!d) return null;
+  const [appareils, exterieurs] = d.c[c.code] ?? [0, 0];
+  return { appareils, exterieurs, maj: d.maj };
+}
+
+function route(c: CommuneFiche): Route | null {
+  const d = accidentsDep.get(c.dep);
+  if (!d) return null;
+  const [accidents, tues, blesses] = d.c[c.code] ?? [0, 0, 0];
+  return { debut: d.annees[0], fin: d.annees[d.annees.length - 1], accidents, tues, blesses, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -449,5 +571,9 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     artificialisation: artificialisation(c),
     radon: radon(c),
     dpe: dpe(c),
+    dotations: dotations(c),
+    caf: caf(c),
+    defibrillateurs: defibrillateurs(c),
+    route: route(c),
   };
 }

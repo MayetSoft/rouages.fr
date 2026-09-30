@@ -446,6 +446,38 @@ surveillances:
     url: "https://data.ademe.fr/data-fair/api/v1/datasets/meg-83tjwtg8dyz4vv7h1dqe?select=updatedAt,count"
     lien: od-ademe-dpe
 
+  - id: ofgl-dotations-communes
+    nom: "OFGL — dotations des communes"
+    alimente: "la dotation globale de fonctionnement et ses parts"
+    type: disponibilite
+    url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/dotations-communes/records?select=exercice&group_by=exercice&limit=20"
+    lien: od-ofgl-dotations-communes
+
+  - id: cnaf-prestations-communes
+    nom: "CNAF — allocataires par commune"
+    alimente: "les foyers allocataires de la CAF"
+    type: disponibilite
+    url: "https://data.caf.fr/api/explore/v2.1/catalog/datasets/s_ben_com_f/records?select=dtreffre&group_by=dtreffre&limit=20"
+    lien: od-cnaf-prestations-communes
+
+  - id: geodae
+    nom: "Géo'DAE — défibrillateurs"
+    alimente: "les défibrillateurs déclarés dans la commune"
+    type: datagouv-ressource
+    url: "61556e1e9d6adb2df86eb0fc"
+    ressource: "geodae.csv"
+    lien: od-geodae
+
+  # Chaque année ajoute ses fichiers au même jeu, sous un nom qui change : la
+  # collecte les reconnaît ; ici, on voit arriver les caractéristiques.
+  - id: onisr-baac
+    nom: "ONISR — accidents corporels"
+    alimente: "les accidents de la route dans la commune"
+    type: datagouv-ressource
+    url: "53698f4ca3a729239d2036df"
+    ressource: "caract"
+    lien: od-onisr-baac
+
   - id: sirene-etablissements
     nom: "SIRENE — établissements, copie Opendatasoft"
     alimente: "les établissements actifs et employeurs de chaque commune, par secteur"

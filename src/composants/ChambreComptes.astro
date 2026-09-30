@@ -1,0 +1,27 @@
+---
+/**
+ * Un renvoi, pas un bloc de données : les rapports de la chambre régionale
+ * des comptes ne sont pas publiés en données ouvertes à jour (voir
+ * `src/vues/chambre-comptes.ts`). Le site ne dit donc ni qu'il y en a, ni
+ * qu'il n'y en a pas.
+ */
+import { chambreDesComptes } from '../vues/chambre-comptes.ts';
+
+interface Props {
+  codeRegion: string | undefined;
+  /** Le nom cherché dans les publications de la chambre. */
+  nom: string;
+}
+const { codeRegion, nom } = Astro.props;
+// « Commune du Mayet-de-Montagne » : l'article du nom se contracte dans les
+// titres des rapports ; on cherche le nom sans lui.
+const cherche = nom.replace(/^(Le |La |Les |L’|L')/, '');
+const c = chambreDesComptes(codeRegion, cherche);
+---
+{c && (
+  <p class="p-strate">
+    {'La chambre régionale des comptes contrôle la gestion des collectivités de sa région et publie ses rapports d’observations, avec leurs recommandations. '}
+    <a href={c.recherche} target="_blank" rel="noopener">{`Chercher « ${cherche} » dans les publications de la chambre ${c.nom}`}</a>
+    {' — ils ne sont pas publiés en données ouvertes tenues à jour : le site ne les reprend pas.'}
+  </p>
+)}

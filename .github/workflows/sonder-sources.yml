@@ -1,0 +1,33 @@
+name: Sonder des sources
+
+# Essayer, depuis le réseau de GitHub, des adresses que l'environnement de
+# développement ne joint pas. Rien n'est écrit : on lit le journal du job.
+# Lancé à la main, et sur toute PR qui modifie la liste des sondes.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/sonder-sources.ts
+      - .github/workflows/sonder-sources.yml
+
+jobs:
+  sonder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsx scripts/sonder-sources.ts
+      # Le même essai par curl, qui dit où la connexion s'arrête : résolution,
+      # connexion, négociation TLS. Une adresse par hôte suffit.
+      - name: Chemin réseau
+        run: |
+          for u in https://www.ccomptes.fr/robots.txt; do
+            getent hosts "$(echo "$u" | cut -d/ -f3)" || echo "résolution impossible"
+            curl -sS -m 30 -o /dev/null -w "%{http_code} en %{time_total} s (connexion %{time_connect} s, TLS %{time_appconnect} s) vers %{remote_ip}\n" "$u" || true
+            curl -sS -4 -m 30 -o /dev/null -w "IPv4 : %{http_code} vers %{remote_ip}\n" "$u" || true
+          done
