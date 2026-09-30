@@ -1,0 +1,49 @@
+---
+/**
+ * Les immeubles protégés au titre des monuments historiques, et ce que leur
+ * présence change pour les travaux alentour. Le site n'a pas les périmètres :
+ * il dit la règle, pas si une adresse y tombe.
+ */
+import type { Monuments } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  m: Monuments;
+}
+const { m } = Astro.props;
+const MONTRES = 20;
+const n = m.liste.length;
+const classes = m.liste.filter((x) => x.classe).length;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+---
+{n === 0 ? (
+  <p class="mesure">Aucun immeuble de la commune n’est protégé au titre des monuments historiques.</p>
+) : (
+  <>
+    <p class="mesure">
+      {`${nf(n)} immeuble${n > 1 ? 's' : ''} protégé${n > 1 ? 's' : ''} au titre des monuments historiques` +
+        (classes === 0
+          ? `, ${n > 1 ? 'tous inscrits' : 'inscrit'}.`
+          : classes === n
+            ? `, ${n > 1 ? 'tous classés' : 'classé'}, en tout ou partie.`
+            : `, dont ${nf(classes)} classé${classes > 1 ? 's' : ''} en tout ou partie, les autres inscrits.`)}
+    </p>
+    <ul class="c-structures">
+      {m.liste.slice(0, MONTRES).map((x) => (
+        <li>
+          <a href={`https://pop.culture.gouv.fr/notice/merimee/${x.reference}`} target="_blank" rel="noopener">{x.titre}</a>
+          <span class="v-nature">{x.classe ? 'classé' : 'inscrit'}</span>
+        </li>
+      ))}
+    </ul>
+    {n > MONTRES && <p class="p-strate">{`Et ${nf(n - MONTRES)} autres, dans la base Mérimée.`}</p>}
+  </>
+)}
+<p class="p-strate">
+  Autour d’un monument, les travaux qui changent l’aspect extérieur d’un immeuble passent par
+  <a href="/n/abf">l’architecte des Bâtiments de France</a>. Sauf périmètre délimité, ces abords couvrent ce qui est
+  visible du monument, ou en même temps que lui, à moins de 500&nbsp;mètres. Un monument d’une commune voisine peut
+  donc en créer ici&nbsp;; le site n’a pas les périmètres, la mairie les connaît.
+</p>
+<p class="p-source-territoire">
+  {`D’après la base Mérimée du ministère de la Culture, immeubles protégés au titre des monuments historiques (${m.maj}) ; article L621-30 du code du patrimoine.`}
+</p>

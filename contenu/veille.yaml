@@ -483,6 +483,14 @@ surveillances:
     url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares/records?limit=1"
     lien: od-sncf-frequentation
 
+  - id: merimee
+    nom: "Mérimée — monuments historiques"
+    alimente: "les monuments historiques de la commune"
+    type: datagouv-ressource
+    url: "5af120e5b595087cfabcde81"
+    ressource: "liste-des-immeubles-proteges-au-titre-des-monuments-historiques.csv"
+    lien: od-merimee
+
   # Le titre du jeu porte la date du registre ; la collecte la lit là.
   - id: rte-registre-production
     nom: "RTE — registre des installations de production"

@@ -73,6 +73,7 @@ import Route from '../../composants/commune/Route.astro';
 import Gares from '../../composants/commune/Gares.astro';
 import Antennes from '../../composants/commune/Antennes.astro';
 import Production from '../../composants/commune/Production.astro';
+import Monuments from '../../composants/commune/Monuments.astro';
 import { complementsVie } from '../../modele/fiche-vie.ts';
 
 export function getStaticPaths() {
@@ -275,6 +276,7 @@ const sommaire: [string, string, unknown][] = [
   ['reseaux', 'Eau, fibre, énergie', vie.eau || vie.fibre || vie.energie],
   ['mobile', 'Les antennes mobiles', vie.antennes],
   ['production', 'L’électricité produite', vie.production],
+  ['monuments', 'Les monuments historiques', vie.monuments],
   ['securite', 'La délinquance', vie.delinquance],
   ['route', 'Les accidents de la route', vie.route],
   ['gares', 'Le train', vie.gares],
@@ -772,6 +774,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="production">
         <h2 class="badge">L’électricité produite sur la commune</h2>
         <Production p={vie.production} />
+      </section>
+    )}
+
+    {vie.monuments && (
+      <section id="monuments">
+        <h2 class="badge">Les monuments historiques</h2>
+        <Monuments m={vie.monuments} />
       </section>
     )}
 

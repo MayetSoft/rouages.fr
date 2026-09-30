@@ -2872,8 +2872,15 @@ réécrit ces fichiers seul.
   moins » (2 697 filières-communes partielles, 1 074 inconnues). 1,2 million
   d'installations solaires dans 27 382 communes ; au Mayet-de-Montagne,
   50 installations solaires, 1,5 MW, 1,8 GWh injectés.
-- **Monuments historiques** (immeubles protégés, jeu du ministère de la
-  culture sur data.gouv) **et équipements culturels** (à sonder).
+- **Monuments historiques** ✔ (`monuments-emettre.ts`) : les immeubles
+  protégés de la base Mérimée (46 301 notices hors renvois, 16 126 communes),
+  classés ou inscrits, avec un lien vers leur notice sur POP. La commune d'une
+  notice est celle de la protection, reportée sur la commune actuelle ; un
+  immeuble sur deux communes compte dans chacune. La page dit ce que cela
+  change aux abords — l'architecte des Bâtiments de France, et les 500 mètres
+  de l'article L621-30, vérifié par recherche web — et qu'elle n'a pas les
+  périmètres. Au Mayet-de-Montagne : aucun ; à Vichy : 51, dont 4 classés.
+  Les **équipements culturels** restent à sonder.
 
 ### Lot 6 — Outils
 

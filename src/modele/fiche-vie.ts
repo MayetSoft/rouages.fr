@@ -100,6 +100,8 @@ type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Re
 const antennesDep = parDepartement<AntennesDep>('antennes');
 type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<string, [number, number, number, number, 0 | 1 | 2][]> };
 const productionDep = parDepartement<ProductionDep>('production');
+type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
+const monumentsDep = parDepartement<MonumentsDep>('monuments');
 
 /* ------------------------------------------------------------------ *
  * Les formes, telles que la page les affiche.
@@ -370,6 +372,12 @@ export interface Production {
   maj: string;
 }
 
+/** Les immeubles protégés au titre des monuments historiques ; aucun est une réponse. */
+export interface Monuments {
+  liste: { reference: string; titre: string; classe: boolean }[];
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -392,6 +400,7 @@ export interface ComplementsVie {
   gares: Gares | null;
   antennes: Antennes | null;
   production: Production | null;
+  monuments: Monuments | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -651,6 +660,15 @@ function production(c: CommuneFiche): Production | null {
   };
 }
 
+function monuments(c: CommuneFiche): Monuments | null {
+  const d = monumentsDep.get(c.dep);
+  if (!d) return null;
+  return {
+    liste: (d.c[c.code] ?? []).map(([reference, titre, classe]) => ({ reference, titre, classe: classe === 1 })),
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -674,5 +692,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     gares: gares(c),
     antennes: antennes(c),
     production: production(c),
+    monuments: monuments(c),
   };
 }
