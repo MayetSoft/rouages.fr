@@ -726,15 +726,17 @@ function assemblerConseil(
   const f = e?.c[c.code];
   if (!e || !f) return null;
   const conseil = structures.find((st) => FISCALITE_PROPRE.has(st.nature));
-  // Le répertoire des élus couvre toutes les communes, y compris celles de
-  // moins de mille habitants dont le fichier des résultats ne porte aucun
-  // siège : c'est lui qui fait foi sur le nombre de représentants.
+  // Le nombre de représentants au conseil communautaire vient des seuls
+  // résultats du scrutin. Le répertoire des élus n'en fait pas foi : il ne
+  // distingue pas titulaires et suppléants, et ses effectifs se contredisent
+  // — à Vichy Communauté, deux conseillers pour Bost (183 habitants), un seul
+  // pour Vendat (2 292), aucun pour Molles. Sous mille habitants, le site dit
+  // comment les représentants sont désignés, pas combien ils sont.
   const k = enCache(cacheConseils, c.dep, `dep/${c.dep}-conseils.json`);
   const comp = k?.c[c.code];
-  const cc = comp?.cc ?? f.cc;
   return {
     sieges: f.cm,
-    siegesCc: cc,
+    siegesCc: f.cc,
     ou: conseil?.nom ?? null,
     elus: comp?.n ?? 0,
     femmes: comp?.f ?? 0,
@@ -746,7 +748,7 @@ function assemblerConseil(
       .filter((g) => g.nom),
     femmesPartout: k?.femmes ?? 0,
     agePartout: k?.age ?? 0,
-    designes: f.cc === 0 && cc > 0 && !!conseil,
+    designes: f.cc === 0 && !!conseil,
     scrutin: e.scrutin,
     maj: k?.maj ?? null,
   };

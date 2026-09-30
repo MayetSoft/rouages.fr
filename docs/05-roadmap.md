@@ -2719,10 +2719,15 @@ Saint-Rémy-en-Rollat là où le scrutin de 2026 en élit un — des suppléants
 des vacances, sans doute. Additionner ces nombres donnerait un conseil qui
 n'existe pas.
 
-**À vérifier** : le bloc « De quoi le conseil est fait » de la page de commune
-prend ce même nombre du répertoire pour les sièges au conseil communautaire.
-Pour une commune de moins de mille habitants, c'est la seule source ; il faut
-savoir si le répertoire compte les suppléants avant de continuer à l'afficher.
+**Vérifié, et retiré (30 septembre)** : la page de commune prenait ce même
+nombre du répertoire pour les sièges au conseil communautaire. Le fichier n'a
+aucune colonne qui distingue titulaire et suppléant. Sur les quelque dix mille
+communes de moins de trois cents habitants, 9 785 y ont un conseiller et 192
+en ont deux, dispersées dans cent intercommunalités : ce n'est pas un accord
+local, qui vaudrait pour toutes les petites communes d'un même groupement.
+La page prend désormais les sièges dans les résultats du scrutin, qui n'en
+portent qu'à partir de mille habitants ; en dessous, elle dit comment les
+représentants sont désignés, pas combien ils sont.
 
 ### Lot 2 — Le sol et les logements ✔
 
