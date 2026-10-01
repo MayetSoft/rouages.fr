@@ -184,6 +184,16 @@ export interface Marche {
   procedure: string | null;
   /** Nombre de lots regroupés sous cette ligne. */
   lots: number;
+  /** Nombre d'offres reçues, quand l'acheteur l'a déclaré. */
+  offres: number | null;
+}
+
+/** Un marché dont l'échéance prévisible tombe dans la fenêtre du fichier. */
+export interface EcheanceMarche extends Marche {
+  /** Mois d'échéance prévisible (AAAA-MM) : notification plus durée initiale. */
+  fin: string;
+  /** L'acheteur : la commune, ou celui de ses groupements qui a passé le marché. */
+  acheteur: string;
 }
 
 export interface AcheteurMarches {
@@ -197,6 +207,10 @@ export interface AcheteurMarches {
   siret: string | null;
   /** Les plus récents seulement. */
   liste: Marche[];
+  /** Ses marchés à échéance prévisible dans la fenêtre, les plus proches seulement. */
+  echeances: EcheanceMarche[];
+  /** Combien il en a dans la fenêtre, avant troncature. */
+  totalEcheances: number;
 }
 
 /**
@@ -617,12 +631,22 @@ type EchelonsFichier = {
   departements: ComptesFichier | null;
   regions: ComptesFichier | null;
 };
+type MarcheBrut = {
+  objet: string;
+  montant: number | null;
+  date: string;
+  procedure: number;
+  lots: number;
+  offres?: number;
+};
 type MarchesDep = {
   depuis: string;
   maj: string;
+  /** Absente des fichiers écrits avant l'échéancier. */
+  fenetre?: [string, string];
   procedures: string[];
   com: Record<string, string>;
-  h: Record<string, { n: number; s?: string; m: { objet: string; montant: number | null; date: string; procedure: number; lots: number }[] }>;
+  h: Record<string, { n: number; s?: string; m: MarcheBrut[]; ne?: number; e?: (MarcheBrut & { fin: string })[] }>;
 };
 interface FichierFlux {
   annees: number[];
@@ -936,19 +960,23 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
   const lireAcheteur = (siren: string, nom: string, natureLibelle: string | null) => {
     const e = d.h[siren];
     if (!e || e.m.length === 0) return;
+    const lire = (m: MarcheBrut): Marche => ({
+      objet: m.objet,
+      montant: m.montant,
+      date: m.date,
+      procedure: d.procedures[m.procedure] ?? null,
+      lots: m.lots,
+      offres: m.offres ?? null,
+    });
     out.push({
       siren,
       nom,
       natureLibelle,
       total: e.n,
       siret: e.s ?? null,
-      liste: e.m.map((m) => ({
-        objet: m.objet,
-        montant: m.montant,
-        date: m.date,
-        procedure: d.procedures[m.procedure] ?? null,
-        lots: m.lots,
-      })),
+      liste: e.m.map(lire),
+      echeances: (e.e ?? []).map((m) => ({ ...lire(m), fin: m.fin, acheteur: nom })),
+      totalEcheances: e.ne ?? 0,
     });
   };
   const sirenCommune = d.com[commune.code];
@@ -1370,6 +1398,8 @@ export interface ComplementsFiche {
   sruMaj: string | null;
   marches: AcheteurMarches[];
   marchesDepuis: string | null;
+  /** Premier et dernier mois de la fenêtre des échéances, ou null si le fichier ne la porte pas. */
+  marchesFenetre: [string, string] | null;
   /** Les libellés de procédure, pour la suite des marchés chargée à la demande. */
   marchesProcedures: string[];
   deliberations: CollectiviteDelibere[];
@@ -1405,6 +1435,7 @@ export function complementsFiche(
     sruMaj: sruDep.get(commune.dep)?.maj ?? null,
     marches: assemblerMarches(commune, structures),
     marchesDepuis: marchesDep.get(commune.dep)?.depuis ?? null,
+    marchesFenetre: marchesDep.get(commune.dep)?.fenetre ?? null,
     marchesProcedures: marchesDep.get(commune.dep)?.procedures ?? [],
     deliberations: assemblerDeliberations(commune, structures),
     delibDepuis: delibDep.get(commune.dep)?.depuis ?? null,

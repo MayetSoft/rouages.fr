@@ -3296,6 +3296,59 @@ Brest et Clermont-Ferrand n'y sont pas, Rennes et Lyon si : c'est la liste.
   que le fichier détaillé logement par logement ; le recensement, déjà lu,
   donne la part de locataires HLM de chaque commune.
 
+### Ce qui se renouvelle bientôt, et combien d'offres ont été reçues ✔
+
+Le bloc des marchés disait ce qui a été commandé. Il dit maintenant ce qui
+devra l'être de nouveau : **les marchés dont l'échéance prévisible tombe dans
+les douze mois qui suivent l'ingestion**, du plus proche au plus lointain,
+toutes structures confondues — la commune et chacun de ses groupements. C'est
+la question de qui veut répondre la prochaine fois, et celle de l'habitant qui
+voit passer le contrat de la cantine ou du ramassage.
+
+La source était déjà lue : les données essentielles de la commande publique
+portent la durée de chaque marché en mois. Notification plus durée donne le
+mois d'échéance. **Elle n'est que prévisible** : un avenant ou une reconduction
+la déplace, et le jeu national ne publie pas ces modifications — le champ
+`dureemoismodification` vaut « CDL » sur ses 669 164 lignes depuis 2023,
+vérifié le 1er octobre.
+
+**Le premier essai était faux, et Le Mayet-de-Montagne l'a montré d'un coup
+d'œil.** Il annonçait « à échéance » l'achat d'un tracteur, un chantier de
+voirie et le remplacement des menuiseries de l'école Yves Duteil : ils
+s'achèvent, ils ne se relancent pas. Seuls comptent les marchés qui se
+repassent à leur terme :
+
+- **les accords-cadres**, quel que soit leur objet — le champ `techniques` les
+  déclare, 261 000 lignes environ ;
+- **les marchés de services récurrents d'au moins un an.** Le code CPV
+  distingue les travaux (division 45), les fournitures (03 à 44 et 48) et les
+  services. Le deuxième essai a montré qu'il fallait encore retirer les
+  services attachés à un projet unique — maîtrise d'œuvre, études, assistance
+  à maîtrise d'ouvrage durent plus d'un an et ne se repassent pas : les
+  divisions 51, 70, 71, 73, 75 et 76 sont écartées.
+
+Le tri suit ce que l'acheteur a déclaré, et la page le dit : une étude ou un
+chantier déclarés en accord-cadre y figurent.
+
+**20 988 échéances chez 3 250 acheteurs du bloc communal** d'octobre 2026 à
+septembre 2027 ; 199 dans l'Allier, chez 19 acheteurs. Au Mayet-de-Montagne,
+la commune n'en a aucune, et le bloc montre celles de Vichy Communauté :
+l'entretien des espaces par secteur, la collecte des biodéchets des
+professionnels, les chantiers d'insertion.
+
+**Le nombre d'offres reçues** accompagne désormais chaque marché, quand
+l'acheteur l'a déclaré : 291 873 marchés sur 372 751, dont **74 472 n'ont
+reçu qu'une offre (25,5 %)**. Le site montre le fait sans le juger — une
+spécialité rare n'a parfois qu'un candidat possible. Le champ arrive en texte
+(« 1 », « MQ NC ») : un premier comptage qui l'attendait en nombre l'avait cru
+vide.
+
+Ce qui n'est pas repris : le titulaire. La source en donne le SIRET, mais le
+nommer demande de lire SIRENE, et la règle des noms vaut pour les
+entrepreneurs individuels. Le code CPV n'est pas publié non plus : il sert au
+tri, pas encore à l'affichage. `npx tsx scripts/marches-emettre.ts` relance
+cette seule collecte pour les acheteurs déjà suivis.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

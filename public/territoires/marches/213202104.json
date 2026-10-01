@@ -1,1 +1,1 @@
-{"m":[{"objet":"ELECTRICITE","montant":65000,"date":"2025-08-12","procedure":0,"lots":1},{"objet":"MENUISERIES INTERIEURES","montant":62939,"date":"2025-08-12","procedure":0,"lots":1},{"objet":"ETANCHEITE","montant":48538,"date":"2025-08-12","procedure":0,"lots":1}]}
+{"m":[{"objet":"ELECTRICITE","montant":65000,"date":"2025-08-12","procedure":0,"lots":1,"offres":4},{"objet":"MENUISERIES INTERIEURES","montant":62939,"date":"2025-08-12","procedure":0,"lots":1,"offres":3},{"objet":"ETANCHEITE","montant":48538,"date":"2025-08-12","procedure":0,"lots":1,"offres":3}]}

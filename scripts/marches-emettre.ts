@@ -23,9 +23,34 @@
  * La jointure est sûre, elle : `acheteur_id` est un SIRET dont les neuf
  * premiers chiffres sont le SIREN de l'acheteur, et le site connaît le SIREN
  * de chaque commune (découpage Etalab) comme de chaque groupement (BANATIC).
+ *
+ * **Ce qui arrive à échéance.** Chaque marché déclare sa durée en mois. La
+ * notification plus cette durée donne le mois où l'acheteur devra relancer —
+ * ou reconduire —, et c'est la question de qui veut répondre la prochaine
+ * fois. L'échéance n'est que *prévisible* : un avenant ou une reconduction la
+ * déplace, et le jeu national ne publie pas les modifications de durée — le
+ * champ `dureemoismodification` vaut « CDL » sur toutes ses lignes depuis
+ * 2023, vérifié le 1er octobre 2026.
+ *
+ * Et seuls comptent les marchés qui se renouvellent. Au Mayet-de-Montagne, le
+ * premier essai annonçait « à échéance » l'achat d'un tracteur et un chantier
+ * de voirie : ils s'achèvent, ils ne se relancent pas. Sont retenus les
+ * accords-cadres, quel que soit leur objet — ils encadrent des commandes
+ * répétées et se repassent à leur terme —, et les marchés de services
+ * récurrents d'au moins un an. Les services se lisent au code CPV : division
+ * 45 pour les travaux, 03 à 44 et 48 pour les fournitures, le reste pour les
+ * services. Le deuxième essai a montré qu'il fallait en retirer les services
+ * attachés à un projet unique — une maîtrise d'œuvre, une étude, une
+ * assistance à maîtrise d'ouvrage durent plus d'un an et ne se repassent pas :
+ * voir `PROJET`.
+ *
+ * Lancé seul — `npx tsx scripts/marches-emettre.ts` —, il réécrit les
+ * fichiers des acheteurs que la dernière ingestion complète a retenus.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { telechargerSiAbsent } from './par-departement.ts';
 
 const DECP =
   'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides';
@@ -51,12 +76,31 @@ export const DEPUIS = '2023-01-01';
  */
 const PAR_ACHETEUR = 5;
 
+/**
+ * Les échéances qu'un acheteur porte dans le fichier du département : les plus
+ * proches. Autant que la page en affiche au plus, toutes structures confondues
+ * — ainsi les douze premières de la page sont exactes même quand un seul
+ * acheteur les fournit toutes.
+ */
+export const ECHEANCES = 12;
+
+/** La fenêtre des échéances, en mois à partir de celui de l'ingestion. */
+const FENETRE_MOIS = 12;
+
 interface LigneDecp {
   acheteur_id: string | null;
   objet: string | null;
   montant: number | null;
   datenotification: string | null;
   procedure: string | null;
+  /** Durée initiale en mois. */
+  dureemois: number | string | null;
+  /** Un nombre écrit en texte, ou « MQ NC » quand l'acheteur ne l'a pas dit. */
+  offresrecues: string | number | null;
+  /** Code CPV, chiffre de contrôle compris : « 45233140-2 ». */
+  codecpv: string | null;
+  /** « Accord-cadre », « Sans objet », ou plusieurs techniques séparées de virgules. */
+  techniques: string | null;
 }
 
 export interface Marche {
@@ -70,6 +114,18 @@ export interface Marche {
   procedure: number;
   /** Nombre de lignes identiques regroupées : les lots d'un même accord-cadre. */
   lots: number;
+  /**
+   * Nombre d'offres reçues, quand l'acheteur l'a déclaré. Une seule offre,
+   * c'est un marché sans concurrence effective : le fait se montre, il ne se
+   * juge pas — une spécialité rare n'a parfois qu'un candidat possible.
+   */
+  offres?: number;
+}
+
+/** Un marché dont l'échéance prévisible tombe dans la fenêtre. */
+export interface Echeance extends Marche {
+  /** Mois d'échéance prévisible (AAAA-MM) : notification plus durée initiale. */
+  fin: string;
 }
 
 /**
@@ -100,6 +156,10 @@ export interface Marches {
   suites: Map<string, Marche[]>;
   /** SIREN -> nombre total de marchés notifiés depuis `DEPUIS`, avant troncature. */
   totaux: Map<string, number>;
+  /** SIREN -> ses marchés à échéance dans la fenêtre, du plus proche au plus lointain. */
+  echeances: Map<string, Echeance[]>;
+  /** Premier et dernier mois de la fenêtre des échéances (AAAA-MM), bornes comprises. */
+  fenetre: [string, string];
   /**
    * SIREN -> le SIRET sous lequel l'acheteur a notifié le plus de marchés. Un
    * groupement achète parfois sous plusieurs établissements ; c'est par ce
@@ -108,6 +168,40 @@ export interface Marches {
   sirets: Map<string, string>;
   depuis: string;
   maj: string;
+}
+
+/** AAAA-MM, `mois` mois après le mois de `iso`. Le jour ne compte pas. */
+export function ajouterMois(iso: string, mois: number): string {
+  const t = Number(iso.slice(0, 4)) * 12 + Number(iso.slice(5, 7)) - 1 + mois;
+  return `${Math.floor(t / 12)}-${String((t % 12) + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Un marché qui se repasse à son terme : un accord-cadre, ou un marché de
+ * services d'au moins un an. Un chantier ou un achat ponctuel s'achève.
+ */
+export function serenouvelle(cpv: string | null, techniques: string | null, duree: number): boolean {
+  if (/accord-cadre/i.test(techniques ?? '')) return true;
+  const division = Number((cpv ?? '').slice(0, 2));
+  const service = Number.isInteger(division) && division >= 49 && !PROJET.has(division);
+  return service && duree >= 12;
+}
+
+/**
+ * Les divisions de services qui suivent un projet plutôt qu'un besoin
+ * récurrent : installation (51), immobilier (70), architecture, construction,
+ * ingénierie et inspection (71), recherche et développement (73),
+ * administration publique (75), industrie pétrolière et gazière (76). Restent
+ * l'entretien, la restauration, le transport, les télécommunications,
+ * l'assurance, l'informatique, les espaces verts, l'impression et la sécurité,
+ * la formation, l'action sociale, la collecte et le nettoyage.
+ */
+const PROJET = new Set([51, 70, 71, 73, 75, 76]);
+
+/** Un entier positif, ou rien : « MQ NC », une durée nulle ou négative ne disent rien. */
+function entierPositif(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : /^\s*\d+\s*$/.test(String(v ?? '')) ? Number(v) : NaN;
+  return Number.isInteger(n) && n > 0 ? n : undefined;
 }
 
 const MAX_OBJET = 90;
@@ -160,7 +254,7 @@ export async function collecterMarches(
   dire: (m: string) => void,
 ): Promise<Marches | null> {
   const url =
-    `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure` +
+    `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques` +
     `&where=${encodeURIComponent(`datenotification>=date'${DEPUIS}'`)}`;
   const lignes = await json<LigneDecp[]>(url);
   if (lignes.length === 0) {
@@ -171,7 +265,7 @@ export async function collecterMarches(
   // Regroupées avant d'être comptées : un accord-cadre multi-attributaires
   // publie une ligne par lot, avec le même objet, le même montant et la même
   // date. Les afficher sept fois ferait passer une commande pour sept.
-  const brut = new Map<string, Map<string, Marche>>();
+  const brut = new Map<string, Map<string, Echeance | Marche>>();
   const totaux = new Map<string, number>();
   const parSiret = new Map<string, Map<string, number>>();
   const inconnues = new Set<string>();
@@ -202,6 +296,8 @@ export async function collecterMarches(
       // alors pas de procédure, plutôt que d'en inventer une.
       const proc = PROCEDURES.indexOf((l.procedure ?? '').trim() as (typeof PROCEDURES)[number]);
       if (proc === -1 && (l.procedure ?? '').trim()) inconnues.add((l.procedure ?? '').trim());
+      const duree = entierPositif(l.dureemois);
+      const offres = entierPositif(l.offresrecues);
       m.set(cle, {
         objet: objet.length > MAX_OBJET ? `${objet.slice(0, MAX_OBJET - 1)}…` : objet,
         // Arrondi à l'euro : les centimes d'un marché de 489 025,50 € ne
@@ -211,19 +307,40 @@ export async function collecterMarches(
         date,
         procedure: proc,
         lots: 1,
+        ...(offres ? { offres } : {}),
+        ...(duree && serenouvelle(l.codecpv, l.techniques, duree) ? { fin: ajouterMois(date, duree) } : {}),
       });
     }
     totaux.set(siren, (totaux.get(siren) ?? 0) + 1);
   }
 
+  const maj = new Date().toISOString().slice(0, 10);
+  const fenetre: [string, string] = [ajouterMois(maj, 0), ajouterMois(maj, FENETRE_MOIS - 1)];
   const parAcheteur = new Map<string, Marche[]>();
   const suites = new Map<string, Marche[]>();
+  const echeances = new Map<string, Echeance[]>();
+  let nEcheances = 0;
   for (const [siren, m] of brut) {
-    const liste = [...m.values()].sort(
+    const tout = [...m.values()].sort(
       (a, b) => b.date.localeCompare(a.date) || (b.montant ?? 0) - (a.montant ?? 0),
     );
+    // L'échéance ne voyage qu'avec les échéances : la porter sur chacun des
+    // 420 000 marchés alourdirait les listes pour une information qu'elles
+    // n'affichent pas.
+    const liste = tout.map((x): Marche => {
+      if (!('fin' in x)) return x;
+      const { fin: _fin, ...sans } = x;
+      return sans;
+    });
     parAcheteur.set(siren, liste.slice(0, PAR_ACHETEUR));
     if (liste.length > PAR_ACHETEUR) suites.set(siren, liste.slice(PAR_ACHETEUR));
+    const proches = tout
+      .filter((x): x is Echeance => 'fin' in x && x.fin >= fenetre[0] && x.fin <= fenetre[1])
+      .sort((a, b) => a.fin.localeCompare(b.fin) || (b.montant ?? 0) - (a.montant ?? 0));
+    if (proches.length > 0) {
+      echeances.set(siren, proches);
+      nEcheances += proches.length;
+    }
   }
 
   if (inconnues.size > 0) {
@@ -237,7 +354,8 @@ export async function collecterMarches(
   dire(
     `Marchés publics : ${lignes.length.toLocaleString('fr-FR')} notifiés depuis ${DEPUIS.slice(0, 4)}, ` +
       `dont ${retenus.toLocaleString('fr-FR')} pour ${parAcheteur.size.toLocaleString('fr-FR')} ` +
-      `acheteurs du bloc communal.`,
+      `acheteurs du bloc communal ; ${nEcheances.toLocaleString('fr-FR')} à échéance prévisible ` +
+      `de ${fenetre[0]} à ${fenetre[1]}.`,
   );
   const sirets = new Map<string, string>();
   for (const [siren, c] of parSiret) sirets.set(siren, [...c].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]);
@@ -245,9 +363,11 @@ export async function collecterMarches(
     parAcheteur,
     suites,
     totaux,
+    echeances,
+    fenetre,
     sirets,
     depuis: DEPUIS,
-    maj: new Date().toISOString().slice(0, 10),
+    maj,
   };
 }
 
@@ -267,13 +387,19 @@ export function ecrireMarches(
   sirenDeCommune: Map<string, string>,
   marches: Marches,
 ): number {
-  const h: Record<string, { n: number; m: Marche[]; s?: string }> = {};
+  const h: Record<string, { n: number; m: Marche[]; s?: string; ne?: number; e?: Echeance[] }> = {};
   let n = 0;
   for (const siren of [...new Set(sirens)].sort()) {
     const liste = marches.parAcheteur.get(siren);
     if (!liste || liste.length === 0) continue;
+    const ech = marches.echeances.get(siren) ?? [];
     const siret = marches.sirets.get(siren);
-    h[siren] = { n: marches.totaux.get(siren) ?? liste.length, m: liste, ...(siret ? { s: siret } : {}) };
+    h[siren] = {
+      n: marches.totaux.get(siren) ?? liste.length,
+      m: liste,
+      ...(siret ? { s: siret } : {}),
+      ...(ech.length > 0 ? { ne: ech.length, e: ech.slice(0, ECHEANCES) } : {}),
+    };
     n++;
   }
   if (n === 0) return 0;
@@ -287,6 +413,7 @@ export function ecrireMarches(
       dep,
       depuis: marches.depuis,
       maj: marches.maj,
+      fenetre: marches.fenetre,
       procedures: PROCEDURES,
       com,
       h,
@@ -320,4 +447,30 @@ export function ecrireSuitesMarches(sortie: string, marches: Marches): number {
     n++;
   }
   return n;
+}
+
+// Lancé seul : les acheteurs que la dernière ingestion complète a retenus,
+// relus dans ses fichiers. Un acheteur qui n'avait encore aucun marché n'y
+// figure pas : il n'entre qu'à la réingestion complète, qui connaît les
+// groupements de chaque commune.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const { obstine, sortie } = telechargerSiAbsent(join(fileURLToPath(new URL('.', import.meta.url)), '..'));
+  const parDep = new Map<string, { sirens: string[]; com: Map<string, string> }>();
+  for (const f of readdirSync(join(sortie, 'dep'))) {
+    const dep = /^(\w+)-marches\.json$/.exec(f)?.[1];
+    if (!dep) continue;
+    const d = JSON.parse(readFileSync(join(sortie, 'dep', f), 'utf8')) as {
+      com: Record<string, string>;
+      h: Record<string, unknown>;
+    };
+    parDep.set(dep, { sirens: Object.keys(d.h), com: new Map(Object.entries(d.com)) });
+  }
+  const suivis = new Set([...parDep.values()].flatMap((d) => d.sirens));
+  const m = await collecterMarches(async (url) => (await obstine(url)).json(), suivis, console.log);
+  if (m) {
+    let n = 0;
+    for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m);
+    const suites = ecrireSuitesMarches(sortie, m);
+    console.log(`${n} acheteurs écrits, ${suites} listes complètes à la demande.`);
+  }
 }

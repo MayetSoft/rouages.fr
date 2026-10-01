@@ -1,6 +1,11 @@
 ---
 /**
- * Ce que la commune et ses groupements commandent.
+ * Ce que la commune et ses groupements commandent, et ce qui arrive à échéance.
+ *
+ * L'échéancier vient d'abord : c'est ce qui se décidera bientôt, toutes
+ * structures confondues, du plus proche au plus lointain. Chaque acheteur porte
+ * ses douze échéances les plus proches, et la page en montre douze au plus :
+ * celles-ci sont donc exactes, même quand un seul acheteur les fournit toutes.
  *
  * La commune est ouverte, ses groupements repliés : six acheteurs à cinq
  * marchés font trente lignes, et le décompte reste visible sur chaque en-tête.
@@ -15,12 +20,63 @@ import { moisAnnee, montantCourt } from '../../vues/graphiques.ts';
 interface Props {
   liste: AcheteurMarches[];
   depuis: string | null;
+  /** Premier et dernier mois de la fenêtre des échéances (AAAA-MM). */
+  fenetre: [string, string] | null;
   procedures: string[];
 }
-const { liste, depuis, procedures } = Astro.props;
+const { liste, depuis, fenetre, procedures } = Astro.props;
+const offres = (n: number | null) => (n === null ? [] : [`${n} offre${n > 1 ? 's' : ''} reçue${n > 1 ? 's' : ''}`]);
 const detail = (m: AcheteurMarches['liste'][number]) =>
-  [moisAnnee(m.date) ?? m.date, ...(m.procedure ? [m.procedure.toLowerCase()] : []), ...(m.lots > 1 ? [`${m.lots} lots`] : [])].join(' · ');
+  [moisAnnee(m.date) ?? m.date, ...(m.procedure ? [m.procedure.toLowerCase()] : []), ...(m.lots > 1 ? [`${m.lots} lots`] : []), ...offres(m.offres)].join(' · ');
+
+// Le quinze du mois : `new Date('2027-03')` est minuit UTC le 1er mars, qui
+// s'affiche « février » partout à l'ouest de Greenwich.
+const mois = (aaaamm: string) => moisAnnee(`${aaaamm}-15`) ?? aaaamm;
+const AFFICHEES = 12;
+const echeances = liste
+  .flatMap((a) => a.echeances)
+  .sort((a, b) => a.fin.localeCompare(b.fin) || (b.montant ?? 0) - (a.montant ?? 0));
+const totalEcheances = liste.reduce((t, a) => t + a.totalEcheances, 0);
+const plusieursAcheteurs = liste.length > 1;
+const detailEcheance = (m: (typeof echeances)[number]) =>
+  [
+    ...(plusieursAcheteurs ? [m.acheteur] : []),
+    `notifié en ${moisAnnee(m.date) ?? m.date}`,
+    ...(m.procedure ? [m.procedure.toLowerCase()] : []),
+    ...offres(m.offres),
+  ].join(' · ');
 ---
+{fenetre && echeances.length > 0 && (
+  <div class="p-marche-acheteur p-echeances">
+    <p class="p-marche-qui">
+      <span class="p-marche-nom">{`À renouveler d’ici ${mois(fenetre[1])}`}</span>
+      <span class="p-marche-total">
+        {`${totalEcheances.toLocaleString('fr-FR')} marché${totalEcheances > 1 ? 's' : ''}` +
+          (totalEcheances > AFFICHEES ? `, les ${AFFICHEES} plus proches` : '')}
+      </span>
+    </p>
+    <p class="p-strate">
+      {'Les accords-cadres et les marchés de services récurrents d’au moins un an — ' +
+        'entretien, restauration, transport, assurance, nettoyage, collecte : ceux qui se ' +
+        'repassent à leur terme. Un chantier, un achat ponctuel ou une étude s’achèvent, ils ne ' +
+        'se relancent pas. L’échéance est prévisible : la date de notification plus la durée initiale ' +
+        'déclarée. Un avenant ou une reconduction la déplace, et le recensement national ne ' +
+        'publie pas ces modifications de durée. Le tri suit ce que l’acheteur a déclaré : une ' +
+        'étude ou un chantier déclarés en accord-cadre y figurent.'}
+    </p>
+    <ul>
+      {echeances.slice(0, AFFICHEES).map((m) => (
+        <li>
+          <span class="p-echeance-mois">{mois(m.fin)}</span>
+          <span>
+            <span class="p-marche-objet">{m.objet}</span>
+            <span class="p-marche-detail">{`${montantCourt(m.montant)} · ${detailEcheance(m)}`}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 <p class="p-strate">
   {`Marchés notifiés depuis ${(depuis ?? '').slice(0, 4)}, du plus récent au plus ancien. Les ` +
     'montants ne s’additionnent pas : un accord-cadre déclare un plafond, et chacun de ses lots ' +
@@ -86,7 +142,7 @@ const detail = (m: AcheteurMarches['liste'][number]) =>
     if (Math.abs(v) >= 1_000) return `${Math.round(v / 1000).toLocaleString('fr-FR')} k€`;
     return `${Math.round(v).toLocaleString('fr-FR')} €`;
   };
-  type Brut = { objet: string; montant: number | null; date: string; procedure: number; lots: number };
+  type Brut = { objet: string; montant: number | null; date: string; procedure: number; lots: number; offres?: number };
   const span = (classe: string, texte: string) => {
     const s = document.createElement('span');
     s.className = classe;
@@ -100,6 +156,7 @@ const detail = (m: AcheteurMarches['liste'][number]) =>
     const proc = procedures[m.procedure];
     if (proc) sous.push(proc.toLowerCase());
     if (m.lots > 1) sous.push(`${m.lots} lots`);
+    if (m.offres) sous.push(`${m.offres} offre${m.offres > 1 ? 's' : ''} reçue${m.offres > 1 ? 's' : ''}`);
     droite.append(span('p-marche-objet', m.objet), span('p-marche-detail', sous.join(' · ')));
     li.append(span('p-marche-montant', montantCourt(m.montant)), droite);
     return li;
