@@ -2668,7 +2668,7 @@ contrôlés par `unzip -t`.
 ### Les données d'octobre : zonages, subventions, loyers, recharge, objets protégés ✔
 
 Demandé le 30 septembre : « ajoute toutes les données que tu as suggérées ».
-Cinq collectes nouvelles, chacune vérifiée sur Le Mayet-de-Montagne ; ce qui
+Six collectes nouvelles, chacune vérifiée sur Le Mayet-de-Montagne ; ce qui
 n'a pas tenu est dit plus bas.
 
 - **Programmes de l'État et zonages** (`zonages-emettre.ts`, bloc
@@ -2713,6 +2713,16 @@ n'a pas tenu est dit plus bas.
   partie est retrouvée par le code postal et le nom en fin d'adresse, le
   reste n'est pas compté, et la page dit que les nombres sont des minimums.
   Au Mayet-de-Montagne : 5 points de charge en 2 stations, dont 2 de 50 kW.
+- **L'accueil des tout-petits** (`petite-enfance-emettre.ts`, bloc
+  `#petite-enfance`) : le taux de couverture de la CNAF, places d'accueil
+  formel pour 100 enfants de moins de trois ans — assistantes maternelles,
+  crèches et autres EAJE, école dès deux ans, garde à domicile —, comparé à
+  la France. La CAF ne le publie par commune qu'au-dessus de 10 000
+  habitants (1 018 communes) ; ailleurs, la page montre celui de
+  l'intercommunalité et le dit. Un fichier national,
+  `petite-enfance.json`. Au Mayet-de-Montagne, en 2023 : 64,4 places dans
+  Vichy Communauté, contre 60,9 en France, dont 43,7 chez une assistante
+  maternelle.
 - **Les objets mobiliers protégés** (`objets-emettre.ts`, dans le bloc des
   monuments) : la base Palissy, 260 882 objets classés ou inscrits dans
   24 555 communes, sous-dossiers et objets désinscrits écartés. Au
@@ -2730,9 +2740,7 @@ n'a pas tenu est dit plus bas.
 - *Zonage ABC, zones tendues, loi Littoral, quartiers prioritaires* : jeux
   repérés, mais leurs ressources n'ont pas répondu depuis l'environnement ;
   à reprendre.
-- *Accueil du jeune enfant* : la CAF publie le taux de couverture par
-  intercommunalité pour toutes, par commune pour 2 118 seulement.
-  *Logements sociaux (RPLS)* : pas trouvé de fichier communal national à
+- *Logements sociaux (RPLS)* : pas trouvé de fichier communal national à
   jour. *Covoiturage réalisé* (registre de preuve), *URSSAF*, *France
   Travail*, *INAO*, *environnement* (VigiEau, assainissement, ICPE, INPN…) :
   pas commencés.

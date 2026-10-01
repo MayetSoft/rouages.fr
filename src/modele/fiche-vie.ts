@@ -10,8 +10,8 @@
  * la main : des parts, des rapports, jamais un agrégat que la source ne
  * publie pas.
  */
-import { parDepartement, type CommuneFiche } from './fiche-commune.ts';
-import { communes } from './territoires.ts';
+import { national, parDepartement, type CommuneFiche } from './fiche-commune.ts';
+import { communes, intercommunalites } from './territoires.ts';
 
 /* ------------------------------------------------------------------ *
  * Les fichiers, tels que les collecteurs les écrivent.
@@ -111,6 +111,11 @@ type RechargeDep = { maj: string; dates: { irve: string; bnlc: string }; c: Reco
 const rechargeDep = parDepartement<RechargeDep>('recharge');
 type ObjetsDep = { maj: string; c: Record<string, [number, number, [string, string, 0 | 1][]]> };
 const objetsDep = parDepartement<ObjetsDep>('objets');
+type Couverture = [number, number, number, number, number];
+const petiteEnfanceFichier = national<{ maj: string; annee: number; france: Couverture; e: Record<string, Couverture>; c: Record<string, Couverture> }>(
+  'petite-enfance.json',
+);
+let intercoDe: Map<string, { siren: string; nom: string }> | null = null;
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -458,6 +463,25 @@ export interface Recharge {
   maj: string;
 }
 
+/** Places d'accueil formel pour cent enfants de moins de trois ans, d'après la CNAF. */
+export interface TauxCouverture {
+  global: number;
+  eaje: number;
+  assistantesMaternelles: number;
+  ecole: number;
+  domicile: number;
+}
+
+export interface PetiteEnfance {
+  /** Le taux de la commune quand la CAF le publie, sinon celui de son intercommunalité. */
+  echelle: 'commune' | 'intercommunalité';
+  nomInterco: string | null;
+  taux: TauxCouverture;
+  france: TauxCouverture;
+  annee: number;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -486,6 +510,7 @@ export interface ComplementsVie {
   investissement: Investissement | null;
   loyers: Loyers | null;
   recharge: Recharge | null;
+  petiteEnfance: PetiteEnfance | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -820,6 +845,29 @@ function recharge(c: CommuneFiche): Recharge | null {
   return { stations, points, rapides, lieuxCovoiturage, places, dates: d.dates, maj: d.maj };
 }
 
+const taux = ([global, eaje, assistantesMaternelles, ecole, domicile]: Couverture): TauxCouverture => ({
+  global,
+  eaje,
+  assistantesMaternelles,
+  ecole,
+  domicile,
+});
+
+function petiteEnfance(c: CommuneFiche): PetiteEnfance | null {
+  const d = petiteEnfanceFichier();
+  if (!d) return null;
+  const ici = d.c[c.code];
+  if (ici) return { echelle: 'commune', nomInterco: null, taux: taux(ici), france: taux(d.france), annee: d.annee, maj: d.maj };
+  if (!intercoDe) {
+    intercoDe = new Map();
+    for (const e of intercommunalites()) for (const x of e.communes) intercoDe.set(x.code, { siren: e.siren, nom: e.nom });
+  }
+  const e = intercoDe.get(c.code);
+  const t = e ? d.e[e.siren] : undefined;
+  if (!e || !t) return null;
+  return { echelle: 'intercommunalité', nomInterco: e.nom, taux: taux(t), france: taux(d.france), annee: d.annee, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -849,5 +897,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     investissement: investissement(c),
     loyers: loyers(c),
     recharge: recharge(c),
+    petiteEnfance: petiteEnfance(c),
   };
 }

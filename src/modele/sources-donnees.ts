@@ -169,6 +169,13 @@ const ENTREES: Entree[] = [
     liens: [{ titre: 'Carte des loyers 2025 : indicateurs par commune', url: dg('693aa2feed1bf4da603faa49') }],
   },
   {
+    motif: /taux de couverture d.accueil du jeune enfant/i,
+    liens: [
+      { titre: 'Taux de couverture par intercommunalité (CNAF)', url: 'https://data.caf.fr/explore/dataset/txcouv_pe_epci/' },
+      { titre: 'Taux de couverture par commune (CNAF)', url: 'https://data.caf.fr/explore/dataset/txcouv_pe_com/' },
+    ],
+  },
+  {
     motif: /performance énergétique/i,
     liens: [{ titre: 'Diagnostics de performance énergétique (ADEME)', url: 'https://data.ademe.fr/datasets/meg-83tjwtg8dyz4vv7h1dqe' }],
   },

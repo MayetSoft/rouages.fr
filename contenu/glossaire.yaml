@@ -437,6 +437,11 @@ sigles:
     developpe: "Dotation politique de la ville"
     definition: "Subvention d'investissement réservée aux communes qui comptent des quartiers prioritaires de la politique de la ville."
     liens: [od-dgcl-investissement]
+  - id: sigle-eaje
+    sigle: EAJE
+    developpe: "Établissement d'accueil du jeune enfant"
+    definition: "Crèche, multi-accueil, micro-crèche ou crèche familiale : l'accueil collectif des enfants de moins de six ans, le plus souvent de moins de trois."
+    liens: [od-caf-accueil-jeune-enfant]
   - id: sigle-crte
     sigle: CRTE
     developpe: "Contrat pour la réussite de la transition écologique"

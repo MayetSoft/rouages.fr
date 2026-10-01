@@ -574,3 +574,4 @@ sources:
   - { id: od-irve, type: donnees_ouvertes, titre: "Base nationale des infrastructures de recharge pour véhicules électriques", url: "https://www.data.gouv.fr/datasets/5448d3e0c751df01f85d0572/", consulte_le: 2026-10-01 }
   - { id: od-bnlc, type: donnees_ouvertes, titre: "Base nationale des lieux de covoiturage", url: "https://www.data.gouv.fr/datasets/5d6eaffc8b4c417cdc452ac3/", consulte_le: 2026-10-01 }
   - { id: od-palissy, type: donnees_ouvertes, titre: "Ministère de la Culture — objets mobiliers protégés au titre des monuments historiques (base Palissy)", url: "https://www.data.gouv.fr/datasets/615bcdd729be9185b3b0681a/", consulte_le: 2026-10-01 }
+  - { id: od-caf-accueil-jeune-enfant, type: donnees_ouvertes, titre: "CNAF — taux de couverture d'accueil du jeune enfant, par intercommunalité et par commune", url: "https://data.caf.fr/explore/dataset/txcouv_pe_epci/", consulte_le: 2026-10-01 }

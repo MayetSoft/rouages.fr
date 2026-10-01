@@ -602,6 +602,13 @@ surveillances:
     url: "https://www.data.gouv.fr/api/2/datasets/5d6eaffc8b4c417cdc452ac3/resources/?page_size=5"
     lien: od-bnlc
 
+  - id: caf-accueil-jeune-enfant
+    nom: "CNAF — taux de couverture d'accueil du jeune enfant"
+    alimente: "l'accueil des tout-petits"
+    type: disponibilite
+    url: "https://data.caf.fr/api/explore/v2.1/catalog/datasets/txcouv_pe_epci/records?limit=1"
+    lien: od-caf-accueil-jeune-enfant
+
   - id: palissy
     nom: "Palissy — objets protégés"
     alimente: "les objets mobiliers protégés"

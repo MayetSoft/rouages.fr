@@ -1,0 +1,34 @@
+---
+/**
+ * L'accueil des enfants de moins de trois ans : le taux de couverture de la
+ * CNAF, de la commune ou, à défaut, de son intercommunalité. Voir
+ * `scripts/petite-enfance-emettre.ts`.
+ */
+import type { PetiteEnfance } from '../../modele/fiche-vie.ts';
+import Glose from '../Glose.astro';
+
+interface Props {
+  p: PetiteEnfance;
+}
+const { p } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+const ou = p.echelle === 'commune' ? 'Dans la commune,' : `Dans l’intercommunalité, ${p.nomInterco},`;
+---
+<p class="mesure">
+  {`${ou} ${nf(p.taux.global)} places d’accueil pour 100 enfants de moins de trois ans en décembre ${p.annee}, contre ${nf(p.france.global)} en France.`}
+</p>
+<ul class="c-structures">
+  <li>{`Chez une assistante maternelle : ${nf(p.taux.assistantesMaternelles)} (France : ${nf(p.france.assistantesMaternelles)})`}</li>
+  <li><Glose texte={`En crèche ou autre établissement d’accueil du jeune enfant (EAJE) : ${nf(p.taux.eaje)} (France : ${nf(p.france.eaje)})`} /></li>
+  <li>{`À l’école, dès deux ans : ${nf(p.taux.ecole)} (France : ${nf(p.france.ecole)})`}</li>
+  <li>{`Garde à domicile : ${nf(p.taux.domicile)} (France : ${nf(p.france.domicile)})`}</li>
+</ul>
+<p class="p-strate">
+  C’est une offre théorique&nbsp;: les places qui existent, rapportées aux enfants de moins de trois ans, sans savoir si
+  une place est vacante ou partagée par plusieurs enfants. La CAF ne publie le taux par commune que pour celles de plus
+  de 10&nbsp;000 habitants&nbsp;; ailleurs, c’est celui de l’intercommunalité, où les places d’une commune servent aussi
+  les voisines.
+</p>
+<p class="p-source-territoire">
+  {`D’après le taux de couverture d’accueil du jeune enfant de la Caisse nationale des allocations familiales, ${p.annee} (${p.maj}).`}
+</p>

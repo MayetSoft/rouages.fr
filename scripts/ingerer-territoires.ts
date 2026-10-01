@@ -840,6 +840,13 @@ async function principal() {
   const objets = await tenter('Objets protégés', () => collecterObjets(enCache('Palissy — objets protégés (365 Mo)'), CACHE, grise));
   if (objets) grise(`${ecrireObjets(SORTIE, objets)} départements d’objets protégés écrits.`);
 
+  const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
+  const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));
+  if (petiteEnfance) {
+    ecrirePetiteEnfance(SORTIE, petiteEnfance);
+    grise('Taux de couverture de l’accueil du jeune enfant écrit.');
+  }
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),
