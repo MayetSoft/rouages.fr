@@ -15,8 +15,18 @@ interface Props {
    * l'adresse à la main.
    */
   flux?: string;
+  /**
+   * La section du site : l'accueil, qui explique ; le fonctionnement — la
+   * carte, les pouvoirs, le glossaire, la méthode et les fiches de nœud — ;
+   * les données d'un territoire, de la commune à la région.
+   */
+  section?: 'accueil' | 'fonctionnement' | 'chez-moi';
+  /** Dans la section fonctionnement, la page courante du sous-menu. */
+  sousPage?: 'carte' | 'pouvoirs' | 'glossaire' | 'methode';
 }
-const { titre, description, plein = false, flux } = Astro.props;
+const { titre, description, plein = false, flux, section, sousPage } = Astro.props;
+const courant = (s: string) => (section === s ? 'page' : undefined);
+const sousCourant = (s: string) => (sousPage === s ? 'page' : undefined);
 ---
 
 <!doctype html>
@@ -37,7 +47,7 @@ const { titre, description, plein = false, flux } = Astro.props;
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%231e5f74' stroke-width='2.5'%3E%3Ccircle cx='11' cy='12' r='6'/%3E%3Ccircle cx='22' cy='21' r='5'/%3E%3Cpath d='M15 16l3 2'/%3E%3C/g%3E%3C/svg%3E"
     />
   </head>
-  <body>
+  <body class={section === 'fonctionnement' ? 'avec-sous-nav' : undefined}>
     <a class="evitement" href="#contenu">Aller au contenu</a>
     <header class="bandeau">
       <div class="bandeau-int">
@@ -45,12 +55,19 @@ const { titre, description, plein = false, flux } = Astro.props;
         <span class="baseline">qui fait quoi, et avec qui</span>
         <RechercheCommune />
         <nav aria-label="Le site">
-          <a href="/">La carte</a>
-          <a href="/etat">Les pouvoirs</a>
-          <a href="/glossaire">Glossaire</a>
-          <a href="/methode">La méthode</a>
+          <a href="/" aria-current={courant('accueil')}>Accueil</a>
+          <a href="/fonctionnement" aria-current={courant('fonctionnement')}>Fonctionnement</a>
+          <a href="/chez-moi" aria-current={courant('chez-moi')}>Données de chez moi</a>
         </nav>
       </div>
+      {section === 'fonctionnement' && (
+        <nav class="sous-nav" aria-label="Le fonctionnement">
+          <a href="/fonctionnement" aria-current={sousCourant('carte')}>La carte</a>
+          <a href="/etat" aria-current={sousCourant('pouvoirs')}>Les pouvoirs</a>
+          <a href="/glossaire" aria-current={sousCourant('glossaire')}>Glossaire</a>
+          <a href="/methode" aria-current={sousCourant('methode')}>La méthode</a>
+        </nav>
+      )}
     </header>
 
     <main id="contenu">

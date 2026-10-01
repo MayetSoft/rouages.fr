@@ -43,7 +43,7 @@ const groupes = ORDRE_LIENS.map((type) => ({
 })).filter((gr) => gr.liste.length > 0);
 ---
 
-<Base titre={noeud.nom} description={noeud.resume || noeud.nom}>
+<Base titre={noeud.nom} description={noeud.resume || noeud.nom} section="fonctionnement">
   <div class="page">
     <p class="badge">
       {LIBELLE_TYPE_NOEUD[noeud.type]}
@@ -131,7 +131,7 @@ const groupes = ORDRE_LIENS.map((type) => ({
     {source && 'verifie_le' in source && (
       <p class="v-nature">Vérifié le {formaterDate(source.verifie_le)}.</p>
     )}
-    <p><a href={`/#${noeud.id}`}>Voir ce nœud dans la carte</a></p>
+    <p><a href={`/fonctionnement#${noeud.id}`}>Voir ce nœud dans la carte</a></p>
     <p class="p-signaler">
       <a href={urlSignaler(noeud.id)}>Signaler une erreur sur cette fiche</a>
     </p>

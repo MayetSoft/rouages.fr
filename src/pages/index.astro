@@ -1,120 +1,100 @@
 ---
+/**
+ * L'accueil : ce que fait le site, et par où entrer.
+ *
+ * La carte du réseau était la première chose qu'on voyait, et elle faisait
+ * peur : des centaines de nœuds avant d'avoir compris à quoi ils servaient.
+ * Elle est passée dans « Fonctionnement » ; ici, on explique, puis on propose
+ * deux portes — son territoire, ou la mécanique d'ensemble.
+ */
 import Base from '../layouts/Base.astro';
+import ChampTerritoire from '../composants/ChampTerritoire.astro';
 import { construireReseau } from '../modele/reseau.ts';
-import { LIBELLE_ECHELON } from '../modele/schemas.ts';
-import { FAMILLES } from '../modele/relations.ts';
-import Glose from '../composants/Glose.astro';
+import { communes } from '../modele/territoires.ts';
 
 const reseau = construireReseau();
-
-// Repli sans JavaScript et pour les moteurs : le réseau en texte, par échelon.
-const parEchelon = reseau.carte.colonnes.map((c) => ({
-  libelle: LIBELLE_ECHELON[c.echelon],
-  noeuds: reseau.noeuds
-    .filter((n) => n.type === 'acteur' && n.echelon === c.echelon)
-    .sort((a, b) => a.nom.localeCompare(b.nom, 'fr')),
-}));
+const noeud = (id: string) => reseau.noeuds.find((n) => n.id === id);
+const questions = (
+  [
+    ['eau-potable', 'Qui s’occupe de l’eau du robinet ?'],
+    ['colleges', 'Qui construit et entretient les collèges ?'],
+    ['delivrance-autorisation-urbanisme', 'Qui délivre un permis de construire ?'],
+  ] as const
+).filter(([id]) => noeud(id));
+const nCommunes = communes().length;
+const acteurs = reseau.noeuds.filter((n) => n.type === 'acteur').length;
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const exemple = !filtre || filtre.length === 0 || filtre.includes('03');
 ---
-
 <Base
-  titre="La carte des rouages"
-  description="Qui décide quoi, avec quel argent, et avec qui — une carte navigable des acteurs publics et de leurs relations, reliée à Wikipédia, Légifrance et l'open data."
-  plein
+  titre="Qui décide quoi, près de chez vous"
+  description="L’école, l’eau, les routes, le permis de construire : Rouages dit quelle collectivité ou quelle administration décide et paie, commune par commune, d’après les données publiques."
+  section="accueil"
 >
-  {/* La carte n'a pas de titre visible — l'en-tête et la légende en tiennent
-      lieu —, mais un lecteur d'écran qui parcourt les titres doit en trouver
-      un. Le repli sans JavaScript passe donc au second niveau. */}
-  <h1 class="visuellement-cache">La carte des rouages</h1>
-  <div class="outils">
-    <div class="champ-recherche">
-      <label class="visuellement-cache" for="recherche">Chercher un acteur, une compétence</label>
-      <input id="recherche" type="search" placeholder="Chercher : eau, collège, préfet…" autocomplete="off" />
-      <ul id="resultats"></ul>
-    </div>
+  <div class="page accueil">
+    <h1>Qui décide quoi, près de chez vous&nbsp;?</h1>
+    <p class="resume accueil-chapo">
+      L’école, l’eau du robinet, les routes, le permis de construire&nbsp;: derrière chaque service, une commune,
+      une intercommunalité, un département, une région ou l’État décide, et paie. Rouages dit lequel, là où vous
+      habitez, et montre ce que les données publiques disent de votre commune.
+    </p>
 
-    {/* La légende n'est pas décorative : elle commande l'affichage.
-        Survoler une clé éteint les autres familles, cliquer la retire. */}
-    {/* « Chez moi » : le site répond « variable selon le territoire » partout ;
-        ici il répond vraiment. L'index n'est chargé qu'à l'ouverture. */}
-    <div class="champ-commune">
-      <button type="button" class="plat" id="ouvrir-commune" aria-expanded="false">
-        <span id="etiquette-commune">Chez moi</span>
-      </button>
-      <div id="choix-commune" hidden>
-        <label for="recherche-commune">Votre commune, ou son code postal</label>
-        <input id="recherche-commune" type="search" placeholder="Mayet, 72360…" autocomplete="off" />
-        <ul id="resultats-commune"></ul>
-        <button type="button" class="lien-plat" id="oublier-commune" hidden>Oublier ma commune</button>
-      </div>
-    </div>
+    <ChampTerritoire id="accueil-champ" etiquette="Commencez par votre commune" />
+    {exemple && (
+      <p class="cm-exemple">Par exemple&nbsp;: <a href="/commune/03165">Le Mayet-de-Montagne</a>, dans l’Allier.</p>
+    )}
 
-    <fieldset class="legende">
-      <legend>Relations</legend>
-      {FAMILLES.map((f) => (
-        <button type="button" class="cle" data-famille={f.id} aria-pressed="true" title={f.aide}>
-          <svg width="24" height="10" viewBox="0 0 24 10" aria-hidden="true">
-            <line
-              class={`cle-trait cle-trait--${f.id}`}
-              x1="1"
-              y1="5"
-              x2="23"
-              y2="5"
-              stroke-dasharray={f.tirets}
-            />
-          </svg>
-          {f.libelle}
-        </button>
-      ))}
-    </fieldset>
-
-    <button type="button" class="plat" id="retour-carte" hidden>← Vue d’ensemble</button>
-    <span class="zooms">
-      <button type="button" class="plat rond" id="zoom-moins" aria-label="Dézoomer">−</button>
-      <button type="button" class="plat rond" id="zoom-plus" aria-label="Zoomer">+</button>
-      <button type="button" class="plat" id="ajuster">Recadrer</button>
-    </span>
-  </div>
-
-  <div class="explorateur">
-    <div class="scene">
-      <svg id="toile" role="application" aria-label="Carte des acteurs publics et de leurs relations"></svg>
-      {/* Le geste n'est pas le même au doigt et à la souris : on le dit
-          différemment plutôt que de parler de survol à qui ne survole pas. */}
-      <p class="aide" id="aide">
-        <span class="aide-defaut">
-          <span class="si-survol">Survolez pour isoler une couche · cliquez un nœud pour l’ouvrir · Échap pour revenir</span>
-          <span class="si-tactile">Touchez une famille pour la masquer · un nœud pour l’ouvrir</span>
+    <div class="accueil-portes">
+      <a class="accueil-porte" href="/chez-moi">
+        <span class="accueil-porte-titre">Données de chez moi</span>
+        <span>
+          {`Votre commune, votre intercommunalité, votre département ou votre région : qui y exerce quoi, ses comptes, ses écoles, ses services, ses risques, son élection. ${nCommunes.toLocaleString('fr-FR')} communes, chacune sa page.`}
         </span>
-        <span id="aide-famille"></span>
-      </p>
+      </a>
+      <a class="accueil-porte" href="/fonctionnement">
+        <span class="accueil-porte-titre">Fonctionnement</span>
+        <span>
+          {`La carte des ${acteurs} institutions et de leurs liens : qui décide, qui finance, qui contrôle. Pour voir comment les pièces s’emboîtent.`}
+        </span>
+      </a>
     </div>
-    <aside id="panneau" aria-live="polite"></aside>
+
+    <h2 class="badge">Sur la page d’une commune</h2>
+    <ul class="accueil-themes">
+      <li><strong>Qui exerce quoi</strong> — la commune, l’intercommunalité, le département, la région ou l’État, compétence par compétence.</li>
+      <li><strong>L’argent</strong> — les comptes de la commune, les dotations de l’État, ce qui est prélevé et par qui.</li>
+      <li><strong>La vie démocratique</strong> — l’élection municipale, le conseil, les délibérations, les votes nationaux.</li>
+      <li><strong>Vivre là</strong> — les habitants, les écoles, le médecin, les services, les logements, ce qu’on trouve sur place.</li>
+      <li><strong>Le territoire</strong> — les risques, l’eau, la fibre, ce qui peut s’y construire, le patrimoine, le train.</li>
+    </ul>
+    <p class="mesure">
+      Et deux communes se comparent bloc par bloc&nbsp;: <a href="/comparer">comparer deux communes</a>.
+    </p>
+
+    {questions.length > 0 && (
+      <>
+        <h2 class="badge">Trois questions pour commencer</h2>
+        <ul class="accueil-questions">
+          {questions.map(([id, q]) => <li><a href={`/n/${id}`}>{q}</a></li>)}
+        </ul>
+      </>
+    )}
+
+    <h2 class="badge">Ce que Rouages s’engage à faire</h2>
+    <ul class="accueil-themes">
+      <li><strong>Citer ses sources.</strong> Chaque chiffre vient d’une donnée publique, nommée et datée.</li>
+      <li><strong>Ne nommer personne.</strong> Le site décrit des fonctions — le maire, le préfet —, jamais les personnes qui les occupent.</li>
+      <li><strong>Relier plutôt que réécrire.</strong> Les explications existent déjà sur Wikipédia, Légifrance ou service-public.fr : Rouages y renvoie.</li>
+      <li><strong>Dire ce qu’il ne sait pas.</strong> Quand une règle varie selon le territoire, ou qu’une donnée manque, la page le dit.</li>
+    </ul>
+    <p class="mesure">
+      Comment tout cela est construit et vérifié&nbsp;: <a href="/methode">la méthode</a>. Une erreur&nbsp;?
+      <a href="/signaler">Signalez-la</a>.
+    </p>
   </div>
-
-  <noscript>
-    <div class="page">
-      <h2>La carte des rouages, en liste</h2>
-      <p class="resume">
-        La carte interactive demande JavaScript. Voici la même matière, en liste :
-        chaque acteur a sa page, avec ses relations et ses liens de référence.
-      </p>
-      {parEchelon.map((c) => (
-        <section>
-          <h3 class="badge">{c.libelle}</h3>
-          <ul>
-            {c.noeuds.map((n) => (
-              <li>
-                <a href={`/n/${n.id}`}><Glose texte={n.nom} /></a> — <Glose texte={n.resume} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
-  </noscript>
-
-  <script is:inline type="application/json" id="donnees-reseau" set:html={JSON.stringify(reseau)} />
-  <script>
-    import '../client/explorateur.ts';
-  </script>
 </Base>
+<script is:inline>
+  // L'ancienne adresse de la carte, `/#id`, a pu être partagée : elle mène
+  // désormais au même nœud dans « Fonctionnement ».
+  if (location.hash.length > 1) location.replace('/fonctionnement' + location.hash);
+</script>

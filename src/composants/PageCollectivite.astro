@@ -68,6 +68,7 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
 <Base
   titre={`Les comptes — ${titre}`}
   description={`Ce que ${c.nom} encaisse et dépense${annee ? ` en ${annee}` : ''}, poste par poste, en euros et par habitant, comparé aux autres collectivités du même échelon.`}
+  section="chez-moi"
 >
   <div class="page page--etroite">
     <p class="badge">

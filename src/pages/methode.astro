@@ -5,7 +5,12 @@ const reseau = construireReseau();
 const pages = new Set(reseau.noeuds.flatMap((n) => n.liens.map((l) => l.url))).size;
 ---
 
-<Base titre="La méthode" description="Rouages ne rédige pas : il relie. Comment le réseau est construit et vérifié.">
+<Base
+  titre="La méthode"
+  description="Rouages ne rédige pas : il relie. Comment le réseau est construit et vérifié."
+  section="fonctionnement"
+  sousPage="methode"
+>
   <div class="page">
     <h1>La méthode</h1>
     <p class="resume">
