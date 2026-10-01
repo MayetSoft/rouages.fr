@@ -93,3 +93,46 @@ committer : sinon le dépôt garde des pannes qui n'ont pas eu lieu.
 - **On ne publie pas un chiffre qu'on n'a pas vérifié**, et on refuse un
   agrégat dont on sait qu'il serait faux — voir le total des marchés publics
   dans `docs/05-roadmap.md`.
+
+## Les noms dans les données
+
+Décision du 1er octobre 2026 : la première règle vaut pour `contenu/` et pour
+le graphe, pas pour les données territoriales. Un nom de personne physique
+peut figurer dans `public/territoires/` **si toutes ces conditions tiennent** :
+
+1. **Il vient d'un registre public dont la finalité couvre l'usage**, et la
+   justification est écrite dans `docs/07-risques.md` *avant* la collecte :
+   pourquoi le registre le publie, ce qu'une personne peut raisonnablement en
+   attendre, ce qui est retenu et ce qui ne l'est pas.
+2. **Il est affiché avec sa source, sa date et un lien vers la fiche
+   d'origine.**
+3. **Le site ne conclut rien.** Il montre le fait et nomme le décideur, sans
+   qualificatif et sans rapprochement présenté comme un constat.
+4. **Minimisation.** Le nom, le prénom, la qualité qui justifie la
+   publication, la commune. Jamais l'adresse personnelle, la date de
+   naissance ni l'âge.
+5. **Aucun index par personne.** Une personne n'est ni un nœud, ni une page,
+   ni une entrée de la recherche. Et on ne rapproche pas automatiquement un nom
+   d'une source avec le même nom dans une autre : il n'existe pas
+   d'identifiant commun entre le répertoire des élus et SIRENE, les homonymes
+   sont nombreux, et un rapprochement faux entre un élu et une entreprise
+   serait diffamatoire. Un tel recoupement demande une décision à part.
+6. **Le retrait est possible.** Une opposition reçue par `/signaler` est
+   appliquée à l'ingestion suivante, et `/mentions` dit ce qui est collecté.
+
+Ce qui est autorisé à ce jour :
+
+- **les élus exécutifs** — maire et adjoints — d'après le répertoire national
+  des élus : nom, prénom, fonction, date de prise de fonction. Les autres
+  conseillers restent décrits en agrégats ;
+- **les entrepreneurs individuels** d'après SIRENE et le BODACC : le nom tel
+  que publié, l'activité, la commune, le lien vers la fiche ou l'annonce.
+  Jamais un entrepreneur en **diffusion partielle** au répertoire SIRENE — il
+  a exercé son droit d'opposition (article R123-232-1 du code de commerce) :
+  le statut se relit à chaque ingestion, et un établissement non diffusible
+  est compté, pas nommé. Les **procédures collectives** d'un entrepreneur
+  individuel restent comptées, pas nommées : c'est la défaillance d'une
+  personne, et le BODACC sert déjà les créanciers qu'elle concerne.
+
+Ce qui reste exclu : les particuliers cités dans les délibérations, les
+dirigeants d'associations, toute nuance politique associée à un nom.

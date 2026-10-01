@@ -74,6 +74,33 @@ Ce qui reste interdit est inchangé : relier une personne à une opinion, à un
 financement, à un réseau. C'est ce que visait la règle, et cela ne devient pas
 permis parce qu'un annuaire est devenu lisible.
 
+### Les adjoints et les entrepreneurs individuels (1er octobre 2026)
+
+Le site nomme désormais, en plus du maire, **ses adjoints** et **les
+entrepreneurs individuels** de la commune. Les conditions — source liée,
+aucune conclusion, minimisation, pas d'index par personne, retrait possible —
+sont dans `CLAUDE.md`, « Les noms dans les données ». Voici la justification
+de chacun, que la règle exige avant la collecte.
+
+- **Les adjoints.** Le répertoire national des élus est publié pour rendre
+  lisible la vie publique ; un adjoint détient des délégations du maire et
+  signe en son nom. Savoir qui exerce une fonction exécutive est la question
+  même du site, et c'est l'attente raisonnable de qui accepte un mandat. On
+  retient la fonction et la date de prise de fonction, comme pour le maire.
+- **Les entrepreneurs individuels.** SIRENE et le BODACC rendent publique
+  l'identité de qui exerce une activité économique en son nom propre, pour que
+  ses clients et ses créanciers sachent avec qui ils traitent. Nommer
+  l'entreprise de la commune reste dans cette finalité. Deux limites la
+  bornent : l'entrepreneur qui s'est opposé à la diffusion au répertoire SIRENE
+  n'est pas nommé, et une procédure collective — la défaillance d'une personne
+  — reste comptée, pas nommée.
+
+Le risque principal n'est pas la publication, c'est le rapprochement. Un nom
+seul ne fait pas une identité : sans identifiant commun entre le répertoire
+des élus et SIRENE, rapprocher un adjoint d'une entreprise sur son seul nom
+produirait des faux rapprochements, et un faux rapprochement entre un élu et
+un marché public est une diffamation. Le site ne le fait pas automatiquement.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».
