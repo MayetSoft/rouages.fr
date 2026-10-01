@@ -114,6 +114,11 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
           data-affiches={a.liste.length}
         >{`Voir les ${(a.total - a.liste.length).toLocaleString('fr-FR')} autres`}</button>
       )}
+      {a.siret && (
+        <p class="p-marche-ailleurs">
+          <a href={`https://colibre.fr/acheteurs/${a.siret}`}>{'Tous ses marchés, avec les titulaires, sur Colibre'}</a>
+        </p>
+      )}
     </Groupe>
   );
 })}

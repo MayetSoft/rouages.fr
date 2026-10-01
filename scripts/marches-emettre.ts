@@ -160,6 +160,12 @@ export interface Marches {
   echeances: Map<string, Echeance[]>;
   /** Premier et dernier mois de la fenêtre des échéances (AAAA-MM), bornes comprises. */
   fenetre: [string, string];
+  /**
+   * SIREN -> le SIRET sous lequel l'acheteur a notifié le plus de marchés. Un
+   * groupement achète parfois sous plusieurs établissements ; c'est par ce
+   * SIRET que d'autres outils, comme Colibre, désignent l'acheteur.
+   */
+  sirets: Map<string, string>;
   depuis: string;
   maj: string;
 }
@@ -261,10 +267,17 @@ export async function collecterMarches(
   // date. Les afficher sept fois ferait passer une commande pour sept.
   const brut = new Map<string, Map<string, Echeance | Marche>>();
   const totaux = new Map<string, number>();
+  const parSiret = new Map<string, Map<string, number>>();
   const inconnues = new Set<string>();
   for (const l of lignes) {
     const siren = String(l.acheteur_id ?? '').slice(0, 9);
     if (siren.length !== 9 || !sirensSuivis.has(siren)) continue;
+    const siret = String(l.acheteur_id ?? '').trim();
+    if (/^\d{14}$/.test(siret)) {
+      const c = parSiret.get(siren) ?? new Map<string, number>();
+      c.set(siret, (c.get(siret) ?? 0) + 1);
+      parSiret.set(siren, c);
+    }
     const objet = nettoyer(l.objet ?? '');
     const date = (l.datenotification ?? '').slice(0, 10);
     if (!objet || !date) continue;
@@ -344,12 +357,15 @@ export async function collecterMarches(
       `acheteurs du bloc communal ; ${nEcheances.toLocaleString('fr-FR')} à échéance prévisible ` +
       `de ${fenetre[0]} à ${fenetre[1]}.`,
   );
+  const sirets = new Map<string, string>();
+  for (const [siren, c] of parSiret) sirets.set(siren, [...c].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]);
   return {
     parAcheteur,
     suites,
     totaux,
     echeances,
     fenetre,
+    sirets,
     depuis: DEPUIS,
     maj,
   };
@@ -371,15 +387,17 @@ export function ecrireMarches(
   sirenDeCommune: Map<string, string>,
   marches: Marches,
 ): number {
-  const h: Record<string, { n: number; m: Marche[]; ne?: number; e?: Echeance[] }> = {};
+  const h: Record<string, { n: number; m: Marche[]; s?: string; ne?: number; e?: Echeance[] }> = {};
   let n = 0;
   for (const siren of [...new Set(sirens)].sort()) {
     const liste = marches.parAcheteur.get(siren);
     if (!liste || liste.length === 0) continue;
     const ech = marches.echeances.get(siren) ?? [];
+    const siret = marches.sirets.get(siren);
     h[siren] = {
       n: marches.totaux.get(siren) ?? liste.length,
       m: liste,
+      ...(siret ? { s: siret } : {}),
       ...(ech.length > 0 ? { ne: ech.length, e: ech.slice(0, ECHEANCES) } : {}),
     };
     n++;

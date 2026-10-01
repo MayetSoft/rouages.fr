@@ -11,7 +11,13 @@ import { communes } from './territoires.ts';
 export type Point = [number, number];
 export type Anneau = Point[];
 
-type ContoursDep = { maj: string; millesime: string; c: Record<string, [number[][], string[]]> };
+type ContoursDep = {
+  maj: string;
+  millesime: string;
+  tolerance?: number;
+  toleranceGrossiere?: number;
+  c: Record<string, [number[][], string[], number[][]?]>;
+};
 const contoursDep = parDepartement<ContoursDep>('contours');
 const silhouettes = national<{ maj: string; millesime: string; d: Record<string, number[][]> }>('contours-departements.json');
 
@@ -40,13 +46,15 @@ export interface CarteSituation {
   voisines: { code: string; nom: string; anneaux: Anneau[] }[];
   departement: Anneau[];
   millesime: string;
+  /** La simplification du dessin, en mètres. */
+  tolerance: number;
 }
 
-function anneauxDe(code: string): { anneaux: Anneau[]; voisines: string[]; millesime: string } | null {
+function anneauxDe(code: string): { anneaux: Anneau[]; voisines: string[]; millesime: string; tolerance: number } | null {
   const d = contoursDep.get(departementDe(code));
   const x = d?.c[code];
   if (!d || !x) return null;
-  return { anneaux: x[0].map(decoder), voisines: x[1], millesime: d.millesime };
+  return { anneaux: x[0].map(decoder), voisines: x[1], millesime: d.millesime, tolerance: d.tolerance ?? 100 };
 }
 
 export function carteDeSituation(c: CommuneFiche): CarteSituation | null {
@@ -61,6 +69,7 @@ export function carteDeSituation(c: CommuneFiche): CarteSituation | null {
     voisines,
     departement: (silhouettes()?.d[c.dep] ?? []).map(decoder),
     millesime: ici.millesime,
+    tolerance: ici.tolerance,
   };
 }
 
@@ -106,4 +115,29 @@ export function espacesNaturels(c: CommuneFiche): EspacesNaturels | null {
     };
   });
   return { zones, commune: ici.anneaux, maj: d.maj };
+}
+
+export interface CarteCommunes {
+  communes: { code: string; nom: string; groupe: string; anneaux: Anneau[] }[];
+  millesime: string;
+  tolerance: number;
+}
+
+/**
+ * Les communes d'une intercommunalité ou d'un département, au trait grossier
+ * — simplifié en gardant les limites partagées —, chacune avec son groupe :
+ * la carte trace plus fort la limite entre deux groupes.
+ */
+export function carteDeCommunes(liste: { code: string; nom: string; groupe?: string }[]): CarteCommunes | null {
+  let millesime = '';
+  let tolerance = 0;
+  const communes = liste.flatMap((c) => {
+    const d = contoursDep.get(departementDe(c.code));
+    const x = d?.c[c.code];
+    if (!d || !x) return [];
+    millesime = d.millesime;
+    tolerance = d.toleranceGrossiere ?? d.tolerance ?? 100;
+    return [{ code: c.code, nom: c.nom, groupe: c.groupe ?? '', anneaux: (x[2] ?? x[0]).map(decoder) }];
+  });
+  return communes.length ? { communes, millesime, tolerance } : null;
 }

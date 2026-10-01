@@ -80,6 +80,8 @@ import PetiteEnfance from '../../composants/commune/PetiteEnfance.astro';
 import Travail from '../../composants/commune/Travail.astro';
 import Appellations from '../../composants/commune/Appellations.astro';
 import Secheresse from '../../composants/commune/Secheresse.astro';
+import Ailleurs from '../../composants/commune/Ailleurs.astro';
+import { SITES_COMMANDE_PUBLIQUE, sitesDeCommune } from '../../modele/sites-complementaires.ts';
 import CarteSituation from '../../composants/commune/CarteSituation.astro';
 import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
@@ -217,6 +219,7 @@ const PLAFOND_JOURNAL = 40;
 const faits = journalCommune(commune, PLAFOND_JOURNAL).length;
 
 const region = meta?.regions?.[commune.dep];
+const ailleurs = sitesDeCommune({ ...commune, codeRegion: meta?.codesRegion?.[commune.dep] });
 const titre = `${commune.nom} — qui décide quoi`;
 const description = fiche
   ? `Qui exerce chaque compétence à ${commune.nom} (${commune.cp}) : intercommunalité, ` +
@@ -305,6 +308,7 @@ const sommaire: [string, string, unknown][] = [
   ['recharge', 'Recharge et covoiturage', vie.recharge],
   ['agriculture', 'L’agriculture', vie.agriculture],
   ['appellations', 'Les appellations', vie.appellations],
+  ['ailleurs', 'Ailleurs', ailleurs.length > 0],
   ['journal', 'Ce qui a bougé', journal.length > 0],
 ];
 const entrees = sommaire.filter(([, , present]) => !!present);
@@ -720,6 +724,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="marches" class="p-marches">
         <h2 class="badge">Ce qui est commandé</h2>
         <Marches liste={plus.marches} depuis={plus.marchesDepuis} fenetre={plus.marchesFenetre} procedures={plus.marchesProcedures} />
+        <Ailleurs sites={SITES_COMMANDE_PUBLIQUE} titre="Pour qui achète ou répond" />
       </section>
     )}
 
@@ -853,6 +858,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="production">
         <h2 class="badge">L’électricité produite sur la commune</h2>
         <Production p={vie.production} />
+        <Ailleurs sites={ailleurs.filter((x) => x.id === 'terristory')} titre="Pour aller plus loin" />
       </section>
     )}
 
@@ -909,6 +915,17 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="appellations">
         <h2 class="badge">Les appellations d’origine</h2>
         <Appellations a={vie.appellations} />
+      </section>
+    )}
+
+    {ailleurs.length > 0 && (
+      <section id="ailleurs">
+        <h2 class="badge">La commune vue d’ailleurs</h2>
+        <p class="mesure">
+          D’autres sites montrent la commune sous un autre angle. Rouages ne reprend rien d’eux et ne vérifie pas leurs
+          calculs : ce sont des renvois, avec leur éditeur.
+        </p>
+        <Ailleurs sites={ailleurs} />
       </section>
     )}
 

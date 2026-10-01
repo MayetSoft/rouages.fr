@@ -814,9 +814,10 @@ Ce qui est en place :
   supposée : OFGL et DECP en Licence Ouverte v2.0, GASPAR et le répertoire des
   associations en Licence Ouverte, le découpage Etalab en Licence Ouverte
   également — ses codes postaux, autrefois sous ODbL, ne le sont plus.
-  **Aucun ODbL**, donc aucun partage à l'identique qui entrerait en conflit
-  avec le CC BY-SA du reste. La seule obligation est de citer la source et sa
-  date : chaque bloc de chiffres le fait déjà.
+  ~~Aucun ODbL~~ : ce n'est plus vrai depuis l'automne 2026 — voir « La
+  licence de chaque jeu, affichée » plus bas. La seule obligation de la
+  Licence Ouverte est de citer la source et sa date : chaque bloc de chiffres
+  le fait déjà.
 - **Une page `/mentions`** qui dit ce que le site sait de son lecteur — un
   site statique, aucune mesure d'audience, aucun cookie, une seule clé de
   stockage local pour la commune choisie — et qui **construit la liste des
@@ -3207,6 +3208,93 @@ blancs et le site Natura 2000 des rivières de la Montagne bourbonnaise, sur
 moins de 1 % et 1 % de la commune, et la ZNIEFF des Bois Noirs et des monts de
 la Madeleine sur environ 15 %. À Vichy, la rivière Allier. À Ambert, le parc
 Livradois-Forez.
+
+### La licence de chaque jeu, affichée ; les contours de l'IGN ✔
+
+**Chaque jeu porte sa licence**, relevée sur sa fiche — l'API de data.gouv,
+les métadonnées des portails Opendatasoft et data-fair, les conditions de
+l'INSEE et du Géoportail de l'urbanisme — et déclarée dans
+`contenu/veille.yaml`. `/mentions` range les 75 jeux sous leur licence : 51 en
+Licence Ouverte 2.0, 16 en 1.0, un sans version précisée, quatre en ODbL (les
+effectifs de l'URSSAF, les gares et la fréquentation de la SNCF, les lieux de
+covoiturage), un au choix de chaque publieur (les subventions au schéma), deux
+dont la fiche ne dit rien (les droits de mutation et les dotations de l'OFGL).
+L'ODbL est une licence ouverte, avec une obligation de plus : une base
+dérivée se republie sous ODbL. La validation exige donc, pour chaque jeu sous
+ODbL, la liste des fichiers du dépôt qui en dérivent, et `/mentions` l'affiche.
+L'affirmation « aucun ODbL », répétée dans le README, `LICENSE-CONTENU.md` et
+plus haut dans cette feuille de route, était fausse depuis les gares.
+
+**Les contours de la carte viennent maintenant de l'IGN**, sous Licence
+Ouverte, au lieu du découpage d'Etalab sous ODbL : Admin Express COG au
+découpage 2026, dans sa version la plus précise, lue sur la Géoplateforme par
+pages (420 Mo de JSON, en cache pour la journée). 27,6 millions de sommets,
+ramenés à des limites simplifiées une seule fois chacune et reprises telles
+quelles par les deux communes qu'elles séparent : pas de trou ni de
+chevauchement entre voisines. Trois niveaux : 25 m pour la carte d'une commune
+(199 points pour Le Mayet-de-Montagne, contre 82 avec Etalab), 200 m pour les
+cartes d'intercommunalité et de département, 500 m pour l'encart. Les espaces
+naturels sont recroisés sur ces contours, avec une marge de bord ramenée de
+120 à 50 m.
+
+**Une carte sur la page de chaque intercommunalité et de chaque département**
+(`CarteCommunes.astro`) : toutes les communes, chacune un lien vers sa page,
+et en trait fort la limite du territoire ou celle qui sépare deux
+intercommunalités — un segment qu'une seule commune emprunte, ou que deux
+communes de groupes différents se partagent. Les tracés sont arrondis au pixel
+et écrits en écarts : la carte des 317 communes de l'Allier pèse 86 Ko.
+
+### La commune vue d'ailleurs ✔
+
+Des renvois vers les sites qui présentent la commune autrement, avec leur
+éditeur — un classement fait par une société n'a pas le statut d'une donnée
+publiée par l'État (`modele/sites-complementaires.ts`). Rien n'en est repris.
+
+- **DataFrance** (JBMS Tech) : le rang de la commune dans son département sur
+  neuf dimensions. Lien `/commune/{code}-{nom}`, vérifié sur huit communes,
+  accents, apostrophes et ligatures compris ; la métropole seulement — le site
+  ne classe pas l'outre-mer.
+- **TerriSTORY** (consortium d'agences régionales de l'énergie, avec
+  l'ADEME) : énergie, émissions, production renouvelable. Douze régions
+  reconnaissent la commune par son code ; la Corse non, elle n'a pas de lien.
+  Aussi sous le bloc de l'électricité produite.
+- **Colibre** : chaque acheteur du bloc des marchés renvoie à sa page, par le
+  SIRET sous lequel il notifie le plus de marchés — désormais gardé par la
+  collecte des marchés, et vérifié présent pour les 13 606 acheteurs. Le
+  `robots.txt` de Colibre exclut les robots de Claude : le lien se construit
+  depuis nos propres données, sans parcourir leur site.
+- **Magali parle marchés** (les outils) et **OnVeille CP**, sous le bloc des
+  marchés, « pour qui achète ou répond » : des outils et une veille, pas des
+  données sur la commune.
+
+### Les zones tendues, et ce qui ne passe pas encore ✔
+
+**Les zones tendues** s'ajoutent au bloc des zonages, d'après la liste du
+ministère chargé du logement au décret du 22 décembre 2025 : 1 430 communes en
+zone tendue, 2 259 en zone touristique et tendue. La ligne dit ce que le
+classement entraîne — la taxe sur les logements vacants, la majoration
+possible de la taxe d'habitation sur les résidences secondaires, ou à défaut
+la taxe d'habitation sur les logements vacants que la commune peut instituer.
+Brest et Clermont-Ferrand n'y sont pas, Rennes et Lyon si : c'est la liste.
+
+**Ce qui ne passe pas, et pourquoi.**
+
+- *Installations classées et registre des émissions polluantes* : l'API de
+  Géorisques coupe la connexion depuis l'environnement de développement, et
+  les fichiers de `files.georisques.fr` y répondent 403. Une collecte écrite
+  sans avoir vu une réponse publierait des chiffres non vérifiés : elle se
+  fera depuis la CI, en commençant par une sonde qui montre la forme des
+  données.
+- *Assainissement collectif* : l'extraction SISPEA existe, avec le prix au
+  mètre cube (D204.0, médiane nationale 2,20 € en 2024), mais elle ne donne
+  que le nombre de communes adhérentes d'un service, pas leur liste, et
+  désigne parfois une intercommunalité par le SIREN de celle qui l'a précédée
+  — Vichy Communauté y est encore la communauté d'agglomération de Vichy Val
+  d'Allier, pour 31 communes sur 39. Attribuer ce prix au Mayet-de-Montagne
+  serait une supposition.
+- *Logements sociaux (RPLS)* : le service statistique ne publie en national
+  que le fichier détaillé logement par logement ; le recensement, déjà lu,
+  donne la part de locataires HLM de chaque commune.
 
 ### Ce qui se renouvelle bientôt, et combien d'offres ont été reçues ✔
 

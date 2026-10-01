@@ -10,9 +10,10 @@
  * pose une grille de points sur la commune et on compte ceux qui tombent dans
  * chaque zone. La part est donc approchée — à quelques pour cent près sur une
  * commune moyenne —, et la page l'arrondit. Les contours étant simplifiés à
- * 100 m, une zone qui suit la limite d'une commune voisine mordrait sur
- * celle-ci d'un liseré : une zone n'est donc retenue que si elle touche le
- * cœur de la commune, à plus de 120 m de sa limite — par un point de la
+ * 25 m et les périmètres de l'INPN tracés à une précision voisine, une zone
+ * qui suit la limite d'une commune voisine mordrait sur celle-ci d'un liseré :
+ * une zone n'est donc retenue que si elle touche le cœur de la commune, à plus
+ * de 50 m de sa limite — par un point de la
  * grille, par trois de ses sommets (une rivière étroite) ou par son centre
  * (un étang, une grotte), avec alors une part « de moins de 1 % ». Un parc
  * naturel régional, auquel une commune adhère tout entière, n'est retenu
@@ -401,9 +402,10 @@ export async function collecterEspaces(sortie: string, cache: string, dire: (m: 
     if (points.length === 0) continue;
     const lat = (cadre[1] + cadre[3]) / 2 / ECHELLE;
     const surface = hectares(anneaux, lat);
-    // Le cœur de la commune : à plus de 120 m de sa limite. Les contours sont simplifiés à 100 m, et une zone
-    // qui suit la limite d'une commune voisine mordrait sinon sur celle-ci d'un liseré qui n'existe pas.
-    const MARGE = 12;
+    // Le cœur de la commune : à plus de 50 m de sa limite. Contours et périmètres sont tracés à quelques dizaines
+    // de mètres près, et une zone qui suit la limite d'une commune voisine mordrait sinon sur celle-ci d'un
+    // liseré qui n'existe pas.
+    const MARGE = 5;
     const coeur = points.map(([x, y]) => distanceAuBord(x, y, anneaux) > MARGE);
     const liste: EspacesCommune = [];
     for (const { i, anneaux: local } of locales) {

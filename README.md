@@ -95,10 +95,11 @@ donc réutilisable depuis et vers elle sans friction. Voir
 [`LICENSE-CONTENU.md`](LICENSE-CONTENU.md).
 
 **Données republiées** (`public/territoires/`) : elles restent sous la licence
-de leur producteur. Tous les jeux réutilisés sont sous **Licence Ouverte**
-(Etalab), vérifié jeu par jeu — aucun ODbL, dont le partage à l'identique
-serait incompatible avec le CC BY-SA du reste. La seule obligation est de citer
-la source et sa date, ce que chaque bloc de chiffres fait déjà.
+de leur producteur, vérifiée jeu par jeu et déclarée dans `contenu/veille.yaml`.
+Presque tous sont sous **Licence Ouverte** (Etalab), qui n'oblige qu'à citer la
+source et sa date — chaque bloc de chiffres le fait. Quelques-uns sont sous
+**ODbL** : les fichiers qui en dérivent sont republiés sous ODbL, et `/mentions`
+les nomme jeu par jeu.
 
 ## Mentions légales
 

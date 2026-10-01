@@ -1,0 +1,27 @@
+---
+/**
+ * D'autres sites qui montrent la commune autrement. Voir
+ * `src/modele/sites-complementaires.ts`.
+ */
+import type { SiteComplementaire } from '../../modele/sites-complementaires.ts';
+
+interface Props {
+  sites: SiteComplementaire[];
+  titre?: string;
+}
+const { sites, titre } = Astro.props;
+---
+{sites.length > 0 && (
+  <div class="c-ailleurs">
+    {titre && <p class="c-demarches-titre">{titre}</p>}
+    <ul>
+      {sites.map((s) => (
+        <li>
+          <a href={s.url} rel="external">{s.nom}</a>
+          {` — ${s.quoi}.`}
+          <span class="c-ailleurs-editeur">{`Édité par ${s.editeur}.`}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}

@@ -537,6 +537,7 @@ details.p-marche-acheteur[open] > summary { margin-bottom: .45rem; }
   text-decoration: underline; text-underline-offset: 2px;
 }
 .p-marche-suite:hover, .p-marche-suite:focus-visible { color: var(--encre); }
+.p-marche-ailleurs { margin: .35rem 0 0 5.2rem; font-size: .8rem; }
 .p-marche-suite[disabled] { color: var(--encre-tres-douce); cursor: progress; text-decoration: none; }
 /* L'échéancier : le mois tient la colonne de gauche, plus large que celle des
    montants — « septembre 2027 » ne tient pas dans 4,6 rem. */
@@ -569,6 +570,7 @@ details.p-marche-acheteur[open] > summary { margin-bottom: .45rem; }
 .mentions-jeux { list-style: none; margin: 0 0 1.2rem; padding: 0; display: grid; gap: .4rem; max-width: var(--mesure); }
 .mentions-jeux li { display: grid; gap: .05rem; }
 .mentions-usage { font-size: .78rem; color: var(--encre-tres-douce); }
+.mentions-licence { font-size: .95rem; margin: 1.2rem 0 .5rem; }
 @media (max-width: 540px) { .mentions > div { grid-template-columns: 1fr; gap: .05rem; } }
 
 /* Le scrutin. Deux taux posés sur la même réglette que les comptes : la
@@ -1160,3 +1162,18 @@ a.p-sommaire-lien { text-decoration: none; }
 .espaces-cle-protection { background: color-mix(in srgb, var(--nature-protection) 55%, transparent); border: 1px solid var(--nature-protection); }
 .espaces-cle-inventaire { border: 1px solid var(--nature-inventaire); background: repeating-linear-gradient(45deg, var(--nature-inventaire) 0 2px, transparent 2px 5px); }
 .espaces-groupe { font-size: .85rem; font-weight: 600; color: var(--encre-douce); margin: .8rem 0 .2rem; }
+
+/* Carte des communes d'une intercommunalité ou d'un département. */
+.carte-communes { margin: 1rem 0 .4rem; }
+.carte-communes svg { display: block; width: 100%; height: auto; max-height: 70vh; border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--fond-carte); }
+.carte-communes-commune path { fill: var(--fond-doux); stroke: var(--trait-fort); stroke-width: .6; stroke-linejoin: round; transition: fill var(--transition); }
+.carte-communes-commune:hover path, .carte-communes-commune:focus-visible path { fill: var(--accent-doux); }
+.carte-communes-commune:focus-visible { outline: none; }
+.carte-communes-commune:focus-visible path { stroke: var(--accent); stroke-width: 2; }
+.carte-communes-limite { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
+.carte-communes figcaption { font-size: .8rem; color: var(--encre-douce); margin-top: .3rem; }
+
+/* Les sites qui présentent la commune autrement. */
+.c-ailleurs ul { list-style: none; margin: .3rem 0 0; padding: 0; display: grid; gap: .5rem; max-width: var(--mesure); }
+.c-ailleurs li { font-size: .92rem; }
+.c-ailleurs-editeur { display: block; font-size: .78rem; color: var(--encre-tres-douce); }
