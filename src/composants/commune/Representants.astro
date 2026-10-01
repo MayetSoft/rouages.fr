@@ -23,7 +23,7 @@ const minuscule = (f: string) => (f === f.toUpperCase() ? f.toLowerCase() : f.ch
 </p>
 <ul class="p-representants">
   {r.liste.map((o) => (
-    <li>
+    <li class="p-risque-plan">
       <span class="p-risque-nom"><a href={FICHE + encodeURIComponent(o.id)} target="_blank" rel="noopener">{o.nom}</a></span>
       <span class="p-risque-detail">
         {[o.categorie, ...(jour(o.depuis) ? [`inscrite depuis ${jour(o.depuis)}`] : [])].filter(Boolean).join(' · ')}

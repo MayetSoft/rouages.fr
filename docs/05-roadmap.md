@@ -3398,11 +3398,30 @@ année de naissance —, avec son siège au conseil communautaire quand il en a
 un : 61 115 sièges sur 62 111 rapprochés sur la commune, le nom, le prénom et
 la date de naissance complète.
 
-**Ce qui ne bouge pas.** Les dirigeants d'associations et de sociétés, les
+**Les titulaires des marchés.** Le SIRET de chaque titulaire, lu dans les
+données essentielles, est nommé par SIRENE : 67 368 SIREN relus, 66 789
+nommables — une société par sa dénomination, un entrepreneur individuel s'il
+est diffusible —, chacun lié à sa fiche sur l'annuaire des entreprises. Au
+Mayet-de-Montagne : ADN Travaux publics pour la place de la Mairie et la
+voirie, Alu FR pour les menuiseries de l'école. Les listes complètes à la
+demande passent de 47 à 78 Mo.
+
+**Les représentants d'intérêts.** Le répertoire de la HATVP, rattaché par
+l'adresse déclarée : 3 901 organisations dans 617 communes, avec 6 898
+dirigeants déclarés. C'est le seul registre public qui nomme des dirigeants
+d'associations ; les autres restent anonymes, faute de source.
+
+**Les déclarations des élus.** Pour un élu nommé, ses déclarations d'intérêts
+à la HATVP — qualité, statut, date, lien —, rapprochées sur le nom, le prénom
+et le département quand un seul conseiller du département les porte : 3 053
+déclarations dans 1 671 communes. Les déclarations de patrimoine des élus
+locaux ne sont jamais publiques, et leur divulgation est un délit : le site
+n'en dit rien. Le contenu des déclarations d'intérêts reste sur la page de la
+HATVP, en attendant de trancher ses conditions de réutilisation.
+
+**Ce qui ne bouge pas.** Les dirigeants d'associations hors HATVP, les
 particuliers cités dans les délibérations, une opinion que le site
-attribuerait lui-même. À reprendre : le titulaire des marchés, que la section
-précédente laissait de côté pour les entrepreneurs individuels — la règle les
-permet désormais, sous la même condition de diffusion SIRENE. Le titre d'une association qui porte une civilité reste filtré : la
+attribuerait lui-même. Le titre d'une association qui porte une civilité reste filtré : la
 décision n'a pas porté sur lui.
 
 ## Phase 3 — Élargir

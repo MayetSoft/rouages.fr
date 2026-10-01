@@ -1,1 +1,1 @@
-{"m":[{"objet":"DIAG SCHEMA AEP","montant":82015,"date":"2024-03-18","procedure":0,"lots":1,"offres":4},{"objet":"Travaux réservoir Hodeng Hodenger TR 128","montant":298157,"date":"2023-06-27","procedure":0,"lots":1}]}
+{"m":[{"objet":"DIAG SCHEMA AEP","montant":82015,"date":"2024-03-18","procedure":0,"lots":1,"offres":4,"t":[["492430095","VONROLL HYDRO FRANCE SAS"],["819960493","EXPEA"],["922052725","VERDI NORMANDIE"]]},{"objet":"Travaux réservoir Hodeng Hodenger TR 128","montant":298157,"date":"2023-06-27","procedure":0,"lots":1,"tx":1}]}
