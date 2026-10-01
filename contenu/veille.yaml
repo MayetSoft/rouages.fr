@@ -651,6 +651,20 @@ surveillances:
     url: "https://www.data.gouv.fr/api/2/datasets/662a5e2cd71b24df5e9a0827/resources/?page_size=5"
     lien: od-vigieau
 
+  - id: contours-communes
+    nom: "Etalab — contours des communes"
+    alimente: "la carte de situation de chaque commune"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/683424e996857155175d4f68/resources/?page_size=5"
+    lien: od-contours-communes
+
+  - id: espaces-naturels
+    nom: "Géoplateforme — espaces naturels de l'INPN"
+    alimente: "les espaces naturels de la commune"
+    type: disponibilite
+    url: "https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=patrinat_pnr:pnr&resultType=hits"
+    lien: od-espaces-naturels
+
   - id: palissy
     nom: "Palissy — objets protégés"
     alimente: "les objets mobiliers protégés"

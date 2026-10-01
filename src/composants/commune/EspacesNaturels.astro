@@ -1,0 +1,128 @@
+---
+/**
+ * Les espaces naturels de la commune : parcs, sites Natura 2000, réserves,
+ * arrêtés de protection de biotope, inventaires ZNIEFF, avec la part de la
+ * commune que chacun couvre, et une carte. Voir `scripts/espaces-emettre.ts`.
+ *
+ * Deux encodages sur la carte, couleur et texture : un aplat vert pour ce qui
+ * protège ou encadre (réserves, biotopes, cœurs de parc, Natura 2000), des
+ * hachures ocre pour ce qui inventorie (ZNIEFF). La légende le redit.
+ */
+import type { Anneau, EspacesNaturels, Point, ZoneNaturelle } from '../../modele/carte.ts';
+import QuiDecide from './QuiDecide.astro';
+
+interface Props {
+  e: EspacesNaturels;
+  nom: string;
+}
+const { e, nom } = Astro.props;
+
+const GROUPES: { titre: string; rangs: number[] }[] = [
+  { titre: 'Protections', rangs: [0, 1, 2, 3] },
+  { titre: 'Natura 2000', rangs: [4, 5] },
+  { titre: 'Inventaires', rangs: [6, 7] },
+  { titre: 'Parcs', rangs: [8, 9] },
+];
+const groupes = GROUPES.map((g) => ({ ...g, zones: e.zones.filter((z) => g.rangs.includes(z.rang)) })).filter((g) => g.zones.length > 0);
+const part = (z: ZoneNaturelle) =>
+  z.part >= 99 ? 'toute la commune' : z.part === 0 ? 'moins de 1 % de la commune' : z.part < 5 ? `${z.part} % de la commune` : `environ ${Math.round(z.part / 5) * 5} % de la commune`;
+
+// La carte : la commune, et les zones qu'on dessine, découpées à ses limites.
+const W = 480;
+const H = 300;
+const dessinees = e.zones.filter((z) => z.rang <= 7 && z.anneaux.length > 0);
+const carte = (() => {
+  if (dessinees.length === 0) return null;
+  const ys = e.commune.flat().map(([, y]) => y);
+  const k = Math.cos((((Math.min(...ys) + Math.max(...ys)) / 2 / 1e4) * Math.PI) / 180);
+  const proj = ([x, y]: Point): Point => [x * k, -y];
+  const ici = e.commune.map((r) => r.map(proj));
+  const xs = ici.flat().map(([x]) => x);
+  const yv = ici.flat().map(([, y]) => y);
+  let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...yv), Math.max(...yv)];
+  const m = 0.06 * Math.max(x1 - x0, y1 - y0);
+  [x0, x1, y0, y1] = [x0 - m, x1 + m, y0 - m, y1 + m];
+  if ((x1 - x0) / (y1 - y0) < W / H) {
+    const l = ((y1 - y0) * W) / H;
+    const c = (x0 + x1) / 2;
+    [x0, x1] = [c - l / 2, c + l / 2];
+  } else {
+    const h = ((x1 - x0) * H) / W;
+    const c = (y0 + y1) / 2;
+    [y0, y1] = [c - h / 2, c + h / 2];
+  }
+  const s = W / (x1 - x0);
+  const vue = (a: Anneau[]) =>
+    a.map((r) => 'M' + r.map(proj).map(([x, y]) => `${((x - x0) * s).toFixed(1)} ${((y - y0) * s).toFixed(1)}`).join('L') + 'Z').join('');
+  return {
+    commune: vue(e.commune),
+    inventaires: dessinees.filter((z) => z.rang >= 6).map((z) => ({ nom: z.nom, d: vue(z.anneaux) })),
+    protections: dessinees.filter((z) => z.rang < 6).map((z) => ({ nom: z.nom, d: vue(z.anneaux) })),
+  };
+})();
+const id = `espaces-${Math.abs([...nom].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7))}`;
+const apb = e.zones.some((z) => z.rang === 3);
+---
+{e.zones.length === 0 ? (
+  <p class="mesure">
+    Aucun parc, site Natura 2000, réserve, arrêté de protection de biotope ni ZNIEFF recensé par l’Inventaire national du patrimoine naturel ne touche la commune.
+  </p>
+) : (
+  <>
+    {carte && (
+      <figure class="espaces-carte">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Carte de ${nom} et des espaces naturels qui la couvrent : ${dessinees.map((z) => z.nom).join(', ')}.`}>
+          <defs>
+            <clipPath id={`${id}-limite`}><path d={carte.commune} /></clipPath>
+            <pattern id={`${id}-hachures`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line class="espaces-hachure" x1="0" y1="0" x2="0" y2="7" />
+            </pattern>
+          </defs>
+          <path class="espaces-fond" d={carte.commune} />
+          <g clip-path={`url(#${id}-limite)`}>
+            {carte.inventaires.map((z) => <path class="espaces-inventaire" d={z.d} fill={`url(#${id}-hachures)`}><title>{z.nom}</title></path>)}
+            {carte.protections.map((z) => <path class="espaces-protection" d={z.d}><title>{z.nom}</title></path>)}
+          </g>
+          <path class="espaces-limite" d={carte.commune} />
+        </svg>
+        <figcaption class="espaces-legende">
+          {carte.protections.length > 0 && <span><i class="espaces-cle espaces-cle-protection" aria-hidden="true"></i>Protection ou Natura 2000</span>}
+          {carte.inventaires.length > 0 && <span><i class="espaces-cle espaces-cle-inventaire" aria-hidden="true"></i>Inventaire ZNIEFF</span>}
+        </figcaption>
+      </figure>
+    )}
+    {groupes.map((g) => (
+      <>
+        <h3 class="espaces-groupe">{g.titre}</h3>
+        <ul class="c-structures">
+          {g.zones.map((z) => <li>{`${z.nature} — ${z.nom} : ${part(z)}.`}</li>)}
+        </ul>
+      </>
+    ))}
+  </>
+)}
+{apb && (
+  <QuiDecide
+    phrase={[
+      'Le ',
+      { id: 'prefet', texte: 'préfet' },
+      ' prend les arrêtés de protection de biotope, et peut y interdire la chasse, la cueillette, le camping, l’écobuage ou les dépôts.',
+    ]}
+  />
+)}
+<p class="p-strate">
+  Ces zones ne pèsent pas toutes pareil. Une ZNIEFF est un inventaire, pas une protection : elle signale un milieu
+  remarquable dont un projet doit tenir compte, sans l’interdire. Un site Natura 2000 oblige à évaluer les incidences
+  sur ce qu’il protège des plans et des projets que listent les textes nationaux et départementaux, documents
+  d’urbanisme compris. Une réserve naturelle ou un arrêté de protection de
+  biotope réglemente les activités sur place. Une commune est dans un parc naturel régional parce qu’elle en a
+  approuvé la charte, avec laquelle son document d’urbanisme doit être compatible.
+</p>
+<p class="p-strate">
+  La part de la commune est approchée en posant une grille de points sur ses contours simplifiés : à quelques pour
+  cent près, et une petite zone — un étang, une grotte — peut n’en couvrir « moins de 1 % ». Les zones marines ne
+  sont comptées que là où elles touchent la commune.
+</p>
+<p class="p-source-territoire">
+  {`D’après les périmètres de l’Inventaire national du patrimoine naturel, servis par la Géoplateforme de l’IGN, croisés avec les contours des communes (${e.maj}).`}
+</p>

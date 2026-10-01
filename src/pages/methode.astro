@@ -426,6 +426,28 @@ const pages = new Set(reseau.noeuds.flatMap((n) => n.liens.map((l) => l.url))).s
       faite.
     </p>
 
+    <h2 class="badge">La carte, et ce qu’elle permet de croiser</h2>
+    <p class="mesure">
+      Chaque page de commune s’ouvre sur sa carte&nbsp;: ses contours, ses
+      voisines, sa place dans le département. Les contours sont ceux de
+      l’<abbr title="Institut national de l’information géographique et forestière">IGN</abbr>,
+      simplifiés à cent mètres par Etalab en gardant les limites communes
+      exactement partagées — c’est ce qui permet de dire, sans autre source,
+      que deux communes sont voisines, et de tirer la silhouette du département
+      des seuls segments qu’une de ses communes emprunte. Le dessin est fait à
+      la construction du site, sans fond de carte ni requête vers un service
+      tiers.
+    </p>
+    <p class="mesure">
+      Ces contours servent aussi à croiser les espaces naturels avec la
+      commune. Le site n’embarque pas de moteur géométrique&nbsp;: il pose une
+      grille de points sur la commune et compte ceux qui tombent dans chaque
+      zone. La part affichée est donc une approximation, arrondie, et dite
+      comme telle — assez juste pour distinguer une commune couverte d’une
+      commune effleurée, pas pour un acte d’urbanisme, qui se lit sur la carte
+      officielle.
+    </p>
+
     <h2 class="badge">Une page par commune</h2>
     <p class="mesure">
       Chaque commune a une adresse à elle — <code>/commune/03165</code> pour

@@ -334,6 +334,19 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /ADMIN EXPRESS/,
+    liens: [{ titre: 'Contours des communes (Etalab, d’après l’IGN)', url: dg('683424e996857155175d4f68') }],
+  },
+  {
+    motif: /Inventaire national du patrimoine naturel/,
+    liens: [
+      { titre: 'Espaces naturels protégés (INPN)', url: dg('66601a40716de0ce799fc8f4') },
+      { titre: 'Les couches de l’INPN sur la Géoplateforme', url: 'https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetCapabilities' },
+      { titre: 'Parcs naturels régionaux, la charte (code de l’environnement, art. L333-1)', url: 'https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042017264' },
+      { titre: 'Protection des biotopes (code de l’environnement, art. R411-15 à R411-17)', url: 'https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006188789/' },
+    ],
+  },
+  {
     motif: /VigiEau/,
     liens: [
       { titre: 'Données sécheresse VigiEau, restrictions par commune', url: dg('662a5e2cd71b24df5e9a0827') },

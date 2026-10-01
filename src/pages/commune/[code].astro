@@ -80,6 +80,9 @@ import PetiteEnfance from '../../composants/commune/PetiteEnfance.astro';
 import Travail from '../../composants/commune/Travail.astro';
 import Appellations from '../../composants/commune/Appellations.astro';
 import Secheresse from '../../composants/commune/Secheresse.astro';
+import CarteSituation from '../../composants/commune/CarteSituation.astro';
+import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
+import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import Lieux from '../../composants/commune/Lieux.astro';
@@ -106,6 +109,8 @@ const resolubles = reseau.noeuds
 const fiche = ficheCommune(commune, resolubles);
 const plus = complementsFiche(commune, commune.population, fiche?.structures ?? []);
 const vie = complementsVie(commune);
+const carte = carteDeSituation(commune);
+const espaces = espacesNaturels(commune);
 
 const nomDe = new Map(reseau.noeuds.map((n) => [n.id, n]));
 /**
@@ -289,6 +294,7 @@ const sommaire: [string, string, unknown][] = [
   ['ecoles', 'Les écoles', vie.ecoles],
   ['reseaux', 'Eau, fibre, énergie', vie.eau || vie.fibre || vie.energie],
   ['secheresse', 'Les restrictions d’eau', vie.secheresse],
+  ['nature', 'Les espaces naturels', espaces],
   ['mobile', 'Les antennes mobiles', vie.antennes],
   ['production', 'L’électricité produite', vie.production],
   ['monuments', 'Les monuments historiques', vie.monuments],
@@ -341,6 +347,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         Le maire vient du répertoire national des élus ({fiche.maire.maj}).
       </p>
     )}
+
+    {carte && <CarteSituation carte={carte} nom={commune.nom} depNom={commune.depNom} />}
 
     <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
 
@@ -824,6 +832,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="secheresse">
         <h2 class="badge">Les restrictions d’eau pour sécheresse</h2>
         <Secheresse s={vie.secheresse} />
+      </section>
+    )}
+
+    {espaces && (
+      <section id="nature">
+        <h2 class="badge">Les espaces naturels</h2>
+        <EspacesNaturels e={espaces} nom={commune.nom} />
       </section>
     )}
 

@@ -422,6 +422,21 @@ sigles:
     sigle: RER
     developpe: "Réseau express régional d'Île-de-France"
     definition: "Lignes de train de banlieue qui traversent Paris, exploitées selon les tronçons par la RATP ou par SNCF."
+  - id: sigle-ign
+    sigle: IGN
+    developpe: "Institut national de l'information géographique et forestière"
+    definition: "L'établissement public qui produit les cartes et les référentiels géographiques de l'État, dont les contours des communes."
+    liens: [od-contours-communes]
+  - id: sigle-inpn
+    sigle: INPN
+    developpe: "Inventaire national du patrimoine naturel"
+    definition: "Le référentiel national des espèces, des habitats et des espaces naturels, tenu par le Muséum national d'histoire naturelle et l'Office français de la biodiversité."
+    liens: [od-espaces-naturels]
+  - id: sigle-znieff
+    sigle: ZNIEFF
+    developpe: "Zone naturelle d'intérêt écologique, faunistique et floristique"
+    definition: "Un inventaire, pas une protection : la zone signale un milieu remarquable, dont un projet doit tenir compte, sans y être interdit par elle."
+    liens: [od-espaces-naturels]
   - id: sigle-detr
     sigle: DETR
     developpe: "Dotation d'équipement des territoires ruraux"
