@@ -1,1 +1,1 @@
-{"m":[{"objet":"PLATRERIE ISOLATION","montant":44000,"date":"2024-03-12","procedure":1,"lots":1},{"objet":"PLOMBERIE SANITAIRE CVC","montant":77000,"date":"2023-04-01","procedure":1,"lots":1}]}
+{"m":[{"objet":"PLATRERIE ISOLATION","montant":44000,"date":"2024-03-12","procedure":1,"lots":1,"t":["480103035"]},{"objet":"PLOMBERIE SANITAIRE CVC","montant":77000,"date":"2023-04-01","procedure":1,"lots":1,"t":["501423834"]}],"t":{"480103035":"CAPSTYLE","501423834":"ETABLISSEMENTS MARQUANT"}}

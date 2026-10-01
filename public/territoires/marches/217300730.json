@@ -1,1 +1,1 @@
-{"m":[{"objet":"FOURS-TRAVAUX-lot 1 : maçonnerie pierre de taille","montant":188521,"date":"2024-02-12","procedure":0,"lots":1,"offres":1},{"objet":"2024 : Création d'un parking","montant":89981,"date":"2024-01-08","procedure":0,"lots":1}]}
+{"m":[{"objet":"FOURS-TRAVAUX-lot 1 : maçonnerie pierre de taille","montant":188521,"date":"2024-02-12","procedure":0,"lots":1,"offres":1,"t":["885750521"]},{"objet":"2024 : Création d'un parking","montant":89981,"date":"2024-01-08","procedure":0,"lots":1,"t":["441775087"]}],"t":{"441775087":"SEYSSEL MACONNERIE","885750521":"COMTE"}}

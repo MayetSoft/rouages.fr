@@ -3343,10 +3343,24 @@ spécialité rare n'a parfois qu'un candidat possible. Le champ arrive en texte
 (« 1 », « MQ NC ») : un premier comptage qui l'attendait en nombre l'avait cru
 vide.
 
-Ce qui n'est pas repris : le titulaire. La source en donne le SIRET, mais le
-nommer demande de lire SIRENE, et la règle des noms vaut pour les
-entrepreneurs individuels. Le code CPV n'est pas publié non plus : il sert au
-tri, pas encore à l'affichage. `npx tsx scripts/marches-emettre.ts` relance
+**Le titulaire de chaque marché est nommé**, d'après SIRENE. La source donne
+son SIRET ; la copie du répertoire que tient Opendatasoft donne le nom, lue
+par lots de cent cinquante SIRET, six à la fois — trois minutes et demie
+pour tout le pays. Sur 83 482 SIRET de titulaires du bloc communal, 83 313
+sont trouvés, **66 756 entreprises nommées** ; 552 établissements restent
+sans nom, parce que l'entrepreneur a demandé la diffusion partielle et que
+le répertoire écrit « [ND] » à sa place. Un entrepreneur individuel est nommé
+sous le nom qu'il a déclaré pour exercer, sinon sous son prénom et son nom.
+Chaque nom renvoie à sa fiche de l'annuaire des entreprises de l'État, et
+la page date la copie de SIRENE (15 août 2026). Un groupement d'entreprises
+en nomme trois au plus, « et 2 autres » au-delà. La justification que la
+règle des noms exige est dans `07-risques.md`, et les oppositions reçues
+vont dans `scripts/oppositions.ts`, qui n'en compte encore aucune. Au
+Mayet-de-Montagne : ADN Travaux publics pour la place de la Mairie et la
+voirie, Alu FR pour les menuiseries de l'école Yves Duteil, Faurie Agri
+Auvergne pour le tracteur.
+
+Le code CPV n'est pas publié : il sert au tri, pas encore à l'affichage. `npx tsx scripts/marches-emettre.ts` relance
 cette seule collecte pour les acheteurs déjà suivis.
 
 ## Phase 3 — Élargir

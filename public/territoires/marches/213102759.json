@@ -1,1 +1,1 @@
-{"m":[{"objet":"BEGUE PHILIPPE","montant":123901,"date":"2024-09-16","procedure":0,"lots":1,"offres":2},{"objet":"LOT 1 DEMOLITION SACCON","montant":52814,"date":"2024-09-16","procedure":0,"lots":1,"offres":1}]}
+{"m":[{"objet":"BEGUE PHILIPPE","montant":123901,"date":"2024-09-16","procedure":0,"lots":1,"offres":2,"t":["331688937"]},{"objet":"LOT 1 DEMOLITION SACCON","montant":52814,"date":"2024-09-16","procedure":0,"lots":1,"offres":1,"t":["398441063"]}],"t":{"331688937":"BEGUE PHILIPPE","398441063":"SOCIETE OCCITANE DE TRAVAUX PUBLICS"}}

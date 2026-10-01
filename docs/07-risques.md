@@ -110,6 +110,30 @@ une entreprise qui a obtenu un marché serait diffamatoire. La collecte qui
 rapproche dit donc sur quoi elle s'appuie — le nom seul, ou le nom avec le
 mois et l'année de naissance et la commune — et la page le montre.
 
+### Les titulaires des marchés publics (1er octobre 2026)
+
+Le bloc des marchés nomme désormais le titulaire de chaque marché. La plupart
+sont des sociétés, mais des entrepreneurs individuels en font partie — un
+artisan, un géomètre, un paysagiste qui exercent en nom propre. Justification,
+comme la règle l'exige avant la collecte :
+
+- **Pourquoi la source le publie.** Les données essentielles de la commande
+  publique sont publiées par obligation légale, pour que chacun sache quel
+  acheteur a confié quoi, à qui et pour combien. Le jeu national donne le SIRET
+  du titulaire ; le répertoire SIRENE donne le nom attaché à ce SIRET, et le
+  publie pour que clients et créanciers sachent avec qui ils traitent.
+- **Ce que la personne peut en attendre.** Qui répond à un marché public sait
+  que l'attribution est publique : c'est la contrepartie de l'argent public.
+  Nommer le titulaire sous le marché qu'il a obtenu reste dans cette finalité.
+- **Ce qui est retenu.** Le nom tel que SIRENE le publie — la dénomination
+  d'une société ; pour un entrepreneur individuel, le nom sous lequel il exerce
+  s'il en a déclaré un, sinon son prénom et son nom. Un lien vers sa fiche de
+  l'annuaire des entreprises de l'État, et la date de la copie du répertoire.
+- **Ce qui ne l'est pas.** L'adresse. L'entrepreneur en diffusion partielle,
+  que le répertoire masque déjà (« [ND] »). Celui qui s'y oppose
+  (`scripts/oppositions.ts`). Et aucun rapprochement avec une autre source :
+  le titulaire est nommé sous le marché, pas suivi d'un acheteur à l'autre.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».

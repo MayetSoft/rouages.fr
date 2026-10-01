@@ -130,5 +130,11 @@ Ce qui est autorisé à ce jour :
   individuel restent comptées, pas nommées : c'est la défaillance d'une
   personne, et le BODACC sert déjà les créanciers qu'elle concerne.
 
+- **les titulaires des marchés publics**, d'après le SIRET que donnent les
+  données essentielles et le nom que publie SIRENE : sous le marché qu'ils ont
+  obtenu, avec un lien vers leur fiche de l'annuaire des entreprises. Mêmes
+  exclusions que ci-dessus pour les entrepreneurs individuels ; les
+  oppositions reçues vont dans `scripts/oppositions.ts`.
+
 Ce qui reste exclu : les particuliers cités dans les délibérations, les
 dirigeants d'associations, toute nuance politique associée à un nom.

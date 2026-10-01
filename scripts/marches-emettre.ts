@@ -44,6 +44,15 @@
  * assistance à maîtrise d'ouvrage durent plus d'un an et ne se repassent pas :
  * voir `PROJET`.
  *
+ * **Qui en est titulaire.** Le jeu donne le SIRET du titulaire ; le nom vient
+ * du répertoire SIRENE, lu par lots de SIRET. La règle des noms
+ * (`CLAUDE.md`) s'applique, et `docs/07-risques.md` la justifie pour ce
+ * cas : la commande publique est publiée pour que chacun sache qui a obtenu
+ * quoi. Un entrepreneur individuel en diffusion partielle n'est pas nommé — le
+ * répertoire masque déjà son identité —, ni celui qui s'y est opposé
+ * (`oppositions.ts`). Chaque nom renvoie à sa fiche de l'annuaire des
+ * entreprises de l'État.
+ *
  * Lancé seul — `npx tsx scripts/marches-emettre.ts` —, il réécrit les
  * fichiers des acheteurs que la dernière ingestion complète a retenus.
  */
@@ -51,6 +60,7 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { telechargerSiAbsent } from './par-departement.ts';
+import { SIREN_OPPOSES } from './oppositions.ts';
 
 const DECP =
   'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides';
@@ -101,6 +111,13 @@ interface LigneDecp {
   codecpv: string | null;
   /** « Accord-cadre », « Sans objet », ou plusieurs techniques séparées de virgules. */
   techniques: string | null;
+  /** Jusqu'à trois titulaires — un groupement d'entreprises en a plusieurs. */
+  titulaire_id_1: string | null;
+  titulaire_typeidentifiant_1: string | null;
+  titulaire_id_2: string | null;
+  titulaire_typeidentifiant_2: string | null;
+  titulaire_id_3: string | null;
+  titulaire_typeidentifiant_3: string | null;
 }
 
 export interface Marche {
@@ -120,6 +137,14 @@ export interface Marche {
    * juge pas — une spécialité rare n'a parfois qu'un candidat possible.
    */
   offres?: number;
+  /**
+   * SIREN des titulaires nommés, trois au plus. Le nom est dans le
+   * dictionnaire `t` du fichier : un même titulaire revient des centaines de
+   * fois, et le répéter pèserait plus lourd que tout le reste.
+   */
+  t?: string[];
+  /** Nombre de titulaires distincts, quand il dépasse ceux qui sont nommés. */
+  tn?: number;
 }
 
 /** Un marché dont l'échéance prévisible tombe dans la fenêtre. */
@@ -166,6 +191,10 @@ export interface Marches {
    * SIRET que d'autres outils, comme Colibre, désignent l'acheteur.
    */
   sirets: Map<string, string>;
+  /** SIREN d'un titulaire -> son nom, tel que le répertoire SIRENE le publie. */
+  titulaires: Map<string, string>;
+  /** Date de la copie du répertoire SIRENE qui a donné les noms (AAAA-MM-JJ), ou null. */
+  sireneMaj: string | null;
   depuis: string;
   maj: string;
 }
@@ -248,13 +277,121 @@ function nettoyer(objet: string): string {
     .trim();
 }
 
+const SIRENE =
+  'https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/economicref-france-sirene-v3';
+
+/** Une unité légale telle que la copie de SIRENE la décrit, champs utiles seulement. */
+interface UniteSirene {
+  siret: string;
+  siren: string;
+  statutdiffusionunitelegale: string | null;
+  categoriejuridiqueunitelegale: string | null;
+  denominationunitelegale: string | null;
+  denominationusuelle1unitelegale: string | null;
+  sigleunitelegale: string | null;
+  nomunitelegale: string | null;
+  nomusageunitelegale: string | null;
+  prenomusuelunitelegale: string | null;
+  prenom1unitelegale: string | null;
+}
+
+/**
+ * Le nom sous lequel le répertoire publie une unité légale, ou null s'il n'en
+ * publie pas.
+ *
+ * Une société : sa dénomination. Un entrepreneur individuel (catégorie 1000) :
+ * le nom sous lequel il exerce s'il en a déclaré un, sinon son prénom et son
+ * nom — c'est sous ce nom que le répertoire le publie, et c'est ce que permet
+ * la règle des noms. En diffusion partielle, rien : le répertoire écrit
+ * « [ND] » à la place de l'identité, et c'est la volonté de la personne.
+ */
+export function nomPublie(u: UniteSirene): string | null {
+  if (u.statutdiffusionunitelegale !== 'O') return null;
+  const lu = (v: string | null) => (v && v.trim() && v.trim() !== '[ND]' ? v.trim() : null);
+  if (u.categoriejuridiqueunitelegale === '1000') {
+    const enseigne = lu(u.denominationusuelle1unitelegale);
+    if (enseigne) return enseigne;
+    const nom = lu(u.nomusageunitelegale) ?? lu(u.nomunitelegale);
+    const prenom = lu(u.prenomusuelunitelegale) ?? lu(u.prenom1unitelegale);
+    return nom ? (prenom ? `${prenom} ${nom}` : nom) : null;
+  }
+  return lu(u.denominationunitelegale) ?? lu(u.denominationusuelle1unitelegale) ?? lu(u.sigleunitelegale);
+}
+
+/** Les SIRET de titulaires d'une ligne : seulement ceux qui en sont. */
+function siretsTitulaires(l: LigneDecp): string[] {
+  const out: string[] = [];
+  for (const [id, type] of [
+    [l.titulaire_id_1, l.titulaire_typeidentifiant_1],
+    [l.titulaire_id_2, l.titulaire_typeidentifiant_2],
+    [l.titulaire_id_3, l.titulaire_typeidentifiant_3],
+  ] as const) {
+    const siret = String(id ?? '').replace(/\s/g, '');
+    if (type === 'SIRET' && /^\d{14}$/.test(siret)) out.push(siret);
+  }
+  return out;
+}
+
+/**
+ * Les noms des titulaires, lus dans la copie de SIRENE par lots de SIRET.
+ *
+ * Par SIRET plutôt que par SIREN : c'est ce que le jeu des marchés donne, et
+ * la copie est indexée par établissement. Fermés compris — un titulaire de
+ * 2023 a pu cesser depuis, il reste celui qui a obtenu le marché. Six lots à
+ * la fois, cent cinquante SIRET par lot : l'adresse reste sous les cinq mille
+ * caractères.
+ */
+async function nommerTitulaires(
+  json: <T>(url: string) => Promise<T>,
+  sirets: string[],
+  dire: (m: string) => void,
+): Promise<{ noms: Map<string, string>; sireneMaj: string | null }> {
+  const noms = new Map<string, string>();
+  const LOT = 150;
+  const champs = [
+    'siret', 'siren', 'statutdiffusionunitelegale', 'categoriejuridiqueunitelegale',
+    'denominationunitelegale', 'denominationusuelle1unitelegale', 'sigleunitelegale',
+    'nomunitelegale', 'nomusageunitelegale', 'prenomusuelunitelegale', 'prenom1unitelegale',
+  ].join(',');
+  const lots: string[][] = [];
+  for (let i = 0; i < sirets.length; i += LOT) lots.push(sirets.slice(i, i + LOT));
+  let trouves = 0;
+  let masques = 0;
+  let suivant = 0;
+  const ouvrier = async () => {
+    while (suivant < lots.length) {
+      const lot = lots[suivant++];
+      const filtre = `siret in (${lot.map((x) => `"${x}"`).join(',')})`;
+      const lignes = await json<UniteSirene[]>(
+        `${SIRENE}/exports/json?select=${champs}&where=${encodeURIComponent(filtre)}`,
+      );
+      for (const u of lignes) {
+        trouves++;
+        const nom = SIREN_OPPOSES.has(u.siren) ? null : nomPublie(u);
+        if (nom) noms.set(u.siren, nom);
+        else masques++;
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, ouvrier));
+  const meta = await json<{ metas?: { default?: { data_processed?: string } } }>(SIRENE).catch(() => null);
+  dire(
+    `  titulaires : ${sirets.length.toLocaleString('fr-FR')} SIRET, ${trouves.toLocaleString('fr-FR')} ` +
+      `trouvés dans SIRENE, ${noms.size.toLocaleString('fr-FR')} unités nommées, ` +
+      `${masques.toLocaleString('fr-FR')} établissements sans nom publiable.`,
+  );
+  return { noms, sireneMaj: meta?.metas?.default?.data_processed?.slice(0, 10) ?? null };
+}
+
 export async function collecterMarches(
   json: <T>(url: string) => Promise<T>,
   sirensSuivis: Set<string>,
   dire: (m: string) => void,
 ): Promise<Marches | null> {
   const url =
-    `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques` +
+    `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques,` +
+    `titulaire_id_1,titulaire_typeidentifiant_1,titulaire_id_2,titulaire_typeidentifiant_2,` +
+    `titulaire_id_3,titulaire_typeidentifiant_3` +
     `&where=${encodeURIComponent(`datenotification>=date'${DEPUIS}'`)}`;
   const lignes = await json<LigneDecp[]>(url);
   if (lignes.length === 0) {
@@ -269,6 +406,9 @@ export async function collecterMarches(
   const totaux = new Map<string, number>();
   const parSiret = new Map<string, Map<string, number>>();
   const inconnues = new Set<string>();
+  // Les SIRET des titulaires de chaque marché regroupé : un accord-cadre
+  // multi-attributaires en a un par lot.
+  const titulairesDe = new Map<Marche, Set<string>>();
   for (const l of lignes) {
     const siren = String(l.acheteur_id ?? '').slice(0, 9);
     if (siren.length !== 9 || !sirensSuivis.has(siren)) continue;
@@ -291,6 +431,7 @@ export async function collecterMarches(
     const vu = m.get(cle);
     if (vu) {
       vu.lots++;
+      for (const x of siretsTitulaires(l)) titulairesDe.get(vu)?.add(x);
     } else {
       // −1 quand le libellé n'est pas dans la liste : le client n'affichera
       // alors pas de procédure, plutôt que d'en inventer une.
@@ -298,7 +439,7 @@ export async function collecterMarches(
       if (proc === -1 && (l.procedure ?? '').trim()) inconnues.add((l.procedure ?? '').trim());
       const duree = entierPositif(l.dureemois);
       const offres = entierPositif(l.offresrecues);
-      m.set(cle, {
+      const nouveau: Echeance | Marche = {
         objet: objet.length > MAX_OBJET ? `${objet.slice(0, MAX_OBJET - 1)}…` : objet,
         // Arrondi à l'euro : les centimes d'un marché de 489 025,50 € ne
         // changent rien à ce qu'on en comprend, et pèsent sur chaque ligne.
@@ -309,9 +450,26 @@ export async function collecterMarches(
         lots: 1,
         ...(offres ? { offres } : {}),
         ...(duree && serenouvelle(l.codecpv, l.techniques, duree) ? { fin: ajouterMois(date, duree) } : {}),
-      });
+      };
+      m.set(cle, nouveau);
+      titulairesDe.set(nouveau, new Set(siretsTitulaires(l)));
     }
     totaux.set(siren, (totaux.get(siren) ?? 0) + 1);
+  }
+
+  // Les noms, puis chaque marché reçoit les SIREN de ceux qu'on peut nommer.
+  // Si SIRENE ne répond pas, les marchés partent sans titulaire plutôt que
+  // de ne pas partir.
+  const tousSirets = [...new Set([...titulairesDe.values()].flatMap((x) => [...x]))].sort();
+  const { noms: titulaires, sireneMaj } = await nommerTitulaires(json, tousSirets, dire).catch((e) => {
+    dire(`  titulaires : SIRENE n'a pas répondu (${e instanceof Error ? e.message : e}), aucun nom.`);
+    return { noms: new Map<string, string>(), sireneMaj: null };
+  });
+  for (const [marche, sirets] of titulairesDe) {
+    const sirens = [...new Set([...sirets].map((x) => x.slice(0, 9)))];
+    const nommes = sirens.filter((x) => titulaires.has(x)).slice(0, 3);
+    if (nommes.length > 0) marche.t = nommes;
+    if (sirens.length > nommes.length && nommes.length > 0) marche.tn = sirens.length;
   }
 
   const maj = new Date().toISOString().slice(0, 10);
@@ -366,6 +524,8 @@ export async function collecterMarches(
     echeances,
     fenetre,
     sirets,
+    titulaires,
+    sireneMaj,
     depuis: DEPUIS,
     maj,
   };
@@ -407,6 +567,10 @@ export function ecrireMarches(
   for (const [code, siren] of [...sirenDeCommune].sort()) {
     if (h[siren]) com[code] = siren;
   }
+  const t = dictionnaireTitulaires(
+    Object.values(h).flatMap((x) => [...x.m, ...(x.e ?? [])]),
+    marches.titulaires,
+  );
   writeFileSync(
     join(sortie, 'dep', `${dep}-marches.json`),
     JSON.stringify({
@@ -414,9 +578,11 @@ export function ecrireMarches(
       depuis: marches.depuis,
       maj: marches.maj,
       fenetre: marches.fenetre,
+      sirene: marches.sireneMaj,
       procedures: PROCEDURES,
       com,
       h,
+      t,
     }),
   );
   return n;
@@ -443,10 +609,21 @@ export function ecrireSuitesMarches(sortie: string, marches: Marches): number {
   let n = 0;
   for (const [siren, liste] of marches.suites) {
     if (liste.length === 0) continue;
-    writeFileSync(join(dossier, `${siren}.json`), JSON.stringify({ m: liste }));
+    const t = dictionnaireTitulaires(liste, marches.titulaires);
+    writeFileSync(join(dossier, `${siren}.json`), JSON.stringify({ m: liste, t }));
     n++;
   }
   return n;
+}
+
+/** Les noms des seuls titulaires qu'une liste cite, triés pour un diff stable. */
+function dictionnaireTitulaires(liste: Marche[], noms: Map<string, string>): Record<string, string> {
+  const t: Record<string, string> = {};
+  for (const siren of [...new Set(liste.flatMap((m) => m.t ?? []))].sort()) {
+    const nom = noms.get(siren);
+    if (nom) t[siren] = nom;
+  }
+  return t;
 }
 
 // Lancé seul : les acheteurs que la dernière ingestion complète a retenus,

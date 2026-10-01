@@ -186,6 +186,10 @@ export interface Marche {
   lots: number;
   /** Nombre d'offres reçues, quand l'acheteur l'a déclaré. */
   offres: number | null;
+  /** Les titulaires nommés, d'après SIRENE : trois au plus. */
+  titulaires: { siren: string; nom: string }[];
+  /** Les titulaires distincts au-delà de ceux qui sont nommés. */
+  autresTitulaires: number;
 }
 
 /** Un marché dont l'échéance prévisible tombe dans la fenêtre du fichier. */
@@ -638,15 +642,21 @@ type MarcheBrut = {
   procedure: number;
   lots: number;
   offres?: number;
+  t?: string[];
+  tn?: number;
 };
 type MarchesDep = {
   depuis: string;
   maj: string;
   /** Absente des fichiers écrits avant l'échéancier. */
   fenetre?: [string, string];
+  /** Date de la copie de SIRENE qui a donné les noms des titulaires. */
+  sirene?: string | null;
   procedures: string[];
   com: Record<string, string>;
   h: Record<string, { n: number; s?: string; m: MarcheBrut[]; ne?: number; e?: (MarcheBrut & { fin: string })[] }>;
+  /** SIREN -> nom des titulaires cités dans le fichier. */
+  t?: Record<string, string>;
 };
 interface FichierFlux {
   annees: number[];
@@ -967,6 +977,8 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
       procedure: d.procedures[m.procedure] ?? null,
       lots: m.lots,
       offres: m.offres ?? null,
+      titulaires: (m.t ?? []).flatMap((x) => (d.t?.[x] ? [{ siren: x, nom: d.t[x] }] : [])),
+      autresTitulaires: Math.max(0, (m.tn ?? 0) - (m.t?.length ?? 0)),
     });
     out.push({
       siren,
@@ -1400,6 +1412,8 @@ export interface ComplementsFiche {
   marchesDepuis: string | null;
   /** Premier et dernier mois de la fenêtre des échéances, ou null si le fichier ne la porte pas. */
   marchesFenetre: [string, string] | null;
+  /** Date de la copie de SIRENE qui nomme les titulaires, ou null si aucun ne l'est. */
+  marchesSirene: string | null;
   /** Les libellés de procédure, pour la suite des marchés chargée à la demande. */
   marchesProcedures: string[];
   deliberations: CollectiviteDelibere[];
@@ -1436,6 +1450,7 @@ export function complementsFiche(
     marches: assemblerMarches(commune, structures),
     marchesDepuis: marchesDep.get(commune.dep)?.depuis ?? null,
     marchesFenetre: marchesDep.get(commune.dep)?.fenetre ?? null,
+    marchesSirene: marchesDep.get(commune.dep)?.sirene ?? null,
     marchesProcedures: marchesDep.get(commune.dep)?.procedures ?? [],
     deliberations: assemblerDeliberations(commune, structures),
     delibDepuis: delibDep.get(commune.dep)?.depuis ?? null,
