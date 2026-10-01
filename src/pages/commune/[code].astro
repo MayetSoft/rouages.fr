@@ -43,6 +43,7 @@ import Echelons from '../../composants/commune/Echelons.astro';
 import Dmto from '../../composants/commune/Dmto.astro';
 import Sru from '../../composants/commune/Sru.astro';
 import Marches from '../../composants/commune/Marches.astro';
+import Representants from '../../composants/commune/Representants.astro';
 import Deliberations from '../../composants/commune/Deliberations.astro';
 import Subventions from '../../composants/commune/Subventions.astro';
 import Associations from '../../composants/commune/Associations.astro';
@@ -295,6 +296,7 @@ const sommaire: [string, string, unknown][] = [
   ['subventions', 'Les subventions', plus.subventions.length > 0],
   ['associations', 'Les associations', (plus.associations && plus.associations.total > 0) || droitLocal],
   ['entreprises', 'Les entreprises', plus.presentes || plus.entreprises],
+  ['representants', 'Les représentants d’intérêts', plus.representants],
   ['travail', 'Le travail', vie.travail],
   ['equipements', 'Ce qu’on trouve sur place', fiche?.equipements],
   ['services', 'Les services', (fiche?.services.length ?? 0) > 0],
@@ -812,6 +814,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             <Entreprises e={plus.entreprises} nom={commune.nom} cp={commune.cp} />
           </>
         )}
+      </section>
+    )}
+
+    {plus.representants && (
+      <section id="representants" class="p-assos">
+        <h2 class="badge">Ses représentants d’intérêts</h2>
+        <Representants r={plus.representants} />
       </section>
     )}
 

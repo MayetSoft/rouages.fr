@@ -186,6 +186,10 @@ export interface Marche {
   lots: number;
   /** Nombre d'offres reçues, quand l'acheteur l'a déclaré. */
   offres: number | null;
+  /** Les titulaires nommés d'après SIRENE : sociétés, et entrepreneurs individuels diffusibles. */
+  titulaires: { siren: string; nom: string }[];
+  /** Les titulaires que le site ne nomme pas. */
+  autresTitulaires: number;
 }
 
 /** Un marché dont l'échéance prévisible tombe dans la fenêtre du fichier. */
@@ -663,6 +667,8 @@ type MarcheBrut = {
   procedure: number;
   lots: number;
   offres?: number;
+  t?: [string, string][];
+  tx?: number;
 };
 type MarchesDep = {
   depuis: string;
@@ -703,6 +709,8 @@ const revenusDep = parDepartement<RevenusDep>('revenus');
 const sireneDep = parDepartement<SireneDep>('sirene');
 const ccasDep = parDepartement<CcasDep>('ccas');
 const entreprisesDep = parDepartement<EntreprisesDep>('entreprises');
+type HatvpDep = { maj: string; c: Record<string, [string, string, string, string[], [string, string][], string][]> };
+const hatvpDep = parDepartement<HatvpDep>('hatvp');
 const electionsDep = parDepartement<ElectionsDep>('elections');
 const delibDep = parDepartement<DelibDep>('deliberations');
 const subvDep = parDepartement<SubvDep>('subventions');
@@ -963,6 +971,41 @@ function assemblerCentres(commune: CommuneFiche): CentresSociaux | null {
   return centres.length > 0 ? { annees: d.annees, agregats: d.agregats, centres, maj: d.maj } : null;
 }
 
+/**
+ * Les représentants d'intérêts dont l'adresse déclarée à la HATVP est dans la
+ * commune, avec leurs dirigeants tels qu'ils les y déclarent.
+ */
+export interface Representants {
+  liste: {
+    nom: string;
+    /** SIREN, numéro RNA ou identifiant attribué par la HATVP : c'est lui qui ouvre la fiche. */
+    id: string;
+    categorie: string;
+    secteurs: string[];
+    dirigeants: { nom: string; fonction: string }[];
+    /** Première inscription au répertoire (AAAA-MM-JJ). */
+    depuis: string;
+  }[];
+  maj: string;
+}
+
+function assemblerRepresentants(commune: CommuneFiche): Representants | null {
+  const d = hatvpDep.get(commune.dep);
+  const l = d?.c[commune.code];
+  if (!d || !l || l.length === 0) return null;
+  return {
+    liste: l.map(([nom, id, categorie, secteurs, dir, depuis]) => ({
+      nom,
+      id,
+      categorie,
+      secteurs,
+      dirigeants: dir.map(([n, f]) => ({ nom: n, fonction: f })),
+      depuis,
+    })),
+    maj: d.maj,
+  };
+}
+
 function assemblerEntreprises(commune: CommuneFiche): Entreprises | null {
   const d = entreprisesDep.get(commune.dep);
   const f = d?.c[commune.code];
@@ -992,6 +1035,8 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
       procedure: d.procedures[m.procedure] ?? null,
       lots: m.lots,
       offres: m.offres ?? null,
+      titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom })),
+      autresTitulaires: m.tx ?? 0,
     });
     out.push({
       siren,
@@ -1418,6 +1463,7 @@ export interface ComplementsFiche {
   niveauDeVie: NiveauDeVie | null;
   centres: CentresSociaux | null;
   entreprises: Entreprises | null;
+  representants: Representants | null;
   presentes: Presentes | null;
   scrutin: Scrutin | null;
   finances: Finances | null;
@@ -1456,6 +1502,7 @@ export function complementsFiche(
     niveauDeVie: assemblerNiveauDeVie(commune),
     centres: assemblerCentres(commune),
     entreprises: assemblerEntreprises(commune),
+    representants: assemblerRepresentants(commune),
     presentes: assemblerPresentes(commune, population),
     scrutin: assemblerScrutin(commune, structures),
     finances: assemblerFinances(commune, population),

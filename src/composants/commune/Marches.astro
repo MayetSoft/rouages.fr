@@ -25,6 +25,12 @@ interface Props {
   procedures: string[];
 }
 const { liste, depuis, fenetre, procedures } = Astro.props;
+/** La fiche publique d'une entreprise, sur l'annuaire de l'État. */
+const FICHE = 'https://annuaire-entreprises.data.gouv.fr/entreprise/';
+const autres = (m: AcheteurMarches['liste'][number]) =>
+  m.autresTitulaires > 0
+    ? `${m.titulaires.length > 0 ? 'et ' : ''}${m.autresTitulaires} titulaire${m.autresTitulaires > 1 ? 's' : ''} non nommé${m.autresTitulaires > 1 ? 's' : ''}`
+    : '';
 const offres = (n: number | null) => (n === null ? [] : [`${n} offre${n > 1 ? 's' : ''} reçue${n > 1 ? 's' : ''}`]);
 const detail = (m: AcheteurMarches['liste'][number]) =>
   [moisAnnee(m.date) ?? m.date, ...(m.procedure ? [m.procedure.toLowerCase()] : []), ...(m.lots > 1 ? [`${m.lots} lots`] : []), ...offres(m.offres)].join(' · ');
@@ -71,6 +77,15 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
           <span>
             <span class="p-marche-objet">{m.objet}</span>
             <span class="p-marche-detail">{`${montantCourt(m.montant)} · ${detailEcheance(m)}`}</span>
+            {m.titulaires.length > 0 && (
+              <span class="p-marche-detail p-marche-titulaires">
+                {'titulaire : '}
+                {m.titulaires.map((t, i) => (
+                  <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                ))}
+                {autres(m) && ` ${autres(m)}`}
+              </span>
+            )}
           </span>
         </li>
       ))}
@@ -100,7 +115,19 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         {a.liste.map((m) => (
           <li>
             <span class="p-marche-montant">{montantCourt(m.montant)}</span>
-            <span><span class="p-marche-objet">{m.objet}</span><span class="p-marche-detail">{detail(m)}</span></span>
+            <span>
+              <span class="p-marche-objet">{m.objet}</span>
+              <span class="p-marche-detail">{detail(m)}</span>
+              {(m.titulaires.length > 0 || m.autresTitulaires > 0) && (
+                <span class="p-marche-detail p-marche-titulaires">
+                  {'titulaire : '}
+                  {m.titulaires.map((t, i) => (
+                    <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                  ))}
+                  {autres(m) && `${m.titulaires.length > 0 ? ' ' : ''}${autres(m)}`}
+                </span>
+              )}
+            </span>
           </li>
         ))}
       </ul>
@@ -122,6 +149,13 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     </Groupe>
   );
 })}
+<p class="p-source-territoire">
+  {'D’après les données essentielles de la commande publique, publiées par le ministère de l’Économie. ' +
+    'Le titulaire y figure par son SIRET ; son nom vient du répertoire SIRENE, et chaque nom mène à sa ' +
+    'fiche sur l’annuaire des entreprises de l’État. Une société est nommée par sa dénomination, un ' +
+    'entrepreneur individuel seulement si le répertoire le dit diffusible ; un titulaire hors de France ou ' +
+    'inconnu du répertoire est compté, pas nommé. Une demande de retrait s’adresse à l’éditeur (voir « Signaler »).'}
+</p>
 <script is:inline type="application/json" id="marches-procedures" set:html={JSON.stringify(procedures).replace(/</g, "\\u003c")} />
 <script>
   /**
@@ -142,7 +176,16 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     if (Math.abs(v) >= 1_000) return `${Math.round(v / 1000).toLocaleString('fr-FR')} k€`;
     return `${Math.round(v).toLocaleString('fr-FR')} €`;
   };
-  type Brut = { objet: string; montant: number | null; date: string; procedure: number; lots: number; offres?: number };
+  type Brut = {
+    objet: string;
+    montant: number | null;
+    date: string;
+    procedure: number;
+    lots: number;
+    offres?: number;
+    t?: [string, string][];
+    tx?: number;
+  };
   const span = (classe: string, texte: string) => {
     const s = document.createElement('span');
     s.className = classe;
@@ -158,6 +201,20 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     if (m.lots > 1) sous.push(`${m.lots} lots`);
     if (m.offres) sous.push(`${m.offres} offre${m.offres > 1 ? 's' : ''} reçue${m.offres > 1 ? 's' : ''}`);
     droite.append(span('p-marche-objet', m.objet), span('p-marche-detail', sous.join(' · ')));
+    if ((m.t ?? []).length > 0 || m.tx) {
+      const t = span('p-marche-detail p-marche-titulaires', 'titulaire : ');
+      (m.t ?? []).forEach(([siren, nom], i) => {
+        if (i > 0) t.append(', ');
+        const a = document.createElement('a');
+        a.href = `https://annuaire-entreprises.data.gouv.fr/entreprise/${siren}`;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = nom;
+        t.append(a);
+      });
+      if (m.tx) t.append(`${(m.t ?? []).length > 0 ? ' et ' : ''}${m.tx} titulaire${m.tx > 1 ? 's' : ''} non nommé${m.tx > 1 ? 's' : ''}`);
+      droite.append(t);
+    }
     li.append(span('p-marche-montant', montantCourt(m.montant)), droite);
     return li;
   };

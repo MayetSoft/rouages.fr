@@ -589,6 +589,8 @@ details.p-marche-acheteur[open] > summary { margin-bottom: .45rem; }
 .p-scrutin-listes, .p-scrutin-sieges {
   font-size: .78rem; color: var(--encre-douce); line-height: 1.45; margin: .35rem 0 0;
 }
+.p-representants { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .6rem; }
+.p-representants li { display: grid; gap: .1rem; }
 .p-scrutin-parliste { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .35rem; }
 .p-scrutin-parliste li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .5rem; font-size: .84rem; }
 .p-scrutin-nomliste { font-weight: 600; }

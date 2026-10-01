@@ -424,6 +424,7 @@ async function principal() {
       async <T,>(url: string) => (await obstine(url)).json() as Promise<T>,
       sirensSuivis,
       (m) => dire(`${GRIS}${m}${RAZ}`),
+      async (url: string) => (await obstine(url)).text(),
     ),
   );
 
@@ -891,6 +892,14 @@ async function principal() {
     ),
   );
   if (entreprises) dire(`${GRIS}${ecrireEntreprises(SORTIE, entreprises)} départements d’annonces d’entreprises écrits.${RAZ}`);
+
+  // Les représentants d'intérêts de la HATVP, rattachés par l'adresse qu'ils
+  // déclarent, avec la même table que le BODACC.
+  const { collecterHatvp, ecrireHatvp } = await import('./hatvp-emettre.ts');
+  const hatvp = await tenter('Représentants d’intérêts (HATVP)', () =>
+    collecterHatvp(telecharger, CACHE, indexDuDecoupage(), (m) => dire(`${GRIS}${m}${RAZ}`)),
+  );
+  if (hatvp) dire(`${GRIS}${ecrireHatvp(SORTIE, hatvp)} départements de représentants d’intérêts écrits.${RAZ}`);
 
   const { collecterAssociations } = await import('./associations-emettre.ts');
   const associations = await tenter('Associations', () =>

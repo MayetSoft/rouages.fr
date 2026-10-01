@@ -619,6 +619,14 @@ surveillances:
     ressource: "dateparution"
     lien: od-bodacc
 
+  - id: hatvp-repertoire
+    nom: "HATVP — répertoire des représentants d'intérêts"
+    alimente: "les représentants d'intérêts installés dans chaque commune, et leurs dirigeants déclarés"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://www.hatvp.fr/open-data-repertoire/"
+    lien: od-hatvp-repertoire
+
   # --- Octobre 2026 : zonages, subventions, loyers, recharge, objets ---------
   - id: anct-croisement
     nom: "ANCT — croisement des dispositifs"
