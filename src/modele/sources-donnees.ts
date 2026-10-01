@@ -335,7 +335,10 @@ const ENTREES: Entree[] = [
   },
   {
     motif: /ADMIN EXPRESS/,
-    liens: [{ titre: 'Contours des communes (Etalab, d’après l’IGN)', url: dg('683424e996857155175d4f68') }],
+    liens: [
+      { titre: 'Admin Express COG, contours des communes (IGN)', url: dg('5808de39c751df1e0679df72') },
+      { titre: 'Admin Express sur la Géoplateforme', url: 'https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetCapabilities' },
+    ],
   },
   {
     motif: /Inventaire national du patrimoine naturel/,

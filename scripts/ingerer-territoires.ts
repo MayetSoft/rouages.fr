@@ -857,9 +857,7 @@ async function principal() {
   if (secheresse) grise(`${ecrireSecheresse(SORTIE, secheresse)} départements de restrictions d’eau écrits.`);
 
   const { collecterContours, ecrireContours } = await import('./contours-emettre.ts');
-  const contours = await tenter('Contours des communes', () =>
-    collecterContours(lireJson, enCache('Etalab — contours des communes (8 Mo)'), CACHE, grise),
-  );
+  const contours = await tenter('Contours des communes', () => collecterContours(CACHE, grise));
   if (contours) grise(`${ecrireContours(SORTIE, contours)} départements de contours écrits.`);
 
   // Les espaces naturels se croisent avec les contours que la collecte précédente vient d'écrire.

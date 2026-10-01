@@ -3209,6 +3209,41 @@ moins de 1 % et 1 % de la commune, et la ZNIEFF des Bois Noirs et des monts de
 la Madeleine sur environ 15 %. À Vichy, la rivière Allier. À Ambert, le parc
 Livradois-Forez.
 
+### La licence de chaque jeu, affichée ; les contours de l'IGN ✔
+
+**Chaque jeu porte sa licence**, relevée sur sa fiche — l'API de data.gouv,
+les métadonnées des portails Opendatasoft et data-fair, les conditions de
+l'INSEE et du Géoportail de l'urbanisme — et déclarée dans
+`contenu/veille.yaml`. `/mentions` range les 75 jeux sous leur licence : 51 en
+Licence Ouverte 2.0, 16 en 1.0, un sans version précisée, quatre en ODbL (les
+effectifs de l'URSSAF, les gares et la fréquentation de la SNCF, les lieux de
+covoiturage), un au choix de chaque publieur (les subventions au schéma), deux
+dont la fiche ne dit rien (les droits de mutation et les dotations de l'OFGL).
+L'ODbL est une licence ouverte, avec une obligation de plus : une base
+dérivée se republie sous ODbL. La validation exige donc, pour chaque jeu sous
+ODbL, la liste des fichiers du dépôt qui en dérivent, et `/mentions` l'affiche.
+L'affirmation « aucun ODbL », répétée dans le README, `LICENSE-CONTENU.md` et
+plus haut dans cette feuille de route, était fausse depuis les gares.
+
+**Les contours de la carte viennent maintenant de l'IGN**, sous Licence
+Ouverte, au lieu du découpage d'Etalab sous ODbL : Admin Express COG au
+découpage 2026, dans sa version la plus précise, lue sur la Géoplateforme par
+pages (420 Mo de JSON, en cache pour la journée). 27,6 millions de sommets,
+ramenés à des limites simplifiées une seule fois chacune et reprises telles
+quelles par les deux communes qu'elles séparent : pas de trou ni de
+chevauchement entre voisines. Trois niveaux : 25 m pour la carte d'une commune
+(199 points pour Le Mayet-de-Montagne, contre 82 avec Etalab), 200 m pour les
+cartes d'intercommunalité et de département, 500 m pour l'encart. Les espaces
+naturels sont recroisés sur ces contours, avec une marge de bord ramenée de
+120 à 50 m.
+
+**Une carte sur la page de chaque intercommunalité et de chaque département**
+(`CarteCommunes.astro`) : toutes les communes, chacune un lien vers sa page,
+et en trait fort la limite du territoire ou celle qui sépare deux
+intercommunalités — un segment qu'une seule commune emprunte, ou que deux
+communes de groupes différents se partagent. Les tracés sont arrondis au pixel
+et écrits en écarts : la carte des 317 communes de l'Allier pèse 86 Ko.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

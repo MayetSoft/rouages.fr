@@ -9,6 +9,8 @@
  * publie en données ouvertes, et le répertoire national des élus ne la refait
  * pas — suppléants et sièges vacants la faussent d'une commune à l'autre.
  */
+import CarteCommunes from './CarteCommunes.astro';
+import { carteDeCommunes } from '../modele/carte.ts';
 import Base from '../layouts/Base.astro';
 import ComptesCollectivite from './ComptesCollectivite.astro';
 import FluxPercus from './commune/FluxPercus.astro';
@@ -70,6 +72,7 @@ const milliards = (v: number) =>
 const n = e.communes.length;
 const nf = (v: number) => v.toLocaleString('fr-FR');
 const zonages = zonagesGroupe(e.communes);
+const carte = carteDeCommunes(e.communes.map((c) => ({ code: c.code, nom: c.nom, groupe: e.siren })));
 const investissement = investissementCollectivite('intercommunalite', e.siren);
 const petiteEnfance = petiteEnfanceCollectivite('intercommunalite', e.siren);
 ---
@@ -90,6 +93,14 @@ const petiteEnfance = petiteEnfanceCollectivite('intercommunalite', e.siren);
       {`${nf(n)} commune${n > 1 ? 's' : ''}, ${nf(e.population)} habitants. Ce que ses communes lui ont transféré, ` +
         `ce qu’elle encaisse et dépense, et ce qu’elle perçoit à leur place.`}
     </p>
+
+    {carte && (
+      <CarteCommunes
+        carte={carte}
+        libelle={`Carte des ${nf(n)} communes de ${e.nom} : ${e.communes.map((c) => c.nom).join(', ')}.`}
+        legende={n > 1 ? 'Chaque commune mène à sa page ; le trait fort est la limite de l’intercommunalité.' : undefined}
+      />
+    )}
 
     {competences.length > 0 && (
       <section id="competences">

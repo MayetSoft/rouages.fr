@@ -18,6 +18,8 @@ import {
 import { communes, intercommunalites, lienIntercommunalite, metaTerritoires } from '../modele/territoires.ts';
 import { investissementCollectivite, petiteEnfanceCollectivite, zonagesGroupe } from '../modele/fiche-vie.ts';
 import ZonagesGroupe from './ZonagesGroupe.astro';
+import CarteCommunes from './CarteCommunes.astro';
+import { carteDeCommunes } from '../modele/carte.ts';
 import Investissement from './commune/Investissement.astro';
 import PetiteEnfance from './commune/PetiteEnfance.astro';
 
@@ -61,6 +63,18 @@ const intercos =
         .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
     : [];
 
+// La carte d'un département : toutes ses communes, la limite entre deux intercommunalités tracée plus fort. Le
+// Rhône et la Métropole de Lyon se partagent un numéro : chacun ne montre que les communes de ses intercommunalités.
+const intercoDe = new Map(intercos.flatMap((e) => e.communes.map((x) => [x.code, e.siren] as const)));
+const carte =
+  c.echelon !== 'departement'
+    ? null
+    : carteDeCommunes(
+        communes()
+          .filter((x) => deps.includes(x.dep) && (!(c.code === '69' || c.code === '691') || intercoDe.has(x.code)))
+          .map((x) => ({ code: x.code, nom: x.nom, groupe: intercoDe.get(x.code) ?? '' })),
+      );
+
 // Le Rhône et la Métropole de Lyon se partagent les mêmes communes, et la CAF
 // ne publie qu'un Rhône entier : ni zonages réunis ni accueil du jeune enfant
 // sous ces deux pages, plutôt qu'un chiffre attribué à la mauvaise.
@@ -93,6 +107,13 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
     <p class="resume">
       {`Ce que la collectivité encaisse et dépense${annee ? ` en ${annee}` : ''}, poste par poste.`}
     </p>
+    {carte && (
+      <CarteCommunes
+        carte={carte}
+        libelle={`Carte des ${carte.communes.length.toLocaleString('fr-FR')} communes de ${c.nom}, avec les limites de ses intercommunalités.`}
+        legende="Chaque commune mène à sa page ; le trait fort sépare les intercommunalités."
+      />
+    )}
     {c.code === '67A' && (
       <p class="p-strate">
         Depuis 2021, la Collectivité européenne d’Alsace exerce les compétences des départements du Bas-Rhin et du
