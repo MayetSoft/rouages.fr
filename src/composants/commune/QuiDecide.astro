@@ -1,0 +1,31 @@
+---
+/**
+ * Qui décide de ce qu'un bloc mesure : une phrase, sous le bloc, dont les
+ * mots clés renvoient aux nœuds du graphe — le préfet, la compétence, l'organisme.
+ *
+ * Les chiffres disent ce qui se passe ; le graphe, à qui s'adresser. Cette
+ * ligne n'est pas repliée avec les réserves : c'est elle qui relie la page de
+ * commune au fonctionnement. Un identifiant inconnu fait échouer le build
+ * plutôt que de laisser un lien mort.
+ */
+import { chargerGraphe } from '../../modele/graphe.ts';
+
+type Morceau = string | { id: string; texte: string } | { href: string; texte: string };
+interface Props {
+  titre?: string;
+  phrase: Morceau[];
+}
+const { titre = 'Qui en décide', phrase } = Astro.props;
+const g = chargerGraphe();
+for (const m of phrase) {
+  if (typeof m !== 'string' && 'id' in m && !g.acteurs.has(m.id) && !g.competences.has(m.id) && !g.processus.has(m.id)) {
+    throw new Error(`Nœud inconnu sous un bloc de la page : ${m.id}`);
+  }
+}
+---
+<p class="c-demarches">
+  <span class="c-demarches-titre">{titre}</span>
+  {phrase.map((m) =>
+    typeof m === 'string' ? m : 'id' in m ? <a href={`/n/${m.id}`}>{m.texte}</a> : <a href={m.href}>{m.texte}</a>,
+  )}
+</p>

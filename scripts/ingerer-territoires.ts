@@ -852,7 +852,7 @@ async function principal() {
 
   const { collecterSecheresse, ecrireSecheresse } = await import('./secheresse-emettre.ts');
   const secheresse = await tenter('Restrictions d’eau', () =>
-    collecterSecheresse(lireJson, enCache('VigiEau — restrictions (8 Mo, 560 Mo décompressé)'), CACHE, grise),
+    collecterSecheresse(lireJson, enCache('VigiEau — historique des restrictions (590 Mo, 12 Go décompressé)'), CACHE, grise),
   );
   if (secheresse) grise(`${ecrireSecheresse(SORTIE, secheresse)} départements de restrictions d’eau écrits.`);
 

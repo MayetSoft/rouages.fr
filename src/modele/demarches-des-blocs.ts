@@ -16,6 +16,8 @@ export const DEMARCHES_DES_BLOCS = {
   'logement-social': ['demande-logement-social'],
   deliberations: ['contester-deliberation', 'document-administratif'],
   equipements: ['inscription-ecole', 'choisir-son-college', 'inscrire-au-transport-scolaire'],
+  travail: ['demande-rsa'],
+  'petite-enfance': ['devenir-assistant-maternel'],
 } as const satisfies Record<string, readonly string[]>;
 
 export type BlocAvecDemarches = keyof typeof DEMARCHES_DES_BLOCS;

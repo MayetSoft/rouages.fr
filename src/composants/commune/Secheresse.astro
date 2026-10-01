@@ -1,8 +1,10 @@
 ---
 /**
  * Les restrictions d'eau pour sécheresse depuis le 1er janvier, d'après
- * VigiEau. Voir `scripts/secheresse-emettre.ts`.
+ * VigiEau, et les années précédentes à date égale. Voir
+ * `scripts/secheresse-emettre.ts`.
  */
+import QuiDecide from './QuiDecide.astro';
 import type { Secheresse } from '../../modele/fiche-vie.ts';
 
 interface Props {
@@ -11,9 +13,9 @@ interface Props {
 const { s } = Astro.props;
 const date = (iso: string) =>
   new Date(`${iso}T00:00:00Z`)
-    .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', timeZone: 'UTC' })
     .replace(/^1 /, '1er ');
-const jours = (n: number) => `${n.toLocaleString('fr-FR')} jour${n > 1 ? 's' : ''}`;
+const jours = (n: number) => (n === 0 ? 'aucun jour' : `${n.toLocaleString('fr-FR')} jour${n > 1 ? 's' : ''}`);
 const NOMS = ['aucune restriction', 'vigilance', 'alerte', 'alerte renforcée', 'crise'];
 const niveaux = [
   ['crise', s.jours.crise, 'arrêt des prélèvements qui ne sont pas prioritaires — seuls restent la santé, la sécurité civile, l’eau potable et la salubrité'],
@@ -22,28 +24,107 @@ const niveaux = [
   ['vigilance', s.jours.vigilance, 'appel à économiser l’eau, sans restriction'],
 ] as const;
 const touches = niveaux.filter(([, n]) => n > 0);
-const total = touches.reduce((t, [, n]) => t + n, 0);
+// La vigilance n'impose rien : sous restriction, c'est en alerte ou plus.
+const restreints = s.jours.alerte + s.jours.renforcee + s.jours.crise;
+const periode = `entre le ${date(s.du)} et le ${date(s.au)} ${s.annee}`;
+
+// Les années précédentes, à date égale.
+const passees = s.parAnnee.filter((a) => a.annee < s.annee);
+const tri = passees.map((a) => a.jours).sort((a, b) => a - b);
+const mediane = tri.length ? (tri.length % 2 ? tri[(tri.length - 1) / 2] : (tri[tri.length / 2 - 1] + tri[tri.length / 2]) / 2) : 0;
+const pire = passees.reduce<{ annee: number; jours: number } | null>((m, a) => (!m || a.jours > m.jours ? a : m), null);
+const premiere = s.parAnnee[0]?.annee;
+const avecHistoire = passees.length >= 5 && s.parAnnee.some((a) => a.jours > 0);
+const comparaison = !avecHistoire
+  ? null
+  : (pire?.jours ?? 0) === 0
+    ? `Aucun jour sous restriction à la même date les années précédentes, depuis ${premiere}.`
+    : restreints > pire!.jours
+    ? `C’est plus qu’aucune année depuis ${premiere} à la même date — la plus touchée jusqu’ici, ${pire!.annee}, en comptait ${pire!.jours.toLocaleString('fr-FR')}.`
+    : `À la même date, la commune en comptait ${mediane.toLocaleString('fr-FR')} une année ordinaire depuis ${premiere} — c’est la médiane —, et ${pire!.jours.toLocaleString('fr-FR')} en ${pire!.annee}, l’année la plus touchée.`;
+
+// Le graphique : une barre par année, celle en cours en couleur.
+const W = 320;
+const H = 96;
+const BAS = 16; // place des années sous l'axe
+const HAUT = 14; // place des valeurs au-dessus des barres
+const n = s.parAnnee.length;
+const pas = W / Math.max(n, 1);
+const largeur = Math.max(pas - 2, 2);
+const max = Math.max(...s.parAnnee.map((a) => a.jours), 1);
+const hauteur = (v: number) => (v / max) * (H - BAS - HAUT);
+const etiquetees = new Set([s.annee, pire?.annee]);
+const resumeGraphique =
+  `Jours sous restriction d’eau, alerte ou plus, du 1er janvier au ${date(s.au)}, de ${premiere} à ${s.annee} : ` +
+  s.parAnnee.map((a) => `${a.annee}, ${a.jours}`).join(' ; ') + '.';
 ---
-{total === 0 ? (
-  <p class="mesure">{`Aucun jour sous restriction d’eau entre le ${date(s.du)} et le ${date(s.au)}.`}</p>
+{restreints === 0 ? (
+  <p class="mesure">
+    {`Aucun jour sous restriction d’eau ${periode}` + (s.jours.vigilance > 0 ? `, mais ${jours(s.jours.vigilance)} en vigilance.` : '.')}
+  </p>
 ) : (
-  <>
-    <p class="mesure">
-      {`${jours(total)} sous restriction d’eau entre le ${date(s.du)} et le ${date(s.au)}` +
-        (s.jours.crise === total ? (total > 1 ? ', tous en crise.' : ', en crise.') : s.jours.crise > 0 ? `, dont ${jours(s.jours.crise)} en crise.` : '.')}
-    </p>
-    <ul class="c-structures">
-      {touches.map(([nom, n, sens]) => <li>{`${jours(n)} en ${nom} — ${sens}.`}</li>)}
-    </ul>
-  </>
+  <p class="mesure">
+    {`${jours(restreints)} sous restriction d’eau ${periode}` +
+      (s.jours.crise === restreints ? (restreints > 1 ? ', tous en crise.' : ', en crise.') : s.jours.crise > 0 ? `, dont ${jours(s.jours.crise)} en crise.` : '.')}
+  </p>
+)}
+{touches.length > 0 && (
+  <ul class="c-structures">
+    {touches.map(([nom, nb, sens]) => <li>{`${jours(nb)} en ${nom} — ${sens}.`}</li>)}
+  </ul>
 )}
 <p class="mesure">{`Le ${date(s.au)}, dernier jour publié : ${NOMS[s.dernier]}.`}</p>
+{avecHistoire && (
+  <figure class="secheresse-annees">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={resumeGraphique}>
+      <line class="secheresse-axe" x1="0" x2={W} y1={H - BAS + 0.5} y2={H - BAS + 0.5} />
+      {s.parAnnee.map((a, i) => {
+        const h = hauteur(a.jours);
+        const x = i * pas + (pas - largeur) / 2;
+        return (
+          <g class={a.annee === s.annee ? 'secheresse-barre courante' : 'secheresse-barre'}>
+            <title>{`${a.annee} : ${jours(a.jours)}`}</title>
+            <rect class="secheresse-cible" x={i * pas} y="0" width={pas} height={H - BAS} />
+            {a.jours > 0 && <rect x={x} y={H - BAS - h} width={largeur} height={h} rx="2" />}
+            {etiquetees.has(a.annee) && a.jours > 0 && (
+              <text class="secheresse-valeur" x={x + largeur / 2} y={H - BAS - h - 3} text-anchor="middle">{a.jours}</text>
+            )}
+            {(i === 0 || i === n - 1 || a.annee === pire?.annee) && (
+              <text
+                class="secheresse-annee"
+                x={i === 0 ? x : i === n - 1 ? x + largeur : x + largeur / 2}
+                y={H - 3}
+                text-anchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}
+              >
+                {a.annee}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+    <figcaption>{`Jours sous restriction, alerte ou plus, du 1er janvier au ${date(s.au)} de chaque année.`}</figcaption>
+  </figure>
+)}
+{comparaison && <p class="mesure">{comparaison}</p>}
+<QuiDecide
+  phrase={[
+    'Le ',
+    { id: 'prefet', texte: 'préfet' },
+    ', zone d’alerte par zone d’alerte, selon les seuils et les mesures fixés à l’avance dans l’',
+    { id: 'restrictions-eau', texte: 'arrêté-cadre du département' },
+    '. Ce qui est interdit ou permis à son adresse : ',
+    { href: 'https://vigieau.gouv.fr/', texte: 'VigiEau' },
+    '.',
+  ]}
+/>
 <p class="p-strate">
   Le préfet restreint séparément trois ressources : l’eau potable du réseau, les eaux souterraines et les cours
   d’eau. Un jour compte au niveau le plus grave des trois — une commune peut être en crise pour les rivières sans
   que l’eau du robinet soit restreinte. Le détail des mesures est dans l’arrêté du préfet, qui peut distinguer
-  plusieurs zones dans le département.
+  plusieurs zones dans le département. Les années précédentes sont comptées à date égale, du 1er janvier au même
+  jour, pour que l’année en cours se compare à quelque chose.
 </p>
 <p class="p-source-territoire">
-  {`D’après VigiEau, le service du ministère de la Transition écologique qui réunit les arrêtés de restriction d’eau des préfets : niveau de chaque commune, jour par jour, en ${s.annee}.`}
+  {`D’après VigiEau, le service du ministère de la Transition écologique qui réunit les arrêtés de restriction d’eau des préfets : niveau de chaque commune, jour par jour, de ${premiere} à ${s.annee}.`}
 </p>

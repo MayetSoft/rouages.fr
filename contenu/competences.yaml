@@ -1076,6 +1076,44 @@ competences:
     verifie_le: 2026-09-22
     confiance: etabli
 
+  - id: subventions-investissement
+    # La commission d'élus fixe les catégories prioritaires et les taux ; elle
+    # ne choisit pas les projets, et n'est consultée sur un projet qu'au-delà de
+    # 100 000 € de subvention.
+    nom: "Subventions d'investissement de l'État aux collectivités"
+    nom_court: "DETR et DSIL"
+    acteur: prefet
+    resume: "La DETR, attribuée par le préfet de département dans le cadre fixé par une commission d'élus, qui donne son avis au-delà de 100 000 € ; la DSIL, par le préfet de région."
+    partagee_avec: [commune, epci]
+    liens: [cgct-l2334-37, cgct-l2334-42, od-dgcl-investissement]
+    verifie_le: 2026-10-01
+    confiance: etabli
+
+  - id: restrictions-eau
+    # Le maire ne décide pas des restrictions : c'est le préfet, zone d'alerte
+    # par zone d'alerte, selon des seuils fixés à l'avance dans l'arrêté-cadre.
+    nom: "Restrictions d'eau en cas de sécheresse"
+    nom_court: "Restrictions d'eau"
+    acteur: prefet
+    resume: "Par zone d'alerte, le préfet restreint les usages de l'eau selon l'arrêté-cadre du département, qui fixe à l'avance les seuils de chaque niveau et les mesures par usage."
+    partagee_avec: [citoyen]
+    liens: [ce-r211-67, vigieau-gouv, code-environnement]
+    verifie_le: 2026-10-01
+    confiance: etabli
+
+  - id: signes-origine
+    nom: "Appellations d'origine et indications géographiques"
+    nom_court: "Appellations"
+    acteur: inao
+    # La procédure nationale d'opposition est ouverte à toute personne,
+    # physique ou morale, pendant deux mois : c'est le seul moment où un
+    # habitant a prise sur un cahier des charges.
+    resume: "Reconnaître un nom protégé, délimiter son aire, contrôler le cahier des charges, à la demande des producteurs réunis en organisme de défense et de gestion. Toute personne peut s'opposer à un projet pendant deux mois ; les ministres homologuent."
+    partagee_avec: [gouvernement, citoyen]
+    liens: [inao-gouv, inao-pno, wp-inao, od-inao-aires]
+    verifie_le: 2026-10-01
+    confiance: etabli
+
   - id: information-risques
     nom: "Information de la population sur les risques majeurs"
     nom_court: "Information des risques"

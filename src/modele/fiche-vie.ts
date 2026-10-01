@@ -138,7 +138,7 @@ type TravailDep = {
 const travailDep = parDepartement<TravailDep>('travail');
 type AppellationsDep = { maj: string; dates: { ao: string; ig: string }; c: Record<string, [string[], string[]]> };
 const appellationsDep = parDepartement<AppellationsDep>('appellations');
-type SecheresseDep = { maj: string; annee: number; du: string; au: string; c: Record<string, [number, number, number, number, number]> };
+type SecheresseDep = { maj: string; annee: number; du: string; au: string; debut: number; c: Record<string, [number, number, number, number, number, number[]]> };
 const secheresseDep = parDepartement<SecheresseDep>('secheresse');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
@@ -530,11 +530,14 @@ export interface Appellations {
 /**
  * Les restrictions d'eau pour sécheresse depuis le 1er janvier, d'après
  * VigiEau : les jours passés à chaque niveau — le plus grave des trois
- * ressources ce jour-là — et le niveau du dernier jour publié (0 : aucune).
+ * ressources ce jour-là —, le niveau du dernier jour publié (0 : aucun), et
+ * les années précédentes à date égale.
  */
 export interface Secheresse {
   jours: { vigilance: number; alerte: number; renforcee: number; crise: number };
   dernier: 0 | 1 | 2 | 3 | 4;
+  /** Jours en alerte ou plus, chaque année depuis `debut`, du 1er janvier au même jour que `au`. */
+  parAnnee: { annee: number; jours: number }[];
   annee: number;
   du: string;
   au: string;
@@ -1032,6 +1035,7 @@ function secheresse(c: CommuneFiche): Secheresse | null {
   return {
     jours: { vigilance: x[0], alerte: x[1], renforcee: x[2], crise: x[3] },
     dernier: x[4] as Secheresse['dernier'],
+    parAnnee: x[5].map((jours, i) => ({ annee: d.debut + i, jours })),
     annee: d.annee,
     du: d.du,
     au: d.au,

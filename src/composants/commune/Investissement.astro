@@ -4,6 +4,7 @@
  * d'investissement attribuées par le préfet, et le Fonds vert. Voir
  * `scripts/investissement-emettre.ts`.
  */
+import QuiDecide from './QuiDecide.astro';
 import type { Investissement } from '../../modele/fiche-vie.ts';
 import Glose from '../Glose.astro';
 
@@ -42,6 +43,17 @@ const MONTRES = 25;
     </ul>
     {n > MONTRES && <p class="mesure">{`Et ${n - MONTRES} autres projets, plus modestes ou plus anciens.`}</p>}
   </>
+)}
+{echelon !== 'departement' && (
+  <QuiDecide
+    phrase={[
+      'La DETR, le ',
+      { id: 'prefet', texte: 'préfet de département' },
+      ', dans le cadre fixé par une commission d’élus, consultée sur chaque projet au-delà de 100 000 € ; la DSIL, le préfet de région. Voir les ',
+      { id: 'subventions-investissement', texte: 'subventions d’investissement de l’État' },
+      '.',
+    ]}
+  />
 )}
 <p class="p-strate">
   <Glose texte={'La DETR — dotation d’équipement des territoires ruraux — et la DSIL — dotation de soutien à l’investissement local — sont des subventions que le préfet accorde projet par projet ; la DPV va aux communes de la politique de la ville. ' +
