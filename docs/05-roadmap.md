@@ -2681,11 +2681,16 @@ n'a pas tenu est dit plus bas.
   renvoie aux zones agricoles défavorisées (vérifié par recherche web) ; la
   liste du ministère de l'Agriculture (2017, « Art 18 ») est reportée sur les
   communes actuelles, « en partie » quand une commune nouvelle n'est pas
-  classée tout entière. 5 990 communes en zone de montagne, 1 642 Petites
+  classée tout entière. Le zonage ABC (liste du ministère chargé du
+  logement, en vigueur au 26 juin 2026), dans les mots du ministère : A bis,
+  A et B1 sont les zones en déséquilibre important. Les quartiers prioritaires
+  de 2024, par commune, avec leur nom ; un quartier sur deux communes compte
+  dans chacune (834 communes). 5 990 communes en zone de montagne, 1 642 Petites
   villes de demain, 244 Action cœur de ville, 3 135 Villages d'avenir. Au
-  Mayet-de-Montagne : zone de montagne, Territoire d'industrie « Riom –
-  Vichy », CRTE Vichy Communauté, aucun programme de commune ; Vichy est en
-  Action cœur de ville, Mayet (Sarthe) en Petites villes de demain.
+  Mayet-de-Montagne : zone de montagne, zone C, Territoire d'industrie « Riom
+  – Vichy », CRTE Vichy Communauté, aucun programme de commune ; Vichy est en
+  zone B2, compte deux quartiers prioritaires et est en Action cœur de ville ;
+  Mayet (Sarthe) est en Petites villes de demain.
 - **Les projets que l'État a subventionnés** (`investissement-emettre.ts`,
   bloc `#investissement`) : la liste de la DGCL des projets financés par la
   DETR, la DSIL et la DPV, et celle du Fonds vert, sur les trois derniers
@@ -2737,9 +2742,9 @@ n'a pas tenu est dit plus bas.
   régionaux. Remplacé par les objets protégés de Palissy.
 - *France ruralités revitalisation* (ex-ZRR) : aucune liste nationale ouverte,
   seulement des listes départementales.
-- *Zonage ABC, zones tendues, loi Littoral, quartiers prioritaires* : jeux
-  repérés, mais leurs ressources n'ont pas répondu depuis l'environnement ;
-  à reprendre.
+- *Loi Littoral* : la ressource du jeu national renvoie une page web, pas le
+  tableur. *Zones tendues* (taxe sur les logements vacants) : pas de liste
+  trouvée en données ouvertes.
 - *Logements sociaux (RPLS)* : pas trouvé de fichier communal national à
   jour. *Covoiturage réalisé* (registre de preuve), *URSSAF*, *France
   Travail*, *INAO*, *environnement* (VigiEau, assainissement, ICPE, INPN…) :
