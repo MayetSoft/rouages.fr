@@ -1059,3 +1059,29 @@ a.p-sommaire-lien { text-decoration: none; }
   .cm-liste a { grid-template-columns: 1fr; }
   .cm-genre { grid-row: auto; }
 }
+
+/* ------------------------------------------------------------------ *
+ * Sources et méthode : l'encadré replié de chaque bloc
+ * ------------------------------------------------------------------ */
+
+.sm { margin: .6rem 0 1rem; max-width: var(--mesure); font-size: .86rem; }
+.sm > summary {
+  display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; list-style: none;
+  padding: .2rem .65rem .2rem .45rem; border: 1px solid var(--trait); border-radius: 999px;
+  color: var(--encre-douce); background: var(--fond-carte); font-size: .8rem;
+}
+.sm > summary::-webkit-details-marker { display: none; }
+.sm > summary:hover, .sm > summary:focus-visible { color: var(--accent); border-color: var(--accent); }
+.sm[open] > summary { color: var(--accent); border-color: var(--accent); }
+.sm-icone { flex: none; }
+.sm-corps {
+  margin-top: .5rem; padding: .7rem .9rem; border-left: 3px solid var(--accent);
+  background: var(--fond-bande); border-radius: 0 var(--rayon) var(--rayon) 0;
+}
+.sm-corps > p { margin: 0 0 .55rem; }
+.sm-corps > p:last-of-type { margin-bottom: 0; }
+.sm-liens { margin: .6rem 0 0; padding: .55rem 0 0 1.1rem; border-top: 1px solid var(--trait); }
+.sm-liens li { margin-bottom: .2rem; }
+@media print {
+  .sm-corps { display: block; }
+}

@@ -2665,6 +2665,32 @@ environnement, le tunnel coupe les gros fichiers de l'INSEE servis compressés,
 qui n'annoncent pas leur longueur : ils ont été repris par `curl -C -`, puis
 contrôlés par `unzip -t`.
 
+### « Sources et méthode » : replié sous chaque bloc, avec les fichiers ✔
+
+Les réserves et les sources rendent les blocs fiables, et faisaient aussi de
+la page de commune un mur de texte. Elles sont désormais repliées, toutes,
+dans un encadré « Sources et méthode » fermé par défaut, signalé par une
+icône d'information. Ouvert, il garde le texte d'avant et ajoute les liens :
+la page du jeu de données et, quand la collecte lit un fichier fixe, le
+fichier lui-même.
+
+Le repli est fait sur le HTML produit (`src/middleware.ts`,
+`modele/replier-sources.ts`) et non dans chacun des cinquante composants :
+ces paragraphes y sont presque toujours conditionnels, et un oubli aurait
+laissé un bloc déplié parmi les autres. Toute suite de paragraphes
+`p-strate` ou `p-source-territoire` devient un encadré ; un composant qui en
+ajoute un est replié sans rien faire. Deux exceptions voulues, parce que leur
+classe est composée : l'avertissement « statut particulier » des comptes, qui
+doit se voir, et la ligne qui date le maire dans l'en-tête.
+
+Les liens viennent de `modele/sources-donnees.ts`, qui reconnaît la source
+nommée dans le paragraphe — « D'après la base Mérimée… » — et jamais dans les
+réserves. Les adresses sont celles des collectes ; les identifiants de jeux
+ont été vérifiés sur l'API de data.gouv.fr, et l'adresse des municipales 2026
+corrigée en chemin : le chemin de fichier du second tour porte « scond », le
+jeu, non. Sur la page du Mayet-de-Montagne, 57 encadrés, dont tous ceux qui
+nomment une source portent au moins un lien.
+
 ### Trois portes : l'accueil, le fonctionnement, les données de chez moi ✔
 
 La carte du réseau était la page d'accueil, et les retours disaient qu'elle
