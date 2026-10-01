@@ -126,6 +126,18 @@ const investissementCollectivites = national<{ maj: string; exercices: number[];
   'investissement-collectivites.json',
 );
 let intercoDe: Map<string, { siren: string; nom: string }> | null = null;
+type TravailDep = {
+  maj: string;
+  debut: number;
+  fin: number;
+  secteurs: string[];
+  debutInscrits: number;
+  finInscrits: number;
+  c: Record<string, [(number | null)[], [number, number, number][], (number | null)[]]>;
+};
+const travailDep = parDepartement<TravailDep>('travail');
+type AppellationsDep = { maj: string; dates: { ao: string; ig: string }; c: Record<string, [string[], string[]]> };
+const appellationsDep = parDepartement<AppellationsDep>('appellations');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -495,6 +507,24 @@ export interface PetiteEnfance {
   maj: string;
 }
 
+/** Les salariés du privé employés dans la commune (URSSAF) et les habitants inscrits à France Travail (DARES). */
+export interface Travail {
+  salaries: (number | null)[];
+  annees: number[];
+  secteurs: { nom: string; salaries: number; etablissements: number }[];
+  inscrits: (number | null)[];
+  anneesInscrits: number[];
+  maj: string;
+}
+
+/** Les appellations dont l'aire comprend la commune, d'après l'INAO ; aucune est une réponse. */
+export interface Appellations {
+  origine: string[];
+  geographiques: string[];
+  dates: { ao: string; ig: string };
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -524,6 +554,8 @@ export interface ComplementsVie {
   loyers: Loyers | null;
   recharge: Recharge | null;
   petiteEnfance: PetiteEnfance | null;
+  travail: Travail | null;
+  appellations: Appellations | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -954,6 +986,28 @@ export function zonagesGroupe(liste: { code: string; dep: string; nom: string }[
   return g;
 }
 
+function travail(c: CommuneFiche): Travail | null {
+  const d = travailDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x) return null;
+  const [salaries, secteurs, inscrits] = x;
+  return {
+    salaries,
+    annees: Array.from({ length: d.fin - d.debut + 1 }, (_, i) => d.debut + i),
+    secteurs: secteurs.map(([k, s, e]) => ({ nom: d.secteurs[k] ?? '', salaries: s, etablissements: e })),
+    inscrits,
+    anneesInscrits: Array.from({ length: d.finInscrits - d.debutInscrits + 1 }, (_, i) => d.debutInscrits + i),
+    maj: d.maj,
+  };
+}
+
+function appellations(c: CommuneFiche): Appellations | null {
+  const d = appellationsDep.get(c.dep);
+  if (!d) return null;
+  const [origine, geographiques] = d.c[c.code] ?? [[], []];
+  return { origine, geographiques, dates: d.dates, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -984,5 +1038,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     loyers: loyers(c),
     recharge: recharge(c),
     petiteEnfance: petiteEnfance(c),
+    travail: travail(c),
+    appellations: appellations(c),
   };
 }

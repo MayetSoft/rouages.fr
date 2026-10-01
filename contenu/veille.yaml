@@ -623,6 +623,27 @@ surveillances:
     url: "https://www.data.gouv.fr/api/2/datasets/5a561801c751df42d7fca9b6/resources/?page_size=5"
     lien: od-qpv
 
+  - id: urssaf-effectifs
+    nom: "URSSAF — effectifs salariés par commune"
+    alimente: "les salariés employés dans la commune"
+    type: disponibilite
+    url: "https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/records?limit=1"
+    lien: od-urssaf-effectifs
+
+  - id: dares-inscrits
+    nom: "DARES — inscrits à France Travail par commune"
+    alimente: "les habitants inscrits à France Travail"
+    type: disponibilite
+    url: "https://data.dares.travail-emploi.gouv.fr/api/explore/v2.1/catalog/datasets/dares_defm_communales-brutes/records?limit=1"
+    lien: od-dares-inscrits
+
+  - id: inao-aires
+    nom: "INAO — aires des appellations"
+    alimente: "les appellations d'origine de la commune"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/53698ec7a3a729239d20356a/resources/?page_size=5"
+    lien: od-inao-aires
+
   - id: palissy
     nom: "Palissy — objets protégés"
     alimente: "les objets mobiliers protégés"

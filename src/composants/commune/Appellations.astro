@@ -1,0 +1,32 @@
+---
+/**
+ * Les appellations dont l'aire comprend la commune, d'après l'INAO. Voir
+ * `scripts/appellations-emettre.ts`.
+ */
+import type { Appellations } from '../../modele/fiche-vie.ts';
+import Glose from '../Glose.astro';
+
+interface Props {
+  a: Appellations;
+}
+const { a } = Astro.props;
+const n = a.origine.length + a.geographiques.length;
+---
+{n === 0 ? (
+  <p class="mesure">La commune n’est dans l’aire d’aucune appellation d’origine ni d’aucune indication géographique.</p>
+) : (
+  <ul class="c-structures">
+    {a.origine.length > 0 && <li><Glose texte={`Appellation${a.origine.length > 1 ? 's' : ''} d’origine (AOC, AOP) : ${a.origine.join(', ')}.`} /></li>}
+    {a.geographiques.length > 0 && (
+      <li><Glose texte={`Indication${a.geographiques.length > 1 ? 's' : ''} géographique${a.geographiques.length > 1 ? 's' : ''} (IGP, IG) : ${a.geographiques.join(', ')}.`} /></li>
+    )}
+  </ul>
+)}
+<p class="p-strate">
+  Être dans l’aire, c’est que ce qui y est produit en suivant le cahier des charges peut porter le nom — pas que
+  quelqu’un le produise ici. Les déclinaisons d’une même indication de vin — « Val de Loire Allier », « Val de Loire
+  Cher »… — sont réunies sous son nom.
+</p>
+<p class="p-source-territoire">
+  {`D’après les listes de communes des aires géographiques des appellations d’origine et des indications géographiques de l’Institut national de l’origine et de la qualité (${a.dates.ao}).`}
+</p>

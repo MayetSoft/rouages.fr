@@ -166,6 +166,15 @@ if (z && (z.montagne !== 'non' || z.programmes.some((p) => ['pvd', 'acv', 'va'].
   });
 }
 
+// Les salariés du privé employés ici, la dernière année publiée.
+const tr = vie.travail;
+if (tr) {
+  const i = tr.salaries.findLastIndex((v) => v !== null);
+  if (i >= 0 && tr.salaries[i]! > 0) {
+    cartes.push({ id: 'travail', nom: 'Salariés du privé employés ici', valeur: nb(tr.salaries[i]!), detail: `au 31 décembre ${tr.annees[i]}` });
+  }
+}
+
 if (plus.presentes) {
   const p = plus.presentes;
   cartes.push({

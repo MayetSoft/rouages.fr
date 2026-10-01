@@ -840,6 +840,16 @@ async function principal() {
   const objets = await tenter('Objets protégés', () => collecterObjets(enCache('Palissy — objets protégés (365 Mo)'), CACHE, grise));
   if (objets) grise(`${ecrireObjets(SORTIE, objets)} départements d’objets protégés écrits.`);
 
+  const { collecterTravail, ecrireTravail } = await import('./travail-emettre.ts');
+  const travail = await tenter('Salariés et inscrits à France Travail', () => collecterTravail(obstine, grise));
+  if (travail) grise(`${ecrireTravail(SORTIE, travail)} départements de travail écrits.`);
+
+  const { collecterAppellations, ecrireAppellations } = await import('./appellations-emettre.ts');
+  const appellations = await tenter('Appellations de l’INAO', () =>
+    collecterAppellations(lireJson, enCache('INAO — aires des appellations (45 Mo)'), CACHE, grise),
+  );
+  if (appellations) grise(`${ecrireAppellations(SORTIE, appellations)} départements d’appellations écrits.`);
+
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));
   if (petiteEnfance) {
