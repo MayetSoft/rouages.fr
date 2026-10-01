@@ -3267,6 +3267,35 @@ publiée par l'État (`modele/sites-complementaires.ts`). Rien n'en est repris.
   marchés, « pour qui achète ou répond » : des outils et une veille, pas des
   données sur la commune.
 
+### Les zones tendues, et ce qui ne passe pas encore ✔
+
+**Les zones tendues** s'ajoutent au bloc des zonages, d'après la liste du
+ministère chargé du logement au décret du 22 décembre 2025 : 1 430 communes en
+zone tendue, 2 259 en zone touristique et tendue. La ligne dit ce que le
+classement entraîne — la taxe sur les logements vacants, la majoration
+possible de la taxe d'habitation sur les résidences secondaires, ou à défaut
+la taxe d'habitation sur les logements vacants que la commune peut instituer.
+Brest et Clermont-Ferrand n'y sont pas, Rennes et Lyon si : c'est la liste.
+
+**Ce qui ne passe pas, et pourquoi.**
+
+- *Installations classées et registre des émissions polluantes* : l'API de
+  Géorisques coupe la connexion depuis l'environnement de développement, et
+  les fichiers de `files.georisques.fr` y répondent 403. Une collecte écrite
+  sans avoir vu une réponse publierait des chiffres non vérifiés : elle se
+  fera depuis la CI, en commençant par une sonde qui montre la forme des
+  données.
+- *Assainissement collectif* : l'extraction SISPEA existe, avec le prix au
+  mètre cube (D204.0, médiane nationale 2,20 € en 2024), mais elle ne donne
+  que le nombre de communes adhérentes d'un service, pas leur liste, et
+  désigne parfois une intercommunalité par le SIREN de celle qui l'a précédée
+  — Vichy Communauté y est encore la communauté d'agglomération de Vichy Val
+  d'Allier, pour 31 communes sur 39. Attribuer ce prix au Mayet-de-Montagne
+  serait une supposition.
+- *Logements sociaux (RPLS)* : le service statistique ne publie en national
+  que le fichier détaillé logement par logement ; le recensement, déjà lu,
+  donne la part de locataires HLM de chaque commune.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
