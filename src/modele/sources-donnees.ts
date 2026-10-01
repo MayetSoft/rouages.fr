@@ -53,6 +53,10 @@ const ENTREES: Entree[] = [
     liens: [{ titre: 'Dotations des communes (OFGL)', url: ofgl('dotations-communes') }],
   },
   {
+    motif: /projets financés par les dotations de soutien à l.investissement/i,
+    liens: [{ titre: 'Projets financés par les dotations d’investissement (DGCL)', url: dg('6176785207139a929a2776fe') }],
+  },
+  {
     motif: /droits de mutation|\bDMTO\b|recettes mensuelles publiées par la direction générale des finances publiques/i,
     liens: [{ titre: 'Droits de mutation à titre onéreux (DGFiP)', url: 'https://data.economie.gouv.fr/explore/dataset/dmto_attrib/' }],
   },

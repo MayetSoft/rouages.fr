@@ -820,6 +820,12 @@ async function principal() {
   );
   if (zonages) grise(`${ecrireZonages(SORTIE, zonages)} départements de zonages écrits.`);
 
+  const { collecterInvestissement, ecrireInvestissement } = await import('./investissement-emettre.ts');
+  const investissement = await tenter('Subventions d’investissement de l’État', () =>
+    collecterInvestissement(lireJson, enCache('DGCL — projets subventionnés (10 Mo)'), CACHE, grise),
+  );
+  if (investissement) grise(`${ecrireInvestissement(SORTIE, investissement)} départements de projets subventionnés écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),

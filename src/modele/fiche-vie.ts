@@ -102,6 +102,8 @@ type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<st
 const productionDep = parDepartement<ProductionDep>('production');
 type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
 const monumentsDep = parDepartement<MonumentsDep>('monuments');
+type InvestissementDep = { maj: string; exercices: number[]; c: Record<string, [number, string, string, number, number][]> };
+const investissementDep = parDepartement<InvestissementDep>('investissement');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -407,6 +409,16 @@ export interface Zonages {
   maj: string;
 }
 
+/**
+ * Les projets de la commune que l'État a subventionnés au titre de ses
+ * dotations d'investissement (DETR, DSIL, DPV) ; aucun est une réponse.
+ */
+export interface Investissement {
+  projets: { annee: number; dispositif: string; intitule: string; cout: number; subvention: number }[];
+  exercices: number[];
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -432,6 +444,7 @@ export interface ComplementsVie {
   monuments: Monuments | null;
   lieux: Lieux | null;
   zonages: Zonages | null;
+  investissement: Investissement | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -721,6 +734,16 @@ function zonages(c: CommuneFiche): Zonages | null {
   };
 }
 
+function investissement(c: CommuneFiche): Investissement | null {
+  const d = investissementDep.get(c.dep);
+  if (!d) return null;
+  return {
+    projets: (d.c[c.code] ?? []).map(([annee, dispositif, intitule, cout, subvention]) => ({ annee, dispositif, intitule, cout, subvention })),
+    exercices: d.exercices,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -747,5 +770,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     monuments: monuments(c),
     lieux: lieux(c),
     zonages: zonages(c),
+    investissement: investissement(c),
   };
 }

@@ -422,6 +422,21 @@ sigles:
     sigle: RER
     developpe: "Réseau express régional d'Île-de-France"
     definition: "Lignes de train de banlieue qui traversent Paris, exploitées selon les tronçons par la RATP ou par SNCF."
+  - id: sigle-detr
+    sigle: DETR
+    developpe: "Dotation d'équipement des territoires ruraux"
+    definition: "Subvention d'investissement que le préfet accorde, projet par projet, aux communes et intercommunalités rurales."
+    liens: [od-dgcl-investissement]
+  - id: sigle-dsil
+    sigle: DSIL
+    developpe: "Dotation de soutien à l'investissement local"
+    definition: "Subvention d'investissement que l'État accorde, projet par projet, aux communes et intercommunalités."
+    liens: [od-dgcl-investissement]
+  - id: sigle-dpv
+    sigle: DPV
+    developpe: "Dotation politique de la ville"
+    definition: "Subvention d'investissement réservée aux communes qui comptent des quartiers prioritaires de la politique de la ville."
+    liens: [od-dgcl-investissement]
   - id: sigle-crte
     sigle: CRTE
     developpe: "Contrat pour la réussite de la transition écologique"

@@ -1,0 +1,46 @@
+---
+/**
+ * Ce que l'État a subventionné ici, projet par projet : les dotations
+ * d'investissement attribuées par le préfet. Voir
+ * `scripts/investissement-emettre.ts`.
+ */
+import type { Investissement } from '../../modele/fiche-vie.ts';
+import Glose from '../Glose.astro';
+
+interface Props {
+  i: Investissement;
+}
+const { i } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const euros = (v: number) => `${nf(v)} €`;
+const periode = `${i.exercices[0]} à ${i.exercices[i.exercices.length - 1]}`;
+const total = i.projets.reduce((s, p) => s + p.subvention, 0);
+const cout = i.projets.reduce((s, p) => s + p.cout, 0);
+const n = i.projets.length;
+const MONTRES = 25;
+---
+{n === 0 ? (
+  <p class="mesure">
+    <Glose texte={`Aucun projet de la commune subventionné par la DETR, la DSIL ou la DPV de ${periode}.`} />
+  </p>
+) : (
+  <>
+    <p class="mesure">
+      <Glose texte={`De ${periode}, l’État a subventionné ${n} projet${n > 1 ? 's' : ''} de la commune au titre de ses dotations d’investissement : ${euros(total)} de subventions, pour ${euros(cout)} de travaux hors taxes.`} />
+    </p>
+    <ul class="c-structures">
+      {i.projets.slice(0, MONTRES).map((p) => (
+        <li><Glose texte={`${p.annee} · ${p.dispositif} — ${p.intitule} : ${euros(p.subvention)} sur ${euros(p.cout)}`} /></li>
+      ))}
+    </ul>
+    {n > MONTRES && <p class="mesure">{`Et ${n - MONTRES} autres projets, plus modestes ou plus anciens.`}</p>}
+  </>
+)}
+<p class="p-strate">
+  <Glose texte={'La DETR — dotation d’équipement des territoires ruraux — et la DSIL — dotation de soutien à l’investissement local — sont des subventions que le préfet accorde projet par projet ; la DPV va aux communes de la politique de la ville. ' +
+    'Ce n’est pas la dotation globale de fonctionnement, qui est un autre bloc. Un projet porté par l’intercommunalité ou un syndicat n’est pas compté ici : la liste ne dit pas où il se trouve. ' +
+    'Les intitulés sont ceux qu’a saisis la préfecture, accents manquants compris.'} />
+</p>
+<p class="p-source-territoire">
+  {`D’après la liste des projets financés par les dotations de soutien à l’investissement des collectivités, publiée par la direction générale des collectivités locales, exercices ${periode} (${i.maj}).`}
+</p>

@@ -566,3 +566,4 @@ sources:
   - { id: dila-api-bodacc, type: page_officielle, titre: "DILA — le service de données du BODACC, bulletin annexé au Journal officiel", url: "https://www.dila.gouv.fr/services/api/api-bodacc-bulletin-officiel-des-annonces-civiles-et-commerciales-124/", consulte_le: 2026-09-25 }
   # --- Programmes de l'ANCT et zone de montagne ------------------------------
   - { id: od-anct-crte, type: donnees_ouvertes, titre: "ANCT — contrats pour la réussite de la transition écologique et leurs communes", url: "https://www.data.gouv.fr/datasets/60799532757dbdef335c00c5/", consulte_le: 2026-10-01 }
+  - { id: od-dgcl-investissement, type: donnees_ouvertes, titre: "DGCL — projets financés par les dotations de soutien à l'investissement des collectivités (DETR, DSIL, DPV)", url: "https://www.data.gouv.fr/datasets/6176785207139a929a2776fe/", consulte_le: 2026-10-01 }
