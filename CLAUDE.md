@@ -110,16 +110,7 @@ peut figurer dans `public/territoires/` **si toutes ces conditions tiennent** :
    d'origine.**
 3. **Le site ne conclut rien.** Il montre le fait et nomme le décideur, sans
    qualificatif et sans rapprochement présenté comme un constat.
-4. **Minimisation.** Le nom, le prénom, la qualité qui justifie la
-   publication, la commune. Jamais l'adresse personnelle, la date de
-   naissance ni l'âge.
-5. **Aucun index par personne.** Une personne n'est ni un nœud, ni une page,
-   ni une entrée de la recherche. Et on ne rapproche pas automatiquement un nom
-   d'une source avec le même nom dans une autre : il n'existe pas
-   d'identifiant commun entre le répertoire des élus et SIRENE, les homonymes
-   sont nombreux, et un rapprochement faux entre un élu et une entreprise
-   serait diffamatoire. Un tel recoupement demande une décision à part.
-6. **Le retrait est possible.** Une opposition reçue par `/signaler` est
+4. **Le retrait est possible.** Une opposition reçue par `/signaler` est
    appliquée à l'ingestion suivante, et `/mentions` dit ce qui est collecté.
 
 Ce qui est autorisé à ce jour :
@@ -127,6 +118,9 @@ Ce qui est autorisé à ce jour :
 - **les élus exécutifs** — maire et adjoints — d'après le répertoire national
   des élus : nom, prénom, fonction, date de prise de fonction. Les autres
   conseillers restent décrits en agrégats ;
+- **la date de naissance**, quand une source la donne, au mois et à l'année
+  seulement, comme l'INPI la diffuse pour les dirigeants. Le répertoire des
+  élus publie le jour : on ne le reprend pas ;
 - **les entrepreneurs individuels** d'après SIRENE et le BODACC : le nom tel
   que publié, l'activité, la commune, le lien vers la fiche ou l'annonce.
   Jamais un entrepreneur en **diffusion partielle** au répertoire SIRENE — il
