@@ -113,6 +113,11 @@ peut figurer dans `public/territoires/` **si toutes ces conditions tiennent** :
 4. **Le retrait est possible.** Une opposition reçue par `/signaler` est
    appliquée à l'ingestion suivante, et `/mentions` dit ce qui est collecté.
 
+Les empreintes de conseillers sans fonction reposent sur le secret privé
+`ROUAGES_RETRAITS_SECRET` (au moins 32 octets aléatoires), configuré dans GitHub
+Actions et dans l'environnement de l'ingestion locale. Ne jamais le publier ni
+le changer tant qu'une empreinte correspondante reste dans `retraits.yaml`.
+
 Ce qui est autorisé à ce jour :
 
 - **les membres du conseil municipal** — maire, adjoints, conseillers —

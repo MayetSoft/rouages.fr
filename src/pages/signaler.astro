@@ -75,10 +75,11 @@ const fiches = reseau.noeuds.map((n) => {
 
     <h2 class="badge" id="retrait">Ne plus être nommé</h2>
     <p>
-      Le site nomme le maire et ses adjoints, et les entreprises dont le BODACC
-      publie une annonce — <a href="/mentions">les mentions</a> disent d’où et
-      à quelles conditions. Pour demander à ne plus y figurer, n’ouvrez pas
-      d’issue publique&nbsp;: écrivez à l’éditeur{courriel ? (
+      Le site nomme le maire et ses adjoints, les entreprises dont le BODACC
+      publie une annonce, et les titulaires des marchés publics — <a
+        href="/mentions">les mentions</a
+      > disent d’où et à quelles conditions. Pour demander à ne plus y figurer,
+      n’ouvrez pas d’issue publique&nbsp;: écrivez à l’éditeur{courriel ? (
         <>, à <a href={`mailto:${courriel}?subject=${encodeURIComponent('Demande de retrait')}`}>{courriel}</a></>
       ) : contact ? ` (${contact})` : ''}, en indiquant la page concernée.
     </p>
