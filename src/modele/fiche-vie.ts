@@ -116,7 +116,7 @@ const petiteEnfanceFichier = national<{ maj: string; annee: number; france: Couv
   'petite-enfance.json',
 );
 let intercoDe: Map<string, { siren: string; nom: string }> | null = null;
-type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2]> };
+type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
 const lieuxDep = parDepartement<LieuxDep>('lieux');
@@ -419,6 +419,9 @@ export interface Zonages {
   territoireIndustrie: string | null;
   crte: string | null;
   montagne: 'non' | 'oui' | 'en partie';
+  /** La zone du zonage ABC — A bis, A, B1, B2, C —, ou null si inconnue. */
+  abc: string | null;
+  quartiersPrioritaires: string[];
   dates: Record<string, string>;
   maj: string;
 }
@@ -794,12 +797,14 @@ function lieux(c: CommuneFiche): Lieux | null {
 function zonages(c: CommuneFiche): Zonages | null {
   const d = zonagesDep.get(c.dep);
   if (!d) return null;
-  const [programmes, ti, crte, m] = d.c[c.code] ?? [[], '', '', 0];
+  const [programmes, ti, crte, m, abc, quartiers] = d.c[c.code] ?? [[], '', '', 0];
   return {
     programmes,
     territoireIndustrie: ti || null,
     crte: crte || null,
     montagne: m === 1 ? 'oui' : m === 2 ? 'en partie' : 'non',
+    abc: abc || null,
+    quartiersPrioritaires: quartiers ?? [],
     dates: d.dates,
     maj: d.maj,
   };

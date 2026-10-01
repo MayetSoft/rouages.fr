@@ -609,6 +609,20 @@ surveillances:
     url: "https://data.caf.fr/api/explore/v2.1/catalog/datasets/txcouv_pe_epci/records?limit=1"
     lien: od-caf-accueil-jeune-enfant
 
+  - id: zonage-abc
+    nom: "Zonage ABC — liste des communes"
+    alimente: "le zonage ABC de la commune"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/656715871172d08f8f680063/resources/?page_size=5"
+    lien: od-zonage-abc
+
+  - id: qpv-2024
+    nom: "Quartiers prioritaires de la politique de la ville"
+    alimente: "les quartiers prioritaires de la commune"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/5a561801c751df42d7fca9b6/resources/?page_size=5"
+    lien: od-qpv
+
   - id: palissy
     nom: "Palissy — objets protégés"
     alimente: "les objets mobiliers protégés"

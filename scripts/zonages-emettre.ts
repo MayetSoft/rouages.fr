@@ -24,6 +24,14 @@
  * nouvelle formée depuis est en zone de montagne si l'une de ses anciennes
  * communes l'était, « en partie » si toutes ne l'étaient pas.
  *
+ * **Le zonage ABC** classe les communes selon le déséquilibre entre l'offre et
+ * la demande de logements — A bis, A, B1, B2, C, par tension décroissante —,
+ * d'après la liste du ministère chargé du logement ; il règle l'accès au prêt
+ * à taux zéro, aux aides à l'investissement locatif et leurs plafonds.
+ * **Les quartiers prioritaires** de la politique de la ville (2024) : leur
+ * liste, par commune, d'après l'ANCT ; un quartier à cheval sur deux
+ * communes compte dans chacune.
+ *
  * Lancé seul — `tsx scripts/zonages-emettre.ts` —, il réécrit les fichiers
  * `public/territoires/dep/XX-zonages.json`.
  */
@@ -40,6 +48,8 @@ export const JEUX = {
   ti: '5fc1472f114718d419e42f8a',
   crte: '60799532757dbdef335c00c5',
   croisement: '617322c7c8e7b27041570e71',
+  abc: '656715871172d08f8f680063',
+  qpv: '5a561801c751df42d7fca9b6',
 } as const;
 export const MONTAGNE =
   'https://agriculture.gouv.fr/telecharger/119649?token=546df48fb3ab2cf098f40d87928c6013edeaa8116e31dfa6be1e582ec0032c85';
@@ -50,9 +60,10 @@ export type Programme = 'pvd' | 'acv' | 'va' | keyof typeof DU_CROISEMENT;
 
 /**
  * Par commune : ses programmes, le nom de son Territoire d'industrie et de son
- * CRTE (vides s'il n'y en a pas), et la montagne — 0 non, 1 oui, 2 en partie.
+ * CRTE (vides s'il n'y en a pas), la montagne — 0 non, 1 oui, 2 en partie —,
+ * sa zone ABC (vide si inconnue) et le nom de ses quartiers prioritaires.
  */
-export type ZonagesCommune = [Programme[], string, string, 0 | 1 | 2];
+export type ZonagesCommune = [Programme[], string, string, 0 | 1 | 2, string, string[]];
 
 export interface Zonages {
   maj: string;
@@ -85,7 +96,13 @@ async function* lignes(chemin: string, separateur: ',' | ';') {
       col = Object.fromEntries(v.map((n, i) => [n.trim().replace(/^﻿/, ''), i]));
       continue;
     }
-    yield (nom: string) => (col![nom] === undefined ? undefined : (v[col![nom]] ?? '').trim());
+    const lire = (nom: string) => (col![nom] === undefined ? undefined : (v[col![nom]] ?? '').trim());
+    // Une colonne dont le nom change — il porte une date —, cherchée par motif.
+    lire.colonne = (motif: RegExp) => {
+      const nom = Object.keys(col!).find((n) => motif.test(n));
+      return nom === undefined ? undefined : (v[col![nom]] ?? '').trim();
+    };
+    yield lire;
   }
 }
 
@@ -194,20 +211,59 @@ export async function collecterZonages(
     montagne.set(code, entiere ? 1 : 2);
   }
 
+  // Le zonage ABC : la liste complète en vigueur, la plus récente.
+  const abc = new Map<string, string>();
+  {
+    const vers = await lire('abc', JEUX.abc, /^liste ensemble des communes/i);
+    for await (const v of lignes(vers, ';')) {
+      const code = actuelle(v('CODGEO') ?? '');
+      // La colonne porte la date dans son nom : « Zonage ABC en vigueur depuis le 26 juin 2026 ».
+      const zone = (v.colonne(/^zonage abc/i) ?? '').trim().toUpperCase().replace(/\s+/g, ' ');
+      if (code && /^(A BIS|ABIS|A|B1|B2|C)$/.test(zone)) abc.set(code, zone.replace('ABIS', 'A BIS'));
+    }
+    if (abc.size < 30000) {
+      dire(`Zonages : ${abc.size} communes seulement au zonage ABC, on garde l’ingestion précédente.`);
+      return null;
+    }
+  }
+  // Les quartiers prioritaires de 2024, par commune.
+  const qpv = new Map<string, string[]>();
+  {
+    const vers = await lire('qpv', JEUX.qpv, /liste des quartiers prioritaires de la politique de la ville 2024/i);
+    let n = 0;
+    for await (const v of lignes(vers, ';')) {
+      const nom = (v('lib_qp') ?? '').trim();
+      // « ="03095;03310" » : le code est protégé contre les tableurs, et un quartier peut couvrir deux communes.
+      for (const brut of (v('insee_com') ?? '').replace(/[^\d;AB]/g, '').split(';')) {
+        const code = actuelle(brut);
+        if (!code || !nom) continue;
+        qpv.set(code, [...(qpv.get(code) ?? []), nom]);
+      }
+      n++;
+    }
+    if (n < 1000) {
+      dire(`Zonages : ${n} quartiers prioritaires seulement, on garde l’ingestion précédente.`);
+      return null;
+    }
+  }
+
   const communes = new Map<string, ZonagesCommune>();
   const ordre: Programme[] = ['pvd', 'acv', 'va', 'ami', 'amm', 'cite', 'cde', 'fabp', 'habinclus'];
   for (const code of actuelles) {
     const p = programmes.get(code);
     const [nomTi, nomCrte] = nomDe.get(code) ?? ['', ''];
     const m = montagne.get(code) ?? 0;
-    if (!p && !nomTi && !nomCrte && !m) continue;
-    communes.set(code, [ordre.filter((x) => p?.has(x)), nomTi, nomCrte, m]);
+    const zone = abc.get(code) ?? '';
+    const quartiers = (qpv.get(code) ?? []).sort((x, y) => x.localeCompare(y, 'fr'));
+    if (!p && !nomTi && !nomCrte && !m && !zone && quartiers.length === 0) continue;
+    communes.set(code, [ordre.filter((x) => p?.has(x)), nomTi, nomCrte, m, zone, quartiers]);
   }
   const compte = (p: Programme) => [...communes.values()].filter((x) => x[0].includes(p)).length;
   dire(
     `Zonages : ${communes.size.toLocaleString('fr-FR')} communes ; Petites villes de demain ${compte('pvd')}, ` +
       `Action cœur de ville ${compte('acv')}, Villages d’avenir ${compte('va')}, ` +
-      `zone de montagne ${montagne.size.toLocaleString('fr-FR')}.`,
+      `zone de montagne ${montagne.size.toLocaleString('fr-FR')}, zonage ABC ${abc.size.toLocaleString('fr-FR')}, ` +
+      `communes à quartier prioritaire ${qpv.size.toLocaleString('fr-FR')}.`,
   );
   return { maj: new Date().toISOString().slice(0, 10), dates, communes };
 }

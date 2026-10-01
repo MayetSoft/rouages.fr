@@ -326,6 +326,14 @@ const ENTREES: Entree[] = [
       { titre: 'Territoires d’industrie (ANCT)', url: dg('5fc1472f114718d419e42f8a') },
       { titre: 'Contrats pour la réussite de la transition écologique (ANCT)', url: dg('60799532757dbdef335c00c5') },
       { titre: 'Croisement des dispositifs de l’ANCT', url: dg('617322c7c8e7b27041570e71') },
+      { titre: 'Quartiers prioritaires de la politique de la ville (ANCT)', url: dg('5a561801c751df42d7fca9b6') },
+    ],
+  },
+  {
+    motif: /zonage ABC/i,
+    liens: [
+      { titre: 'Liste des communes selon le zonage ABC', url: dg('656715871172d08f8f680063') },
+      { titre: 'Le zonage A, B, C expliqué (ministère)', url: 'https://www.ecologie.gouv.fr/politiques-publiques/zonage-b-c' },
     ],
   },
   {
