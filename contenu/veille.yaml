@@ -14,6 +14,7 @@ surveillances:
     nom: "BANATIC — référentiel des compétences"
     alimente: "les compétences transférées à l'intercommunalité"
     type: banatic-competences
+    licence: licence-ouverte-2.0
     url: "https://www.banatic.interieur.gouv.fr/consultation/api/referentiel/competence/all"
     lien: od-banatic
 
@@ -21,6 +22,7 @@ surveillances:
     nom: "BANATIC — export national des groupements"
     alimente: "le rattachement de chaque commune à ses groupements"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.banatic.interieur.gouv.fr/consultation/api/export/pregenere/telecharger/France"
     lien: od-banatic
 
@@ -28,6 +30,7 @@ surveillances:
     nom: "OFGL — comptes consolidés des communes"
     alimente: "les repères financiers"
     type: ofgl-millesime
+    licence: licence-ouverte-2.0
     url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes-consolidee"
     lien: od-ofgl
 
@@ -40,6 +43,7 @@ surveillances:
     nom: "OFGL — comptes des groupements à fiscalité propre"
     alimente: "les flux perçus par l'intercommunalité"
     type: ofgl-millesime
+    licence: licence-ouverte-2.0
     echelon: groupement
     url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-gfp"
     lien: od-ofgl-flux
@@ -48,6 +52,7 @@ surveillances:
     nom: "SISPEA — services publics d'eau potable"
     alimente: "le prix de l'eau"
     type: sispea-millesime
+    licence: licence-ouverte-2.0
     url: "https://data.ofb.fr/catalogue/srv/api/records/7d6a3010-cf19-42c3-8a38-9823074185ce"
     lien: od-sispea
 
@@ -55,6 +60,7 @@ surveillances:
     nom: "Découpage administratif"
     alimente: "communes, départements, régions"
     type: paquet-npm
+    licence: licence-ouverte
     url: "@etalab/decoupage-administratif"
     lien: od-datagouv
 
@@ -62,6 +68,7 @@ surveillances:
     nom: "Annuaire de l'éducation"
     alimente: "les écoles, collèges et lycées de chaque commune"
     type: opendatasoft-total
+    licence: licence-ouverte-2.0
     url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education"
     attendu: 68939
     lien: od-annuaire-education
@@ -78,6 +85,7 @@ surveillances:
     nom: "Droits de mutation — recettes par attributaire"
     alimente: "ce que rapporte une vente immobilière au département et aux communes"
     type: opendatasoft-total
+    licence: non-precisee
     url: "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/dmto_attrib"
     # Relevé au 19 septembre 2026, pas estimé.
     attendu: 34935
@@ -87,6 +95,7 @@ surveillances:
     nom: "Commande publique — marchés valides"
     alimente: "ce que commandent la commune et ses syndicats"
     type: opendatasoft-total
+    licence: licence-ouverte-2.0
     url: "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides"
     # Relevé au 18 septembre 2026, pas estimé.
     attendu: 704853
@@ -96,6 +105,7 @@ surveillances:
     nom: "Effectifs d'élèves par école"
     alimente: "le nombre de classes et d'élèves, école par école"
     type: opendatasoft-total
+    licence: licence-ouverte-2.0
     url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ecoles-effectifs-nb_classes"
     # Relevé au 13 septembre 2026, pas estimé.
     attendu: 859372
@@ -105,6 +115,7 @@ surveillances:
     nom: "Annuaire de l'administration"
     alimente: "les France services, les CCAS et les SDIS"
     type: opendatasoft-total
+    licence: licence-ouverte-1.0
     url: "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration"
     # Relevé, pas estimé : la première valeur écrite ici était de mémoire, et la
     # veille l'a rejetée au premier passage.
@@ -122,6 +133,7 @@ surveillances:
     nom: "Inventaire SRU — communes soumises à l'article 55"
     alimente: "l'obligation de logements sociaux de chaque commune"
     type: datagouv-tabulaire
+    licence: licence-ouverte-2.0
     url: "https://tabular-api.data.gouv.fr/api/resources/2773f8ca-e06b-4a67-9844-ac165d52f47c/data/"
     # Relevé au 18 septembre 2026, pas estimé.
     attendu: 2206
@@ -131,6 +143,7 @@ surveillances:
     nom: "Répertoire national des élus — maires"
     alimente: "le nom du maire de chaque commune"
     type: datagouv-tabulaire
+    licence: licence-ouverte-2.0
     url: "https://tabular-api.data.gouv.fr/api/resources/2876a346-d50c-4911-934e-19ee07b0e503/data/"
     # Relevé au 13 septembre 2026, pas estimé.
     attendu: 34826
@@ -142,6 +155,7 @@ surveillances:
     # L'ingestion épingle une URL datée : sans surveillance, une nouvelle
     # publication ne changerait rien tant que personne ne la remarque.
     type: datagouv-ressource
+    licence: licence-ouverte-1.0
     url: "referentiel-finess-t-finess"
     ressource: "t-finess.csv"
     lien: od-finess
@@ -153,6 +167,7 @@ surveillances:
     # nouvelle à chaque millésime : c'est la ressource qu'on surveille, par son
     # intitulé, et non l'URL — la même leçon que Mégalis.
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "620b924d90e837a5ce0ba819"
     ressource: "documents d'urbanisme par commune"
     lien: od-sudocuh
@@ -163,6 +178,7 @@ surveillances:
     # Le fichier est republié tous les mois : son adresse est stable mais sa
     # date de modification dit si la série avance encore.
     type: datagouv-ressource
+    licence: licence-ouverte-1.0
     url: "689c430033671e3d26466245"
     ressource: "csv"
     lien: od-sitadel-communes
@@ -173,6 +189,7 @@ surveillances:
     # Le jeu ne porte aucune ligne : toute la donnée est en pièces jointes, une
     # par année depuis 1982. C'est le millésime le plus récent qui compte.
     type: opendatasoft-pieces
+    licence: licence-ouverte-2.0
     url: "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/impots-locaux-fichier-de-recensement-des-elements-dimposition-a-la-fiscalite-dir"
     ressource: "REI[-_](\\d{4})"
     lien: od-rei
@@ -183,6 +200,7 @@ surveillances:
     # L'adresse porte l'identifiant de la publication, qui change à chaque
     # millésime : c'est la date du fichier qu'on surveille, pas son existence.
     type: fichier-date
+    licence: licence-ouverte-2.0
     url: "https://www.insee.fr/fr/statistiques/fichier/8217527/DS_BPE_CSV_FR.zip"
     lien: od-bpe
 
@@ -195,6 +213,7 @@ surveillances:
     # entités sans en rapatrier aucune, ce qui suffit à savoir s'il répond et
     # coûte quelques octets.
     type: disponibilite
+    licence: licence-ouverte-1.0
     url: "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=wfs_du:doc_urba&RESULTTYPE=hits"
     lien: od-gpu
 
@@ -204,6 +223,7 @@ surveillances:
     # L'archive porte un nom fixe, mais les fichiers qu'elle contient sont
     # datés : c'est le jeu de données qu'on surveille, pas le fichier.
     type: disponibilite
+    licence: licence-ouverte-1.0
     url: "http://files.georisques.fr/GASPAR/gaspar.zip"
     lien: od-gaspar
 
@@ -213,6 +233,7 @@ surveillances:
     # L'adresse du fichier porte l'horodatage de sa publication : elle changera
     # au prochain scrutin, et c'est le jeu de données qui doit se voir bouger.
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "elections-municipales-2026-resultats-du-premier-tour"
     ressource: "resultats-communes"
     lien: od-municipales-2026
@@ -224,6 +245,7 @@ surveillances:
     # schéma ne voit pas : il publie au format sans le déclarer sur ses
     # ressources. S'il s'arrête, la couverture fond de 90 %.
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "deliberations-des-organismes-adherents-de-megalis-bretagne"
     ressource: "deliberation-"
     lien: od-deliberations-megalis
@@ -235,6 +257,7 @@ surveillances:
     # attribut de schéma. Si le catalogue cesse d'exposer cet attribut, tout
     # disparaît d'un coup et sans bruit.
     type: datagouv-ressource
+    licence: variable
     url: "donnees-essentielles-des-conventions-de-subvention-8"
     ressource: "subvention"
     lien: scdl-subventions
@@ -246,6 +269,7 @@ surveillances:
     # Mégalis : c'est le jeu qu'on surveille, jamais le fichier, et le
     # collecteur résout ses ressources au moment de l'ingestion.
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "repertoire-national-des-elus-1"
     ressource: "conseillers-municipaux"
     lien: od-rne
@@ -257,6 +281,7 @@ surveillances:
     # est donc le signal qu'on cherche — un 404 veut dire qu'un millésime plus
     # récent existe, et qu'il faut changer l'adresse dans le collecteur.
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.insee.fr/fr/statistiques/fichier/3698339/base-pop-historiques-1876-2023.xlsx"
     lien: od-insee-populations
 
@@ -264,6 +289,7 @@ surveillances:
     nom: "INSEE — naissances domiciliées, par commune et par an"
     alimente: "les naissances de chaque commune, au domicile de la mère, depuis 2008"
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_ETAT_CIVIL_NAIS_COMMUNES"
     ressource: "2025"
     lien: od-insee-naissances
@@ -272,6 +298,7 @@ surveillances:
     nom: "INSEE — décès domiciliés, par commune et par an"
     alimente: "les décès de chaque commune, au domicile du défunt, depuis 2008"
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_ETAT_CIVIL_DECES_COMMUNES"
     ressource: "2025"
     lien: od-insee-deces
@@ -282,6 +309,7 @@ surveillances:
     # Un millésime par an, en juin : le collecteur pointe le fichier d'une
     # année, et c'est au changement de période qu'il faut changer d'adresse.
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_RP_TD_POPULATION_AGESEX_PRINC"
     ressource: "2023"
     lien: od-insee-ages
@@ -290,6 +318,7 @@ surveillances:
     nom: "INSEE — diplômes et formation (recensement)"
     alimente: "le diplôme le plus élevé des habitants de chaque commune"
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_RP_DIPLOMES_PRINC"
     ressource: "2023"
     lien: od-insee-diplomes
@@ -301,6 +330,7 @@ surveillances:
     # le 2023 était le premier d'un dispositif refondu, sans comparaison
     # possible avec les précédents — le suivant, lui, devrait l'être.
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_FILOSOFI_CC"
     ressource: "2023"
     lien: od-insee-filosofi
@@ -312,6 +342,7 @@ surveillances:
     nom: "DREES — accessibilité aux médecins généralistes"
     alimente: "l'accès aux généralistes de chaque commune"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://data.drees.solidarites-sante.gouv.fr/api/explore/v2.1/catalog/datasets/530_l-accessibilite-potentielle-localisee-apl/attachments/indicateur_d_apl_aux_medecins_generalistes_xlsx"
     lien: od-drees-apl
 
@@ -321,6 +352,7 @@ surveillances:
     nom: "Contrôle sanitaire de l'eau distribuée"
     alimente: "la conformité de l'eau du robinet"
     type: fichier-date
+    licence: licence-ouverte-2.0
     url: "https://data-pipeline-open.s3.sbg.io.cloud.ovh.net/controle_sanitaire_eau/PLV.csv.gz"
     lien: od-eau-controle-sanitaire
 
@@ -328,6 +360,7 @@ surveillances:
     nom: "ANCT — France Très Haut Débit"
     alimente: "la fibre et la fermeture du cuivre"
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "indicateur-france-tres-haut-debit-etat-des-deploiements-de-la-fibre-optique-et-decommissionnement-du-cuivre"
     ressource: "ftth-cu.csv"
     lien: od-anct-fibre
@@ -336,6 +369,7 @@ surveillances:
     nom: "Agence ORE — électricité et gaz par commune"
     alimente: "la consommation d'électricité et de gaz, et le distributeur"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://opendata.agenceore.fr/data-fair/api/v1/datasets/consommation-annuelle-d-electricite-et-gaz-par-commune/values_agg?field=annee&size=1&sort=-annee"
     lien: od-agence-ore
 
@@ -343,6 +377,7 @@ surveillances:
     nom: "INSEE — logements"
     alimente: "le parc de logements et qui l'occupe"
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_RP_LOGEMENT_PRINC"
     ressource: "2023"
     lien: od-insee-logement
@@ -351,6 +386,7 @@ surveillances:
     nom: "INSEE — population active et chômage"
     alimente: "l'emploi et le chômage des 15-64 ans"
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_RP_EMPLOI_LR_PRINC"
     ressource: "2023"
     lien: od-insee-activite
@@ -359,6 +395,7 @@ surveillances:
     nom: "INSEE — déplacements domicile-travail"
     alimente: "où travaillent les habitants, et comment ils s'y rendent"
     type: melodi-periode
+    licence: licence-ouverte-2.0
     url: "DS_RP_NAVETTES_PRINC"
     ressource: "2023"
     lien: od-insee-navettes
@@ -368,6 +405,7 @@ surveillances:
     nom: "DVF géolocalisé"
     alimente: "le prix des maisons et des appartements"
     type: fichier-date
+    licence: licence-ouverte-2.0
     url: "https://files.data.gouv.fr/geo-dvf/latest/csv/2025/full.csv.gz"
     lien: od-dvf-geo
 
@@ -377,6 +415,7 @@ surveillances:
     nom: "IPS des écoles"
     alimente: "qui fréquente les écoles de la commune"
     type: opendatasoft-total
+    licence: licence-ouverte-2.0
     url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ips-ecoles-ap2022"
     attendu: 97080
     lien: od-ips-ecoles
@@ -385,6 +424,7 @@ surveillances:
     nom: "IPS des collèges"
     alimente: "qui fréquente les collèges de la commune"
     type: opendatasoft-total
+    licence: licence-ouverte-2.0
     url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ips-colleges-ap2023"
     attendu: 21061
     lien: od-ips-colleges
@@ -393,6 +433,7 @@ surveillances:
     nom: "Délinquance enregistrée, base communale"
     alimente: "la délinquance enregistrée dans la commune"
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales"
     ressource: "COM - Base statistique communale"
     lien: od-delinquance-communale
@@ -404,6 +445,7 @@ surveillances:
     nom: "Élections nationales, résultats par commune"
     alimente: "la participation aux élections nationales"
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "6682d0c255dcda5df20b1d90"
     ressource: "resultats-definitifs-par-communes.csv"
     lien: od-elections-nationales
@@ -416,6 +458,7 @@ surveillances:
     nom: "Agreste — recensement agricole, données communales"
     alimente: "la surface agricole des exploitations de la commune"
     type: datagouv-ressource
+    licence: licence-ouverte-1.0
     url: "5369931da3a729239d2040d8"
     ressource: "indicateurs"
     lien: od-agreste-sau
@@ -427,6 +470,7 @@ surveillances:
     nom: "Cerema — consommation d'espaces"
     alimente: "les espaces naturels, agricoles et forestiers consommés"
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "6a01b9280dd2d45907e5fc61"
     ressource: "conso_com.csv"
     lien: od-cerema-conso-enaf
@@ -435,6 +479,7 @@ surveillances:
     nom: "ASN — potentiel radon des communes"
     alimente: "la zone radon de la commune"
     type: datagouv-ressource
+    licence: licence-ouverte-1.0
     url: "53834c53a3a72906c7ec5c4c"
     ressource: "ma commune (csv)"
     lien: od-asn-radon
@@ -443,6 +488,7 @@ surveillances:
     nom: "ADEME — diagnostics de performance énergétique"
     alimente: "les étiquettes énergétiques des logements"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://data.ademe.fr/data-fair/api/v1/datasets/meg-83tjwtg8dyz4vv7h1dqe?select=updatedAt,count"
     lien: od-ademe-dpe
 
@@ -450,6 +496,7 @@ surveillances:
     nom: "OFGL — dotations des communes"
     alimente: "la dotation globale de fonctionnement et ses parts"
     type: disponibilite
+    licence: non-precisee
     url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/dotations-communes/records?select=exercice&group_by=exercice&limit=20"
     lien: od-ofgl-dotations-communes
 
@@ -457,6 +504,7 @@ surveillances:
     nom: "CNAF — allocataires par commune"
     alimente: "les foyers allocataires de la CAF"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://data.caf.fr/api/explore/v2.1/catalog/datasets/s_ben_com_f/records?select=dtreffre&group_by=dtreffre&limit=20"
     lien: od-cnaf-prestations-communes
 
@@ -464,6 +512,7 @@ surveillances:
     nom: "Géo'DAE — défibrillateurs"
     alimente: "les défibrillateurs déclarés dans la commune"
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "61556e1e9d6adb2df86eb0fc"
     ressource: "geodae.csv"
     lien: od-geodae
@@ -472,6 +521,8 @@ surveillances:
     nom: "SNCF — gares de voyageurs"
     alimente: "les gares de la commune, ou la plus proche"
     type: disponibilite
+    licence: odbl
+    fichiers: ["dep/XX-gares.json"]
     url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/gares-de-voyageurs/records?limit=1"
     lien: od-sncf-gares
 
@@ -480,6 +531,8 @@ surveillances:
     nom: "SNCF — fréquentation des gares"
     alimente: "les voyageurs de chaque gare"
     type: disponibilite
+    licence: odbl
+    fichiers: ["dep/XX-gares.json"]
     url: "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares/records?limit=1"
     lien: od-sncf-frequentation
 
@@ -488,6 +541,7 @@ surveillances:
     nom: "DATAtourisme — lieux à voir"
     alimente: "le patrimoine, les sites naturels et les itinéraires de la commune"
     type: datagouv-ressource
+    licence: licence-ouverte-1.0
     url: "5b598be088ee387c0c353714"
     ressource: "datatourisme-reg-ara.csv"
     lien: od-datatourisme
@@ -496,6 +550,7 @@ surveillances:
     nom: "Mérimée — monuments historiques"
     alimente: "les monuments historiques de la commune"
     type: datagouv-ressource
+    licence: licence-ouverte-2.0
     url: "5af120e5b595087cfabcde81"
     ressource: "liste-des-immeubles-proteges-au-titre-des-monuments-historiques.csv"
     lien: od-merimee
@@ -505,6 +560,7 @@ surveillances:
     nom: "RTE — registre des installations de production"
     alimente: "l'électricité produite dans la commune"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/registre-national-installation-production-stockage-electricite-agrege/records?limit=1"
     lien: od-rte-registre-production
 
@@ -513,6 +569,7 @@ surveillances:
     nom: "Arcep — sites mobiles"
     alimente: "les antennes de téléphonie mobile de la commune"
     type: disponibilite
+    licence: licence-ouverte-1.0
     url: "https://data.arcep.fr/mobile/sites/"
     lien: od-arcep-sites-mobiles
 
@@ -522,6 +579,7 @@ surveillances:
     nom: "ONISR — accidents corporels"
     alimente: "les accidents de la route dans la commune"
     type: datagouv-ressource
+    licence: licence-ouverte-1.0
     url: "53698f4ca3a729239d2036df"
     ressource: "caract"
     lien: od-onisr-baac
@@ -533,6 +591,7 @@ surveillances:
     # établissement traité datait du 1er août. C'est cette date qu'on regarde,
     # et deux mois et demi sans nouvelle copie, c'est qu'elle n'est plus tenue.
     type: opendatasoft-fraicheur
+    licence: licence-ouverte-2.0
     url: "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/economicref-france-sirene-v3"
     ressource: "datederniertraitementetablissement"
     attendu: 75
@@ -545,6 +604,7 @@ surveillances:
     # ne prouverait rien. C'est sa date de dernière modification qu'on regarde,
     # par une requête d'en-tête — on ne rapatrie pas 1,2 Go pour lire une date.
     type: fichier-date
+    licence: licence-ouverte-1.0
     url: "https://data-pipeline-open.s3.sbg.io.cloud.ovh.net/rna/waldec.csv"
     lien: od-rna
 
@@ -554,6 +614,7 @@ surveillances:
     # Un jeu quotidien de cinquante millions de lignes : c'est la date de la
     # dernière parution qu'on regarde, pas le total.
     type: opendatasoft-fraicheur
+    licence: licence-ouverte-1.0
     url: "https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales"
     ressource: "dateparution"
     lien: od-bodacc
@@ -563,6 +624,7 @@ surveillances:
     nom: "ANCT — croisement des dispositifs"
     alimente: "les programmes de l'État dont la commune bénéficie"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.data.gouv.fr/api/2/datasets/617322c7c8e7b27041570e71/resources/?page_size=5"
     lien: od-anct-programmes
 
@@ -570,6 +632,7 @@ surveillances:
     nom: "DGCL — projets subventionnés par la DETR, la DSIL et la DPV"
     alimente: "les projets que l'État a subventionnés"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.data.gouv.fr/api/2/datasets/6176785207139a929a2776fe/resources/?page_size=5"
     lien: od-dgcl-investissement
 
@@ -577,6 +640,7 @@ surveillances:
     nom: "Fonds vert — projets subventionnés"
     alimente: "les projets que l'État a subventionnés"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.data.gouv.fr/api/2/datasets/66a215a463a9da4fb801b8cf/resources/?page_size=5"
     lien: od-fonds-vert
 
@@ -585,6 +649,7 @@ surveillances:
     nom: "Carte des loyers"
     alimente: "les loyers d'annonce"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.data.gouv.fr/api/2/datasets/693aa2feed1bf4da603faa49/resources/?page_size=5"
     lien: od-carte-loyers
 
@@ -592,6 +657,7 @@ surveillances:
     nom: "Bornes de recharge — consolidation nationale"
     alimente: "les bornes de recharge de la commune"
     type: disponibilite
+    licence: licence-ouverte-1.0
     url: "https://www.data.gouv.fr/api/2/datasets/5448d3e0c751df01f85d0572/resources/?page_size=5"
     lien: od-irve
 
@@ -599,6 +665,8 @@ surveillances:
     nom: "Base nationale des lieux de covoiturage"
     alimente: "les lieux de covoiturage de la commune"
     type: disponibilite
+    licence: odbl
+    fichiers: ["dep/XX-recharge.json"]
     url: "https://www.data.gouv.fr/api/2/datasets/5d6eaffc8b4c417cdc452ac3/resources/?page_size=5"
     lien: od-bnlc
 
@@ -606,6 +674,7 @@ surveillances:
     nom: "CNAF — taux de couverture d'accueil du jeune enfant"
     alimente: "l'accueil des tout-petits"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://data.caf.fr/api/explore/v2.1/catalog/datasets/txcouv_pe_epci/records?limit=1"
     lien: od-caf-accueil-jeune-enfant
 
@@ -613,6 +682,7 @@ surveillances:
     nom: "Zonage ABC — liste des communes"
     alimente: "le zonage ABC de la commune"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.data.gouv.fr/api/2/datasets/656715871172d08f8f680063/resources/?page_size=5"
     lien: od-zonage-abc
 
@@ -620,6 +690,7 @@ surveillances:
     nom: "Quartiers prioritaires de la politique de la ville"
     alimente: "les quartiers prioritaires de la commune"
     type: disponibilite
+    licence: licence-ouverte-1.0
     url: "https://www.data.gouv.fr/api/2/datasets/5a561801c751df42d7fca9b6/resources/?page_size=5"
     lien: od-qpv
 
@@ -627,6 +698,8 @@ surveillances:
     nom: "URSSAF — effectifs salariés par commune"
     alimente: "les salariés employés dans la commune"
     type: disponibilite
+    licence: odbl
+    fichiers: ["dep/XX-travail.json"]
     url: "https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/records?limit=1"
     lien: od-urssaf-effectifs
 
@@ -634,6 +707,7 @@ surveillances:
     nom: "DARES — inscrits à France Travail par commune"
     alimente: "les habitants inscrits à France Travail"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://data.dares.travail-emploi.gouv.fr/api/explore/v2.1/catalog/datasets/dares_defm_communales-brutes/records?limit=1"
     lien: od-dares-inscrits
 
@@ -641,6 +715,7 @@ surveillances:
     nom: "INAO — aires des appellations"
     alimente: "les appellations d'origine de la commune"
     type: disponibilite
+    licence: licence-ouverte-1.0
     url: "https://www.data.gouv.fr/api/2/datasets/53698ec7a3a729239d20356a/resources/?page_size=5"
     lien: od-inao-aires
 
@@ -648,6 +723,7 @@ surveillances:
     nom: "VigiEau — restrictions d'eau par commune"
     alimente: "les jours de restriction d'eau pour sécheresse"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://www.data.gouv.fr/api/2/datasets/662a5e2cd71b24df5e9a0827/resources/?page_size=5"
     lien: od-vigieau
 
@@ -655,6 +731,8 @@ surveillances:
     nom: "Etalab — contours des communes"
     alimente: "la carte de situation de chaque commune"
     type: disponibilite
+    licence: odbl
+    fichiers: ["dep/XX-contours.json", "contours-departements.json", "dep/XX-espaces.json"]
     url: "https://www.data.gouv.fr/api/2/datasets/683424e996857155175d4f68/resources/?page_size=5"
     lien: od-contours-communes
 
@@ -662,6 +740,7 @@ surveillances:
     nom: "Géoplateforme — espaces naturels de l'INPN"
     alimente: "les espaces naturels de la commune"
     type: disponibilite
+    licence: licence-ouverte-2.0
     url: "https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=patrinat_pnr:pnr&resultType=hits"
     lien: od-espaces-naturels
 
@@ -669,6 +748,7 @@ surveillances:
     nom: "Palissy — objets protégés"
     alimente: "les objets mobiliers protégés"
     type: disponibilite
+    licence: licence-ouverte-1.0
     url: "https://ministere-culture.s3.sbg.io.cloud.ovh.net/POP/palissy.csv"
     lien: od-palissy
 

@@ -31,11 +31,13 @@ porte sa source et sa date (« D'après GASPAR, la base du ministère de la
 Transition écologique (2026-08-19) »). La page `/mentions` en donne la liste
 complète.
 
-**Aucun jeu sous ODbL n'est réutilisé**, ce qui a été vérifié jeu par jeu. La
-distinction importe : l'ODbL impose un partage à l'identique de la base
-dérivée, ce qui aurait été incompatible avec la diffusion du reste du site
-sous CC BY-SA. Le découpage administratif d'Etalab, qui reprenait autrefois
-des codes postaux sous ODbL, est désormais entièrement en Licence Ouverte.
+**Quelques jeux sont sous ODbL** — l'ODbL est aussi une licence ouverte, avec
+une obligation de plus : toute base qu'on en dérive se republie sous ODbL. Les
+fichiers de `public/territoires/` qui en dérivent sont donc sous ODbL, et non
+sous CC BY-SA ; les deux licences s'appliquent à des choses distinctes et ne
+se mélangent pas. La licence de chaque jeu, et pour l'ODbL la liste des
+fichiers dérivés, est déclarée dans `contenu/veille.yaml` et affichée sur
+`/mentions`.
 
 ## Ce que la licence ne couvre pas
 

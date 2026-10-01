@@ -814,9 +814,10 @@ Ce qui est en place :
   supposée : OFGL et DECP en Licence Ouverte v2.0, GASPAR et le répertoire des
   associations en Licence Ouverte, le découpage Etalab en Licence Ouverte
   également — ses codes postaux, autrefois sous ODbL, ne le sont plus.
-  **Aucun ODbL**, donc aucun partage à l'identique qui entrerait en conflit
-  avec le CC BY-SA du reste. La seule obligation est de citer la source et sa
-  date : chaque bloc de chiffres le fait déjà.
+  ~~Aucun ODbL~~ : ce n'est plus vrai depuis l'automne 2026 — voir « La
+  licence de chaque jeu, affichée » plus bas. La seule obligation de la
+  Licence Ouverte est de citer la source et sa date : chaque bloc de chiffres
+  le fait déjà.
 - **Une page `/mentions`** qui dit ce que le site sait de son lecteur — un
   site statique, aucune mesure d'audience, aucun cookie, une seule clé de
   stockage local pour la commune choisie — et qui **construit la liste des
