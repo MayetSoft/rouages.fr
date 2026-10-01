@@ -85,7 +85,10 @@ le build échoue.
 
 ## Licence
 
-**Code** : MIT — voir [`LICENSE`](LICENSE).
+**Code** : [GNU AGPL 3.0 ou ultérieure](LICENSE), © 2026 MayetCo SAS. Qui
+modifie le code et le fait tourner pour d'autres, y compris comme service en
+ligne, doit en publier les modifications. Les contributions sont régies par la
+[charte de contribution](CONTRIBUTING.md).
 
 **Contenu éditorial** (`contenu/`) : CC BY-SA 4.0, la licence de Wikipédia,
 donc réutilisable depuis et vers elle sans friction. Voir

@@ -803,9 +803,13 @@ fichier du dépôt n'adoptait, et le README la donnait comme une « proposition 
 
 Ce qui est en place :
 
-- **`LICENSE` (MIT) pour le code, `LICENSE-CONTENU.md` (CC BY-SA 4.0) pour le
+- **`LICENSE` pour le code, `LICENSE-CONTENU.md` (CC BY-SA 4.0) pour le
   contenu éditorial.** Le second est la licence de Wikipédia, ce qui est
-  cohérent avec un projet qui relie plutôt qu'il ne réécrit.
+  cohérent avec un projet qui relie plutôt qu'il ne réécrit. Le code, d'abord
+  en MIT, est passé en **GNU AGPL 3.0** le 1er octobre 2026, titulaire
+  MayetCo SAS, tant que personne d'extérieur n'y avait contribué : une
+  licence permissive laissait n'importe qui en faire un service fermé. Les
+  contributions passent désormais par `CONTRIBUTING.md`.
 - **La licence de chaque jeu réutilisé, vérifiée une par une** plutôt que
   supposée : OFGL et DECP en Licence Ouverte v2.0, GASPAR et le répertoire des
   associations en Licence Ouverte, le découpage Etalab en Licence Ouverte

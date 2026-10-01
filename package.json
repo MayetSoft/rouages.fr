@@ -2,6 +2,8 @@
   "name": "rouages",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
+  "author": "MayetCo SAS",
   "type": "module",
   "description": "Rouages.fr — la carte des acteurs publics, de leurs compétences et de ce qui circule entre eux.",
   "scripts": {
