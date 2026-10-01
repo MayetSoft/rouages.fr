@@ -887,6 +887,21 @@ acteurs:
     verifie_le: 2026-09-22
     confiance: etabli
 
+  - id: inao
+    # Ce sont les producteurs, réunis en organisme de défense et de gestion, qui
+    # demandent la reconnaissance et rédigent le cahier des charges ; l'INAO
+    # instruit, délimite l'aire et contrôle. Un nom protégé n'appartient donc ni
+    # à l'État ni à une entreprise.
+    nom: "L'Institut national de l'origine et de la qualité"
+    nom_court: "INAO"
+    type: service_administratif
+    echelon: etat
+    pouvoirs: [executif]
+    resume: "Établissement public sous tutelle du ministère de l'Agriculture : il instruit les appellations d'origine et les indications géographiques que demandent les organismes de défense et de gestion, délimite leurs aires et contrôle le respect des cahiers des charges."
+    liens: [wp-inao, inao-gouv, od-inao-aires]
+    verifie_le: 2026-10-01
+    confiance: etabli
+
   # --- Ceux que l'on ne rencontre qu'en cas de litige ou de démarche ---------
   - id: mediateur-eau
     nom: "La Médiation de l'eau"

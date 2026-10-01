@@ -101,6 +101,22 @@ const pages = new Set(reseau.noeuds.flatMap((n) => n.liens.map((l) => l.url))).s
       dotation communale de Paris vaut 0,1&nbsp;€ par habitant, «&nbsp;0&nbsp;»
       se lirait «&nbsp;Paris ne reçoit rien&nbsp;».
     </p>
+    <p class="mesure">
+      Chaque ligne dit de quel côté de la médiane elle tombe&nbsp;: ▲ au-dessus,
+      ▼ en dessous, ≈ à moins de 5&nbsp;% d’elle. Le vert et le rouge ne
+      s’ajoutent que sur quatre lignes, celles où l’analyse financière des
+      collectivités a une lecture établie&nbsp;: l’<strong>épargne brute</strong>,
+      où plus haut veut dire plus de marge, et l’<strong>encours de dette</strong>,
+      l’<strong>annuité</strong> et les <strong>charges financières</strong>, où plus bas
+      veut dire moins endetté. Ailleurs, «&nbsp;mieux&nbsp;» n’a pas de sens&nbsp;:
+      des dépenses de personnel au-dessus de la médiane peuvent être une crèche
+      en régie, des impôts plus bas un service qui n’existe pas. La couleur
+      est toujours doublée d’un mot, pour qui ne la distingue pas, et la
+      lecture de chaque ligne renvoie au
+      <a href="https://www.collectivites-locales.gouv.fr/files/files/Etudes-et-statistiques/OFGL/rapports%20archives/Dossier%20dette%202024.pdf">dossier
+      de l’<abbr title="Observatoire des finances et de la gestion publique locales">OFGL</abbr>
+      sur la dette des collectivités</a>.
+    </p>
 
     <h2 class="badge">Les comptes du département et de la région</h2>
     <p class="mesure">
@@ -408,6 +424,28 @@ const pages = new Set(reseau.noeuds.flatMap((n) => n.liens.map((l) => l.url))).s
       document d’information communal — 9&nbsp;744 communes en ont publié un — ne
       dit rien des risques eux-mêmes, seulement que l’information n’a pas été
       faite.
+    </p>
+
+    <h2 class="badge">La carte, et ce qu’elle permet de croiser</h2>
+    <p class="mesure">
+      Chaque page de commune s’ouvre sur sa carte&nbsp;: ses contours, ses
+      voisines, sa place dans le département. Les contours sont ceux de
+      l’<abbr title="Institut national de l’information géographique et forestière">IGN</abbr>,
+      simplifiés à cent mètres par Etalab en gardant les limites communes
+      exactement partagées — c’est ce qui permet de dire, sans autre source,
+      que deux communes sont voisines, et de tirer la silhouette du département
+      des seuls segments qu’une de ses communes emprunte. Le dessin est fait à
+      la construction du site, sans fond de carte ni requête vers un service
+      tiers.
+    </p>
+    <p class="mesure">
+      Ces contours servent aussi à croiser les espaces naturels avec la
+      commune. Le site n’embarque pas de moteur géométrique&nbsp;: il pose une
+      grille de points sur la commune et compte ceux qui tombent dans chaque
+      zone. La part affichée est donc une approximation, arrondie, et dite
+      comme telle — assez juste pour distinguer une commune couverte d’une
+      commune effleurée, pas pour un acte d’urbanisme, qui se lit sur la carte
+      officielle.
     </p>
 
     <h2 class="badge">Une page par commune</h2>

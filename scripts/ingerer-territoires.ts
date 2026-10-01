@@ -852,9 +852,20 @@ async function principal() {
 
   const { collecterSecheresse, ecrireSecheresse } = await import('./secheresse-emettre.ts');
   const secheresse = await tenter('Restrictions d’eau', () =>
-    collecterSecheresse(lireJson, enCache('VigiEau — restrictions (8 Mo, 560 Mo décompressé)'), CACHE, grise),
+    collecterSecheresse(lireJson, enCache('VigiEau — historique des restrictions (590 Mo, 12 Go décompressé)'), CACHE, grise),
   );
   if (secheresse) grise(`${ecrireSecheresse(SORTIE, secheresse)} départements de restrictions d’eau écrits.`);
+
+  const { collecterContours, ecrireContours } = await import('./contours-emettre.ts');
+  const contours = await tenter('Contours des communes', () =>
+    collecterContours(lireJson, enCache('Etalab — contours des communes (8 Mo)'), CACHE, grise),
+  );
+  if (contours) grise(`${ecrireContours(SORTIE, contours)} départements de contours écrits.`);
+
+  // Les espaces naturels se croisent avec les contours que la collecte précédente vient d'écrire.
+  const { collecterEspaces, ecrireEspaces } = await import('./espaces-emettre.ts');
+  const espaces = await tenter('Espaces naturels', () => collecterEspaces(SORTIE, CACHE, grise));
+  if (espaces) grise(`${ecrireEspaces(SORTIE, espaces)} départements d’espaces naturels écrits.`);
 
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));

@@ -243,3 +243,16 @@ flux:
     liens: [wp-mutation, cgi-1594d, cgi-1584, cgi-1595bis, impots-enregistrement, od-dmto]
     verifie_le: 2026-09-22
     confiance: etabli
+
+  - id: dotations-investissement
+    # Deux dotations, deux préfets : la DETR se décide dans le département, la
+    # DSIL dans la région. La commission d'élus fixe les priorités et les taux
+    # de la DETR, mais ne choisit pas les projets.
+    nom: "DETR et DSIL"
+    nature: argent
+    de: etat
+    vers: [commune, epci]
+    resume: "Les subventions d'investissement de l'État : la DETR, attribuée par le préfet de département après avis d'une commission d'élus au-delà de 100 000 €, et la DSIL, par le préfet de région."
+    liens: [cgct-l2334-37, cgct-l2334-42, od-dgcl-investissement]
+    verifie_le: 2026-10-01
+    confiance: etabli

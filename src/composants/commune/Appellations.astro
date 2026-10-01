@@ -3,6 +3,7 @@
  * Les appellations dont l'aire comprend la commune, d'après l'INAO. Voir
  * `scripts/appellations-emettre.ts`.
  */
+import QuiDecide from './QuiDecide.astro';
 import type { Appellations } from '../../modele/fiche-vie.ts';
 import Glose from '../Glose.astro';
 
@@ -22,6 +23,15 @@ const n = a.origine.length + a.geographiques.length;
     )}
   </ul>
 )}
+<QuiDecide
+  phrase={[
+    'L’',
+    { id: 'inao', texte: 'Institut national de l’origine et de la qualité' },
+    ' instruit les ',
+    { id: 'signes-origine', texte: 'appellations' },
+    ' que demandent les producteurs réunis en organisme de défense et de gestion, délimite leur aire et contrôle le cahier des charges.',
+  ]}
+/>
 <p class="p-strate">
   Être dans l’aire, c’est que ce qui y est produit en suivant le cahier des charges peut porter le nom — pas que
   quelqu’un le produise ici. Les déclinaisons d’une même indication de vin — « Val de Loire Allier », « Val de Loire

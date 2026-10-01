@@ -2746,9 +2746,10 @@ n'a pas tenu est dit plus bas.
   tableur. *Zones tendues* (taxe sur les logements vacants) : pas de liste
   trouvée en données ouvertes.
 - *Logements sociaux (RPLS)* : pas trouvé de fichier communal national à
-  jour. *Covoiturage réalisé* (registre de preuve), *URSSAF*, *France
-  Travail*, *INAO*, *environnement* (VigiEau, assainissement, ICPE, INPN…) :
-  pas commencés.
+  jour. *Covoiturage réalisé* (registre de preuve) : pas commencé. *URSSAF*,
+  *France Travail*, *INAO* et *VigiEau* ont suivi dans les lots A à C ;
+  assainissement, ICPE et INPN n'ont pas tenu — voir « Les collectivités
+  enrichies, le travail, la sécheresse ».
 
 ### « Sources et méthode » : replié sous chaque bloc, avec les fichiers ✔
 
@@ -3127,6 +3128,81 @@ en crise, sur les trois ressources, et toujours en crise le dernier jour.
 - *Espaces protégés et ZNIEFF (INPN)* : publiés seulement en contours
   géographiques (shapefiles). Les croiser avec la commune demande ses contours,
   que le site n'a pas.
+
+### La sécheresse dans la durée, et qui décide sous chaque bloc ✔
+
+**Quinze ans de restrictions d'eau.** Le bloc lisait le fichier de l'année ;
+il lit désormais l'historique de VigiEau, chaque jour depuis mai 2010 — 586
+Mo compressés, 12 Go de JSON, lus en flux en deux minutes. Chaque année depuis
+2012 est comptée à date égale, du 1er janvier au même jour que la dernière
+date publiée, et dessinée en barres : l'année en cours en couleur, la plus
+touchée étiquetée. La série commence en 2012 parce que le fichier ne compte
+aucun jour en alerte dans aucune commune en 2010 ni en 2011, et que les
+arrêtés publiés par VigiEau commencent en 2012 : un vide de données, pas une
+absence de restrictions. Au passage, la vigilance — qui n'impose rien — ne
+compte plus parmi les jours « sous restriction ».
+
+Au Mayet-de-Montagne : 84 jours en crise au 15 septembre 2026, plus qu'aucune
+année depuis 2012 à la même date ; la plus touchée jusqu'ici, 2022, en
+comptait 82. À Vichy : 54 jours, contre 74 en 2019 et une médiane de 4,5.
+
+**Qui en décide, sous chaque nouveau bloc.** Une ligne visible, hors de
+l'encadré replié (`QuiDecide.astro`), relie le chiffre au graphe :
+
+- la sécheresse au préfet et à la compétence *Restrictions d'eau* —
+  l'arrêté-cadre (code de l'environnement, art. R211-67) —, et à VigiEau pour
+  ce qui vaut à son adresse ;
+- le travail à France Travail et à la mission locale, avec la démarche du RSA ;
+- les appellations à l'INAO, nouvel acteur, et à sa compétence : les
+  producteurs réunis en organisme de défense et de gestion demandent, l'INAO
+  instruit, les ministres homologuent, et toute personne peut s'opposer
+  pendant les deux mois de la procédure nationale d'opposition — ce dernier
+  lien rattache l'INAO au citoyen et garde le diamètre du réseau à 6 ;
+- l'investissement au préfet et à la compétence *DETR et DSIL* : la DETR
+  attribuée par le préfet de département dans le cadre d'une commission
+  d'élus consultée au-delà de 100 000 € (CGCT, art. L2334-37), la DSIL par le
+  préfet de région (art. L2334-42) ; le flux correspondant va de l'État aux
+  communes et aux intercommunalités ;
+- les tout-petits à la démarche *Devenir assistant maternel*.
+
+La page Méthode explique enfin le code couleur des comptes : pourquoi quatre
+lignes seulement, et d'où vient leur sens.
+
+### La carte de chaque commune, et ses espaces naturels ✔
+
+**Une carte en tête de chaque page.** La commune en couleur, ses voisines —
+chacune un lien vers sa page —, et en encart la silhouette de son département
+(`CarteSituation.astro`). Les contours sont ceux d'Admin Express de l'IGN,
+simplifiés à 100 m par Etalab en gardant la topologie (`contours-emettre.ts`) :
+deux communes qui partagent deux sommets sont voisines, et la silhouette du
+département se tire des segments qu'une seule de ses communes emprunte, sans
+calcul d'union. 34 969 communes, 64 sans voisine — des îles. Le dessin est fait
+au build en SVG, sans fond de carte ni service tiers : une dizaine de Ko par
+page, et les couleurs suivent le thème. Au Mayet-de-Montagne : six voisines,
+Arronnes, Châtel-Montagne, Ferrières-sur-Sichon, La Chapelle, Nizerolles et
+Saint-Clément.
+
+**Les espaces naturels** (`espaces-emettre.ts`, bloc `#nature`). Le site de
+l'INPN est fermé depuis une attaque informatique, et ses fichiers répondent
+403 ; ses couches sont servies en WFS par la Géoplateforme de l'IGN :
+parcs nationaux et régionaux, réserves, arrêtés de protection de biotope,
+Natura 2000 des deux directives, ZNIEFF de type I et II — 22 821 zones. Elles
+sont croisées avec les contours sans bibliothèque de géométrie : une grille de
+points sur la commune, la part de ceux qui tombent dans chaque zone. Un premier
+passage comptait 6 433 communes dans un parc naturel régional : 1 419 l'étaient
+à moins de 3 %, des voisines dont le contour simplifié mordait sur la limite
+du parc. Une zone n'est donc retenue que si elle touche le cœur de la commune,
+à plus de 120 m de sa limite, et un parc qu'au-delà de la moitié de la commune
+— il en reste 4 950. La carte du bloc découpe les zones aux limites de la
+commune : aplat vert pour ce qui protège ou relève de Natura 2000, hachures
+ocre pour les inventaires, deux encodages validés ensemble. Les fiches de
+l'INPN ne répondant pas, les zones sont nommées sans lien.
+
+Au Mayet-de-Montagne : l'arrêté de protection de biotope de l'écrevisse à pieds
+blancs et le site Natura 2000 des rivières de la Montagne bourbonnaise, sur
+moins de 1 % et 1 % de la commune, et la ZNIEFF des Bois Noirs et des monts de
+la Madeleine sur environ 15 %. À Vichy, la rivière Allier. À Ambert, le parc
+Livradois-Forez.
 
 ## Phase 3 — Élargir
 

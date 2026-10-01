@@ -179,7 +179,8 @@ if (tr) {
 const se = vie.secheresse;
 if (se) {
   const j = se.jours;
-  const total = j.vigilance + j.alerte + j.renforcee + j.crise;
+  // La vigilance n'impose rien : sous restriction, c'est en alerte ou plus.
+  const total = j.alerte + j.renforcee + j.crise;
   if (total > 0) {
     cartes.push({
       id: 'secheresse',

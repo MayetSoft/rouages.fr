@@ -4,6 +4,7 @@
  * commune emploient, et les habitants inscrits à France Travail. Voir
  * `scripts/travail-emettre.ts`.
  */
+import QuiDecide from './QuiDecide.astro';
 import type { Travail } from '../../modele/fiche-vie.ts';
 import { tendance } from '../../vues/graphiques.ts';
 import Glose from '../Glose.astro';
@@ -49,6 +50,15 @@ const courbeI = iI > pI ? tendance(t.inscrits, t.anneesInscrits, unite('inscrit'
   </p>
 )}
 {courbeI && <p class="p-tendance-ligne"><Fragment set:html={courbeI} /></p>}
+<QuiDecide
+  titre="Qui accompagne"
+  phrase={[
+    { id: 'france-travail', texte: 'France Travail' },
+    ' inscrit, indemnise et accompagne les demandeurs d’emploi ; la ',
+    { id: 'mission-locale', texte: 'mission locale' },
+    ', les 16-25 ans sortis de l’école.',
+  ]}
+/>
 <p class="p-strate">
   <Glose texte={'Les salariés sont ceux des établissements situés dans la commune, quel que soit leur domicile : le secteur privé du régime général seulement — ni l’agriculture, ni la fonction publique, ni les indépendants. Les apprentis y sont comptés depuis 2023. ' +
     'Les inscrits sont des habitants de la commune : la catégorie A réunit ceux sans emploi, B ceux qui ont travaillé 78 heures ou moins dans le mois, C ceux qui ont travaillé davantage. La DARES arrondit chaque nombre à 5 : sur une petite commune, une évolution d’une année sur l’autre peut tenir à l’arrondi. ' +
