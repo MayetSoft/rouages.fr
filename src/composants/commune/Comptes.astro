@@ -51,6 +51,7 @@ const phraseImpots =
 <dl class="p-reperes">
   {lignes.map((r) => (
     <Repere
+      repere={r.id}
       nom={r.nom}
       aide={r.explication}
       montant={euros(r.valeur!)}

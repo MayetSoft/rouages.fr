@@ -1,0 +1,59 @@
+---
+/**
+ * Le travail sur place : les salariés du privé que les établissements de la
+ * commune emploient, et les habitants inscrits à France Travail. Voir
+ * `scripts/travail-emettre.ts`.
+ */
+import type { Travail } from '../../modele/fiche-vie.ts';
+import { tendance } from '../../vues/graphiques.ts';
+import Glose from '../Glose.astro';
+
+interface Props {
+  t: Travail;
+}
+const { t } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const dernier = (serie: (number | null)[]) => {
+  for (let i = serie.length - 1; i >= 0; i--) if (serie[i] !== null) return i;
+  return -1;
+};
+const iS = dernier(t.salaries);
+const iI = dernier(t.inscrits);
+const premier = (serie: (number | null)[]) => serie.findIndex((v) => v !== null);
+const pS = premier(t.salaries);
+const pI = premier(t.inscrits);
+const unite = (u: string, pl: string) => (v: number) => `${nf(v)} ${v > 1 ? pl : u}`;
+const courbeS = iS > pS ? tendance(t.salaries, t.annees, unite('salarié', 'salariés')) : null;
+const courbeI = iI > pI ? tendance(t.inscrits, t.anneesInscrits, unite('inscrit', 'inscrits')) : null;
+---
+{iS >= 0 ? (
+  <p class="mesure">
+    {`${nf(t.salaries[iS]!)} salarié${t.salaries[iS]! > 1 ? 's' : ''} du secteur privé employé${t.salaries[iS]! > 1 ? 's' : ''} dans la commune au 31 décembre ${t.annees[iS]}` +
+      (pS >= 0 && pS < iS ? `, contre ${nf(t.salaries[pS]!)} en ${t.annees[pS]}.` : '.')}
+  </p>
+) : (
+  <p class="mesure">Aucun salarié du secteur privé déclaré dans la commune.</p>
+)}
+{courbeS && <p class="p-tendance-ligne"><Fragment set:html={courbeS} /></p>}
+{t.secteurs.length > 1 && (
+  <ul class="c-structures">
+    {t.secteurs.map((s) => (
+      <li>{`${s.nom} : ${nf(s.salaries)} salarié${s.salaries > 1 ? 's' : ''}, ${nf(s.etablissements)} établissement${s.etablissements > 1 ? 's' : ''}`}</li>
+    ))}
+  </ul>
+)}
+{iI >= 0 && (
+  <p class="mesure">
+    {`${nf(t.inscrits[iI]!)} habitants inscrits à France Travail en catégories A, B ou C, en moyenne au dernier trimestre ${t.anneesInscrits[iI]}` +
+      (pI >= 0 && pI < iI ? `, contre ${nf(t.inscrits[pI]!)} en ${t.anneesInscrits[pI]}.` : '.')}
+  </p>
+)}
+{courbeI && <p class="p-tendance-ligne"><Fragment set:html={courbeI} /></p>}
+<p class="p-strate">
+  <Glose texte={'Les salariés sont ceux des établissements situés dans la commune, quel que soit leur domicile : le secteur privé du régime général seulement — ni l’agriculture, ni la fonction publique, ni les indépendants. Les apprentis y sont comptés depuis 2023. ' +
+    'Les inscrits sont des habitants de la commune : la catégorie A réunit ceux sans emploi, B ceux qui ont travaillé 78 heures ou moins dans le mois, C ceux qui ont travaillé davantage. La DARES arrondit chaque nombre à 5 : sur une petite commune, une évolution d’une année sur l’autre peut tenir à l’arrondi. ' +
+    'Un changement des règles d’inscription ou d’indemnisation fait aussi bouger ces nombres, indépendamment du marché du travail.'} />
+</p>
+<p class="p-source-territoire">
+  {`D’après les effectifs salariés du secteur privé par commune et activité de l’URSSAF (${t.annees[0]} à ${t.annees.at(-1)}), et les inscrits à France Travail par commune de la DARES, au quatrième trimestre (${t.anneesInscrits[0]} à ${t.anneesInscrits.at(-1)}) (${t.maj}).`}
+</p>

@@ -1,0 +1,49 @@
+---
+/**
+ * Les restrictions d'eau pour sécheresse depuis le 1er janvier, d'après
+ * VigiEau. Voir `scripts/secheresse-emettre.ts`.
+ */
+import type { Secheresse } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  s: Secheresse;
+}
+const { s } = Astro.props;
+const date = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`)
+    .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .replace(/^1 /, '1er ');
+const jours = (n: number) => `${n.toLocaleString('fr-FR')} jour${n > 1 ? 's' : ''}`;
+const NOMS = ['aucune restriction', 'vigilance', 'alerte', 'alerte renforcée', 'crise'];
+const niveaux = [
+  ['crise', s.jours.crise, 'arrêt des prélèvements qui ne sont pas prioritaires — seuls restent la santé, la sécurité civile, l’eau potable et la salubrité'],
+  ['alerte renforcée', s.jours.renforcee, 'restrictions renforcées, prélèvements agricoles réduits d’au moins la moitié'],
+  ['alerte', s.jours.alerte, 'premières restrictions : arrosage, piscines, lavage des véhicules, irrigation'],
+  ['vigilance', s.jours.vigilance, 'appel à économiser l’eau, sans restriction'],
+] as const;
+const touches = niveaux.filter(([, n]) => n > 0);
+const total = touches.reduce((t, [, n]) => t + n, 0);
+---
+{total === 0 ? (
+  <p class="mesure">{`Aucun jour sous restriction d’eau entre le ${date(s.du)} et le ${date(s.au)}.`}</p>
+) : (
+  <>
+    <p class="mesure">
+      {`${jours(total)} sous restriction d’eau entre le ${date(s.du)} et le ${date(s.au)}` +
+        (s.jours.crise === total ? (total > 1 ? ', tous en crise.' : ', en crise.') : s.jours.crise > 0 ? `, dont ${jours(s.jours.crise)} en crise.` : '.')}
+    </p>
+    <ul class="c-structures">
+      {touches.map(([nom, n, sens]) => <li>{`${jours(n)} en ${nom} — ${sens}.`}</li>)}
+    </ul>
+  </>
+)}
+<p class="mesure">{`Le ${date(s.au)}, dernier jour publié : ${NOMS[s.dernier]}.`}</p>
+<p class="p-strate">
+  Le préfet restreint séparément trois ressources : l’eau potable du réseau, les eaux souterraines et les cours
+  d’eau. Un jour compte au niveau le plus grave des trois — une commune peut être en crise pour les rivières sans
+  que l’eau du robinet soit restreinte. Le détail des mesures est dans l’arrêté du préfet, qui peut distinguer
+  plusieurs zones dans le département.
+</p>
+<p class="p-source-territoire">
+  {`D’après VigiEau, le service du ministère de la Transition écologique qui réunit les arrêtés de restriction d’eau des préfets : niveau de chaque commune, jour par jour, en ${s.annee}.`}
+</p>

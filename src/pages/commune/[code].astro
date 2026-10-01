@@ -77,6 +77,9 @@ import Investissement from '../../composants/commune/Investissement.astro';
 import Loyers from '../../composants/commune/Loyers.astro';
 import Recharge from '../../composants/commune/Recharge.astro';
 import PetiteEnfance from '../../composants/commune/PetiteEnfance.astro';
+import Travail from '../../composants/commune/Travail.astro';
+import Appellations from '../../composants/commune/Appellations.astro';
+import Secheresse from '../../composants/commune/Secheresse.astro';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import Lieux from '../../composants/commune/Lieux.astro';
@@ -277,6 +280,7 @@ const sommaire: [string, string, unknown][] = [
   ['subventions', 'Les subventions', plus.subventions.length > 0],
   ['associations', 'Les associations', (plus.associations && plus.associations.total > 0) || droitLocal],
   ['entreprises', 'Les entreprises', plus.presentes || plus.entreprises],
+  ['travail', 'Le travail', vie.travail],
   ['equipements', 'Ce qu’on trouve sur place', fiche?.equipements],
   ['services', 'Les services', (fiche?.services.length ?? 0) > 0],
   ['sante', 'Le médecin', vie.sante],
@@ -284,6 +288,7 @@ const sommaire: [string, string, unknown][] = [
   ['petite-enfance', 'Les tout-petits', vie.petiteEnfance],
   ['ecoles', 'Les écoles', vie.ecoles],
   ['reseaux', 'Eau, fibre, énergie', vie.eau || vie.fibre || vie.energie],
+  ['secheresse', 'Les restrictions d’eau', vie.secheresse],
   ['mobile', 'Les antennes mobiles', vie.antennes],
   ['production', 'L’électricité produite', vie.production],
   ['monuments', 'Les monuments historiques', vie.monuments],
@@ -293,6 +298,7 @@ const sommaire: [string, string, unknown][] = [
   ['gares', 'Le train', vie.gares],
   ['recharge', 'Recharge et covoiturage', vie.recharge],
   ['agriculture', 'L’agriculture', vie.agriculture],
+  ['appellations', 'Les appellations', vie.appellations],
   ['journal', 'Ce qui a bougé', journal.length > 0],
 ];
 const entrees = sommaire.filter(([, , present]) => !!present);
@@ -755,6 +761,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
+    {vie.travail && (
+      <section id="travail">
+        <h2 class="badge">Le travail sur place</h2>
+        <Travail t={vie.travail} />
+      </section>
+    )}
+
     {equ && (
       <section id="equipements" class="p-equipements">
         <h2 class="badge">Ce qu’on trouve sur place</h2>
@@ -802,6 +815,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="reseaux">
         <h2 class="badge">Les réseaux qui y arrivent</h2>
         <Reseaux eau={vie.eau} fibre={vie.fibre} energie={vie.energie} />
+      </section>
+    )}
+
+    {vie.secheresse && (
+      <section id="secheresse">
+        <h2 class="badge">Les restrictions d’eau pour sécheresse</h2>
+        <Secheresse s={vie.secheresse} />
       </section>
     )}
 
@@ -865,6 +885,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="agriculture">
         <h2 class="badge">Sa surface agricole</h2>
         <Agriculture a={vie.agriculture} />
+      </section>
+    )}
+
+    {vie.appellations && (
+      <section id="appellations">
+        <h2 class="badge">Les appellations d’origine</h2>
+        <Appellations a={vie.appellations} />
       </section>
     )}
 

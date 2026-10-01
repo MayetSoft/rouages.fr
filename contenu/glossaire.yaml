@@ -427,6 +427,11 @@ sigles:
     developpe: "Dotation d'équipement des territoires ruraux"
     definition: "Subvention d'investissement que le préfet accorde, projet par projet, aux communes et intercommunalités rurales."
     liens: [od-dgcl-investissement]
+  - id: sigle-dsid
+    sigle: DSID
+    developpe: "Dotation de soutien à l'investissement des départements"
+    definition: "Subvention d'investissement que l'État accorde aux départements, projet par projet."
+    liens: [od-dgcl-investissement]
   - id: sigle-dsil
     sigle: DSIL
     developpe: "Dotation de soutien à l'investissement local"
@@ -442,6 +447,21 @@ sigles:
     developpe: "Établissement d'accueil du jeune enfant"
     definition: "Crèche, multi-accueil, micro-crèche ou crèche familiale : l'accueil collectif des enfants de moins de six ans, le plus souvent de moins de trois."
     liens: [od-caf-accueil-jeune-enfant]
+  - id: sigle-urssaf
+    sigle: URSSAF
+    developpe: "Union de recouvrement des cotisations de sécurité sociale et d'allocations familiales"
+    definition: "Collecte les cotisations sociales des employeurs ; elle publie, à partir de leurs déclarations, les effectifs salariés du secteur privé."
+    liens: [od-urssaf-effectifs]
+  - id: sigle-dares
+    sigle: DARES
+    developpe: "Direction de l'animation de la recherche, des études et des statistiques"
+    definition: "Le service statistique du ministère du Travail : il publie avec France Travail les chiffres des demandeurs d'emploi inscrits."
+    liens: [od-dares-inscrits]
+  - id: sigle-inao
+    sigle: INAO
+    developpe: "Institut national de l'origine et de la qualité"
+    definition: "L'établissement public qui instruit et contrôle les appellations d'origine, les indications géographiques et les labels de qualité."
+    liens: [od-inao-aires]
   - id: sigle-crte
     sigle: CRTE
     developpe: "Contrat pour la réussite de la transition écologique"

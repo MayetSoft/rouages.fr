@@ -12,7 +12,17 @@ interface Props {
 }
 const { p } = Astro.props;
 const nf = (v: number) => v.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
-const ou = p.echelle === 'commune' ? 'Dans la commune,' : `Dans l’intercommunalité, ${p.nomInterco},`;
+const ou =
+  p.echelle === 'commune'
+    ? 'Dans la commune,'
+    : p.echelle === 'intercommunalité'
+      ? p.nomInterco
+        ? `Dans l’intercommunalité, ${p.nomInterco},`
+        : 'Dans l’intercommunalité,'
+      : p.echelle === 'département'
+        ? 'Dans le département,'
+        : 'Dans la région,';
+const surPageDeCommune = p.echelle === 'commune' || p.nomInterco !== null;
 ---
 <p class="mesure">
   {`${ou} ${nf(p.taux.global)} places d’accueil pour 100 enfants de moins de trois ans en décembre ${p.annee}, contre ${nf(p.france.global)} en France.`}
@@ -25,9 +35,9 @@ const ou = p.echelle === 'commune' ? 'Dans la commune,' : `Dans l’intercommuna
 </ul>
 <p class="p-strate">
   C’est une offre théorique&nbsp;: les places qui existent, rapportées aux enfants de moins de trois ans, sans savoir si
-  une place est vacante ou partagée par plusieurs enfants. La CAF ne publie le taux par commune que pour celles de plus
-  de 10&nbsp;000 habitants&nbsp;; ailleurs, c’est celui de l’intercommunalité, où les places d’une commune servent aussi
-  les voisines.
+  une place est vacante ou partagée par plusieurs enfants.
+  {surPageDeCommune &&
+    'La CAF ne publie le taux par commune que pour celles de plus de 10 000 habitants ; ailleurs, c’est celui de l’intercommunalité, où les places d’une commune servent aussi les voisines.'}
 </p>
 <p class="p-source-territoire">
   {`D’après le taux de couverture d’accueil du jeune enfant de la Caisse nationale des allocations familiales, ${p.annee} (${p.maj}).`}

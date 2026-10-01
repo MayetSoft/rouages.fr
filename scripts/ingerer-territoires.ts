@@ -822,7 +822,7 @@ async function principal() {
 
   const { collecterInvestissement, ecrireInvestissement } = await import('./investissement-emettre.ts');
   const investissement = await tenter('Subventions d’investissement de l’État', () =>
-    collecterInvestissement(lireJson, enCache('DGCL — projets subventionnés (10 Mo)'), CACHE, grise),
+    collecterInvestissement(lireJson, enCache('DGCL — projets subventionnés (10 Mo)'), CACHE, grise, SORTIE),
   );
   if (investissement) grise(`${ecrireInvestissement(SORTIE, investissement)} départements de projets subventionnés écrits.`);
 
@@ -839,6 +839,22 @@ async function principal() {
   const { collecterObjets, ecrireObjets } = await import('./objets-emettre.ts');
   const objets = await tenter('Objets protégés', () => collecterObjets(enCache('Palissy — objets protégés (365 Mo)'), CACHE, grise));
   if (objets) grise(`${ecrireObjets(SORTIE, objets)} départements d’objets protégés écrits.`);
+
+  const { collecterTravail, ecrireTravail } = await import('./travail-emettre.ts');
+  const travail = await tenter('Salariés et inscrits à France Travail', () => collecterTravail(obstine, grise));
+  if (travail) grise(`${ecrireTravail(SORTIE, travail)} départements de travail écrits.`);
+
+  const { collecterAppellations, ecrireAppellations } = await import('./appellations-emettre.ts');
+  const appellations = await tenter('Appellations de l’INAO', () =>
+    collecterAppellations(lireJson, enCache('INAO — aires des appellations (45 Mo)'), CACHE, grise),
+  );
+  if (appellations) grise(`${ecrireAppellations(SORTIE, appellations)} départements d’appellations écrits.`);
+
+  const { collecterSecheresse, ecrireSecheresse } = await import('./secheresse-emettre.ts');
+  const secheresse = await tenter('Restrictions d’eau', () =>
+    collecterSecheresse(lireJson, enCache('VigiEau — restrictions (8 Mo, 560 Mo décompressé)'), CACHE, grise),
+  );
+  if (secheresse) grise(`${ecrireSecheresse(SORTIE, secheresse)} départements de restrictions d’eau écrits.`);
 
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));

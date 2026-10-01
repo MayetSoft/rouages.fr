@@ -112,10 +112,34 @@ const rechargeDep = parDepartement<RechargeDep>('recharge');
 type ObjetsDep = { maj: string; c: Record<string, [number, number, [string, string, 0 | 1][]]> };
 const objetsDep = parDepartement<ObjetsDep>('objets');
 type Couverture = [number, number, number, number, number];
-const petiteEnfanceFichier = national<{ maj: string; annee: number; france: Couverture; e: Record<string, Couverture>; c: Record<string, Couverture> }>(
-  'petite-enfance.json',
+const petiteEnfanceFichier = national<{
+  maj: string;
+  annee: number;
+  france: Couverture;
+  e: Record<string, Couverture>;
+  c: Record<string, Couverture>;
+  d?: Record<string, Couverture>;
+  r?: Record<string, Couverture>;
+}>('petite-enfance.json');
+type ProjetBrut = [number, string, string, number, number];
+const investissementCollectivites = national<{ maj: string; exercices: number[]; e: Record<string, ProjetBrut[]>; d: Record<string, ProjetBrut[]> }>(
+  'investissement-collectivites.json',
 );
 let intercoDe: Map<string, { siren: string; nom: string }> | null = null;
+type TravailDep = {
+  maj: string;
+  debut: number;
+  fin: number;
+  secteurs: string[];
+  debutInscrits: number;
+  finInscrits: number;
+  c: Record<string, [(number | null)[], [number, number, number][], (number | null)[]]>;
+};
+const travailDep = parDepartement<TravailDep>('travail');
+type AppellationsDep = { maj: string; dates: { ao: string; ig: string }; c: Record<string, [string[], string[]]> };
+const appellationsDep = parDepartement<AppellationsDep>('appellations');
+type SecheresseDep = { maj: string; annee: number; du: string; au: string; c: Record<string, [number, number, number, number, number]> };
+const secheresseDep = parDepartement<SecheresseDep>('secheresse');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -477,11 +501,43 @@ export interface TauxCouverture {
 
 export interface PetiteEnfance {
   /** Le taux de la commune quand la CAF le publie, sinon celui de son intercommunalité. */
-  echelle: 'commune' | 'intercommunalité';
+  echelle: 'commune' | 'intercommunalité' | 'département' | 'région';
   nomInterco: string | null;
   taux: TauxCouverture;
   france: TauxCouverture;
   annee: number;
+  maj: string;
+}
+
+/** Les salariés du privé employés dans la commune (URSSAF) et les habitants inscrits à France Travail (DARES). */
+export interface Travail {
+  salaries: (number | null)[];
+  annees: number[];
+  secteurs: { nom: string; salaries: number; etablissements: number }[];
+  inscrits: (number | null)[];
+  anneesInscrits: number[];
+  maj: string;
+}
+
+/** Les appellations dont l'aire comprend la commune, d'après l'INAO ; aucune est une réponse. */
+export interface Appellations {
+  origine: string[];
+  geographiques: string[];
+  dates: { ao: string; ig: string };
+  maj: string;
+}
+
+/**
+ * Les restrictions d'eau pour sécheresse depuis le 1er janvier, d'après
+ * VigiEau : les jours passés à chaque niveau — le plus grave des trois
+ * ressources ce jour-là — et le niveau du dernier jour publié (0 : aucune).
+ */
+export interface Secheresse {
+  jours: { vigilance: number; alerte: number; renforcee: number; crise: number };
+  dernier: 0 | 1 | 2 | 3 | 4;
+  annee: number;
+  du: string;
+  au: string;
   maj: string;
 }
 
@@ -514,6 +570,9 @@ export interface ComplementsVie {
   loyers: Loyers | null;
   recharge: Recharge | null;
   petiteEnfance: PetiteEnfance | null;
+  travail: Travail | null;
+  appellations: Appellations | null;
+  secheresse: Secheresse | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -873,6 +932,113 @@ function petiteEnfance(c: CommuneFiche): PetiteEnfance | null {
   return { echelle: 'intercommunalité', nomInterco: e.nom, taux: taux(t), france: taux(d.france), annee: d.annee, maj: d.maj };
 }
 
+/** Les projets subventionnés d'une intercommunalité (par SIREN) ou d'un département (par le code de sa page). */
+export function investissementCollectivite(echelon: 'intercommunalite' | 'departement', cle: string): Investissement | null {
+  const d = investissementCollectivites();
+  if (!d) return null;
+  const brut = (echelon === 'intercommunalite' ? d.e : d.d)[cle] ?? [];
+  return {
+    projets: brut.map(([annee, dispositif, intitule, cout, subvention]) => ({ annee, dispositif, intitule, cout, subvention })),
+    exercices: d.exercices,
+    maj: d.maj,
+  };
+}
+
+/** Le taux d'accueil du jeune enfant d'une intercommunalité, d'un département ou d'une région. */
+export function petiteEnfanceCollectivite(echelon: 'intercommunalite' | 'departement' | 'region', cle: string): PetiteEnfance | null {
+  const d = petiteEnfanceFichier();
+  if (!d) return null;
+  const t = (echelon === 'intercommunalite' ? d.e : echelon === 'departement' ? d.d : d.r)?.[cle];
+  if (!t) return null;
+  return {
+    echelle: echelon === 'intercommunalite' ? 'intercommunalité' : echelon === 'departement' ? 'département' : 'région',
+    nomInterco: null,
+    taux: taux(t),
+    france: taux(d.france),
+    annee: d.annee,
+    maj: d.maj,
+  };
+}
+
+/** Les programmes et zonages d'un groupe de communes, réunis : pour les pages d'intercommunalité et de département. */
+export interface ZonagesGroupe {
+  communes: number;
+  montagne: number;
+  partieMontagne: number;
+  programmes: Record<string, string[]>;
+  territoiresIndustrie: string[];
+  crte: string[];
+  abc: Record<string, number>;
+  quartiers: { nom: string; commune: string }[];
+  dates: Record<string, string>;
+  maj: string;
+}
+
+export function zonagesGroupe(liste: { code: string; dep: string; nom: string }[]): ZonagesGroupe | null {
+  let dates: Record<string, string> | null = null;
+  let maj = '';
+  const g: ZonagesGroupe = { communes: 0, montagne: 0, partieMontagne: 0, programmes: {}, territoiresIndustrie: [], crte: [], abc: {}, quartiers: [], dates: {}, maj: '' };
+  const ti = new Set<string>();
+  const crte = new Set<string>();
+  for (const c of liste) {
+    const d = zonagesDep.get(c.dep);
+    if (!d) continue;
+    dates ??= d.dates;
+    maj = d.maj;
+    g.communes++;
+    const [programmes, nomTi, nomCrte, m, abc, quartiers] = d.c[c.code] ?? [[], '', '', 0];
+    if (m === 1) g.montagne++;
+    if (m === 2) g.partieMontagne++;
+    for (const p of programmes) (g.programmes[p] ??= []).push(c.nom);
+    if (nomTi) ti.add(nomTi);
+    if (nomCrte) crte.add(nomCrte);
+    if (abc) g.abc[abc] = (g.abc[abc] ?? 0) + 1;
+    for (const q of quartiers ?? []) g.quartiers.push({ nom: q, commune: c.nom });
+  }
+  if (!dates) return null;
+  g.territoiresIndustrie = [...ti].sort((a, b) => a.localeCompare(b, 'fr'));
+  g.crte = [...crte].sort((a, b) => a.localeCompare(b, 'fr'));
+  g.dates = dates;
+  g.maj = maj;
+  return g;
+}
+
+function travail(c: CommuneFiche): Travail | null {
+  const d = travailDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x) return null;
+  const [salaries, secteurs, inscrits] = x;
+  return {
+    salaries,
+    annees: Array.from({ length: d.fin - d.debut + 1 }, (_, i) => d.debut + i),
+    secteurs: secteurs.map(([k, s, e]) => ({ nom: d.secteurs[k] ?? '', salaries: s, etablissements: e })),
+    inscrits,
+    anneesInscrits: Array.from({ length: d.finInscrits - d.debutInscrits + 1 }, (_, i) => d.debutInscrits + i),
+    maj: d.maj,
+  };
+}
+
+function appellations(c: CommuneFiche): Appellations | null {
+  const d = appellationsDep.get(c.dep);
+  if (!d) return null;
+  const [origine, geographiques] = d.c[c.code] ?? [[], []];
+  return { origine, geographiques, dates: d.dates, maj: d.maj };
+}
+
+function secheresse(c: CommuneFiche): Secheresse | null {
+  const d = secheresseDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x) return null;
+  return {
+    jours: { vigilance: x[0], alerte: x[1], renforcee: x[2], crise: x[3] },
+    dernier: x[4] as Secheresse['dernier'],
+    annee: d.annee,
+    du: d.du,
+    au: d.au,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -903,5 +1069,8 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     loyers: loyers(c),
     recharge: recharge(c),
     petiteEnfance: petiteEnfance(c),
+    travail: travail(c),
+    appellations: appellations(c),
+    secheresse: secheresse(c),
   };
 }

@@ -1,0 +1,24 @@
+---
+/**
+ * L'écart d'un montant par habitant à sa médiane : une flèche, et, sur les
+ * postes qui ont un sens de lecture, une couleur et ses mots. Voir
+ * `modele/ecart-mediane.ts`.
+ */
+import { ecartMediane } from '../../modele/ecart-mediane.ts';
+
+interface Props {
+  id: string;
+  valeur: number | null;
+  mediane: number | null;
+  /** Dans un tableau : la flèche seule, colorée s'il y a lieu, les mots pour les lecteurs d'écran et en infobulle. */
+  compact?: boolean;
+}
+const { id, valeur, mediane, compact = false } = Astro.props;
+const e = ecartMediane(id, valeur, mediane);
+---
+{e && (
+  <span class={`ec ${e.classe}`} title={e.texte}>
+    <span aria-hidden="true">{e.symbole}</span>
+    {e.colore && !compact ? <span class="ec-mot">{e.texte}</span> : <span class="visuellement-cache">{e.texte}</span>}
+  </span>
+)}

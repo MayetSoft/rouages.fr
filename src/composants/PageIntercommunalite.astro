@@ -23,6 +23,10 @@ import {
 } from '../modele/fiche-commune.ts';
 import { construireReseau } from '../modele/reseau.ts';
 import { metaTerritoires, type Intercommunalite } from '../modele/territoires.ts';
+import { investissementCollectivite, petiteEnfanceCollectivite, zonagesGroupe } from '../modele/fiche-vie.ts';
+import ZonagesGroupe from './ZonagesGroupe.astro';
+import Investissement from './commune/Investissement.astro';
+import PetiteEnfance from './commune/PetiteEnfance.astro';
 
 interface Props {
   e: Intercommunalite;
@@ -65,6 +69,9 @@ const milliards = (v: number) =>
     : `${Math.round(Math.abs(v) / 1e6).toLocaleString('fr-FR')} millions d’euros`;
 const n = e.communes.length;
 const nf = (v: number) => v.toLocaleString('fr-FR');
+const zonages = zonagesGroupe(e.communes);
+const investissement = investissementCollectivite('intercommunalite', e.siren);
+const petiteEnfance = petiteEnfanceCollectivite('intercommunalite', e.siren);
 ---
 <Base
   titre={e.nom}
@@ -132,6 +139,27 @@ const nf = (v: number) => v.toLocaleString('fr-FR');
       <section id="percu" class="p-finances p-flux-percus">
         <h2 class="badge">Ce qu’elle perçoit à la place des communes</h2>
         <FluxPercus liste={flux} annees={anneesFlux()} />
+      </section>
+    )}
+
+    {investissement && (
+      <section id="investissement">
+        <h2 class="badge">Les projets que l’État a subventionnés</h2>
+        <Investissement i={investissement} echelon="intercommunalite" />
+      </section>
+    )}
+
+    {zonages && (
+      <section id="zonages">
+        <h2 class="badge">Les programmes de l’État et les zonages de ses communes</h2>
+        <ZonagesGroupe z={zonages} nommer />
+      </section>
+    )}
+
+    {petiteEnfance && (
+      <section id="petite-enfance">
+        <h2 class="badge">L’accueil des tout-petits</h2>
+        <PetiteEnfance p={petiteEnfance} />
       </section>
     )}
 

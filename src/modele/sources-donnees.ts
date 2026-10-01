@@ -318,6 +318,36 @@ const ENTREES: Entree[] = [
 
   // --- Le territoire --------------------------------------------------------
   {
+    motif: /effectifs salariés du secteur privé/i,
+    liens: [
+      {
+        titre: 'Établissements et effectifs salariés par commune et activité (URSSAF)',
+        url: 'https://open.urssaf.fr/explore/dataset/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/',
+      },
+    ],
+  },
+  {
+    motif: /inscrits à France Travail/i,
+    liens: [
+      { titre: 'Inscrits à France Travail, données communales (DARES)', url: dg('66df098924d76afbdd70938a') },
+      { titre: 'Les catégories A, B, C (INSEE)', url: 'https://www.insee.fr/fr/metadonnees/definition/c2010' },
+    ],
+  },
+  {
+    motif: /VigiEau/,
+    liens: [
+      { titre: 'Données sécheresse VigiEau, restrictions par commune', url: dg('662a5e2cd71b24df5e9a0827') },
+      { titre: 'VigiEau, les restrictions en vigueur', url: 'https://vigieau.gouv.fr/' },
+    ],
+  },
+  {
+    motif: /Institut national de l.origine et de la qualité/i,
+    liens: [
+      { titre: 'Aires géographiques des AOC et AOP (INAO)', url: dg('53698ecca3a729239d203579') },
+      { titre: 'Aires géographiques des IGP et IG (INAO)', url: dg('53698ec7a3a729239d20356a') },
+    ],
+  },
+  {
     motif: /Agence nationale de la cohésion des territoires/i,
     liens: [
       { titre: 'Petites villes de demain (ANCT)', url: dg('5fc1259b703620ed60a49d97') },

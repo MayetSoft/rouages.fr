@@ -263,6 +263,7 @@ reperes:
     parent: repere-fonctionnement
     explication: "Les intérêts de la dette, pour l'essentiel."
     liens: [od-ofgl, ofgl-definitions]
+    sens: { vers: bas, lecture: ["intérêts moins lourds que la médiane", "intérêts plus lourds que la médiane"], lien: ofgl-dossier-dette }
   - id: repere-autres-depenses-fonctionnement
     nom: "Autres dépenses de fonctionnement"
     agregat: "Autres dépenses de fonctionnement"
@@ -308,17 +309,20 @@ reperes:
     principal: true
     explication: "Les recettes de fonctionnement moins les dépenses de fonctionnement : ce qui reste pour rembourser la dette et investir."
     liens: [od-ofgl, ofgl-definitions]
+    sens: { vers: haut, lecture: ["plus de marge que la médiane", "moins de marge que la médiane"], lien: ofgl-dossier-dette }
   - id: repere-dette
     nom: "Encours de dette"
     agregat: "Encours de dette"
     principal: true
     explication: "Ce qui reste à rembourser au 31 décembre, tous emprunts confondus."
     liens: [od-ofgl, ofgl-definitions]
+    sens: { vers: bas, lecture: ["moins endettée que la médiane", "plus endettée que la médiane"], lien: ofgl-dossier-dette }
   - id: repere-annuite
     nom: "Annuité de la dette"
     agregat: "Annuité de la dette"
     explication: "Ce que la dette a coûté dans l'année : le capital remboursé et les intérêts."
     liens: [od-ofgl, ofgl-definitions]
+    sens: { vers: bas, lecture: ["dette moins lourde que la médiane", "dette plus lourde que la médiane"], lien: ofgl-dossier-dette }
 
   # --- Perçus par l'intercommunalité, pas par la commune --------------------
   # Les chercher dans les comptes communaux ne donnerait presque rien. Le site

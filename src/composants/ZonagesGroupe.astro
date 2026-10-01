@@ -1,0 +1,68 @@
+---
+/**
+ * Les programmes de l'État et les zonages d'un groupe de communes — une
+ * intercommunalité, un département —, réunis. Le détail est sur la page de
+ * chaque commune ; voir `scripts/zonages-emettre.ts`.
+ */
+import type { ZonagesGroupe } from '../modele/fiche-vie.ts';
+import Glose from './Glose.astro';
+
+interface Props {
+  z: ZonagesGroupe;
+  /** Nommer les communes de chaque programme : oui pour une intercommunalité, non pour un département. */
+  nommer?: boolean;
+}
+const { z, nommer = false } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const NOMS: Record<string, string> = {
+  pvd: 'Petites villes de demain',
+  acv: 'Action cœur de ville',
+  va: 'Villages d’avenir',
+};
+const sur = (n: number) => `${nf(n)} commune${n > 1 ? 's' : ''} sur ${nf(z.communes)}`;
+const ordreAbc = ['A BIS', 'A', 'B1', 'B2', 'C'];
+// Au-delà de six, une région en compterait des dizaines : le nombre suffit.
+const nommerTi = nommer || z.territoiresIndustrie.length < 7;
+const nommerCrte = nommer || z.crte.length < 7;
+const date = (d?: string) => (d ? d.split('-').reverse().join('/') : '');
+---
+<ul class="c-structures">
+  {Object.entries(NOMS).map(([p, nom]) => {
+    const liste = z.programmes[p] ?? [];
+    return liste.length > 0 ? (
+      <li>{`${nom} : ${sur(liste.length)}` + (nommer ? ` — ${liste.join(', ')}.` : '.')}</li>
+    ) : null;
+  })}
+  {z.territoiresIndustrie.length > 0 && (
+    <li>
+      {`Territoire${z.territoiresIndustrie.length > 1 ? 's' : ''} d’industrie : ` +
+        (nommerTi ? `${z.territoiresIndustrie.map((t) => `« ${t} »`).join(', ')}.` : `${nf(z.territoiresIndustrie.length)}.`)}
+    </li>
+  )}
+  {z.crte.length > 0 && (
+    <li>
+      <Glose texte={`Contrat${z.crte.length > 1 ? 's' : ''} pour la réussite de la transition écologique : ${nommerCrte ? z.crte.map((t) => `« ${t} »`).join(', ') : nf(z.crte.length)}.`} />
+    </li>
+  )}
+  <li>
+    {z.montagne + z.partieMontagne === 0
+      ? 'Aucune commune en zone de montagne.'
+      : `Zone de montagne : ${sur(z.montagne)}` + (z.partieMontagne > 0 ? `, et ${nf(z.partieMontagne)} en partie.` : '.')}
+  </li>
+  {Object.keys(z.abc).length > 0 && (
+    <li>{`Zonage ABC : ${ordreAbc.filter((k) => z.abc[k]).map((k) => `${nf(z.abc[k])} en ${k}`).join(', ')}.`}</li>
+  )}
+  {z.quartiers.length > 0 && (
+    <li>
+      {`${z.quartiers.length === 1 ? 'Un quartier prioritaire' : `${nf(z.quartiers.length)} quartiers prioritaires`} de la politique de la ville` +
+        (nommer ? ` : ${z.quartiers.map((q) => `${q.nom} (${q.commune})`).join(', ')}.` : '.')}
+    </li>
+  )}
+</ul>
+<p class="p-strate">
+  Chaque commune a sa ligne sur sa page, avec ce que chaque programme ou zonage lui apporte. Un quartier à cheval sur
+  deux communes compte dans chacune.
+</p>
+<p class="p-source-territoire">
+  {`D’après les listes de communes des programmes de l’Agence nationale de la cohésion des territoires (Petites villes de demain, ${date(z.dates.pvd)} ; quartiers prioritaires, ${date(z.dates.qpv)}), le zonage ABC du ministère chargé du logement (${date(z.dates.abc)}) et la liste des communes classées en zones défavorisées du ministère de l’Agriculture (${z.maj}).`}
+</p>

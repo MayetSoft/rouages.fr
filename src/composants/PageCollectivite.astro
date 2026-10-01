@@ -16,6 +16,10 @@ import {
   type Collectivite,
 } from '../modele/fiche-commune.ts';
 import { communes, intercommunalites, lienIntercommunalite, metaTerritoires } from '../modele/territoires.ts';
+import { investissementCollectivite, petiteEnfanceCollectivite, zonagesGroupe } from '../modele/fiche-vie.ts';
+import ZonagesGroupe from './ZonagesGroupe.astro';
+import Investissement from './commune/Investissement.astro';
+import PetiteEnfance from './commune/PetiteEnfance.astro';
 
 interface Props {
   c: Collectivite;
@@ -56,6 +60,14 @@ const intercos =
         .filter((e) => (c.code === '691' ? e.nature === 'MET69' : c.code === '69' ? e.nature !== 'MET69' : true))
         .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
     : [];
+
+// Le Rhône et la Métropole de Lyon se partagent les mêmes communes, et la CAF
+// ne publie qu'un Rhône entier : ni zonages réunis ni accueil du jeune enfant
+// sous ces deux pages, plutôt qu'un chiffre attribué à la mauvaise.
+const partage = c.code === '69' || c.code === '691';
+const zonages = partage ? null : zonagesGroupe(communes().filter((x) => deps.includes(x.dep)));
+const investissement = c.echelon === 'departement' ? investissementCollectivite('departement', c.code) : null;
+const petiteEnfance = partage || c.code === '67A' ? null : petiteEnfanceCollectivite(c.echelon, c.code);
 
 // L'échelon voisin : la région d'un département.
 const codeRegion = c.echelon === 'departement' ? meta?.codesRegion?.[deps[0]] : undefined;
@@ -122,6 +134,24 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
       </section>
     ) : (
       <p class="c-vide">Les comptes de cette collectivité n’ont pas pu être lus.</p>
+    )}
+    {investissement && (
+      <section id="investissement">
+        <h2 class="badge">Les projets que l’État a subventionnés</h2>
+        <Investissement i={investissement} echelon="departement" />
+      </section>
+    )}
+    {zonages && (
+      <section id="zonages">
+        <h2 class="badge">Les programmes de l’État et les zonages de ses communes</h2>
+        <ZonagesGroupe z={zonages} />
+      </section>
+    )}
+    {petiteEnfance && (
+      <section id="petite-enfance">
+        <h2 class="badge">L’accueil des tout-petits</h2>
+        <PetiteEnfance p={petiteEnfance} />
+      </section>
     )}
     {intercos.length > 0 && (
       <section class="p-echelons">
