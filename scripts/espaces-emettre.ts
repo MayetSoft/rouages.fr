@@ -9,9 +9,14 @@
  * `contours-emettre.ts` vient d'écrire, sans bibliothèque de géométrie : on
  * pose une grille de points sur la commune et on compte ceux qui tombent dans
  * chaque zone. La part est donc approchée — à quelques pour cent près sur une
- * commune moyenne —, et la page l'arrondit. Une petite zone que la grille
- * manque — un étang, une grotte — est retenue si son centre est dans la
- * commune, avec une part « de moins de 1 % ».
+ * commune moyenne —, et la page l'arrondit. Les contours étant simplifiés à
+ * 100 m, une zone qui suit la limite d'une commune voisine mordrait sur
+ * celle-ci d'un liseré : une zone n'est donc retenue que si elle touche le
+ * cœur de la commune, à plus de 120 m de sa limite — par un point de la
+ * grille, par trois de ses sommets (une rivière étroite) ou par son centre
+ * (un étang, une grotte), avec alors une part « de moins de 1 % ». Un parc
+ * naturel régional, auquel une commune adhère tout entière, n'est retenu
+ * qu'au-delà de la moitié de la commune.
  *
  * Pour la carte, chaque zone est gardée une fois par département, simplifiée
  * à une centaine de mètres comme les communes ; les parcs naturels régionaux
@@ -166,6 +171,24 @@ function anneauxDe(g: Entite['geometry'], tol: number): Anneau[] {
   return sortie;
 }
 
+const PETITS_MOTS = new Set(['de', 'des', 'du', 'la', 'le', 'les', 'et', 'en', 'sur', 'sous', 'aux', 'au', 'à']);
+
+/** « BOIS NOIRS - MONTS DE LA MADELEINE » → « Bois Noirs - Monts de la Madeleine » ; un nom déjà en casse mixte est gardé. */
+export function casse(nom: string): string {
+  if (nom !== nom.toUpperCase()) return nom;
+  return nom
+    .toLowerCase()
+    .split(/(\s+|-|')/)
+    .map((m, i, t) => {
+      if (!/\p{L}/u.test(m)) return m;
+      if (i > 0 && PETITS_MOTS.has(m)) return m;
+      // « d'Allier », « l'Allier » : l'élision reste en minuscule, le nom prend sa capitale.
+      if (i > 0 && (m === 'd' || m === 'l') && t[i + 1] === "'") return m;
+      return m[0].toUpperCase() + m.slice(1);
+    })
+    .join('');
+}
+
 /** Pair-impair : le point est-il dans l'ensemble des anneaux (trous compris) ? */
 function dedans(x: number, y: number, anneaux: Anneau[]): boolean {
   let c = false;
@@ -178,6 +201,21 @@ function dedans(x: number, y: number, anneaux: Anneau[]): boolean {
     }
   }
   return c;
+}
+
+/** Distance d'un point au bord le plus proche des anneaux. */
+function distanceAuBord(x: number, y: number, anneaux: Anneau[]): number {
+  let min = Infinity;
+  for (const r of anneaux) {
+    for (let i = 0, j = r.length - 2; i < r.length; j = i, i += 2) {
+      const ax = r[j], ay = r[j + 1], dx = r[i] - ax, dy = r[i + 1] - ay;
+      const l2 = dx * dx + dy * dy;
+      const t = l2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
+      const d = Math.hypot(x - ax - t * dx, y - ay - t * dy);
+      if (d < min) min = d;
+    }
+  }
+  return min;
 }
 
 /** Sutherland-Hodgman contre un rectangle : ce qui reste d'un anneau dans le cadre de la commune. */
@@ -307,7 +345,7 @@ export async function collecterEspaces(sortie: string, cache: string, dire: (m: 
       zones.push({
         cle: `${p.cd_sig ?? p.id_mnhn ?? zones.length}${n === 9 ? '-a' : ''}`,
         nature: n,
-        nom: (p.nom_site ?? '').replace(/\s+/g, ' ').trim(),
+        nom: casse((p.nom_site ?? '').replace(/\s+/g, ' ').trim()),
         id: p.id_mnhn ?? '',
         hectares: Number(p.area_sig) || 0,
         anneaux,
@@ -363,19 +401,38 @@ export async function collecterEspaces(sortie: string, cache: string, dire: (m: 
     if (points.length === 0) continue;
     const lat = (cadre[1] + cadre[3]) / 2 / ECHELLE;
     const surface = hectares(anneaux, lat);
+    // Le cœur de la commune : à plus de 120 m de sa limite. Les contours sont simplifiés à 100 m, et une zone
+    // qui suit la limite d'une commune voisine mordrait sinon sur celle-ci d'un liseré qui n'existe pas.
+    const MARGE = 12;
+    const coeur = points.map(([x, y]) => distanceAuBord(x, y, anneaux) > MARGE);
     const liste: EspacesCommune = [];
     for (const { i, anneaux: local } of locales) {
       if (local.length === 0) continue;
       const z = zones[i];
       let n = 0;
-      for (const [x, y] of points) if (dedans(x, y, local)) n++;
+      let nCoeur = 0;
+      points.forEach(([x, y], k) => {
+        if (!dedans(x, y, local)) return;
+        n++;
+        if (coeur[k]) nCoeur++;
+      });
       let part = Math.round((100 * n) / points.length);
-      if (n === 0) {
-        // Une petite zone que la grille a manquée : retenue si son centre est dans la commune.
-        if (z.hectares === 0 || z.hectares > surface / 50) continue;
+      if (z.nature >= 8) {
+        // Un parc : la commune y adhère tout entière, ou pas. Une part faible est un liseré.
+        if (part < 50) continue;
+      } else if (nCoeur === 0) {
+        // Rien au cœur de la commune : une zone étroite (une rivière) ou petite (un étang) n'y est retenue
+        // que si trois de ses sommets, ou son centre pour une petite zone, sont bien à l'intérieur.
+        let sommets = 0;
+        for (const r of local) {
+          for (let k = 0; k < r.length && sommets < 3; k += 2) {
+            if (dedans(r[k], r[k + 1], anneaux) && distanceAuBord(r[k], r[k + 1], anneaux) > MARGE) sommets++;
+          }
+        }
         const cx = (z.cadre[0] + z.cadre[2]) / 2;
         const cy = (z.cadre[1] + z.cadre[3]) / 2;
-        if (!dedans(cx, cy, anneaux)) continue;
+        const petite = z.hectares > 0 && z.hectares <= surface / 50 && dedans(cx, cy, anneaux);
+        if (sommets < 3 && !petite) continue;
         part = 0;
       }
       liste.push([z.nature, z.cle, Math.min(part, 100)]);

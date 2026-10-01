@@ -3168,6 +3168,42 @@ l'encadré replié (`QuiDecide.astro`), relie le chiffre au graphe :
 La page Méthode explique enfin le code couleur des comptes : pourquoi quatre
 lignes seulement, et d'où vient leur sens.
 
+### La carte de chaque commune, et ses espaces naturels ✔
+
+**Une carte en tête de chaque page.** La commune en couleur, ses voisines —
+chacune un lien vers sa page —, et en encart la silhouette de son département
+(`CarteSituation.astro`). Les contours sont ceux d'Admin Express de l'IGN,
+simplifiés à 100 m par Etalab en gardant la topologie (`contours-emettre.ts`) :
+deux communes qui partagent deux sommets sont voisines, et la silhouette du
+département se tire des segments qu'une seule de ses communes emprunte, sans
+calcul d'union. 34 969 communes, 64 sans voisine — des îles. Le dessin est fait
+au build en SVG, sans fond de carte ni service tiers : une dizaine de Ko par
+page, et les couleurs suivent le thème. Au Mayet-de-Montagne : six voisines,
+Arronnes, Châtel-Montagne, Ferrières-sur-Sichon, La Chapelle, Nizerolles et
+Saint-Clément.
+
+**Les espaces naturels** (`espaces-emettre.ts`, bloc `#nature`). Le site de
+l'INPN est fermé depuis une attaque informatique, et ses fichiers répondent
+403 ; ses couches sont servies en WFS par la Géoplateforme de l'IGN :
+parcs nationaux et régionaux, réserves, arrêtés de protection de biotope,
+Natura 2000 des deux directives, ZNIEFF de type I et II — 22 821 zones. Elles
+sont croisées avec les contours sans bibliothèque de géométrie : une grille de
+points sur la commune, la part de ceux qui tombent dans chaque zone. Un premier
+passage comptait 6 433 communes dans un parc naturel régional : 1 419 l'étaient
+à moins de 3 %, des voisines dont le contour simplifié mordait sur la limite
+du parc. Une zone n'est donc retenue que si elle touche le cœur de la commune,
+à plus de 120 m de sa limite, et un parc qu'au-delà de la moitié de la commune
+— il en reste 4 950. La carte du bloc découpe les zones aux limites de la
+commune : aplat vert pour ce qui protège ou relève de Natura 2000, hachures
+ocre pour les inventaires, deux encodages validés ensemble. Les fiches de
+l'INPN ne répondant pas, les zones sont nommées sans lien.
+
+Au Mayet-de-Montagne : l'arrêté de protection de biotope de l'écrevisse à pieds
+blancs et le site Natura 2000 des rivières de la Montagne bourbonnaise, sur
+moins de 1 % et 1 % de la commune, et la ZNIEFF des Bois Noirs et des monts de
+la Madeleine sur environ 15 %. À Vichy, la rivière Allier. À Ambert, le parc
+Livradois-Forez.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

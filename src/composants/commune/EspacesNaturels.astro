@@ -24,8 +24,9 @@ const GROUPES: { titre: string; rangs: number[] }[] = [
   { titre: 'Parcs', rangs: [8, 9] },
 ];
 const groupes = GROUPES.map((g) => ({ ...g, zones: e.zones.filter((z) => g.rangs.includes(z.rang)) })).filter((g) => g.zones.length > 0);
+// Un parc couvre la commune entière : elle y adhère, ou pas.
 const part = (z: ZoneNaturelle) =>
-  z.part >= 99 ? 'toute la commune' : z.part === 0 ? 'moins de 1 % de la commune' : z.part < 5 ? `${z.part} % de la commune` : `environ ${Math.round(z.part / 5) * 5} % de la commune`;
+  z.rang >= 8 || z.part >= 99 ? 'toute la commune' : z.part === 0 ? 'moins de 1 % de la commune' : z.part < 5 ? `${z.part} % de la commune` : `environ ${Math.round(z.part / 5) * 5} % de la commune`;
 
 // La carte : la commune, et les zones qu'on dessine, découpées à ses limites.
 const W = 480;
