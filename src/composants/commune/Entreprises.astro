@@ -5,9 +5,9 @@
  * **Des annonces, pas des entreprises**, et le bloc le dit : une société qui
  * déménage publie une modification puis une radiation d'établissement, une
  * procédure collective publie une annonce par jugement. Les décomptes
- * comptent tout le monde, entrepreneurs individuels compris ; la liste ne
- * nomme que des sociétés, parce qu'un entrepreneur individuel exerce sous son
- * propre nom.
+ * comptent tout le monde, entrepreneurs individuels compris ; la liste nomme
+ * les sociétés, et depuis le 1er octobre 2026 les entrepreneurs individuels
+ * que le répertoire SIRENE dit diffusibles (voir `scripts/entreprises-emettre.ts`).
  *
  * Les procédures collectives ne sont que comptées : nommer ici une société en
  * redressement, c'est en faire la nouvelle du village. Le lien conduit au
@@ -109,12 +109,15 @@ const jour = (iso: string) =>
 )}
 {e.recentes.length > 0 && (
   <div class="p-risque-groupe">
-    <span class="p-service-famille">Les dernières annonces des sociétés</span>
+    <span class="p-service-famille">Les dernières annonces</span>
     <ul>
-      {e.recentes.map(([date, f, societe, id]) => (
+      {e.recentes.map(([date, f, nom, id, activite, ei]) => (
         <li class="p-risque-plan">
-          <span class="p-risque-nom"><a href={ANNONCE + id} target="_blank" rel="noopener">{societe}</a></span>
-          <span class="p-risque-detail">{`${LIBELLES[e.familles[f]]?.[1] ?? e.familles[f]} · ${jour(date)}`}</span>
+          <span class="p-risque-nom"><a href={ANNONCE + id} target="_blank" rel="noopener">{nom}</a></span>
+          <span class="p-risque-detail">
+            {`${ei ? 'entreprise individuelle · ' : ''}${LIBELLES[e.familles[f]]?.[1] ?? e.familles[f]} · ${jour(date)}`}
+          </span>
+          {activite && <span class="p-risque-detail">{activite}</span>}
         </li>
       ))}
     </ul>
@@ -122,8 +125,12 @@ const jour = (iso: string) =>
 )}
 <p class="p-source-territoire">
   {`D’après les annonces commerciales du BODACC, publiées par la DILA (${e.maj}). ` +
-    'Les décomptes incluent les entrepreneurs individuels ; la liste ne nomme que des sociétés, jamais une personne, ' +
-    'ni son adresse. Le BODACC ne donne pas de code commune : le site rattache chaque annonce par sa ville et son ' +
+    'Les décomptes incluent les entrepreneurs individuels. La liste nomme les sociétés et les entrepreneurs ' +
+    'individuels tels que le BODACC les publie, avec l’activité déclarée — jamais un dirigeant, jamais une adresse, ' +
+    'jamais une procédure collective. Un entrepreneur n’est nommé que si le répertoire SIRENE le dit diffusible : ' +
+    'celui qui s’est opposé à la diffusion de son identité n’y figure pas, ni celui dont l’immatriculation est plus ' +
+    'récente que la copie du répertoire. Une demande de retrait s’adresse à l’éditeur (voir « Signaler »). ' +
+    'Le BODACC ne donne pas de code commune : le site rattache chaque annonce par sa ville et son ' +
     `code postal, et ${e.sansCommune.toLocaleString('fr-FR')} % des annonces, le plus souvent sans adresse, ` +
     'ne sont comptées dans aucune commune. Les dépôts de comptes ne sont pas repris.'}
 </p>

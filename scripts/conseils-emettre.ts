@@ -1,7 +1,7 @@
 /**
- * De quoi un conseil municipal est fait — sans nommer personne.
+ * De quoi un conseil municipal est fait, et qui sont les adjoints du maire.
  *
- * Le site nomme le maire, et s'arrête là. Les cinq cent onze mille conseillers
+ * Le site nomme le maire et ses adjoints, et s’arrête là. Les autres conseillers
  * municipaux que le répertoire publie, avec leur nom, leur date de naissance
  * et leur profession, **n'entrent pas ici** : republier un annuaire indexable
  * de cette taille n'est pas le projet, et les mentions légales promettent le
@@ -22,6 +22,14 @@
  * Le site affiche donc l'effectif réel, et dit «&nbsp;sur tant de sièges&nbsp;»
  * quand les deux divergent.
  *
+ * **Les adjoints, eux, sont nommés** depuis la décision du 1er octobre 2026
+ * (`CLAUDE.md`, « Les noms dans les données ») : un adjoint détient des
+ * délégations du maire et signe en son nom, c'est une fonction exécutive. On
+ * en garde la fonction, le prénom, le nom et la date de prise de fonction —
+ * ni la naissance, ni la profession. Les maires délégués d'une commune
+ * nouvelle, adjoints de droit, en sont. Les autres conseillers restent des
+ * décomptes.
+ *
  * **Ce qu'on refuse encore : le nombre total de sièges d'une intercommunalité.**
  * Compter les lignes du répertoire donne 81 pour CA Vichy Communauté, qui en
  * publie 77, et ne rattache ses élus qu'à 38 de ses 39 communes.
@@ -36,9 +44,12 @@
  * prend les sièges dans les résultats du scrutin, qui n'en portent qu'à partir
  * de mille habitants.
  */
-import { writeFileSync } from 'node:fs';
+import { createReadStream, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { lignesCsvOuvert, ressourcesDuJeu } from './donnees-ouvertes.ts';
+import { telechargerSiAbsent } from './par-departement.ts';
+import { eluRetire } from './retraits.ts';
 
 /** Le jeu du ministère, et les deux fichiers qu'on y prend. */
 const JEU = 'repertoire-national-des-elus-1';
@@ -80,6 +91,16 @@ export interface ConseilCommune {
   p: [number, number][];
   /** Lignes du répertoire rattachées à la commune au conseil communautaire — non publié, voir l'en-tête. */
   cc: number;
+  /** Les adjoints, dans l'ordre du tableau : fonction, prénom, nom, date de prise de fonction. */
+  a?: [string, string, string, string][];
+}
+
+/** Le rang d'une fonction dans le tableau : 1er adjoint, 2e…, puis les maires délégués. */
+function rangAdjoint(fonction: string): number | null {
+  const m = /^(\d+)\s*(?:er|e|ème|eme)\s+adjoint/i.exec(fonction);
+  if (m) return Number(m[1]);
+  if (/^maire délégué/i.test(fonction)) return 1000;
+  return null;
 }
 
 export interface Conseils {
@@ -128,6 +149,7 @@ export async function collecterConseils(
   const tousAges: number[] = [];
   let femmes = 0;
   let total = 0;
+  let adjoints = 0;
 
   const fichierCm = join(cache, 'rne-conseillers-municipaux.csv');
   try {
@@ -156,6 +178,16 @@ export async function collecterConseils(
       const deja = c.p.find(([i]) => i === groupe - 1);
       if (deja) deja[1]++;
       else c.p.push([groupe - 1, 1]);
+    }
+    const fonction = (l['Libellé de la fonction'] ?? '').trim();
+    if (rangAdjoint(fonction) !== null && !eluRetire(code, fonction)) {
+      (c.a ??= []).push([
+        fonction,
+        (l["Prénom de l'élu"] ?? '').trim(),
+        (l["Nom de l'élu"] ?? '').trim(),
+        (l['Date de début de la fonction'] ?? '').trim(),
+      ]);
+      adjoints++;
     }
     const a = age((l['Date de naissance'] ?? '').trim(), aujourdhui);
     if (a !== null) {
@@ -193,6 +225,7 @@ export async function collecterConseils(
     const v = ages.get(code) ?? [];
     c.age = v.length === 0 ? [0, 0, 0] : [Math.min(...v), mediane(v), Math.max(...v)];
     c.p.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+    c.a?.sort((x, y) => (rangAdjoint(x[0]) ?? 0) - (rangAdjoint(y[0]) ?? 0) || x[2].localeCompare(y[2], 'fr'));
   }
 
   const partFemmes = Math.round((femmes / total) * 1000) / 10;
@@ -201,7 +234,7 @@ export async function collecterConseils(
       `${communes.size.toLocaleString('fr-FR')} communes, ${partFemmes} % de femmes, ` +
       `âge médian ${mediane(tousAges)} ans` +
       (avecCc > 0 ? `, ${avecCc.toLocaleString('fr-FR')} sièges communautaires rattachés` : '') +
-      '.',
+      `, ${adjoints.toLocaleString('fr-FR')} adjoints et maires délégués.`,
   );
   return { maj: aujourdhui.toISOString().slice(0, 10), communes, partFemmes, ageMedian: mediane(tousAges) };
 }
@@ -228,4 +261,24 @@ export function ecrireConseils(sortie: string, dep: string, codes: string[], k: 
     }),
   );
   return n;
+}
+
+// Lancé seul : relit le fichier des conseillers (dans `.cache/` s'il y est) et réécrit `dep/XX-conseils.json`.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const { cache, telecharger, lireJson, sortie } = telechargerSiAbsent(join(fileURLToPath(new URL('.', import.meta.url)), '..'));
+  const k = await collecterConseils(
+    telecharger,
+    cache,
+    (chemin) => createReadStream(chemin) as unknown as AsyncIterable<Uint8Array>,
+    lireJson as <T>(url: string) => Promise<T>,
+    console.log,
+  );
+  if (k) {
+    const index = JSON.parse(readFileSync(join(sortie, 'index.json'), 'utf8')) as { c: [string, string, string, string, number][] };
+    const parDep = new Map<string, string[]>();
+    for (const [code, , , dep] of index.c) parDep.set(dep, [...(parDep.get(dep) ?? []), code]);
+    let n = 0;
+    for (const [dep, codes] of parDep) n += ecrireConseils(sortie, dep, codes, k);
+    console.log(`${n} communes écrites.`);
+  }
 }

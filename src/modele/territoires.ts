@@ -91,7 +91,7 @@ type ElectionsDep = {
   c: Record<string, { cm: number; cc: number }>;
 };
 
-/** La composition des conseils du département, sans aucun nom. */
+/** La composition des conseils du département ; seuls les adjoints y sont nommés. */
 type ConseilsDep = {
   maj: string;
   groupes: string[];
@@ -99,7 +99,7 @@ type ConseilsDep = {
   age: number;
   c: Record<
     string,
-    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number }
+    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number; a?: [string, string, string, string][] }
   >;
 };
 
@@ -310,6 +310,10 @@ export interface Fiche {
   verdicts: Map<string, Verdict>;
   reserve: (competence: string) => string | null;
   maire: { prenom: string; nom: string; depuis: string; maj: string } | null;
+  /** Les adjoints et maires délégués, dans l'ordre du tableau, d'après le répertoire national des élus. */
+  adjoints: { fonction: string; prenom: string; nom: string; depuis: string }[];
+  /** La date du fichier des conseillers d'où viennent les adjoints. */
+  adjointsMaj: string | null;
   services: {
     famille: string;
     nom: string;
@@ -546,6 +550,7 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
   const risq = enCache(cacheRisques, c.dep, `dep/${c.dep}-risques.json`);
   const fr = risq?.c[c.code];
 
+  const adjointsDep = enCache(cacheConseils, c.dep, `dep/${c.dep}-conseils.json`);
   return {
     commune: c,
     structures,
@@ -554,6 +559,8 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
     maire: brutMaire
       ? { prenom: brutMaire[0], nom: brutMaire[1], depuis: brutMaire[2], maj: elus!.maj }
       : null,
+    adjoints: (adjointsDep?.c[c.code]?.a ?? []).map(([fonction, prenom, nom, depuis]) => ({ fonction, prenom, nom, depuis })),
+    adjointsMaj: adjointsDep?.maj ?? null,
     services,
     voisines: servs?.v?.[c.code] ?? {},
     sdis: servs?.sdis ?? m.services?.sdis?.[c.dep] ?? null,

@@ -52,15 +52,21 @@ export const GENRES = [
   // juillet les naissances et les décès de l'année précédente. Le flux le dit,
   // puisque la page n'annonce pas elle-même qu'elle a changé.
   'État civil publié',
-  // Les annonces du BODACC, pour les seules sociétés : un entrepreneur
-  // individuel exerce sous son nom, et le journal n'en nomme aucun. Les
-  // modifications n'y entrent pas — un changement de gérant ou de capital
-  // noierait ce qu'un habitant remarque, ce qui ouvre, change de mains, ferme.
-  // Les procédures collectives non plus : la page les compte, sans les nommer.
+  // Les annonces du BODACC. Les modifications n'y entrent pas — un changement
+  // de gérant ou de capital noierait ce qu'un habitant remarque, ce qui
+  // ouvre, change de mains, ferme. Les procédures collectives non plus : la
+  // page les compte, sans les nommer.
   'Société créée',
   'Société arrivée',
   'Fonds de commerce cédé',
   'Société radiée',
+  // Les entrepreneurs individuels, nommés depuis le 1er octobre 2026 quand le
+  // répertoire SIRENE les dit diffusibles. Ajoutés en queue, comme les autres :
+  // la vente d'un fonds garde son genre, qu'elle soit le fait d'une société ou
+  // d'une personne.
+  'Entreprise individuelle créée',
+  'Entreprise individuelle arrivée',
+  'Entreprise individuelle radiée',
 ] as const;
 
 /** Sur combien de mois le journal regarde en arrière. */

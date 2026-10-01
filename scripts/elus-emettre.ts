@@ -29,6 +29,7 @@
  */
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { eluRetire } from './retraits.ts';
 
 /**
  * Le répertoire n'est pas téléchargeable en un fichier depuis tous les
@@ -76,6 +77,8 @@ export async function collecterMaires(
       const nom = String(l["Nom de l'élu"] ?? '').trim();
       const prenom = String(l["Prénom de l'élu"] ?? '').trim();
       if (!code || !nom) continue;
+      // Une opposition reçue : la commune garde son maire, sans nom.
+      if (eluRetire(code, 'Maire')) continue;
       // Ni date de naissance, ni sexe, ni catégorie socio-professionnelle :
       // le répertoire les publie, ils ne servent pas ici.
       parCommune.set(code, {

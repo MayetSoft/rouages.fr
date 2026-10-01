@@ -219,6 +219,8 @@ const PLAFOND_JOURNAL = 40;
 const faits = journalCommune(commune, PLAFOND_JOURNAL).length;
 
 const region = meta?.regions?.[commune.dep];
+// « 1er adjoint au Maire » → « 1er adjoint » ; « Maire délégué » reste tel quel.
+const fonctionCourte = (f: string) => f.replace(/\s+au\s+maire$/i, '').replace(/ème/, 'e');
 const ailleurs = sitesDeCommune({ ...commune, codeRegion: meta?.codesRegion?.[commune.dep] });
 const titre = `${commune.nom} — qui décide quoi`;
 const description = fiche
@@ -346,9 +348,24 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </p>
     )}
 
+    {fiche && fiche.adjoints.length > 0 && (
+      <details class="p-adjoints" open={fiche.adjoints.length <= 6}>
+        <summary>{`${fiche.adjoints.length === 1 ? 'Son adjoint' : `Ses ${fiche.adjoints.length} adjoints`}`}</summary>
+        <ul>
+          {fiche.adjoints.map((a) => (
+            <li>
+              <span class="p-adjoint-fonction">{fonctionCourte(a.fonction)}</span>
+              <span class="p-adjoint-nom">{`${a.prenom} ${a.nom}`}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
+    )}
+
     {fiche?.maire && (
       <p class="p-source-territoire c-maire-source">
-        Le maire vient du répertoire national des élus ({fiche.maire.maj}).
+        {`Le maire${fiche.adjoints.length > 0 ? ' et ses adjoints viennent' : ' vient'} du répertoire national des élus (${fiche.maire.maj}${fiche.adjointsMaj && fiche.adjoints.length > 0 ? ` ; adjoints : fichier des conseillers municipaux lu le ${fiche.adjointsMaj}` : ''}). Pour une correction : `}
+        <a href="/signaler">le signalement</a>{' ; pour un retrait : '}<a href="/signaler#retrait">la demande à l’éditeur</a>.
       </p>
     )}
 

@@ -404,15 +404,20 @@ export interface CentresSociaux {
  * Des annonces, pas des entreprises : une société qui déménage publie une
  * modification, puis une radiation d'établissement ; une procédure collective
  * en publie une par jugement. Les décomptes comptent tout, entrepreneurs
- * individuels compris ; seules les sociétés sont nommées.
+ * individuels compris ; sont nommés les sociétés et les entrepreneurs individuels
+ * que le répertoire SIRENE dit diffusibles, jamais une procédure collective.
  */
 export interface Entreprises {
   annees: number[];
   familles: string[];
   /** Par famille, dans l'ordre de `familles`, le nombre d'annonces par année ; null si aucune. */
   comptes: number[][] | null;
-  /** Les dernières annonces des sociétés : date, rang de la famille, nom, identifiant de l'annonce au BODACC. */
-  recentes: [string, number, string, string][];
+  /**
+   * Les dernières annonces nommées : date, rang de la famille, nom, identifiant
+   * de l'annonce au BODACC, activité déclarée, 1 pour un entrepreneur individuel.
+   * Un fichier antérieur au 1er octobre 2026 n'a que les quatre premiers.
+   */
+  recentes: [string, number, string, string, string?, (0 | 1)?][];
   /** La part des annonces nationales qu'aucune commune ne reçoit. */
   sansCommune: number;
   maj: string;
@@ -519,7 +524,7 @@ type EntreprisesDep = {
   annees: number[];
   familles: string[];
   sansCommune: number;
-  c: Record<string, [number[][] | null, [string, number, string, string][]]>;
+  c: Record<string, [number[][] | null, [string, number, string, string, string?, (0 | 1)?][]]>;
 };
 type SireneDep = {
   maj: string;

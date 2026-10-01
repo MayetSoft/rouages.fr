@@ -2294,7 +2294,9 @@ Trois règles, qui tiennent à celle des personnes physiques :
 - **les entrepreneurs individuels sont comptés, jamais nommés** — ils exercent
   sous leur nom. Le nom affiché vient de la liste des personnes de l'annonce,
   et une annonce qui en cite une physique n'est pas nommée du tout : le champ
-  « commerçant » mêlait, pour une vente, la société et l'ancien exploitant ;
+  « commerçant » mêlait, pour une vente, la société et l'ancien exploitant.
+  *Levée le 1er octobre 2026, sous condition : voir « Les adjoints et les
+  entrepreneurs individuels, nommés » ;*
 - **les procédures collectives sont comptées, avec un lien** vers la
   recherche du BODACC lui-même, jamais listées ;
 - **les dépôts de comptes ne sont pas repris.**
@@ -3295,6 +3297,41 @@ Brest et Clermont-Ferrand n'y sont pas, Rennes et Lyon si : c'est la liste.
 - *Logements sociaux (RPLS)* : le service statistique ne publie en national
   que le fichier détaillé logement par logement ; le recensement, déjà lu,
   donne la part de locataires HLM de chaque commune.
+
+### Les adjoints et les entrepreneurs individuels, nommés ✔
+
+La décision du 1er octobre 2026 (`CLAUDE.md`, « Les noms dans les données »)
+a déplacé deux limites ; la justification de chacune est dans
+`docs/07-risques.md`, écrite avant la collecte.
+
+- **Les adjoints.** Le fichier des conseillers municipaux du répertoire
+  national des élus, déjà lu pour les agrégats, donne la fonction de chacun.
+  La collecte des conseils garde, pour la commune, les adjoints et les maires
+  délégués — fonction, prénom, nom, date de prise de fonction —, dans l'ordre
+  du tableau. La page de commune les montre sous le maire, repliés au-delà de
+  six. Le Mayet-de-Montagne en a deux, en fonction depuis le 20 mars 2026 ;
+  Paris trente-six. Les autres conseillers restent des nombres.
+- **Les entrepreneurs individuels au BODACC.** L'annonce qui ne cite qu'une
+  personne physique avec un SIREN est désormais nommée — prénom, nom, nom
+  commercial s'il y en a un —, avec l'activité déclarée, si et seulement si
+  le répertoire SIRENE dit l'unité légale diffusible. Le statut est relu à
+  chaque ingestion, par lots de cent SIREN ; un SIREN que la copie ne connaît
+  pas encore n'est pas nommé, c'est le refus qui est le cas par défaut. Le
+  cas que le contrôle empêche existe : un entrepreneur nommé au BODACC et en
+  diffusion partielle au répertoire. Une annonce qui mêle une société et une
+  personne physique reste muette, et les procédures collectives restent
+  comptées. Le journal de la commune gagne trois genres — entreprise
+  individuelle créée, arrivée, radiée.
+- **Le retrait.** `retraits.yaml`, à la racine, tient les oppositions par
+  identifiant — SIREN, ou commune et fonction —, jamais par nom : écrire le
+  nom de qui demande à ne plus être nommé le nommerait une fois de plus. Les
+  trois collectes qui nomment le lisent. La demande arrive par le courriel de
+  l'éditeur, que `/signaler` donne à part de l'issue publique.
+
+**Ce qui ne bouge pas.** Les dirigeants d'associations et de sociétés, les
+particuliers cités dans les délibérations, toute nuance politique associée à
+un nom. Le titre d'une association qui porte une civilité reste filtré : la
+décision n'a pas porté sur lui.
 
 ## Phase 3 — Élargir
 

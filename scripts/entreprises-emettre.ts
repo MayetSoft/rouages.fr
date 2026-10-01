@@ -4,18 +4,21 @@
  * fonds, les procédures collectives.
  *
  * **Beaucoup d'entreprises sont des personnes.** Un entrepreneur individuel est
- * publié sous son nom et son prénom ; sur une page indexée, « liquidation
- * judiciaire » à côté du nom d'un artisan resterait des années. Le site s'en
- * tient donc à trois règles :
+ * publié sous son nom et son prénom. Depuis la décision du 1er octobre 2026
+ * (`CLAUDE.md`, « Les noms dans les données »), le site le nomme comme une
+ * société, à trois conditions :
  *
- *   — tout est compté, personnes et sociétés confondues : un nombre ne nomme
- *     personne ;
- *   — seules les sociétés sont nommées — le BODACC le dit lui-même, champ
- *     `typePersonne` : `pm` pour une personne morale, `pp` pour une personne
- *     physique —, et jamais leurs dirigeants ni leurs adresses ;
- *   — les procédures collectives ne sont que comptées. La page renvoie vers la
+ *   — tout est compté, personnes et sociétés confondues ;
+ *   — un entrepreneur individuel n'est nommé que si le répertoire SIRENE le dit
+ *     **diffusible**. Celui qui s'est opposé à la diffusion de son identité
+ *     (article R123-232-1 du code de commerce) y apparaît « [ND] », alors que le
+ *     BODACC publie son nom : le statut est relu à chaque ingestion, et un
+ *     statut inconnu — une immatriculation plus récente que la copie du
+ *     répertoire — vaut refus. Aucun dirigeant, aucune adresse ;
+ *   — les procédures collectives ne sont que comptées : c'est la défaillance
+ *     d'une entreprise, souvent d'une personne, et la page renvoie vers la
  *     source, où chacun peut les lire.
- *
+
  * Ce sont des **annonces**, pas des événements : une même procédure en publie
  * plusieurs, de l'ouverture à la clôture. La page le dit.
  *
@@ -35,6 +38,7 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normaliser } from '../src/client/recherche-commune.ts';
+import { retraits } from './retraits.ts';
 
 /** Le lien d'une annonce sur bodacc.fr, depuis son identifiant. */
 export const ANNONCE = 'https://www.bodacc.fr/pages/annonces-commerciales-detail/?q.id=id:';
@@ -51,13 +55,22 @@ const DEPUIS = 2016;
 /** Combien d'annonces nommées une commune garde. */
 const RECENTES = 8;
 
+export type Recente = [string, number, string, string, string, 0 | 1];
+
+/** La copie de SIRENE qu'Opendatasoft tient à jour, pour relire le statut de diffusion. */
+const SIRENE =
+  'https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/economicref-france-sirene-v3/exports/csv';
+
 export interface Entreprises {
   maj: string;
   annees: number[];
   /** Code commune -> par famille, le nombre d'annonces de chaque année. */
   comptes: Map<string, number[][]>;
-  /** Code commune -> les dernières annonces des sociétés : date, famille, nom, identifiant de l'annonce. */
-  recentes: Map<string, [string, number, string, string][]>;
+  /**
+   * Code commune -> les dernières annonces nommées : date, famille, nom,
+   * identifiant de l'annonce, activité, et 1 pour un entrepreneur individuel.
+   */
+  recentes: Map<string, Recente[]>;
   /** La part des annonces qu'aucune commune ne reçoit, faute d'adresse reconnue. */
   partSansCommune: number;
 }
@@ -160,12 +173,14 @@ export function indexDuDecoupage(): [string, string, string, string, number][] {
 }
 
 /**
- * Le nom des seules personnes morales d'une annonce, pris dans la liste des
- * personnes qu'elle concerne — jamais dans le champ « commerçant », qui mêle,
- * pour une vente, le nom de la société et celui d'un ancien exploitant.
- * Une annonce qui concerne aussi une personne physique n'est pas nommée du tout.
+ * Les noms d'une annonce, pris dans la liste des personnes qu'elle concerne —
+ * jamais dans le champ « commerçant », qui mêle, pour une vente, le nom de la
+ * société et celui d'un ancien exploitant. Une personne morale l'est par sa
+ * dénomination ; un entrepreneur individuel par son prénom et son nom, tels que
+ * publiés, avec son nom commercial s'il en a un, et son SIREN pour qu'on relise
+ * son statut de diffusion. Une personne sans nom rend l'annonce innommable.
  */
-export function societes(listepersonnes: string): string[] | null {
+export function nommables(listepersonnes: string): { noms: string[]; sirensPp: string[]; sirens: string[] } | null {
   let brut: unknown;
   try {
     brut = JSON.parse(listepersonnes);
@@ -173,10 +188,77 @@ export function societes(listepersonnes: string): string[] | null {
     return null;
   }
   const p = (brut as { personne?: unknown })?.personne;
-  const personnes = (Array.isArray(p) ? p : p ? [p] : []) as { typePersonne?: string; denomination?: string }[];
-  if (personnes.length === 0 || personnes.some((x) => x.typePersonne !== 'pm')) return null;
-  const noms = personnes.map((x) => (x.denomination ?? '').trim()).filter(Boolean);
-  return noms.length > 0 ? noms : null;
+  type Personne = {
+    typePersonne?: string;
+    denomination?: string;
+    nom?: unknown;
+    prenom?: unknown;
+    nomCommercial?: unknown;
+    numeroImmatriculation?: { numeroIdentification?: string };
+  };
+  const personnes = (Array.isArray(p) ? p : p ? [p] : []) as Personne[];
+  if (personnes.length === 0) return null;
+  // Un champ peut être une chaîne, ou une liste quand l'annonce en porte plusieurs : on prend le premier.
+  const chaine = (v: unknown): string => (Array.isArray(v) ? chaine(v[0]) : typeof v === 'string' ? v : '');
+  const noms: string[] = [];
+  const sirensPp: string[] = [];
+  const sirens: string[] = [];
+  for (const x of personnes) {
+    if (x.typePersonne === 'pm') {
+      const d = (x.denomination ?? '').trim();
+      if (!d) return null;
+      noms.push(d);
+      const siren = (x.numeroImmatriculation?.numeroIdentification ?? '').replace(/\D/g, '');
+      if (siren) sirens.push(siren);
+    } else if (x.typePersonne === 'pp') {
+      const siren = (x.numeroImmatriculation?.numeroIdentification ?? '').replace(/\D/g, '');
+      const prenom = chaine(x.prenom).split(',')[0].trim();
+      const nom = chaine(x.nom).trim();
+      if (!/^\d{9}$/.test(siren) || !nom) return null;
+      const commercial = chaine(x.nomCommercial).trim();
+      noms.push(`${prenom ? `${prenom} ` : ''}${nom}${commercial ? ` (${commercial})` : ''}`);
+      sirensPp.push(siren);
+      sirens.push(siren);
+    } else return null;
+  }
+  return { noms, sirensPp, sirens };
+}
+
+/** L'activité déclarée du premier établissement, coupée à un mot près. */
+export function activite(listeetablissements: string): string {
+  try {
+    const e = (JSON.parse(listeetablissements) as { etablissement?: unknown })?.etablissement;
+    const premier = (Array.isArray(e) ? e[0] : e) as { activite?: string } | undefined;
+    const a = (premier?.activite ?? '').replace(/\s+/g, ' ').trim();
+    if (a.length <= 90) return a;
+    return `${a.slice(0, 90).replace(/\s+\S*$/, '')}…`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Les SIREN que le répertoire dit diffusibles, parmi ceux qu'on lui soumet.
+ * Un SIREN absent de la réponse n'est pas diffusible : c'est le refus qui est
+ * le cas par défaut.
+ */
+export async function diffusibles(texte: (url: string) => Promise<string>, sirens: string[]): Promise<Set<string>> {
+  const ok = new Set<string>();
+  const uniques = [...new Set(sirens)];
+  for (let i = 0; i < uniques.length; i += 100) {
+    const lot = uniques.slice(i, i + 100);
+    const t = await texte(
+      `${SIRENE}?select=${encodeURIComponent('siren, statutdiffusionunitelegale')}` +
+        `&where=${encodeURIComponent(`siren in (${lot.map((x) => `"${x}"`).join(',')})`)}` +
+        `&group_by=${encodeURIComponent('siren, statutdiffusionunitelegale')}&delimiter=%3B`,
+    );
+    const l = lignes(t);
+    const [jS, jD] = ['siren', 'statutdiffusionunitelegale'].map((c) => l[0]?.indexOf(c) ?? -1);
+    if (jS === -1 || jD === -1) throw new Error('SIRENE : l’export du statut de diffusion a changé de forme');
+    const refuses = new Set(l.slice(1).filter((r) => r[jD] !== 'O').map((r) => r[jS]));
+    for (const r of l.slice(1)) if (r[jD] === 'O' && !refuses.has(r[jS])) ok.add(r[jS]);
+  }
+  return ok;
 }
 
 /** Une annonce peut porter plusieurs établissements : « Tronget, Le Mayet-d'École » et « 03240, 03800 ». */
@@ -233,53 +315,81 @@ export async function collecterEntreprises(
     }
   }
 
-  // Les annonces des seules sociétés, sur douze mois : c'est ce que la page
-  // nomme, et ce que le flux de chaque commune annonce.
-  // Mois par mois, et chaque mois traité aussitôt : la liste des personnes
-  // pèse, et l'année entière dépasse ce qu'une chaîne JavaScript peut tenir.
-  const recentes = new Map<string, [string, number, string, string][]>();
-  let nommees = 0;
+  // Les annonces nommables, sur douze mois : c'est ce que la page nomme, et ce
+  // que le flux de chaque commune annonce. Mois par mois, et chaque mois
+  // traité aussitôt : la liste des personnes pèse, et l'année entière dépasse
+  // ce qu'une chaîne JavaScript peut tenir. On en garde plus qu'il n'en faut
+  // par commune : un entrepreneur que SIRENE ne dit pas diffusible laisse sa
+  // place au suivant.
+  type Candidate = { r: Recente; sirensPp: string[] };
+  const candidates = new Map<string, Candidate[]>();
   for (let m = 0; m < 12; m++) {
     const fin = new Date(Date.UTC(aujourdhui.getUTCFullYear(), aujourdhui.getUTCMonth() - m + 1, 1));
     const debut = new Date(Date.UTC(aujourdhui.getUTCFullYear(), aujourdhui.getUTCMonth() - m, 1));
     const mois = lignes(
       await texte(
-        `${BODACC}?select=${encodeURIComponent('dateparution, familleavis, ville, cp, listepersonnes, url_complete')}` +
+        `${BODACC}?select=${encodeURIComponent('dateparution, familleavis, ville, cp, listepersonnes, listeetablissements, url_complete')}` +
           `&where=${encodeURIComponent(
             `familleavis in (${NOMMEES.map((f) => `'${f}'`).join(',')})` +
-              ` and dateparution >= date'${debut.toISOString().slice(0, 10)}' and dateparution < date'${fin.toISOString().slice(0, 10)}'` +
-              ` and listepersonnes like '%"typePersonne": "pm"%' and not listepersonnes like '%"typePersonne": "pp"%'`,
+              ` and dateparution >= date'${debut.toISOString().slice(0, 10)}' and dateparution < date'${fin.toISOString().slice(0, 10)}'`,
           )}&order_by=${encodeURIComponent('dateparution desc')}&delimiter=%3B`,
       ),
     );
     const r = mois[0];
-    const [jDate, jFamille, jVille, jCp, jPersonnes, jUrl] = ['dateparution', 'familleavis', 'ville', 'cp', 'listepersonnes', 'url_complete'].map((c) => r.indexOf(c));
-    if ([jDate, jFamille, jVille, jCp, jPersonnes, jUrl].some((i) => i === -1)) {
+    const [jDate, jFamille, jVille, jCp, jPersonnes, jEtab, jUrl] = ['dateparution', 'familleavis', 'ville', 'cp', 'listepersonnes', 'listeetablissements', 'url_complete'].map((c) => r.indexOf(c));
+    if ([jDate, jFamille, jVille, jCp, jPersonnes, jEtab, jUrl].some((i) => i === -1)) {
       dire('BODACC : l’export des annonces a changé de forme.');
       return null;
     }
     for (const l of mois.slice(1)) {
       const f = FAMILLES.indexOf(l[jFamille] as (typeof FAMILLES)[number]);
-      const noms = societes(l[jPersonnes]);
-      if (f === -1 || !noms) continue;
+      const n = nommables(l[jPersonnes]);
+      if (f === -1 || !n) continue;
+      // Une opposition reçue : l'annonce reste comptée, elle n'est plus nommée.
+      if (n.sirens.some((x) => retraits().entreprises.has(x))) continue;
       // L'identifiant seul : le lien se reconstruit, et le préfixe répété pèserait
       // plus lourd que tout le reste du fichier.
       const id = /[?&]q\.id=id:([A-Z0-9]+)$/.exec(l[jUrl])?.[1];
       if (!id) continue;
-      nommees++;
+      const ei: 0 | 1 = n.sirensPp.length > 0 ? 1 : 0;
       for (const [ville, cp] of paires(l[jVille], l[jCp])) {
         const code = rattacher(ville, cp);
         if (!code) continue;
-        const liste = recentes.get(code) ?? [];
+        const liste = candidates.get(code) ?? [];
         // Une annonce qui cite deux établissements de la même commune n'y compte qu'une fois.
-        if (liste.length < RECENTES && !liste.some((x) => x[3] === id)) liste.push([l[jDate], f, noms.join(', '), id]);
-        recentes.set(code, liste);
+        if (liste.length < RECENTES * 3 && !liste.some((x) => x.r[3] === id)) {
+          liste.push({ r: [l[jDate], f, n.noms.join(', '), id, activite(l[jEtab]), ei], sirensPp: n.sirensPp });
+        }
+        candidates.set(code, liste);
       }
     }
   }
+
+  // Le statut de diffusion de chaque entrepreneur candidat, relu dans SIRENE.
+  const aVerifier = [...candidates.values()].flatMap((l) => l.flatMap((x) => x.sirensPp));
+  const ok = await diffusibles(texte, aVerifier);
+  const recentes = new Map<string, Recente[]>();
+  let nommees = 0;
+  let entrepreneurs = 0;
+  let tus = 0;
+  for (const [code, liste] of candidates) {
+    const gardees: Recente[] = [];
+    for (const { r, sirensPp } of liste) {
+      if (gardees.length >= RECENTES) break;
+      if (sirensPp.some((x) => !ok.has(x))) {
+        tus++;
+        continue;
+      }
+      gardees.push(r);
+      nommees++;
+      if (r[5] === 1) entrepreneurs++;
+    }
+    if (gardees.length) recentes.set(code, gardees);
+  }
   dire(
     `BODACC : ${comptes.size.toLocaleString('fr-FR')} communes, de ${DEPUIS} à ${annees[annees.length - 1]} ; ` +
-      `${nommees.toLocaleString('fr-FR')} annonces de sociétés sur douze mois ; ` +
+      `${nommees.toLocaleString('fr-FR')} annonces nommées sur douze mois, dont ${entrepreneurs.toLocaleString('fr-FR')} d’entrepreneurs individuels ; ` +
+      `${tus.toLocaleString('fr-FR')} écartées faute de diffusion au répertoire SIRENE (${new Set(aVerifier).size.toLocaleString('fr-FR')} SIREN relus) ; ` +
       `${sansCommune.toLocaleString('fr-FR')} annonces sans commune reconnue, soit ` +
       `${total > 0 ? ((sansCommune / total) * 100).toFixed(1) : 0} %.`,
   );

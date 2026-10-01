@@ -110,6 +110,14 @@ une entreprise qui a obtenu un marché serait diffamatoire. La collecte qui
 rapproche dit donc sur quoi elle s'appuie — le nom seul, ou le nom avec le
 mois et l'année de naissance et la commune — et la page le montre.
 
+**Mise en œuvre.** Le statut de diffusion SIRENE est relu à chaque
+ingestion, et un SIREN inconnu de la copie vaut refus. Les oppositions sont
+tenues dans `retraits.yaml` par identifiant seulement ; la demande passe par
+le courriel de l'éditeur, jamais par une issue publique, qui exposerait la
+personne au moment même où elle demande à ne plus l'être. Une limite connue :
+le retrait vaut pour Rouages, pas pour la source, et une copie du site faite
+avant la mise à jour garde l'ancien état.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».
