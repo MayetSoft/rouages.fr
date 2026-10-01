@@ -118,6 +118,24 @@ personne au moment même où elle demande à ne plus l'être. Une limite connue 
 le retrait vaut pour Rouages, pas pour la source, et une copie du site faite
 avant la mise à jour garde l'ancien état.
 
+### Les nuances politiques et l'année de naissance (1er octobre 2026)
+
+Décision du mainteneur, le même jour : **les élus ont choisi leur engagement
+et répondent de leurs actes et de leurs idées.** Le site rapporte des faits,
+et ils ont un droit de rectification.
+
+- **La nuance d'une liste ou d'un candidat** est attribuée par le préfet,
+  d'après une grille que le ministère publie (référentiel `nuances.xml`), dans
+  les communes de 3 500 habitants et plus et les chefs-lieux d'arrondissement.
+  Le Conseil d'État a rejeté en février 2026 les recours contre la circulaire
+  qui la fixe. Le site reprend le code et son libellé officiel, jamais une
+  appréciation à lui ; là où aucune n'est attribuée, il n'en devine pas.
+  L'étiquette qu'une liste revendique peut différer, et la page le dit.
+- **L'année de naissance des élus**, sans le jour ni le mois : elle dit la
+  génération de qui décide. Le répertoire publie la date complète ; la
+  réduire à l'année garde l'information utile et retire ce qui sert à
+  identifier une personne hors de sa fonction.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».

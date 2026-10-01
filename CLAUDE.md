@@ -119,8 +119,14 @@ Ce qui est autorisé à ce jour :
   des élus : nom, prénom, fonction, date de prise de fonction. Les autres
   conseillers restent décrits en agrégats ;
 - **la date de naissance**, quand une source la donne, au mois et à l'année
-  seulement, comme l'INPI la diffuse pour les dirigeants. Le répertoire des
-  élus publie le jour : on ne le reprend pas ;
+  seulement, comme l'INPI la diffuse pour les dirigeants. Pour les élus,
+  **l'année seule** : elle dit la génération, c'est ce qui sert. Le répertoire
+  des élus publie le jour : on ne le reprend pas ;
+- **les candidats et les listes aux élections, avec leur nuance politique**,
+  telle que le ministère de l'Intérieur l'attribue et sous son libellé
+  officiel, sans commentaire. Un candidat a choisi de se présenter ; la nuance
+  est un acte public de l'administration, et l'élu a son droit de
+  rectification ;
 - **les entrepreneurs individuels** d'après SIRENE et le BODACC : le nom tel
   que publié, l'activité, la commune, le lien vers la fiche ou l'annonce.
   Jamais un entrepreneur en **diffusion partielle** au répertoire SIRENE — il
@@ -131,4 +137,5 @@ Ce qui est autorisé à ce jour :
   personne, et le BODACC sert déjà les créanciers qu'elle concerne.
 
 Ce qui reste exclu : les particuliers cités dans les délibérations, les
-dirigeants d'associations, toute nuance politique associée à un nom.
+dirigeants d'associations, une opinion politique attribuée par le site
+lui-même plutôt que par le ministère.

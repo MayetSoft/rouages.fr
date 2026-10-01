@@ -3381,9 +3381,20 @@ a déplacé deux limites ; la justification de chacune est dans
   trois collectes qui nomment le lisent. La demande arrive par le courriel de
   l'éditeur, que `/signaler` donne à part de l'issue publique.
 
+**Puis, le même jour, les nuances et l'âge.** Le bloc du scrutin municipal
+donne chaque liste — libellé, voix, sièges — et la nuance que le préfet lui
+attribue, sous le libellé du référentiel du ministère : à Vichy, « Vichy
+passionnément », liste divers droite, 32 sièges. 3 282 communes ont des
+listes nuancées ; ailleurs, aucune n'est attribuée et la page n'en devine
+pas. Le maire et ses adjoints portent leur année de naissance, jamais le jour
+ni le mois. Le fichier des résultats ne nomme pas les têtes de liste : ce
+serait le fichier des candidatures, pas encore lu.
+
 **Ce qui ne bouge pas.** Les dirigeants d'associations et de sociétés, les
-particuliers cités dans les délibérations, toute nuance politique associée à
-un nom. Le titre d'une association qui porte une civilité reste filtré : la
+particuliers cités dans les délibérations, une opinion que le site
+attribuerait lui-même. À reprendre : le titulaire des marchés, que la section
+précédente laissait de côté pour les entrepreneurs individuels — la règle les
+permet désormais, sous la même condition de diffusion SIRENE. Le titre d'une association qui porte une civilité reste filtré : la
 décision n'a pas porté sur lui.
 
 ## Phase 3 — Élargir
