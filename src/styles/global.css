@@ -537,6 +537,7 @@ details.p-marche-acheteur[open] > summary { margin-bottom: .45rem; }
   text-decoration: underline; text-underline-offset: 2px;
 }
 .p-marche-suite:hover, .p-marche-suite:focus-visible { color: var(--encre); }
+.p-marche-ailleurs { margin: .35rem 0 0 5.2rem; font-size: .8rem; }
 .p-marche-suite[disabled] { color: var(--encre-tres-douce); cursor: progress; text-decoration: none; }
 @media (max-width: 480px) {
   .p-marches li { grid-template-columns: 1fr; gap: .05rem; }
@@ -1167,3 +1168,8 @@ a.p-sommaire-lien { text-decoration: none; }
 .carte-communes-commune:focus-visible path { stroke: var(--accent); stroke-width: 2; }
 .carte-communes-limite { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
 .carte-communes figcaption { font-size: .8rem; color: var(--encre-douce); margin-top: .3rem; }
+
+/* Les sites qui présentent la commune autrement. */
+.c-ailleurs ul { list-style: none; margin: .3rem 0 0; padding: 0; display: grid; gap: .5rem; max-width: var(--mesure); }
+.c-ailleurs li { font-size: .92rem; }
+.c-ailleurs-editeur { display: block; font-size: .78rem; color: var(--encre-tres-douce); }

@@ -3244,6 +3244,29 @@ intercommunalités — un segment qu'une seule commune emprunte, ou que deux
 communes de groupes différents se partagent. Les tracés sont arrondis au pixel
 et écrits en écarts : la carte des 317 communes de l'Allier pèse 86 Ko.
 
+### La commune vue d'ailleurs ✔
+
+Des renvois vers les sites qui présentent la commune autrement, avec leur
+éditeur — un classement fait par une société n'a pas le statut d'une donnée
+publiée par l'État (`modele/sites-complementaires.ts`). Rien n'en est repris.
+
+- **DataFrance** (JBMS Tech) : le rang de la commune dans son département sur
+  neuf dimensions. Lien `/commune/{code}-{nom}`, vérifié sur huit communes,
+  accents, apostrophes et ligatures compris ; la métropole seulement — le site
+  ne classe pas l'outre-mer.
+- **TerriSTORY** (consortium d'agences régionales de l'énergie, avec
+  l'ADEME) : énergie, émissions, production renouvelable. Douze régions
+  reconnaissent la commune par son code ; la Corse non, elle n'a pas de lien.
+  Aussi sous le bloc de l'électricité produite.
+- **Colibre** : chaque acheteur du bloc des marchés renvoie à sa page, par le
+  SIRET sous lequel il notifie le plus de marchés — désormais gardé par la
+  collecte des marchés, et vérifié présent pour les 13 606 acheteurs. Le
+  `robots.txt` de Colibre exclut les robots de Claude : le lien se construit
+  depuis nos propres données, sans parcourir leur site.
+- **Magali parle marchés** (les outils) et **OnVeille CP**, sous le bloc des
+  marchés, « pour qui achète ou répond » : des outils et une veille, pas des
+  données sur la commune.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
