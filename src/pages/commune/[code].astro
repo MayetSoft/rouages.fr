@@ -79,6 +79,7 @@ import Recharge from '../../composants/commune/Recharge.astro';
 import PetiteEnfance from '../../composants/commune/PetiteEnfance.astro';
 import Travail from '../../composants/commune/Travail.astro';
 import Appellations from '../../composants/commune/Appellations.astro';
+import Secheresse from '../../composants/commune/Secheresse.astro';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import Lieux from '../../composants/commune/Lieux.astro';
@@ -287,6 +288,7 @@ const sommaire: [string, string, unknown][] = [
   ['petite-enfance', 'Les tout-petits', vie.petiteEnfance],
   ['ecoles', 'Les écoles', vie.ecoles],
   ['reseaux', 'Eau, fibre, énergie', vie.eau || vie.fibre || vie.energie],
+  ['secheresse', 'Les restrictions d’eau', vie.secheresse],
   ['mobile', 'Les antennes mobiles', vie.antennes],
   ['production', 'L’électricité produite', vie.production],
   ['monuments', 'Les monuments historiques', vie.monuments],
@@ -813,6 +815,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="reseaux">
         <h2 class="badge">Les réseaux qui y arrivent</h2>
         <Reseaux eau={vie.eau} fibre={vie.fibre} energie={vie.energie} />
+      </section>
+    )}
+
+    {vie.secheresse && (
+      <section id="secheresse">
+        <h2 class="badge">Les restrictions d’eau pour sécheresse</h2>
+        <Secheresse s={vie.secheresse} />
       </section>
     )}
 

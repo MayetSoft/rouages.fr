@@ -175,6 +175,21 @@ if (tr) {
   }
 }
 
+// Les jours sous restriction d'eau depuis le 1er janvier, s'il y en a eu.
+const se = vie.secheresse;
+if (se) {
+  const j = se.jours;
+  const total = j.vigilance + j.alerte + j.renforcee + j.crise;
+  if (total > 0) {
+    cartes.push({
+      id: 'secheresse',
+      nom: `Jours sous restriction d’eau en ${se.annee}`,
+      valeur: nb(total),
+      detail: j.crise === total ? (total > 1 ? 'tous en crise' : 'en crise') : j.crise > 0 ? `dont ${nb(j.crise)} en crise` : 'aucun en crise',
+    });
+  }
+}
+
 if (plus.presentes) {
   const p = plus.presentes;
   cartes.push({

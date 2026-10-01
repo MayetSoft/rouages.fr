@@ -644,6 +644,13 @@ surveillances:
     url: "https://www.data.gouv.fr/api/2/datasets/53698ec7a3a729239d20356a/resources/?page_size=5"
     lien: od-inao-aires
 
+  - id: vigieau
+    nom: "VigiEau — restrictions d'eau par commune"
+    alimente: "les jours de restriction d'eau pour sécheresse"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/662a5e2cd71b24df5e9a0827/resources/?page_size=5"
+    lien: od-vigieau
+
   - id: palissy
     nom: "Palissy — objets protégés"
     alimente: "les objets mobiliers protégés"

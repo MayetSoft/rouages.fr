@@ -138,6 +138,8 @@ type TravailDep = {
 const travailDep = parDepartement<TravailDep>('travail');
 type AppellationsDep = { maj: string; dates: { ao: string; ig: string }; c: Record<string, [string[], string[]]> };
 const appellationsDep = parDepartement<AppellationsDep>('appellations');
+type SecheresseDep = { maj: string; annee: number; du: string; au: string; c: Record<string, [number, number, number, number, number]> };
+const secheresseDep = parDepartement<SecheresseDep>('secheresse');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -525,6 +527,20 @@ export interface Appellations {
   maj: string;
 }
 
+/**
+ * Les restrictions d'eau pour sécheresse depuis le 1er janvier, d'après
+ * VigiEau : les jours passés à chaque niveau — le plus grave des trois
+ * ressources ce jour-là — et le niveau du dernier jour publié (0 : aucune).
+ */
+export interface Secheresse {
+  jours: { vigilance: number; alerte: number; renforcee: number; crise: number };
+  dernier: 0 | 1 | 2 | 3 | 4;
+  annee: number;
+  du: string;
+  au: string;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -556,6 +572,7 @@ export interface ComplementsVie {
   petiteEnfance: PetiteEnfance | null;
   travail: Travail | null;
   appellations: Appellations | null;
+  secheresse: Secheresse | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -1008,6 +1025,20 @@ function appellations(c: CommuneFiche): Appellations | null {
   return { origine, geographiques, dates: d.dates, maj: d.maj };
 }
 
+function secheresse(c: CommuneFiche): Secheresse | null {
+  const d = secheresseDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x) return null;
+  return {
+    jours: { vigilance: x[0], alerte: x[1], renforcee: x[2], crise: x[3] },
+    dernier: x[4] as Secheresse['dernier'],
+    annee: d.annee,
+    du: d.du,
+    au: d.au,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -1040,5 +1071,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     petiteEnfance: petiteEnfance(c),
     travail: travail(c),
     appellations: appellations(c),
+    secheresse: secheresse(c),
   };
 }

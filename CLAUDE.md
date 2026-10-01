@@ -34,7 +34,7 @@ npx tsx scripts/comptes-emettre.ts  les comptes seuls (communes, départements, 
 ```
 
 `npm run territoires` dure une quarantaine de minutes et touche plus de trente
-sources — dont cinquante-deux collectes facultatives, isolées : celle qui échoue laisse en
+sources — dont cinquante-cinq collectes facultatives, isolées : celle qui échoue laisse en
 place les fichiers de l'ingestion précédente plutôt que de tout emporter. Ce qui
 reste fatal, ce sont les référentiels dont dépend la structure du réseau,
 BANATIC et le découpage.
@@ -43,7 +43,8 @@ Les sources lourdes : le répertoire national des associations (1,2 Go), les
 séries communales Sitadel (500 Mo), trois années de ventes immobilières DVF
 (300 Mo), les résultats des élections nationales (240 Mo), trois tables du
 recensement (230 Mo), le référentiel FINESS (244 Mo), les objets protégés de la base
-Palissy (365 Mo) et les bornes de recharge électrique (160 Mo). `--cache` les
+Palissy (365 Mo), les bornes de recharge électrique (160 Mo) et les restrictions
+d'eau de VigiEau (8 Mo compressés, 560 Mo lus en flux). `--cache` les
 réutilise, et sans lui il faut compter le téléchargement en plus.
 
 La réingestion complète se lance aussi en intégration continue : workflow

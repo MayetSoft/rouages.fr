@@ -850,6 +850,12 @@ async function principal() {
   );
   if (appellations) grise(`${ecrireAppellations(SORTIE, appellations)} départements d’appellations écrits.`);
 
+  const { collecterSecheresse, ecrireSecheresse } = await import('./secheresse-emettre.ts');
+  const secheresse = await tenter('Restrictions d’eau', () =>
+    collecterSecheresse(lireJson, enCache('VigiEau — restrictions (8 Mo, 560 Mo décompressé)'), CACHE, grise),
+  );
+  if (secheresse) grise(`${ecrireSecheresse(SORTIE, secheresse)} départements de restrictions d’eau écrits.`);
+
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));
   if (petiteEnfance) {

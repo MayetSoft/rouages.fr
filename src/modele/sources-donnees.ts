@@ -334,6 +334,13 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /VigiEau/,
+    liens: [
+      { titre: 'Données sécheresse VigiEau, restrictions par commune', url: dg('662a5e2cd71b24df5e9a0827') },
+      { titre: 'VigiEau, les restrictions en vigueur', url: 'https://vigieau.gouv.fr/' },
+    ],
+  },
+  {
     motif: /Institut national de l.origine et de la qualité/i,
     liens: [
       { titre: 'Aires géographiques des AOC et AOP (INAO)', url: dg('53698ecca3a729239d203579') },

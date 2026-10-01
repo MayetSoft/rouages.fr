@@ -3068,6 +3068,66 @@ réécrit ces fichiers seul.
   partagé compte une fois par opérateur : l'identifiant de partage n'est
   renseigné que pour certains programmes, on ne sait pas les réunir tous.
 
+### Les collectivités enrichies, le travail, la sécheresse ✔
+
+Trois lots demandés le 1er octobre, livrés d'une traite.
+
+**Lot A — l'intercommunalité, le département, la région.** Ce que la page de
+commune montrait pour la commune seule remonte d'un échelon quand la source le
+permet. Les projets subventionnés par la DETR, la DSIL, la DSID et le Fonds
+vert dont l'intercommunalité ou le département est le porteur
+(`investissement-emettre.ts`, fichier national
+`investissement-collectivites.json`) : l'intercommunalité s'y reconnaît à son
+SIREN, lu dans les groupements à fiscalité propre du découpage. Les zonages des
+communes membres, comptés (`ZonagesGroupe.astro`) : montagne, zonage A, B, C,
+programmes de l'ANCT, quartiers prioritaires. Le taux d'accueil des tout-petits
+de la CNAF par département et par région. « L'essentiel » gagne les loyers, les
+tout-petits, l'investissement, les zonages, les salariés et la sécheresse.
+Vichy Communauté : 15 projets portés pour 3,5 M€ de subventions, 16 de ses
+39 communes en montagne et 3 en partie, 3 quartiers prioritaires, 64,4 places
+pour 100 enfants. L'Allier : 22 de ses 317 communes en montagne, 63,1 places.
+
+**L'écart à la médiane, en couleur là où le sens est établi.** Le mainteneur
+demandait vert quand la valeur par habitant est meilleure que la médiane, rouge
+quand elle est pire. « Meilleur » n'a pas de sens pour la plupart des postes :
+des dépenses de personnel plus hautes que la médiane peuvent être une crèche
+en régie. La couleur ne vient donc que d'un champ `sens` de `reperes.yaml`,
+posé sur quatre lignes où l'analyse financière des collectivités a une
+convention, sourcée par le dossier dette de l'OFGL : l'épargne brute (plus
+haut, plus de marge), l'encours de dette, l'annuité et les charges financières
+(plus bas, moins endettée). Les mots accompagnent toujours la couleur. Partout
+ailleurs, une flèche neutre ▲ ▼, et ≈ à moins de 5 % de la médiane
+(`modele/ecart-mediane.ts`).
+
+**Lot B — le travail sur place, les appellations.** Les salariés du privé
+employés dans la commune depuis 2015, d'après l'URSSAF, avec la dernière année
+par grand secteur ; les habitants inscrits à France Travail en catégories A, B,
+C au quatrième trimestre, d'après la DARES, qui arrondit à 5
+(`travail-emettre.ts`). Les appellations d'origine et indications
+géographiques dont l'aire comprend la commune, d'après l'INAO, déclinaisons
+d'une même IGP de vin réunies (`appellations-emettre.ts`). Au
+Mayet-de-Montagne : 242 salariés fin 2025 contre 263 fin 2015, 115 inscrits
+fin 2024, et six IGP, de l'agneau du Bourbonnais aux volailles d'Auvergne, plus
+le Val de Loire.
+
+**Lot C — la sécheresse.** Les restrictions d'eau de VigiEau, jour par jour
+depuis le 1er janvier (`secheresse-emettre.ts`) : 560 Mo de JSON décompressé,
+lus en flux à la sortie d'`unzip`. Chaque jour compte au niveau le plus grave
+des trois ressources (eau potable, eaux souterraines, cours d'eau). 34 875
+communes. Au Mayet-de-Montagne, du 1er janvier au 15 septembre 2026 : 84 jours
+en crise, sur les trois ressources, et toujours en crise le dernier jour.
+
+**Ce qui n'a pas tenu dans le lot C.**
+
+- *Stations d'épuration* : le seul fichier du jeu national est l'export de
+  2014, et le portail de l'assainissement ne le sert plus (503).
+- *Installations classées (ICPE)* : l'API de Géorisques coupe la connexion
+  depuis l'environnement de développement, et le service cartographique du
+  BRGM la rejette. À reprendre depuis la CI, qui joint ces sources.
+- *Espaces protégés et ZNIEFF (INPN)* : publiés seulement en contours
+  géographiques (shapefiles). Les croiser avec la commune demande ses contours,
+  que le site n'a pas.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
