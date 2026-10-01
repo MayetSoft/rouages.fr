@@ -742,7 +742,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {plus.marches.length > 0 && (
       <section id="marches" class="p-marches">
         <h2 class="badge">Ce qui est commandé</h2>
-        <Marches liste={plus.marches} depuis={plus.marchesDepuis} procedures={plus.marchesProcedures} />
+        <Marches liste={plus.marches} depuis={plus.marchesDepuis} fenetre={plus.marchesFenetre} procedures={plus.marchesProcedures} />
         <Ailleurs sites={SITES_COMMANDE_PUBLIQUE} titre="Pour qui achète ou répond" />
       </section>
     )}

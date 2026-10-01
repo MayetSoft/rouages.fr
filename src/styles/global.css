@@ -545,9 +545,13 @@ details.p-marche-acheteur[open] > summary { margin-bottom: .45rem; }
 .p-marche-suite:hover, .p-marche-suite:focus-visible { color: var(--encre); }
 .p-marche-ailleurs { margin: .35rem 0 0 5.2rem; font-size: .8rem; }
 .p-marche-suite[disabled] { color: var(--encre-tres-douce); cursor: progress; text-decoration: none; }
+/* L'échéancier : le mois tient la colonne de gauche, plus large que celle des
+   montants — « septembre 2027 » ne tient pas dans 4,6 rem. */
+.p-echeances li { grid-template-columns: 7.2rem 1fr; }
+.p-echeance-mois { font-variant-numeric: tabular-nums; font-weight: 650; font-size: .82rem; text-align: right; }
 @media (max-width: 480px) {
-  .p-marches li { grid-template-columns: 1fr; gap: .05rem; }
-  .p-marche-montant { text-align: left; }
+  .p-marches li, .p-echeances li { grid-template-columns: 1fr; gap: .05rem; }
+  .p-marche-montant, .p-echeance-mois { text-align: left; }
   .p-marche-suite { margin-left: 0; }
 }
 /* Les subventions reprennent telle quelle la grille des marchés : un montant à
