@@ -99,7 +99,7 @@ type ConseilsDep = {
   age: number;
   c: Record<
     string,
-    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number; a?: [string, string, string, string, string?][] }
+    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number; a?: [string, string, string, string, string?, string?][]; m?: [string, string, string, string?][]; mc?: string }
   >;
 };
 
@@ -312,7 +312,12 @@ export interface Fiche {
   /** `naissance` : l'année seule, jamais le jour. */
   maire: { prenom: string; nom: string; depuis: string; naissance: string | null; maj: string } | null;
   /** Les adjoints et maires délégués, dans l'ordre du tableau, d'après le répertoire national des élus. */
-  adjoints: { fonction: string; prenom: string; nom: string; depuis: string; naissance: string | null }[];
+  /** `cc` : la fonction au conseil communautaire, quand l'élu y siège. */
+  adjoints: { fonction: string; prenom: string; nom: string; depuis: string; naissance: string | null; cc: string | null }[];
+  /** Les autres membres du conseil municipal, par nom. */
+  conseillers: { prenom: string; nom: string; naissance: string | null; cc: string | null }[];
+  /** Le siège du maire au conseil communautaire, d'après le même répertoire. */
+  maireCc: string | null;
   /** La date du fichier des conseillers d'où viennent les adjoints. */
   adjointsMaj: string | null;
   services: {
@@ -560,13 +565,21 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
     maire: brutMaire
       ? { prenom: brutMaire[0], nom: brutMaire[1], depuis: brutMaire[2], naissance: brutMaire[3] || null, maj: elus!.maj }
       : null,
-    adjoints: (adjointsDep?.c[c.code]?.a ?? []).map(([fonction, prenom, nom, depuis, naissance]) => ({
+    adjoints: (adjointsDep?.c[c.code]?.a ?? []).map(([fonction, prenom, nom, depuis, naissance, cc]) => ({
       fonction,
       prenom,
       nom,
       depuis,
       naissance: naissance || null,
+      cc: cc || null,
     })),
+    conseillers: (adjointsDep?.c[c.code]?.m ?? []).map(([prenom, nom, naissance, cc]) => ({
+      prenom,
+      nom,
+      naissance: naissance || null,
+      cc: cc || null,
+    })),
+    maireCc: adjointsDep?.c[c.code]?.mc ?? null,
     adjointsMaj: adjointsDep?.maj ?? null,
     services,
     voisines: servs?.v?.[c.code] ?? {},

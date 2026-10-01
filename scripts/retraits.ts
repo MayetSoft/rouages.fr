@@ -3,6 +3,7 @@
  * appliquées par chaque collecte qui nomme quelqu'un : le BODACC, les adjoints,
  * le maire. Voir l'en-tête du fichier.
  */
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +14,21 @@ export interface Retraits {
   entreprises: Set<string>;
   /** « code INSEE|fonction ». */
   elus: Set<string>;
+  /** Les empreintes des conseillers sans fonction, voir `empreinteElu`. */
+  empreintes: Set<string>;
+}
+
+/**
+ * Un conseiller municipal sans fonction ne se désigne pas par elle, et le
+ * nommer dans un fichier public le nommerait encore : on inscrit l'empreinte
+ * de sa commune, de son nom, de son prénom et de sa date de naissance, telle
+ * que `npx tsx scripts/retraits.ts 03165 NOM Prénom 1960-01-31` la calcule.
+ */
+export function empreinteElu(commune: string, nom: string, prenom: string, naissance: string): string {
+  return createHash('sha256')
+    .update([commune, nom.trim().toUpperCase(), prenom.trim().toUpperCase(), naissance.trim()].join('|'))
+    .digest('hex')
+    .slice(0, 16);
 }
 
 let lus: Retraits | null = null;
@@ -21,13 +37,26 @@ export function retraits(): Retraits {
   if (lus) return lus;
   const chemin = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'retraits.yaml');
   const brut = existsSync(chemin)
-    ? ((parse(readFileSync(chemin, 'utf8')) ?? {}) as { entreprises?: unknown[]; elus?: { commune?: string; fonction?: string }[] })
+    ? ((parse(readFileSync(chemin, 'utf8')) ?? {}) as {
+        entreprises?: unknown[];
+        elus?: { commune?: string; fonction?: string; empreinte?: string }[];
+      })
     : {};
   lus = {
     entreprises: new Set((brut.entreprises ?? []).map((x) => String(x).replace(/\D/g, '')).filter((x) => x.length === 9)),
     elus: new Set((brut.elus ?? []).filter((e) => e?.commune && e?.fonction).map((e) => `${e.commune}|${e.fonction}`)),
+    empreintes: new Set((brut.elus ?? []).filter((e) => e?.empreinte).map((e) => String(e.empreinte))),
   };
   return lus;
 }
 
 export const eluRetire = (commune: string, fonction: string) => retraits().elus.has(`${commune}|${fonction}`);
+
+export const conseillerRetire = (commune: string, nom: string, prenom: string, naissance: string) =>
+  retraits().empreintes.has(empreinteElu(commune, nom, prenom, naissance));
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const [commune, nom, prenom, naissance] = process.argv.slice(2);
+  if (!commune || !nom || !prenom || !naissance) console.log('npx tsx scripts/retraits.ts <code INSEE> <NOM> <Prénom> <AAAA-MM-JJ>');
+  else console.log(`  - commune: "${commune}"\n    empreinte: "${empreinteElu(commune, nom, prenom, naissance)}"`);
+}

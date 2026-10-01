@@ -1,19 +1,19 @@
 /**
  * De quoi un conseil municipal est fait, et qui sont les adjoints du maire.
  *
- * Le site nomme le maire et ses adjoints, et s’arrête là. Les autres conseillers
- * municipaux que le répertoire publie, avec leur nom, leur date de naissance
- * et leur profession, **n'entrent pas ici** : republier un annuaire indexable
- * de cette taille n'est pas le projet, et les mentions légales promettent le
- * contraire. Ce qui entre, c'est ce qu'on ne peut lire nulle part ailleurs et
- * qui est une information politique de premier ordre : **de quoi l'assemblée
- * est faite**. Neuf retraités et aucun ouvrier dans une commune ouvrière se
- * voit d'un coup d'œil, et aucune liste de noms ne le dirait.
+ * D'abord **de quoi l'assemblée est faite**, ce qu'on ne peut lire nulle part
+ * ailleurs : un effectif, une part de femmes, des âges, des professions. Neuf
+ * retraités et aucun ouvrier dans une commune ouvrière se voit d'un coup
+ * d'œil, et aucune liste de noms ne le dirait.
  *
- * Rien de ce qui est écrit ici ne permet de revenir à une personne : un
- * effectif, une part de femmes, un âge médian, huit compteurs. Là où un
- * lecteur veut les noms — pour écrire à son conseiller —, la liste est
- * affichée en mairie et le site y renvoie plutôt que de la recopier.
+ * Puis **qui y siège**, depuis la décision du 1er octobre 2026 (`CLAUDE.md`,
+ * « Les noms dans les données ») : chaque membre, avec son prénom, son nom et
+ * son année de naissance — ni le jour, ni le sexe, ni la profession, qui
+ * restent des décomptes. Et, pour chacun, s'il siège aussi au conseil
+ * communautaire et avec quelle fonction : le répertoire publie les deux
+ * fichiers, et le rapprochement se fait sur la commune, le nom, le prénom et
+ * la date de naissance complète — quatre champs du même registre, jamais le
+ * nom seul.
  *
  * **Le répertoire décrit le conseil tel qu'il est, pas tel qu'il a été élu**,
  * et c'est une information en soi. Comparé au nombre de sièges à pourvoir du
@@ -25,10 +25,8 @@
  * **Les adjoints, eux, sont nommés** depuis la décision du 1er octobre 2026
  * (`CLAUDE.md`, « Les noms dans les données ») : un adjoint détient des
  * délégations du maire et signe en son nom, c'est une fonction exécutive. On
- * en garde la fonction, le prénom, le nom et la date de prise de fonction —
- * ni la naissance, ni la profession. Les maires délégués d'une commune
- * nouvelle, adjoints de droit, en sont. Les autres conseillers restent des
- * décomptes.
+ * en garde la fonction et la date de prise de fonction en plus. Les maires
+ * délégués d'une commune nouvelle, adjoints de droit, en sont.
  *
  * **Ce qu'on refuse encore : le nombre total de sièges d'une intercommunalité.**
  * Compter les lignes du répertoire donne 81 pour CA Vichy Communauté, qui en
@@ -49,7 +47,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lignesCsvOuvert, ressourcesDuJeu } from './donnees-ouvertes.ts';
 import { telechargerSiAbsent } from './par-departement.ts';
-import { eluRetire } from './retraits.ts';
+import { conseillerRetire, eluRetire } from './retraits.ts';
 
 /** Le jeu du ministère, et les deux fichiers qu'on y prend. */
 const JEU = 'repertoire-national-des-elus-1';
@@ -91,8 +89,28 @@ export interface ConseilCommune {
   p: [number, number][];
   /** Lignes du répertoire rattachées à la commune au conseil communautaire — non publié, voir l'en-tête. */
   cc: number;
-  /** Les adjoints, dans l'ordre du tableau : fonction, prénom, nom, date de prise de fonction. */
-  a?: [string, string, string, string, string?][];
+  /**
+   * Les adjoints, dans l'ordre du tableau : fonction, prénom, nom, date de
+   * prise de fonction, année de naissance, et le siège au conseil
+   * communautaire (vide : aucun ; sinon la fonction qu'il y occupe, ou
+   * « conseiller communautaire »).
+   */
+  a?: [string, string, string, string, string?, string?][];
+  /** Les autres conseillers, par nom : prénom, nom, année de naissance, siège communautaire. */
+  m?: [string, string, string, string?][];
+  /** Le siège communautaire du maire, s'il en a un. */
+  mc?: string;
+}
+
+/** Ce qui rapproche une ligne du conseil municipal d'une ligne du conseil communautaire. */
+const cle = (code: string, l: Record<string, string>) =>
+  [code, (l["Nom de l'élu"] ?? '').trim().toUpperCase(), (l["Prénom de l'élu"] ?? '').trim().toUpperCase(), (l['Date de naissance'] ?? '').trim()].join('|');
+
+/** La fonction au conseil communautaire, telle que le répertoire l'écrit ; sans fonction, « conseiller communautaire ». */
+function fonctionCc(f: string): string {
+  const t = f.trim();
+  if (!t) return 'conseiller communautaire';
+  return t;
 }
 
 /** Le rang d'une fonction dans le tableau : 1er adjoint, 2e…, puis les maires délégués. */
@@ -150,6 +168,9 @@ export async function collecterConseils(
   let femmes = 0;
   let total = 0;
   let adjoints = 0;
+  let nommes = 0;
+  // Les lignes à compléter du siège communautaire, une fois ce fichier-là lu.
+  const aCompleter = new Map<string, (cc: string) => void>();
 
   const fichierCm = join(cache, 'rne-conseillers-municipaux.csv');
   try {
@@ -180,16 +201,31 @@ export async function collecterConseils(
       else c.p.push([groupe - 1, 1]);
     }
     const fonction = (l['Libellé de la fonction'] ?? '').trim();
-    if (rangAdjoint(fonction) !== null && !eluRetire(code, fonction)) {
-      (c.a ??= []).push([
-        fonction,
-        (l["Prénom de l'élu"] ?? '').trim(),
-        (l["Nom de l'élu"] ?? '').trim(),
-        (l['Date de début de la fonction'] ?? '').trim(),
-        // L'année de naissance seule : le répertoire publie le jour, on ne le reprend pas.
-        /^(\d{4})-/.exec((l['Date de naissance'] ?? '').trim())?.[1] ?? '',
-      ]);
-      adjoints++;
+    const prenom = (l["Prénom de l'élu"] ?? '').trim();
+    const nom = (l["Nom de l'élu"] ?? '').trim();
+    // L'année de naissance seule : le répertoire publie le jour, on ne le reprend pas.
+    const annee = /^(\d{4})-/.exec((l['Date de naissance'] ?? '').trim())?.[1] ?? '';
+    const ici = c;
+    if (fonction === 'Maire') {
+      aCompleter.set(cle(code, l), (cc) => (ici.mc = cc));
+    } else if (rangAdjoint(fonction) !== null) {
+      if (!eluRetire(code, fonction)) {
+        const ligne: [string, string, string, string, string?, string?] = [
+          fonction,
+          prenom,
+          nom,
+          (l['Date de début de la fonction'] ?? '').trim(),
+          annee,
+        ];
+        (c.a ??= []).push(ligne);
+        aCompleter.set(cle(code, l), (cc) => (ligne[5] = cc));
+        adjoints++;
+      }
+    } else if (nom && !conseillerRetire(code, nom, prenom, (l['Date de naissance'] ?? '').trim())) {
+      const ligne: [string, string, string, string?] = [prenom, nom, annee];
+      (c.m ??= []).push(ligne);
+      aCompleter.set(cle(code, l), (cc) => (ligne[3] = cc));
+      nommes++;
     }
     const a = age((l['Date de naissance'] ?? '').trim(), aujourdhui);
     if (a !== null) {
@@ -206,6 +242,7 @@ export async function collecterConseils(
   // Les représentants au conseil communautaire, comptés pour mesurer l'écart
   // avec les résultats du scrutin : la page ne les affiche pas (voir l'en-tête).
   let avecCc = 0;
+  let rapproches = 0;
   if (communautaires) {
     const fichierCc = join(cache, 'rne-conseillers-communautaires.csv');
     try {
@@ -216,6 +253,11 @@ export async function collecterConseils(
         if (c) {
           c.cc++;
           avecCc++;
+          const completer = aCompleter.get(cle(code, l));
+          if (completer) {
+            completer(fonctionCc(l['Libellé de la fonction'] ?? ''));
+            rapproches++;
+          }
         }
       }
     } catch {
@@ -228,6 +270,7 @@ export async function collecterConseils(
     c.age = v.length === 0 ? [0, 0, 0] : [Math.min(...v), mediane(v), Math.max(...v)];
     c.p.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
     c.a?.sort((x, y) => (rangAdjoint(x[0]) ?? 0) - (rangAdjoint(y[0]) ?? 0) || x[2].localeCompare(y[2], 'fr'));
+    c.m?.sort((x, y) => x[1].localeCompare(y[1], 'fr') || x[0].localeCompare(y[0], 'fr'));
   }
 
   const partFemmes = Math.round((femmes / total) * 1000) / 10;
@@ -236,7 +279,8 @@ export async function collecterConseils(
       `${communes.size.toLocaleString('fr-FR')} communes, ${partFemmes} % de femmes, ` +
       `âge médian ${mediane(tousAges)} ans` +
       (avecCc > 0 ? `, ${avecCc.toLocaleString('fr-FR')} sièges communautaires rattachés` : '') +
-      `, ${adjoints.toLocaleString('fr-FR')} adjoints et maires délégués.`,
+      `, ${adjoints.toLocaleString('fr-FR')} adjoints et maires délégués, ${nommes.toLocaleString('fr-FR')} autres conseillers nommés` +
+      (avecCc > 0 ? ` ; ${rapproches.toLocaleString('fr-FR')} sièges communautaires rapprochés sur ${avecCc.toLocaleString('fr-FR')}.` : '.'),
   );
   return { maj: aujourdhui.toISOString().slice(0, 10), communes, partFemmes, ageMedian: mediane(tousAges) };
 }

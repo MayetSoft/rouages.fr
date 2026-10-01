@@ -136,6 +136,39 @@ et ils ont un droit de rectification.
   réduire à l'année garde l'information utile et retire ce qui sert à
   identifier une personne hors de sa fonction.
 
+### Les conseillers, les têtes de liste, les titulaires, la HATVP (1er octobre 2026)
+
+Décision du mainteneur, le même jour : le site n'a pas d'opinion, il montre
+des recoupements de données sourcées. Justification de chaque ajout, écrite
+avant la collecte :
+
+- **Les conseillers municipaux.** Le répertoire national des élus les publie
+  tous, et un conseiller vote les délibérations : savoir qui siège est la
+  question même du site. On retient le nom, le prénom, l'année de naissance
+  et le siège au conseil communautaire ; ni le sexe ni la profession, qui
+  restent des décomptes. Le siège communautaire vient d'un second fichier du
+  même répertoire, rapproché sur quatre champs — commune, nom, prénom, date
+  de naissance complète — : 61 115 sièges sur 62 111 trouvent leur
+  conseiller ; les autres ne sont pas affichés plutôt que devinés. Le
+  retrait d'un conseiller sans fonction passe par une empreinte, pour que
+  `retraits.yaml` ne le nomme pas.
+- **Les têtes de liste.** Le fichier des candidatures est publié par le
+  ministère pour que l'électeur sache qui se présente. La tête de liste est
+  nommée avec sa liste, rien de plus.
+- **Les titulaires des marchés.** Les données essentielles de la commande
+  publique sont publiées pour la transparence de la dépense : le SIRET du
+  titulaire y figure, et SIRENE dit à qui il appartient. Une société est
+  nommée par sa dénomination ; un entrepreneur individuel seulement s'il est
+  diffusible au répertoire, comme au BODACC.
+- **Les représentants d'intérêts.** Le répertoire de la HATVP est tenu pour
+  que le public sache qui cherche à influencer la décision publique ; ses
+  dirigeants y sont déclarés par l'organisation elle-même. On reprend
+  l'organisation, ses dirigeants et leur fonction, avec le lien vers la fiche
+  de la HATVP ; ni les collaborateurs, ni les adresses, ni les téléphones.
+  C'est le seul registre public qui nomme des dirigeants d'associations, et
+  seulement pour celles qui font de la représentation d'intérêts : les
+  autres restent anonymes, faute de source.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».

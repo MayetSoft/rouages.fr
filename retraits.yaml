@@ -10,6 +10,8 @@
 #                 société quand c'est elle qui demande ;
 #   elus        : le code INSEE de la commune et la fonction, telle que le
 #                 répertoire national des élus l'écrit (« Maire »,
-#                 « 2ème adjoint au Maire »).
+#                 « 2ème adjoint au Maire ») ; pour un conseiller sans
+#                 fonction, la commune et l'empreinte que calcule
+#                 `npx tsx scripts/retraits.ts <commune> <NOM> <Prénom> <naissance>`.
 entreprises: []
 elus: []

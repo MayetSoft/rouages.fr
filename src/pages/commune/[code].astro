@@ -220,6 +220,11 @@ const faits = journalCommune(commune, PLAFOND_JOURNAL).length;
 
 const region = meta?.regions?.[commune.dep];
 // « 1er adjoint au Maire » → « 1er adjoint » ; « Maire délégué » reste tel quel.
+/** « 13eme Vice-président du conseil communautaire » → « 13e vice-président du conseil communautaire ». */
+const siegeCc = (f: string) => {
+  const t = f.replace(/(\d+)\s*(?:ème|eme)\b/i, '$1e').replace(/^(\d+e |)([A-ZÉ])/, (_, r: string, l: string) => r + l.toLowerCase());
+  return /communautaire/i.test(t) ? t : `${t} du conseil communautaire`;
+};
 const fonctionCourte = (f: string) => f.replace(/\s+au\s+maire$/i, '').replace(/ème/, 'e');
 const ailleurs = sitesDeCommune({ ...commune, codeRegion: meta?.codesRegion?.[commune.dep] });
 const titre = `${commune.nom} — qui décide quoi`;
@@ -346,6 +351,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
           <span class="p-maire-depuis">mandat en cours depuis {moisAnnee(fiche.maire.depuis)}</span>
         )}
         {fiche.maire.naissance && <span class="p-maire-depuis">{`année de naissance ${fiche.maire.naissance}`}</span>}
+        {fiche.maireCc && <span class="p-maire-depuis">{siegeCc(fiche.maireCc)}</span>}
       </p>
     )}
 
@@ -358,6 +364,22 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
               <span class="p-adjoint-fonction">{fonctionCourte(a.fonction)}</span>
               <span class="p-adjoint-nom">{`${a.prenom} ${a.nom}`}</span>
               {a.naissance && <span class="p-adjoint-naissance">{`naissance ${a.naissance}`}</span>}
+              {a.cc && <span class="p-adjoint-naissance">{siegeCc(a.cc)}</span>}
+            </li>
+          ))}
+        </ul>
+      </details>
+    )}
+
+    {fiche && fiche.conseillers.length > 0 && (
+      <details class="p-adjoints p-conseillers">
+        <summary>{`${fiche.adjoints.length > 0 ? 'Les' : 'Ses'} ${fiche.conseillers.length} autre${fiche.conseillers.length > 1 ? 's' : ''} conseiller${fiche.conseillers.length > 1 ? 's' : ''} municipa${fiche.conseillers.length > 1 ? 'ux' : 'l'}`}</summary>
+        <ul>
+          {fiche.conseillers.map((m) => (
+            <li>
+              <span class="p-adjoint-nom">{`${m.prenom} ${m.nom}`}</span>
+              {m.naissance && <span class="p-adjoint-naissance">{`naissance ${m.naissance}`}</span>}
+              {m.cc && <span class="p-adjoint-naissance">{siegeCc(m.cc)}</span>}
             </li>
           ))}
         </ul>
@@ -366,7 +388,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
 
     {fiche?.maire && (
       <p class="p-source-territoire c-maire-source">
-        {`Le maire${fiche.adjoints.length > 0 ? ' et ses adjoints viennent' : ' vient'} du répertoire national des élus (${fiche.maire.maj}${fiche.adjointsMaj && fiche.adjoints.length > 0 ? ` ; adjoints : fichier des conseillers municipaux lu le ${fiche.adjointsMaj}` : ''}). Pour une correction : `}
+        {`Le maire${fiche.adjoints.length + fiche.conseillers.length > 0 ? ' et son conseil viennent' : ' vient'} du répertoire national des élus (${fiche.maire.maj}${fiche.adjointsMaj && fiche.adjoints.length + fiche.conseillers.length > 0 ? ` ; conseil : fichiers des conseillers municipaux et communautaires lus le ${fiche.adjointsMaj}, rapprochés sur la commune, le nom, le prénom et la date de naissance` : ''}). Pour une correction : `}
         <a href="/signaler">le signalement</a>{' ; pour un retrait : '}<a href="/signaler#retrait">la demande à l’éditeur</a>.
       </p>
     )}
