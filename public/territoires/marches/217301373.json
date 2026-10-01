@@ -1,1 +1,1 @@
-{"m":[{"objet":"ELETRICITE BATIMENT","montant":90000,"date":"2024-06-12","procedure":1,"lots":1},{"objet":"ELECTRICITE GROUPEMENT DE COMANDE AVEC LE SDES","montant":100000,"date":"2023-06-29","procedure":0,"lots":1}]}
+{"m":[{"objet":"ELETRICITE BATIMENT","montant":90000,"date":"2024-06-12","procedure":1,"lots":1,"offres":2},{"objet":"ELECTRICITE GROUPEMENT DE COMANDE AVEC LE SDES","montant":100000,"date":"2023-06-29","procedure":0,"lots":1,"offres":1}]}
