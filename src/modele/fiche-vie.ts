@@ -109,6 +109,8 @@ type LoyersDep = { maj: string; millesime: number; c: Record<string, [LoyerBrut 
 const loyersDep = parDepartement<LoyersDep>('loyers');
 type RechargeDep = { maj: string; dates: { irve: string; bnlc: string }; c: Record<string, [number, number, number, number, number]> };
 const rechargeDep = parDepartement<RechargeDep>('recharge');
+type ObjetsDep = { maj: string; c: Record<string, [number, number, [string, string, 0 | 1][]]> };
+const objetsDep = parDepartement<ObjetsDep>('objets');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -387,6 +389,8 @@ export interface Production {
 export interface Monuments {
   liste: { reference: string; titre: string; classe: boolean }[];
   maj: string;
+  /** Les objets mobiliers protégés (base Palissy), quand la collecte a tourné. */
+  objets: { classes: number; inscrits: number; liste: { reference: string; titre: string; classe: boolean }[]; maj: string } | null;
 }
 
 /**
@@ -744,9 +748,14 @@ function production(c: CommuneFiche): Production | null {
 function monuments(c: CommuneFiche): Monuments | null {
   const d = monumentsDep.get(c.dep);
   if (!d) return null;
+  const o = objetsDep.get(c.dep);
+  const [classes, inscrits, liste] = o?.c[c.code] ?? [0, 0, []];
   return {
     liste: (d.c[c.code] ?? []).map(([reference, titre, classe]) => ({ reference, titre, classe: classe === 1 })),
     maj: d.maj,
+    objets: o
+      ? { classes, inscrits, liste: liste.map(([reference, titre, classe]) => ({ reference, titre, classe: classe === 1 })), maj: o.maj }
+      : null,
   };
 }
 

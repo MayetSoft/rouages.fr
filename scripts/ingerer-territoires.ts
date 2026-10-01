@@ -836,6 +836,10 @@ async function principal() {
   );
   if (recharge) grise(`${ecrireRecharge(SORTIE, recharge)} départements de recharge écrits.`);
 
+  const { collecterObjets, ecrireObjets } = await import('./objets-emettre.ts');
+  const objets = await tenter('Objets protégés', () => collecterObjets(enCache('Palissy — objets protégés (365 Mo)'), CACHE, grise));
+  if (objets) grise(`${ecrireObjets(SORTIE, objets)} départements d’objets protégés écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),

@@ -336,6 +336,13 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /base Palissy/i,
+    liens: [
+      { titre: 'Objets mobiliers protégés (base Palissy)', url: dg('615bcdd729be9185b3b0681a') },
+      { titre: 'Le fichier', url: 'https://ministere-culture.s3.sbg.io.cloud.ovh.net/POP/palissy.csv' },
+    ],
+  },
+  {
     motif: /DATAtourisme/,
     liens: [{ titre: 'DATAtourisme, les fichiers régionaux', url: dg('5b598be088ee387c0c353714') }],
   },
