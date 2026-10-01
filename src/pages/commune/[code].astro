@@ -74,6 +74,7 @@ import Gares from '../../composants/commune/Gares.astro';
 import Antennes from '../../composants/commune/Antennes.astro';
 import Zonages from '../../composants/commune/Zonages.astro';
 import Investissement from '../../composants/commune/Investissement.astro';
+import Loyers from '../../composants/commune/Loyers.astro';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import Lieux from '../../composants/commune/Lieux.astro';
@@ -261,6 +262,7 @@ const sommaire: [string, string, unknown][] = [
   ['echelons', 'Les échelons', echelonsMontres],
   ['zonages', 'Programmes et zonages', vie.zonages],
   ['logements', 'Les logements', vie.parc || vie.immobilier],
+  ['loyers', 'Les loyers', vie.loyers],
   ['dpe', 'Les étiquettes énergétiques', vie.dpe],
   ['vente', 'Une vente immobilière', dmtoDernier >= 0],
   ['urbanisme', 'Ce qui peut s’y construire', fiche?.urbanisme],
@@ -527,6 +529,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="logements" class="p-logements">
         <h2 class="badge">Ses logements, et ce qu’ils coûtent</h2>
         <Logement parc={vie.parc} immobilier={vie.immobilier} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />
+      </section>
+    )}
+
+    {vie.loyers && (
+      <section id="loyers">
+        <h2 class="badge">Les loyers</h2>
+        <Loyers l={vie.loyers} />
       </section>
     )}
 

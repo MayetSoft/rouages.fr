@@ -54,7 +54,10 @@ const ENTREES: Entree[] = [
   },
   {
     motif: /projets financés par les dotations de soutien à l.investissement/i,
-    liens: [{ titre: 'Projets financés par les dotations d’investissement (DGCL)', url: dg('6176785207139a929a2776fe') }],
+    liens: [
+      { titre: 'Projets financés par les dotations d’investissement (DGCL)', url: dg('6176785207139a929a2776fe') },
+      { titre: 'Projets subventionnés par le Fonds vert', url: dg('66a215a463a9da4fb801b8cf') },
+    ],
   },
   {
     motif: /droits de mutation|\bDMTO\b|recettes mensuelles publiées par la direction générale des finances publiques/i,
@@ -160,6 +163,10 @@ const ENTREES: Entree[] = [
       { titre: 'Demandes de valeurs foncières géolocalisées', url: dg('demandes-de-valeurs-foncieres-geolocalisees') },
       { titre: 'Les fichiers, année par année', url: 'https://files.data.gouv.fr/geo-dvf/latest/csv/' },
     ],
+  },
+  {
+    motif: /carte des loyers/i,
+    liens: [{ titre: 'Carte des loyers 2025 : indicateurs par commune', url: dg('693aa2feed1bf4da603faa49') }],
   },
   {
     motif: /performance énergétique/i,

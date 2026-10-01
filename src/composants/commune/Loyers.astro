@@ -1,0 +1,47 @@
+---
+/**
+ * Le loyer d'annonce estimé pour un appartement et pour une maison types,
+ * d'après la carte des loyers — voir `scripts/loyers-emettre.ts`.
+ */
+import type { Loyers, LoyerEstime } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  l: Loyers;
+}
+const { l } = Astro.props;
+const e = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const lignes = (
+  [
+    ['Un appartement de 52 m²', l.appartement, 52],
+    ['Une maison de 92 m²', l.maison, 92],
+  ] as [string, LoyerEstime | null, number][]
+).filter((x): x is [string, LoyerEstime, number] => x[1] !== null);
+const ou = (x: LoyerEstime) =>
+  x.niveau === 'commune'
+    ? `estimé dans la commune, sur ${x.annonces.toLocaleString('fr-FR')} annonces`
+    : x.niveau === 'intercommunalité'
+      ? 'estimé dans l’intercommunalité, la commune comptant moins de cent annonces'
+      : 'estimé sur un groupe de communes voisines comparables, la commune comptant moins de cent annonces';
+const fragile = lignes.some(([, x]) => x.fragile);
+---
+<ul class="c-structures">
+  {lignes.map(([quoi, x, m2]) => (
+    <li>
+      {`${quoi} : ${e(x.euros)} €/m² charges comprises, soit environ ${Math.round(x.euros * m2).toLocaleString('fr-FR')} € par mois — entre ${e(x.bas)} et ${e(x.haut)} €/m² à 95 % ; ${ou(x)}.`}
+    </li>
+  ))}
+</ul>
+{fragile && (
+  <p class="mesure">
+    Une des estimations est fragile — peu d’annonces dans la commune, un modèle qui colle mal aux loyers observés, ou
+    un intervalle très large&nbsp;: le guide de la carte demande de la lire avec prudence.
+  </p>
+)}
+<p class="p-strate">
+  C’est un loyer d’annonce&nbsp;: celui des logements non meublés proposés à la location, pas celui des locataires en
+  place, et ni une moyenne ni une médiane, mais la prédiction d’un modèle pour un logement type. Il permet de comparer
+  des communes entre elles, pas de suivre une évolution&nbsp;: les groupes de communes changent d’une année à l’autre.
+</p>
+<p class="p-source-territoire">
+  {`D’après la carte des loyers ${l.millesime} du ministère chargé du logement : estimations ANIL, à partir des données du Groupe SeLoger et de leboncoin, pour une annonce du troisième trimestre (${l.maj}).`}
+</p>

@@ -104,6 +104,9 @@ type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> 
 const monumentsDep = parDepartement<MonumentsDep>('monuments');
 type InvestissementDep = { maj: string; exercices: number[]; c: Record<string, [number, string, string, number, number][]> };
 const investissementDep = parDepartement<InvestissementDep>('investissement');
+type LoyerBrut = [number, number, number, 0 | 1 | 2, number, number];
+type LoyersDep = { maj: string; millesime: number; c: Record<string, [LoyerBrut | null, LoyerBrut | null]> };
+const loyersDep = parDepartement<LoyersDep>('loyers');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -419,6 +422,25 @@ export interface Investissement {
   maj: string;
 }
 
+/** Le loyer d'annonce estimé pour un logement type, d'après la carte des loyers. */
+export interface LoyerEstime {
+  euros: number;
+  bas: number;
+  haut: number;
+  niveau: 'commune' | 'intercommunalité' | 'maille';
+  annonces: number;
+  r2: number;
+  /** Ce que le guide demande de lire avec prudence. */
+  fragile: boolean;
+}
+
+export interface Loyers {
+  appartement: LoyerEstime | null;
+  maison: LoyerEstime | null;
+  millesime: number;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -445,6 +467,7 @@ export interface ComplementsVie {
   lieux: Lieux | null;
   zonages: Zonages | null;
   investissement: Investissement | null;
+  loyers: Loyers | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -744,6 +767,29 @@ function investissement(c: CommuneFiche): Investissement | null {
   };
 }
 
+function loyerEstime(x: LoyerBrut | null): LoyerEstime | null {
+  if (!x) return null;
+  const [euros, bas, haut, n, annonces, r2] = x;
+  return {
+    euros,
+    bas,
+    haut,
+    niveau: n === 0 ? 'commune' : n === 1 ? 'intercommunalité' : 'maille',
+    annonces,
+    r2: r2 / 100,
+    // Les trois cas du guide : moins de trente annonces, R² sous 0,5, intervalle très large
+    // — plus de la moitié du loyer de part et d'autre, seuil du site.
+    fragile: annonces < 30 || r2 < 50 || haut - bas > euros,
+  };
+}
+
+function loyers(c: CommuneFiche): Loyers | null {
+  const d = loyersDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x) return null;
+  return { appartement: loyerEstime(x[0]), maison: loyerEstime(x[1]), millesime: d.millesime, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -771,5 +817,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     lieux: lieux(c),
     zonages: zonages(c),
     investissement: investissement(c),
+    loyers: loyers(c),
   };
 }

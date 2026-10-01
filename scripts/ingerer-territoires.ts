@@ -826,6 +826,10 @@ async function principal() {
   );
   if (investissement) grise(`${ecrireInvestissement(SORTIE, investissement)} départements de projets subventionnés écrits.`);
 
+  const { collecterLoyers, ecrireLoyers } = await import('./loyers-emettre.ts');
+  const loyers = await tenter('Carte des loyers', () => collecterLoyers(lireJson, enCache('Carte des loyers (10 Mo)'), CACHE, grise));
+  if (loyers) grise(`${ecrireLoyers(SORTIE, loyers)} départements de loyers écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),
