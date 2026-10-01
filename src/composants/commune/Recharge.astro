@@ -1,0 +1,38 @@
+---
+/**
+ * Recharger une voiture électrique et covoiturer : les bornes et les lieux
+ * déclarés dans la commune. Voir `scripts/recharge-emettre.ts`.
+ */
+import type { Recharge } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  r: Recharge;
+}
+const { r } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const pl = (n: number, un: string, plusieurs: string) => `${nf(n)} ${n > 1 ? plusieurs : un}`;
+const date = (d: string) => d.split('-').reverse().join('/');
+---
+<ul class="c-structures">
+  <li>
+    {r.points === 0
+      ? 'Aucune borne de recharge pour voiture électrique déclarée dans la commune.'
+      : `${pl(r.points, 'point de charge', 'points de charge')} pour voiture électrique, en ${pl(r.stations, 'station', 'stations')}` +
+        (r.rapides > 0 ? `, dont ${nf(r.rapides)} de 50 kW ou plus — la recharge rapide d’un trajet.` : ', aucun de 50 kW ou plus.')}
+  </li>
+  <li>
+    {r.lieuxCovoiturage === 0
+      ? 'Aucun lieu de covoiturage déclaré dans la commune.'
+      : `${pl(r.lieuxCovoiturage, 'lieu de covoiturage', 'lieux de covoiturage')} — aire, parking relais ou arrêt d’autostop organisé` +
+        (r.places > 0 ? `, ${pl(r.places, 'place déclarée', 'places déclarées')}.` : '.')}
+  </li>
+</ul>
+<p class="p-strate">
+  Un point de charge est une prise utilisable par une voiture à la fois ; une station en réunit plusieurs. Les bases
+  ne contiennent que ce que les aménageurs et les collectivités y déclarent, et certains points ne portent ni code
+  commune ni adresse lisible&nbsp;: les nombres sont des minimums. Une borne réservée à la clientèle d’un commerce y
+  figure si elle est déclarée.
+</p>
+<p class="p-source-territoire">
+  {`D’après la base nationale des infrastructures de recharge pour véhicules électriques consolidée par data.gouv (${date(r.dates.irve)}) et la base nationale des lieux de covoiturage du point d’accès national aux données de transport (${date(r.dates.bnlc)}).`}
+</p>

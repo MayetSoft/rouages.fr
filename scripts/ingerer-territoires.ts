@@ -814,6 +814,39 @@ async function principal() {
   );
   if (lieux) grise(`${ecrireLieux(SORTIE, lieux)} départements de lieux écrits.`);
 
+  const { collecterZonages, ecrireZonages } = await import('./zonages-emettre.ts');
+  const zonages = await tenter('Programmes de l’ANCT et zone de montagne', () =>
+    collecterZonages(lireJson, enCache('ANCT et zones défavorisées (10 Mo)'), CACHE, grise),
+  );
+  if (zonages) grise(`${ecrireZonages(SORTIE, zonages)} départements de zonages écrits.`);
+
+  const { collecterInvestissement, ecrireInvestissement } = await import('./investissement-emettre.ts');
+  const investissement = await tenter('Subventions d’investissement de l’État', () =>
+    collecterInvestissement(lireJson, enCache('DGCL — projets subventionnés (10 Mo)'), CACHE, grise),
+  );
+  if (investissement) grise(`${ecrireInvestissement(SORTIE, investissement)} départements de projets subventionnés écrits.`);
+
+  const { collecterLoyers, ecrireLoyers } = await import('./loyers-emettre.ts');
+  const loyers = await tenter('Carte des loyers', () => collecterLoyers(lireJson, enCache('Carte des loyers (10 Mo)'), CACHE, grise));
+  if (loyers) grise(`${ecrireLoyers(SORTIE, loyers)} départements de loyers écrits.`);
+
+  const { collecterRecharge, ecrireRecharge } = await import('./recharge-emettre.ts');
+  const recharge = await tenter('Recharge et covoiturage', () =>
+    collecterRecharge(lireJson, enCache('IRVE et lieux de covoiturage (160 Mo)'), CACHE, grise),
+  );
+  if (recharge) grise(`${ecrireRecharge(SORTIE, recharge)} départements de recharge écrits.`);
+
+  const { collecterObjets, ecrireObjets } = await import('./objets-emettre.ts');
+  const objets = await tenter('Objets protégés', () => collecterObjets(enCache('Palissy — objets protégés (365 Mo)'), CACHE, grise));
+  if (objets) grise(`${ecrireObjets(SORTIE, objets)} départements d’objets protégés écrits.`);
+
+  const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
+  const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));
+  if (petiteEnfance) {
+    ecrirePetiteEnfance(SORTIE, petiteEnfance);
+    grise('Taux de couverture de l’accueil du jeune enfant écrit.');
+  }
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),

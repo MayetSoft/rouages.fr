@@ -14,6 +14,7 @@ const MONTRES = 20;
 const n = m.liste.length;
 const classes = m.liste.filter((x) => x.classe).length;
 const nf = (v: number) => v.toLocaleString('fr-FR');
+const no = m.objets ? m.objets.classes + m.objets.inscrits : 0;
 ---
 {n === 0 ? (
   <p class="mesure">
@@ -42,6 +43,25 @@ const nf = (v: number) => v.toLocaleString('fr-FR');
     {n > MONTRES && <p class="p-strate">{`Et ${nf(n - MONTRES)} autres, dans la base Mérimée.`}</p>}
   </>
 )}
+{m.objets && (m.objets.classes + m.objets.inscrits === 0 ? (
+  <p class="mesure">Aucun objet mobilier de la commune n’est protégé au titre des monuments historiques.</p>
+) : (
+  <>
+    <p class="mesure">
+      {`${nf(no)} objet${no > 1 ? 's' : ''} mobilier${no > 1 ? 's' : ''} protégé${no > 1 ? 's' : ''} — un retable, une cloche, une statue, le plus souvent dans une église —` +
+        (m.objets.classes === 0 ? `, ${no > 1 ? 'tous inscrits' : 'inscrit'}.` : m.objets.inscrits === 0 ? `, ${no > 1 ? 'tous classés' : 'classé'}.` : `, dont ${nf(m.objets.classes)} classé${m.objets.classes > 1 ? 's' : ''}, les autres inscrits.`)}
+    </p>
+    <ul class="c-structures">
+      {m.objets.liste.slice(0, MONTRES).map((x) => (
+        <li>
+          <a href={`https://pop.culture.gouv.fr/notice/palissy/${x.reference}`} target="_blank" rel="noopener">{x.titre}</a>
+          <span class="v-nature">{x.classe ? 'classé' : 'inscrit'}</span>
+        </li>
+      ))}
+    </ul>
+    {no > MONTRES && <p class="mesure">{`Et ${nf(no - MONTRES)} autres, dans la base Palissy.`}</p>}
+  </>
+))}
 <p class="p-strate">
   Autour d’un monument, les travaux qui changent l’aspect extérieur d’un immeuble passent par
   <a href="/n/abf">l’architecte des Bâtiments de France</a>. Sauf périmètre délimité, ces abords couvrent ce qui est
@@ -49,5 +69,7 @@ const nf = (v: number) => v.toLocaleString('fr-FR');
   donc en créer ici&nbsp;; le site n’a pas les périmètres, la mairie les connaît.
 </p>
 <p class="p-source-territoire">
-  {`D’après la base Mérimée du ministère de la Culture, immeubles protégés au titre des monuments historiques (${m.maj}) ; article L621-30 du code du patrimoine.`}
+  {`D’après la base Mérimée du ministère de la Culture, immeubles protégés au titre des monuments historiques (${m.maj})` +
+    (m.objets ? `, et la base Palissy, objets mobiliers protégés (${m.objets.maj})` : '') +
+    ' ; article L621-30 du code du patrimoine.'}
 </p>

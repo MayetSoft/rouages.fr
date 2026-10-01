@@ -2665,6 +2665,91 @@ environnement, le tunnel coupe les gros fichiers de l'INSEE servis compressés,
 qui n'annoncent pas leur longueur : ils ont été repris par `curl -C -`, puis
 contrôlés par `unzip -t`.
 
+### Les données d'octobre : zonages, subventions, loyers, recharge, objets protégés ✔
+
+Demandé le 30 septembre : « ajoute toutes les données que tu as suggérées ».
+Six collectes nouvelles, chacune vérifiée sur Le Mayet-de-Montagne ; ce qui
+n'a pas tenu est dit plus bas.
+
+- **Programmes de l'État et zonages** (`zonages-emettre.ts`, bloc
+  `#zonages`) : Petites villes de demain, Action cœur de ville, Villages
+  d'avenir, Territoire d'industrie et contrat pour la réussite de la
+  transition écologique (CRTE), chacun d'après sa liste de communes à l'ANCT,
+  plus les petits programmes de son tableau de croisement (Avenir montagnes,
+  cités éducatives, cités de l'emploi, Fabriques prospectives, habitat
+  inclusif). La zone de montagne au sens de la loi de 1985 : son article 3
+  renvoie aux zones agricoles défavorisées (vérifié par recherche web) ; la
+  liste du ministère de l'Agriculture (2017, « Art 18 ») est reportée sur les
+  communes actuelles, « en partie » quand une commune nouvelle n'est pas
+  classée tout entière. Le zonage ABC (liste du ministère chargé du
+  logement, en vigueur au 26 juin 2026), dans les mots du ministère : A bis,
+  A et B1 sont les zones en déséquilibre important. Les quartiers prioritaires
+  de 2024, par commune, avec leur nom ; un quartier sur deux communes compte
+  dans chacune (834 communes). 5 990 communes en zone de montagne, 1 642 Petites
+  villes de demain, 244 Action cœur de ville, 3 135 Villages d'avenir. Au
+  Mayet-de-Montagne : zone de montagne, zone C, Territoire d'industrie « Riom
+  – Vichy », CRTE Vichy Communauté, aucun programme de commune ; Vichy est en
+  zone B2, compte deux quartiers prioritaires et est en Action cœur de ville ;
+  Mayet (Sarthe) est en Petites villes de demain.
+- **Les projets que l'État a subventionnés** (`investissement-emettre.ts`,
+  bloc `#investissement`) : la liste de la DGCL des projets financés par la
+  DETR, la DSIL et la DPV, et celle du Fonds vert, sur les trois derniers
+  exercices — intitulé, coût hors taxes, subvention, projet par projet. Un
+  intitulé nommant une personne est écarté (9 sur 72 600). Seuls les projets
+  dont la commune est bénéficiaire : ceux de l'intercommunalité ne disent pas
+  où ils se trouvent. Les exports du Fonds vert changent d'en-têtes chaque
+  année, et celui de 2023 n'a pas de forme juridique : la commune s'y
+  reconnaît à son SIREN, qui commence par 21. Au Mayet-de-Montagne : quatre
+  projets DETR de 2023 et 2024, dont la réhabilitation de la maison Poyet et
+  de la mairie (100 000 € sur 1,3 M€).
+- **Les loyers** (`loyers-emettre.ts`, bloc `#loyers`) : la carte des loyers
+  2025 du ministère chargé du logement, estimations ANIL — la mention que
+  la licence exige est reprise. Un loyer d'annonce charges comprises, prédit
+  pour un appartement de 52 m² et une maison de 92 m², avec l'intervalle à
+  95 % et l'échelle de l'estimation (commune, intercommunalité ou maille de
+  communes voisines). La page dit quand le guide demande la prudence (moins
+  de 30 annonces, R² sous 0,5, intervalle très large), et qu'aucune évolution
+  ne se lit d'un millésime à l'autre. Au Mayet-de-Montagne : 7,68 €/m² pour
+  l'appartement, 6,91 €/m² pour la maison, estimés sur une maille.
+- **Recharger, covoiturer** (`recharge-emettre.ts`, bloc `#recharge`) : la
+  base nationale des bornes de recharge consolidée par data.gouv — stations,
+  points de charge, dont de 50 kW ou plus — et la base nationale des lieux
+  de covoiturage. Un quart des lignes de bornes n'a pas de code commune ; une
+  partie est retrouvée par le code postal et le nom en fin d'adresse, le
+  reste n'est pas compté, et la page dit que les nombres sont des minimums.
+  Au Mayet-de-Montagne : 5 points de charge en 2 stations, dont 2 de 50 kW.
+- **L'accueil des tout-petits** (`petite-enfance-emettre.ts`, bloc
+  `#petite-enfance`) : le taux de couverture de la CNAF, places d'accueil
+  formel pour 100 enfants de moins de trois ans — assistantes maternelles,
+  crèches et autres EAJE, école dès deux ans, garde à domicile —, comparé à
+  la France. La CAF ne le publie par commune qu'au-dessus de 10 000
+  habitants (1 018 communes) ; ailleurs, la page montre celui de
+  l'intercommunalité et le dit. Un fichier national,
+  `petite-enfance.json`. Au Mayet-de-Montagne, en 2023 : 64,4 places dans
+  Vichy Communauté, contre 60,9 en France, dont 43,7 chez une assistante
+  maternelle.
+- **Les objets mobiliers protégés** (`objets-emettre.ts`, dans le bloc des
+  monuments) : la base Palissy, 260 882 objets classés ou inscrits dans
+  24 555 communes, sous-dossiers et objets désinscrits écartés. Au
+  Mayet-de-Montagne : aucun, ce qui recoupe ce que le mainteneur savait.
+
+**Ce qui n'a pas tenu, ou reste à faire.**
+
+- *L'Inventaire général du patrimoine* : le fichier Mérimée que lit le site
+  ne contient que les immeubles protégés (448 notices sans protection sur
+  46 760, toutes des recensements d'immeubles MH), et aucun export national
+  de l'Inventaire n'existe sur data.gouv — seulement des inventaires
+  régionaux. Remplacé par les objets protégés de Palissy.
+- *France ruralités revitalisation* (ex-ZRR) : aucune liste nationale ouverte,
+  seulement des listes départementales.
+- *Loi Littoral* : la ressource du jeu national renvoie une page web, pas le
+  tableur. *Zones tendues* (taxe sur les logements vacants) : pas de liste
+  trouvée en données ouvertes.
+- *Logements sociaux (RPLS)* : pas trouvé de fichier communal national à
+  jour. *Covoiturage réalisé* (registre de preuve), *URSSAF*, *France
+  Travail*, *INAO*, *environnement* (VigiEau, assainissement, ICPE, INPN…) :
+  pas commencés.
+
 ### « Sources et méthode » : replié sous chaque bloc, avec les fichiers ✔
 
 Les réserves et les sources rendent les blocs fiables, et faisaient aussi de

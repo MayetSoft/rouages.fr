@@ -53,6 +53,13 @@ const ENTREES: Entree[] = [
     liens: [{ titre: 'Dotations des communes (OFGL)', url: ofgl('dotations-communes') }],
   },
   {
+    motif: /projets financés par les dotations de soutien à l.investissement/i,
+    liens: [
+      { titre: 'Projets financés par les dotations d’investissement (DGCL)', url: dg('6176785207139a929a2776fe') },
+      { titre: 'Projets subventionnés par le Fonds vert', url: dg('66a215a463a9da4fb801b8cf') },
+    ],
+  },
+  {
     motif: /droits de mutation|\bDMTO\b|recettes mensuelles publiées par la direction générale des finances publiques/i,
     liens: [{ titre: 'Droits de mutation à titre onéreux (DGFiP)', url: 'https://data.economie.gouv.fr/explore/dataset/dmto_attrib/' }],
   },
@@ -155,6 +162,17 @@ const ENTREES: Entree[] = [
     liens: [
       { titre: 'Demandes de valeurs foncières géolocalisées', url: dg('demandes-de-valeurs-foncieres-geolocalisees') },
       { titre: 'Les fichiers, année par année', url: 'https://files.data.gouv.fr/geo-dvf/latest/csv/' },
+    ],
+  },
+  {
+    motif: /carte des loyers/i,
+    liens: [{ titre: 'Carte des loyers 2025 : indicateurs par commune', url: dg('693aa2feed1bf4da603faa49') }],
+  },
+  {
+    motif: /taux de couverture d.accueil du jeune enfant/i,
+    liens: [
+      { titre: 'Taux de couverture par intercommunalité (CNAF)', url: 'https://data.caf.fr/explore/dataset/txcouv_pe_epci/' },
+      { titre: 'Taux de couverture par commune (CNAF)', url: 'https://data.caf.fr/explore/dataset/txcouv_pe_com/' },
     ],
   },
   {
@@ -300,10 +318,43 @@ const ENTREES: Entree[] = [
 
   // --- Le territoire --------------------------------------------------------
   {
+    motif: /Agence nationale de la cohésion des territoires/i,
+    liens: [
+      { titre: 'Petites villes de demain (ANCT)', url: dg('5fc1259b703620ed60a49d97') },
+      { titre: 'Action cœur de ville (ANCT)', url: dg('5acc7eddc751df5e21efdf20') },
+      { titre: 'Villages d’avenir (ANCT)', url: dg('65a11234a86f08c56f0c47b0') },
+      { titre: 'Territoires d’industrie (ANCT)', url: dg('5fc1472f114718d419e42f8a') },
+      { titre: 'Contrats pour la réussite de la transition écologique (ANCT)', url: dg('60799532757dbdef335c00c5') },
+      { titre: 'Croisement des dispositifs de l’ANCT', url: dg('617322c7c8e7b27041570e71') },
+      { titre: 'Quartiers prioritaires de la politique de la ville (ANCT)', url: dg('5a561801c751df42d7fca9b6') },
+    ],
+  },
+  {
+    motif: /zonage ABC/i,
+    liens: [
+      { titre: 'Liste des communes selon le zonage ABC', url: dg('656715871172d08f8f680063') },
+      { titre: 'Le zonage A, B, C expliqué (ministère)', url: 'https://www.ecologie.gouv.fr/politiques-publiques/zonage-b-c' },
+    ],
+  },
+  {
+    motif: /zones défavorisées/i,
+    liens: [
+      { titre: 'Communes classées en zones défavorisées (ministère de l’Agriculture)', url: dg('5369911ea3a729239d203b94') },
+      { titre: 'Loi Montagne, article 3', url: 'https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000006847491' },
+    ],
+  },
+  {
     motif: /base Mérimée/i,
     liens: [
       { titre: 'Immeubles protégés au titre des monuments historiques', url: dg('5af120e5b595087cfabcde81') },
       { titre: 'Le fichier', url: 'https://ministere-culture.s3.sbg.io.cloud.ovh.net/POP/merimee.csv' },
+    ],
+  },
+  {
+    motif: /base Palissy/i,
+    liens: [
+      { titre: 'Objets mobiliers protégés (base Palissy)', url: dg('615bcdd729be9185b3b0681a') },
+      { titre: 'Le fichier', url: 'https://ministere-culture.s3.sbg.io.cloud.ovh.net/POP/palissy.csv' },
     ],
   },
   {
@@ -322,6 +373,14 @@ const ENTREES: Entree[] = [
   {
     motif: /ONISR|accidents corporels/i,
     liens: [{ titre: 'Bases des accidents corporels de la circulation', url: dg('53698f4ca3a729239d2036df') }],
+  },
+  {
+    motif: /infrastructures de recharge/i,
+    liens: [{ titre: 'Base nationale des infrastructures de recharge (IRVE)', url: dg('5448d3e0c751df01f85d0572') }],
+  },
+  {
+    motif: /lieux de covoiturage/i,
+    liens: [{ titre: 'Base nationale des lieux de covoiturage', url: dg('5d6eaffc8b4c417cdc452ac3') }],
   },
   {
     motif: /SNCF Gares/,

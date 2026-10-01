@@ -10,8 +10,8 @@
  * la main : des parts, des rapports, jamais un agrégat que la source ne
  * publie pas.
  */
-import { parDepartement, type CommuneFiche } from './fiche-commune.ts';
-import { communes } from './territoires.ts';
+import { national, parDepartement, type CommuneFiche } from './fiche-commune.ts';
+import { communes, intercommunalites } from './territoires.ts';
 
 /* ------------------------------------------------------------------ *
  * Les fichiers, tels que les collecteurs les écrivent.
@@ -102,6 +102,22 @@ type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<st
 const productionDep = parDepartement<ProductionDep>('production');
 type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
 const monumentsDep = parDepartement<MonumentsDep>('monuments');
+type InvestissementDep = { maj: string; exercices: number[]; c: Record<string, [number, string, string, number, number][]> };
+const investissementDep = parDepartement<InvestissementDep>('investissement');
+type LoyerBrut = [number, number, number, 0 | 1 | 2, number, number];
+type LoyersDep = { maj: string; millesime: number; c: Record<string, [LoyerBrut | null, LoyerBrut | null]> };
+const loyersDep = parDepartement<LoyersDep>('loyers');
+type RechargeDep = { maj: string; dates: { irve: string; bnlc: string }; c: Record<string, [number, number, number, number, number]> };
+const rechargeDep = parDepartement<RechargeDep>('recharge');
+type ObjetsDep = { maj: string; c: Record<string, [number, number, [string, string, 0 | 1][]]> };
+const objetsDep = parDepartement<ObjetsDep>('objets');
+type Couverture = [number, number, number, number, number];
+const petiteEnfanceFichier = national<{ maj: string; annee: number; france: Couverture; e: Record<string, Couverture>; c: Record<string, Couverture> }>(
+  'petite-enfance.json',
+);
+let intercoDe: Map<string, { siren: string; nom: string }> | null = null;
+type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?]> };
+const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
 const lieuxDep = parDepartement<LieuxDep>('lieux');
 
@@ -378,6 +394,8 @@ export interface Production {
 export interface Monuments {
   liste: { reference: string; titre: string; classe: boolean }[];
   maj: string;
+  /** Les objets mobiliers protégés (base Palissy), quand la collecte a tourné. */
+  objets: { classes: number; inscrits: number; liste: { reference: string; titre: string; classe: boolean }[]; maj: string } | null;
 }
 
 /**
@@ -389,6 +407,81 @@ export interface Lieux {
   patrimoine: string[];
   nature: string[];
   itineraires: string[];
+  maj: string;
+}
+
+/**
+ * Les programmes de l'ANCT dont la commune bénéficie, et son classement en
+ * zone de montagne ; rien est une réponse.
+ */
+export interface Zonages {
+  programmes: string[];
+  territoireIndustrie: string | null;
+  crte: string | null;
+  montagne: 'non' | 'oui' | 'en partie';
+  /** La zone du zonage ABC — A bis, A, B1, B2, C —, ou null si inconnue. */
+  abc: string | null;
+  quartiersPrioritaires: string[];
+  dates: Record<string, string>;
+  maj: string;
+}
+
+/**
+ * Les projets de la commune que l'État a subventionnés au titre de ses
+ * dotations d'investissement (DETR, DSIL, DPV) ; aucun est une réponse.
+ */
+export interface Investissement {
+  projets: { annee: number; dispositif: string; intitule: string; cout: number; subvention: number }[];
+  exercices: number[];
+  maj: string;
+}
+
+/** Le loyer d'annonce estimé pour un logement type, d'après la carte des loyers. */
+export interface LoyerEstime {
+  euros: number;
+  bas: number;
+  haut: number;
+  niveau: 'commune' | 'intercommunalité' | 'maille';
+  annonces: number;
+  r2: number;
+  /** Ce que le guide demande de lire avec prudence. */
+  fragile: boolean;
+}
+
+export interface Loyers {
+  appartement: LoyerEstime | null;
+  maison: LoyerEstime | null;
+  millesime: number;
+  maj: string;
+}
+
+/** Les bornes de recharge électrique et les lieux de covoiturage ; zéro est une réponse. */
+export interface Recharge {
+  stations: number;
+  points: number;
+  rapides: number;
+  lieuxCovoiturage: number;
+  places: number;
+  dates: { irve: string; bnlc: string };
+  maj: string;
+}
+
+/** Places d'accueil formel pour cent enfants de moins de trois ans, d'après la CNAF. */
+export interface TauxCouverture {
+  global: number;
+  eaje: number;
+  assistantesMaternelles: number;
+  ecole: number;
+  domicile: number;
+}
+
+export interface PetiteEnfance {
+  /** Le taux de la commune quand la CAF le publie, sinon celui de son intercommunalité. */
+  echelle: 'commune' | 'intercommunalité';
+  nomInterco: string | null;
+  taux: TauxCouverture;
+  france: TauxCouverture;
+  annee: number;
   maj: string;
 }
 
@@ -416,6 +509,11 @@ export interface ComplementsVie {
   production: Production | null;
   monuments: Monuments | null;
   lieux: Lieux | null;
+  zonages: Zonages | null;
+  investissement: Investissement | null;
+  loyers: Loyers | null;
+  recharge: Recharge | null;
+  petiteEnfance: PetiteEnfance | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -678,9 +776,14 @@ function production(c: CommuneFiche): Production | null {
 function monuments(c: CommuneFiche): Monuments | null {
   const d = monumentsDep.get(c.dep);
   if (!d) return null;
+  const o = objetsDep.get(c.dep);
+  const [classes, inscrits, liste] = o?.c[c.code] ?? [0, 0, []];
   return {
     liste: (d.c[c.code] ?? []).map(([reference, titre, classe]) => ({ reference, titre, classe: classe === 1 })),
     maj: d.maj,
+    objets: o
+      ? { classes, inscrits, liste: liste.map(([reference, titre, classe]) => ({ reference, titre, classe: classe === 1 })), maj: o.maj }
+      : null,
   };
 }
 
@@ -689,6 +792,85 @@ function lieux(c: CommuneFiche): Lieux | null {
   if (!d) return null;
   const [patrimoine, nature, itineraires] = d.c[c.code] ?? [[], [], []];
   return { patrimoine, nature, itineraires, maj: d.maj };
+}
+
+function zonages(c: CommuneFiche): Zonages | null {
+  const d = zonagesDep.get(c.dep);
+  if (!d) return null;
+  const [programmes, ti, crte, m, abc, quartiers] = d.c[c.code] ?? [[], '', '', 0];
+  return {
+    programmes,
+    territoireIndustrie: ti || null,
+    crte: crte || null,
+    montagne: m === 1 ? 'oui' : m === 2 ? 'en partie' : 'non',
+    abc: abc || null,
+    quartiersPrioritaires: quartiers ?? [],
+    dates: d.dates,
+    maj: d.maj,
+  };
+}
+
+function investissement(c: CommuneFiche): Investissement | null {
+  const d = investissementDep.get(c.dep);
+  if (!d) return null;
+  return {
+    projets: (d.c[c.code] ?? []).map(([annee, dispositif, intitule, cout, subvention]) => ({ annee, dispositif, intitule, cout, subvention })),
+    exercices: d.exercices,
+    maj: d.maj,
+  };
+}
+
+function loyerEstime(x: LoyerBrut | null): LoyerEstime | null {
+  if (!x) return null;
+  const [euros, bas, haut, n, annonces, r2] = x;
+  return {
+    euros,
+    bas,
+    haut,
+    niveau: n === 0 ? 'commune' : n === 1 ? 'intercommunalité' : 'maille',
+    annonces,
+    r2: r2 / 100,
+    // Les trois cas du guide : moins de trente annonces, R² sous 0,5, intervalle très large
+    // — plus de la moitié du loyer de part et d'autre, seuil du site.
+    fragile: annonces < 30 || r2 < 50 || haut - bas > euros,
+  };
+}
+
+function loyers(c: CommuneFiche): Loyers | null {
+  const d = loyersDep.get(c.dep);
+  const x = d?.c[c.code];
+  if (!d || !x) return null;
+  return { appartement: loyerEstime(x[0]), maison: loyerEstime(x[1]), millesime: d.millesime, maj: d.maj };
+}
+
+function recharge(c: CommuneFiche): Recharge | null {
+  const d = rechargeDep.get(c.dep);
+  if (!d) return null;
+  const [stations, points, rapides, lieuxCovoiturage, places] = d.c[c.code] ?? [0, 0, 0, 0, 0];
+  return { stations, points, rapides, lieuxCovoiturage, places, dates: d.dates, maj: d.maj };
+}
+
+const taux = ([global, eaje, assistantesMaternelles, ecole, domicile]: Couverture): TauxCouverture => ({
+  global,
+  eaje,
+  assistantesMaternelles,
+  ecole,
+  domicile,
+});
+
+function petiteEnfance(c: CommuneFiche): PetiteEnfance | null {
+  const d = petiteEnfanceFichier();
+  if (!d) return null;
+  const ici = d.c[c.code];
+  if (ici) return { echelle: 'commune', nomInterco: null, taux: taux(ici), france: taux(d.france), annee: d.annee, maj: d.maj };
+  if (!intercoDe) {
+    intercoDe = new Map();
+    for (const e of intercommunalites()) for (const x of e.communes) intercoDe.set(x.code, { siren: e.siren, nom: e.nom });
+  }
+  const e = intercoDe.get(c.code);
+  const t = e ? d.e[e.siren] : undefined;
+  if (!e || !t) return null;
+  return { echelle: 'intercommunalité', nomInterco: e.nom, taux: taux(t), france: taux(d.france), annee: d.annee, maj: d.maj };
 }
 
 export function complementsVie(c: CommuneFiche): ComplementsVie {
@@ -716,5 +898,10 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     production: production(c),
     monuments: monuments(c),
     lieux: lieux(c),
+    zonages: zonages(c),
+    investissement: investissement(c),
+    loyers: loyers(c),
+    recharge: recharge(c),
+    petiteEnfance: petiteEnfance(c),
   };
 }

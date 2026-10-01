@@ -49,7 +49,7 @@ export function parDepartement<T>(jeu: string) {
 }
 
 /** Un fichier national, lu une fois. */
-function national<T>(fichier: string) {
+export function national<T>(fichier: string) {
   let lu = false;
   let valeur: T | null = null;
   return () => {
