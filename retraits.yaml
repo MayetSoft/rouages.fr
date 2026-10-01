@@ -1,0 +1,17 @@
+# Les oppositions reçues, appliquées à chaque ingestion (CLAUDE.md, « Les noms
+# dans les données », condition 4).
+#
+# Des identifiants, jamais des noms : ce fichier est public, et y écrire le nom
+# de qui demande à ne plus être nommé le nommerait une fois de plus. Une
+# demande arrive par le contact de l'éditeur (voir /signaler) ; on y inscrit
+# l'identifiant et la date, et la collecte suivante cesse de nommer.
+#
+#   entreprises : le SIREN d'une entreprise — l'entreprise individuelle, ou la
+#                 société quand c'est elle qui demande ;
+#   elus        : le code INSEE de la commune et la fonction, telle que le
+#                 répertoire national des élus l'écrit (« Maire »,
+#                 « 2ème adjoint au Maire ») ; pour un conseiller sans
+#                 fonction, la commune et l'empreinte que calcule
+#                 `npx tsx scripts/retraits.ts <commune> <NOM> <Prénom> <naissance>`.
+entreprises: []
+elus: []

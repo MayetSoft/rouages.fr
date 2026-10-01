@@ -239,6 +239,12 @@ sigles:
     definition: "L'annexe du Journal officiel où paraissent les immatriculations, modifications, ventes de fonds et radiations des entreprises inscrites au registre du commerce, et leurs procédures collectives."
     liens: [od-bodacc, dila-api-bodacc, wp-bodacc]
 
+  - id: sigle-hatvp
+    sigle: HATVP
+    developpe: "Haute Autorité pour la transparence de la vie publique"
+    definition: "L'autorité indépendante qui reçoit les déclarations des responsables publics et tient le répertoire des représentants d'intérêts."
+    liens: [od-hatvp-repertoire]
+
   - id: sigle-dila
     sigle: DILA
     developpe: "Direction de l'information légale et administrative"

@@ -186,9 +186,9 @@ export interface Marche {
   lots: number;
   /** Nombre d'offres reçues, quand l'acheteur l'a déclaré. */
   offres: number | null;
-  /** Les titulaires nommés, d'après SIRENE : trois au plus. */
+  /** Les titulaires nommés d'après SIRENE : sociétés, et entrepreneurs individuels diffusibles. */
   titulaires: { siren: string; nom: string }[];
-  /** Les titulaires distincts au-delà de ceux qui sont nommés. */
+  /** Les titulaires que le site ne nomme pas. */
   autresTitulaires: number;
 }
 
@@ -295,8 +295,9 @@ export interface CollectiviteDelibere {
 }
 
 /**
- * Le dernier scrutin municipal. Aucune nuance politique, aucun nom de
- * candidat : le fichier des résultats par commune n'en porte pas.
+ * Le dernier scrutin municipal, et ses listes avec la nuance que le ministère
+ * leur attribue (depuis le 1er octobre 2026), et la tête de chacune d'après le
+ * fichier des candidatures.
  */
 export interface Scrutin {
   nom: string;
@@ -310,6 +311,12 @@ export interface Scrutin {
     blancs: number | null;
     nuls: number | null;
     listes: number;
+    /**
+     * Les listes, dans l'ordre des voix. `nuance` est le libellé du référentiel
+     * du ministère, `code` son abréviation ; tous deux nuls là où le préfet n'en
+     * attribue pas, sous 3 500 habitants hors chef-lieu d'arrondissement.
+     */
+    parListe: { nom: string; tete: string | null; code: string | null; nuance: string | null; voix: number; part: number; sieges: number }[];
     medianeParticipation: number;
     medianeRefus: number;
   }[];
@@ -422,15 +429,20 @@ export interface CentresSociaux {
  * Des annonces, pas des entreprises : une société qui déménage publie une
  * modification, puis une radiation d'établissement ; une procédure collective
  * en publie une par jugement. Les décomptes comptent tout, entrepreneurs
- * individuels compris ; seules les sociétés sont nommées.
+ * individuels compris ; sont nommés les sociétés et les entrepreneurs individuels
+ * que le répertoire SIRENE dit diffusibles, jamais une procédure collective.
  */
 export interface Entreprises {
   annees: number[];
   familles: string[];
   /** Par famille, dans l'ordre de `familles`, le nombre d'annonces par année ; null si aucune. */
   comptes: number[][] | null;
-  /** Les dernières annonces des sociétés : date, rang de la famille, nom, identifiant de l'annonce au BODACC. */
-  recentes: [string, number, string, string][];
+  /**
+   * Les dernières annonces nommées : date, rang de la famille, nom, identifiant
+   * de l'annonce au BODACC, activité déclarée, 1 pour un entrepreneur individuel.
+   * Un fichier antérieur au 1er octobre 2026 n'a que les quatre premiers.
+   */
+  recentes: [string, number, string, string, string?, (0 | 1)?][];
   /** La part des annonces nationales qu'aucune commune ne reçoit. */
   sansCommune: number;
   maj: string;
@@ -537,7 +549,7 @@ type EntreprisesDep = {
   annees: number[];
   familles: string[];
   sansCommune: number;
-  c: Record<string, [number[][] | null, [string, number, string, string][]]>;
+  c: Record<string, [number[][] | null, [string, number, string, string, string?, (0 | 1)?][]]>;
 };
 type SireneDep = {
   maj: string;
@@ -569,17 +581,30 @@ type RevenusDep = {
   c: Record<string, [number | null, number | null]>;
 };
 type EtatCivilDep = { maj: string; annees: number[]; c: Record<string, [(number | null)[], (number | null)[]]> };
+type TourDep = {
+  inscrits: number;
+  votants: number;
+  exprimes: number;
+  refus: number;
+  blancs?: number;
+  nuls?: number;
+  listes: number;
+  tete?: number;
+  /** Libellé, code de nuance, voix, sièges au conseil municipal, tête de liste. */
+  l?: [string, string, number, number, string?][];
+};
 type ElectionsDep = {
   scrutin: string;
   maj: string;
+  nuances?: Record<string, string>;
   medianes: { participation: number; refus: number }[];
   listeUnique: number;
   medianeTete?: number;
   c: Record<
     string,
     {
-      t1: { inscrits: number; votants: number; exprimes: number; refus: number; blancs?: number; nuls?: number; listes: number; tete?: number };
-      t2?: { inscrits: number; votants: number; exprimes: number; refus: number; blancs?: number; nuls?: number; listes: number; tete?: number };
+      t1: TourDep;
+      t2?: TourDep;
       decisif?: 1 | 2;
       cm: number;
       cc: number;
@@ -642,21 +667,17 @@ type MarcheBrut = {
   procedure: number;
   lots: number;
   offres?: number;
-  t?: string[];
-  tn?: number;
+  t?: [string, string][];
+  tx?: number;
 };
 type MarchesDep = {
   depuis: string;
   maj: string;
   /** Absente des fichiers écrits avant l'échéancier. */
   fenetre?: [string, string];
-  /** Date de la copie de SIRENE qui a donné les noms des titulaires. */
-  sirene?: string | null;
   procedures: string[];
   com: Record<string, string>;
   h: Record<string, { n: number; s?: string; m: MarcheBrut[]; ne?: number; e?: (MarcheBrut & { fin: string })[] }>;
-  /** SIREN -> nom des titulaires cités dans le fichier. */
-  t?: Record<string, string>;
 };
 interface FichierFlux {
   annees: number[];
@@ -688,6 +709,8 @@ const revenusDep = parDepartement<RevenusDep>('revenus');
 const sireneDep = parDepartement<SireneDep>('sirene');
 const ccasDep = parDepartement<CcasDep>('ccas');
 const entreprisesDep = parDepartement<EntreprisesDep>('entreprises');
+type HatvpDep = { maj: string; c: Record<string, [string, string, string, string[], [string, string][], string][]> };
+const hatvpDep = parDepartement<HatvpDep>('hatvp');
 const electionsDep = parDepartement<ElectionsDep>('elections');
 const delibDep = parDepartement<DelibDep>('deliberations');
 const subvDep = parDepartement<SubvDep>('subventions');
@@ -948,6 +971,41 @@ function assemblerCentres(commune: CommuneFiche): CentresSociaux | null {
   return centres.length > 0 ? { annees: d.annees, agregats: d.agregats, centres, maj: d.maj } : null;
 }
 
+/**
+ * Les représentants d'intérêts dont l'adresse déclarée à la HATVP est dans la
+ * commune, avec leurs dirigeants tels qu'ils les y déclarent.
+ */
+export interface Representants {
+  liste: {
+    nom: string;
+    /** SIREN, numéro RNA ou identifiant attribué par la HATVP : c'est lui qui ouvre la fiche. */
+    id: string;
+    categorie: string;
+    secteurs: string[];
+    dirigeants: { nom: string; fonction: string }[];
+    /** Première inscription au répertoire (AAAA-MM-JJ). */
+    depuis: string;
+  }[];
+  maj: string;
+}
+
+function assemblerRepresentants(commune: CommuneFiche): Representants | null {
+  const d = hatvpDep.get(commune.dep);
+  const l = d?.c[commune.code];
+  if (!d || !l || l.length === 0) return null;
+  return {
+    liste: l.map(([nom, id, categorie, secteurs, dir, depuis]) => ({
+      nom,
+      id,
+      categorie,
+      secteurs,
+      dirigeants: dir.map(([n, f]) => ({ nom: n, fonction: f })),
+      depuis,
+    })),
+    maj: d.maj,
+  };
+}
+
 function assemblerEntreprises(commune: CommuneFiche): Entreprises | null {
   const d = entreprisesDep.get(commune.dep);
   const f = d?.c[commune.code];
@@ -977,8 +1035,8 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
       procedure: d.procedures[m.procedure] ?? null,
       lots: m.lots,
       offres: m.offres ?? null,
-      titulaires: (m.t ?? []).flatMap((x) => (d.t?.[x] ? [{ siren: x, nom: d.t[x] }] : [])),
-      autresTitulaires: Math.max(0, (m.tn ?? 0) - (m.t?.length ?? 0)),
+      titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom })),
+      autresTitulaires: m.tx ?? 0,
     });
     out.push({
       siren,
@@ -1083,6 +1141,15 @@ function assemblerScrutin(commune: CommuneFiche, structures: StructureFiche[]): 
       blancs: t.blancs ?? null,
       nuls: t.nuls ?? null,
       listes: t.listes,
+      parListe: (t.l ?? []).map(([nom, code, voix, sieges, tete]) => ({
+        nom,
+        tete: tete || null,
+        code: code || null,
+        nuance: code ? (d.nuances?.[code] ?? null) : null,
+        voix,
+        part: t.exprimes > 0 ? (voix / t.exprimes) * 100 : 0,
+        sieges,
+      })),
       medianeParticipation: m?.participation ?? 0,
       medianeRefus: m?.refus ?? 0,
     };
@@ -1396,6 +1463,7 @@ export interface ComplementsFiche {
   niveauDeVie: NiveauDeVie | null;
   centres: CentresSociaux | null;
   entreprises: Entreprises | null;
+  representants: Representants | null;
   presentes: Presentes | null;
   scrutin: Scrutin | null;
   finances: Finances | null;
@@ -1412,8 +1480,6 @@ export interface ComplementsFiche {
   marchesDepuis: string | null;
   /** Premier et dernier mois de la fenêtre des échéances, ou null si le fichier ne la porte pas. */
   marchesFenetre: [string, string] | null;
-  /** Date de la copie de SIRENE qui nomme les titulaires, ou null si aucun ne l'est. */
-  marchesSirene: string | null;
   /** Les libellés de procédure, pour la suite des marchés chargée à la demande. */
   marchesProcedures: string[];
   deliberations: CollectiviteDelibere[];
@@ -1436,6 +1502,7 @@ export function complementsFiche(
     niveauDeVie: assemblerNiveauDeVie(commune),
     centres: assemblerCentres(commune),
     entreprises: assemblerEntreprises(commune),
+    representants: assemblerRepresentants(commune),
     presentes: assemblerPresentes(commune, population),
     scrutin: assemblerScrutin(commune, structures),
     finances: assemblerFinances(commune, population),
@@ -1450,7 +1517,6 @@ export function complementsFiche(
     marches: assemblerMarches(commune, structures),
     marchesDepuis: marchesDep.get(commune.dep)?.depuis ?? null,
     marchesFenetre: marchesDep.get(commune.dep)?.fenetre ?? null,
-    marchesSirene: marchesDep.get(commune.dep)?.sirene ?? null,
     marchesProcedures: marchesDep.get(commune.dep)?.procedures ?? [],
     deliberations: assemblerDeliberations(commune, structures),
     delibDepuis: delibDep.get(commune.dep)?.depuis ?? null,

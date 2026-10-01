@@ -1,1 +1,1 @@
-{"m":[{"objet":"TRAVAUX","montant":38900,"date":"2024-11-27","procedure":1,"lots":1,"t":["397946450"]},{"objet":"TRAVAUX","montant":36168,"date":"2024-11-27","procedure":1,"lots":1,"t":["832865240"]}],"t":{"397946450":"PRO CLIM ENERGIES","832865240":"ETANCHEA"}}
+{"m":[{"objet":"TRAVAUX","montant":38900,"date":"2024-11-27","procedure":1,"lots":1,"t":[["397946450","PRO CLIM ENERGIES"]]},{"objet":"TRAVAUX","montant":36168,"date":"2024-11-27","procedure":1,"lots":1,"t":[["832865240","ETANCHEA"]]}]}

@@ -2,8 +2,9 @@
 /**
  * De quoi le conseil est fait.
  *
- * **Aucun nom.** Ce qui entre est ce qu'aucune liste de noms ne dirait : de
- * quoi l'assemblée est faite, et en quoi elle diffère de toutes les autres.
+ * Ce qu'aucune liste de noms ne dirait : de quoi l'assemblée est faite, et en
+ * quoi elle diffère de toutes les autres. Les noms sont en tête de page, sous
+ * le maire ; les professions, elles, restent des décomptes.
  */
 import type { Fiche } from '../../modele/territoires.ts';
 import Repere from './Repere.astro';
@@ -53,7 +54,6 @@ const vacants = k.sieges - k.elus;
 )}
 <p class="p-source-territoire">
   {`D’après le répertoire national des élus${k.maj ? ` (${k.maj})` : ''}, agrégé par le site : ` +
-    'aucun nom, aucune date de naissance, aucune profession individuelle n’en est reprise. Les ' +
-    'huit groupes sont ceux de la nomenclature PCS de l’INSEE. La liste nominative des conseillers ' +
-    'est affichée en mairie, qui la publie souvent aussi sur son site.'}
+    'aucune profession individuelle n’en est reprise. Les huit groupes sont ceux de la nomenclature ' +
+    'PCS de l’INSEE. Les membres du conseil sont nommés en tête de page.'}
 </p>

@@ -619,6 +619,23 @@ surveillances:
     ressource: "dateparution"
     lien: od-bodacc
 
+  - id: hatvp-repertoire
+    nom: "HATVP — répertoire des représentants d'intérêts"
+    alimente: "les représentants d'intérêts installés dans chaque commune, et leurs dirigeants déclarés"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://www.hatvp.fr/open-data-repertoire/"
+    lien: od-hatvp-repertoire
+
+  - id: hatvp-declarations
+    nom: "HATVP — liste des déclarations des responsables publics"
+    alimente: "les déclarations d'intérêts des élus de chaque commune, et leur statut"
+    type: disponibilite
+    # La page dit « licence ouverte Etalab » sans préciser la version.
+    licence: licence-ouverte
+    url: "https://www.hatvp.fr/open-data/"
+    lien: od-hatvp-declarations
+
   # --- Octobre 2026 : zonages, subventions, loyers, recharge, objets ---------
   - id: anct-croisement
     nom: "ANCT — croisement des dispositifs"

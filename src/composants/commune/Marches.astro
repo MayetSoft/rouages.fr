@@ -15,7 +15,6 @@
  */
 import type { AcheteurMarches } from '../../modele/fiche-commune.ts';
 import Glose from '../Glose.astro';
-import TitulairesMarche from './TitulairesMarche.astro';
 import { moisAnnee, montantCourt } from '../../vues/graphiques.ts';
 
 interface Props {
@@ -23,11 +22,15 @@ interface Props {
   depuis: string | null;
   /** Premier et dernier mois de la fenêtre des échéances (AAAA-MM). */
   fenetre: [string, string] | null;
-  /** Date de la copie de SIRENE qui nomme les titulaires, ou null. */
-  sirene: string | null;
   procedures: string[];
 }
-const { liste, depuis, fenetre, sirene, procedures } = Astro.props;
+const { liste, depuis, fenetre, procedures } = Astro.props;
+/** La fiche publique d'une entreprise, sur l'annuaire de l'État. */
+const FICHE = 'https://annuaire-entreprises.data.gouv.fr/entreprise/';
+const autres = (m: AcheteurMarches['liste'][number]) =>
+  m.autresTitulaires > 0
+    ? `${m.titulaires.length > 0 ? 'et ' : ''}${m.autresTitulaires} titulaire${m.autresTitulaires > 1 ? 's' : ''} non nommé${m.autresTitulaires > 1 ? 's' : ''}`
+    : '';
 const offres = (n: number | null) => (n === null ? [] : [`${n} offre${n > 1 ? 's' : ''} reçue${n > 1 ? 's' : ''}`]);
 const detail = (m: AcheteurMarches['liste'][number]) =>
   [moisAnnee(m.date) ?? m.date, ...(m.procedure ? [m.procedure.toLowerCase()] : []), ...(m.lots > 1 ? [`${m.lots} lots`] : []), ...offres(m.offres)].join(' · ');
@@ -74,7 +77,15 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
           <span>
             <span class="p-marche-objet">{m.objet}</span>
             <span class="p-marche-detail">{`${montantCourt(m.montant)} · ${detailEcheance(m)}`}</span>
-            <TitulairesMarche titulaires={m.titulaires} autres={m.autresTitulaires} />
+            {m.titulaires.length > 0 && (
+              <span class="p-marche-detail p-marche-titulaires">
+                {'titulaire : '}
+                {m.titulaires.map((t, i) => (
+                  <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                ))}
+                {autres(m) && ` ${autres(m)}`}
+              </span>
+            )}
           </span>
         </li>
       ))}
@@ -85,12 +96,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
   {`Marchés notifiés depuis ${(depuis ?? '').slice(0, 4)}, du plus récent au plus ancien. Les ` +
     'montants ne s’additionnent pas : un accord-cadre déclare un plafond, et chacun de ses lots ' +
     'le redéclare en entier. Un même marché peut aussi figurer deux fois, publié sous deux ' +
-    'libellés — le recensement n’est pas dédoublonné à la source.' +
-    (sirene
-      ? ` Les titulaires sont nommés d’après le répertoire SIRENE, dans sa copie du ${new Date(`${sirene}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}, ` +
-        'chacun lié à sa fiche de l’annuaire des entreprises. Un entrepreneur individuel qui a ' +
-        'demandé à ne pas être diffusé n’est pas nommé.'
-      : '')}
+    'libellés — le recensement n’est pas dédoublonné à la source.'}
 </p>
 {liste.map((a, rang) => {
   const Groupe = rang > 0 ? 'details' : 'div';
@@ -109,7 +115,19 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         {a.liste.map((m) => (
           <li>
             <span class="p-marche-montant">{montantCourt(m.montant)}</span>
-            <span><span class="p-marche-objet">{m.objet}</span><span class="p-marche-detail">{detail(m)}</span><TitulairesMarche titulaires={m.titulaires} autres={m.autresTitulaires} /></span>
+            <span>
+              <span class="p-marche-objet">{m.objet}</span>
+              <span class="p-marche-detail">{detail(m)}</span>
+              {(m.titulaires.length > 0 || m.autresTitulaires > 0) && (
+                <span class="p-marche-detail p-marche-titulaires">
+                  {'titulaire : '}
+                  {m.titulaires.map((t, i) => (
+                    <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                  ))}
+                  {autres(m) && `${m.titulaires.length > 0 ? ' ' : ''}${autres(m)}`}
+                </span>
+              )}
+            </span>
           </li>
         ))}
       </ul>
@@ -131,6 +149,13 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     </Groupe>
   );
 })}
+<p class="p-source-territoire">
+  {'D’après les données essentielles de la commande publique, publiées par le ministère de l’Économie. ' +
+    'Le titulaire y figure par son SIRET ; son nom vient du répertoire SIRENE, et chaque nom mène à sa ' +
+    'fiche sur l’annuaire des entreprises de l’État. Une société est nommée par sa dénomination, un ' +
+    'entrepreneur individuel seulement si le répertoire le dit diffusible ; un titulaire hors de France ou ' +
+    'inconnu du répertoire est compté, pas nommé. Une demande de retrait s’adresse à l’éditeur (voir « Signaler »).'}
+</p>
 <script is:inline type="application/json" id="marches-procedures" set:html={JSON.stringify(procedures).replace(/</g, "\\u003c")} />
 <script>
   /**
@@ -151,22 +176,15 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     if (Math.abs(v) >= 1_000) return `${Math.round(v / 1000).toLocaleString('fr-FR')} k€`;
     return `${Math.round(v).toLocaleString('fr-FR')} €`;
   };
-  type Brut = { objet: string; montant: number | null; date: string; procedure: number; lots: number; offres?: number; t?: string[]; tn?: number };
-  /** Le rendu de `TitulairesMarche.astro`, pour les lignes chargées à la demande. */
-  const titulaires = (m: Brut, noms: Record<string, string>) => {
-    const nommes = (m.t ?? []).filter((x) => noms[x]);
-    if (nommes.length === 0) return null;
-    const autres = Math.max(0, (m.tn ?? 0) - (m.t?.length ?? 0));
-    const s = span('p-marche-titulaire', nommes.length + autres > 1 ? 'Titulaires : ' : 'Titulaire : ');
-    nommes.forEach((x, i) => {
-      if (i > 0) s.append(i === nommes.length - 1 && autres === 0 ? ' et ' : ', ');
-      const a = document.createElement('a');
-      a.href = `https://annuaire-entreprises.data.gouv.fr/entreprise/${x}`;
-      a.textContent = noms[x];
-      s.append(a);
-    });
-    if (autres > 0) s.append(` et ${autres} autre${autres > 1 ? 's' : ''}`);
-    return s;
+  type Brut = {
+    objet: string;
+    montant: number | null;
+    date: string;
+    procedure: number;
+    lots: number;
+    offres?: number;
+    t?: [string, string][];
+    tx?: number;
   };
   const span = (classe: string, texte: string) => {
     const s = document.createElement('span');
@@ -174,7 +192,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     s.textContent = texte;
     return s;
   };
-  const ligne = (m: Brut, noms: Record<string, string>) => {
+  const ligne = (m: Brut) => {
     const li = document.createElement('li');
     const droite = document.createElement('span');
     const sous = [moisAnnee(m.date) ?? m.date];
@@ -183,8 +201,20 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     if (m.lots > 1) sous.push(`${m.lots} lots`);
     if (m.offres) sous.push(`${m.offres} offre${m.offres > 1 ? 's' : ''} reçue${m.offres > 1 ? 's' : ''}`);
     droite.append(span('p-marche-objet', m.objet), span('p-marche-detail', sous.join(' · ')));
-    const t = titulaires(m, noms);
-    if (t) droite.append(t);
+    if ((m.t ?? []).length > 0 || m.tx) {
+      const t = span('p-marche-detail p-marche-titulaires', 'titulaire : ');
+      (m.t ?? []).forEach(([siren, nom], i) => {
+        if (i > 0) t.append(', ');
+        const a = document.createElement('a');
+        a.href = `https://annuaire-entreprises.data.gouv.fr/entreprise/${siren}`;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = nom;
+        t.append(a);
+      });
+      if (m.tx) t.append(`${(m.t ?? []).length > 0 ? ' et ' : ''}${m.tx} titulaire${m.tx > 1 ? 's' : ''} non nommé${m.tx > 1 ? 's' : ''}`);
+      droite.append(t);
+    }
     li.append(span('p-marche-montant', montantCourt(m.montant)), droite);
     return li;
   };
@@ -196,7 +226,6 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     let affiches = Number(bouton.dataset.affiches);
     const deja = affiches;
     let reste: Brut[] | null = null;
-    let noms: Record<string, string> = {};
     let echec: HTMLElement | null = null;
     // Avant le chargement, le décompte du recensement ; après, le nombre exact
     // de lignes — un accord-cadre publie une ligne par lot, que le site regroupe.
@@ -210,7 +239,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         bouton.disabled = true;
         bouton.textContent = 'Chargement…';
         const f = await fetch(`/territoires/marches/${siren}.json`)
-          .then((r) => (r.ok ? (r.json() as Promise<{ m: Brut[]; t?: Record<string, string> }>) : null))
+          .then((r) => (r.ok ? (r.json() as Promise<{ m: Brut[] }>) : null))
           .catch(() => null);
         bouton.disabled = false;
         // Aucun fichier n'est écrit vide : une liste vide vient d'une requête
@@ -226,10 +255,9 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         echec?.remove();
         echec = null;
         reste = f.m;
-        noms = f.t ?? {};
       }
       const lot = reste.slice(affiches - deja, affiches - deja + PAS);
-      for (const m of lot) ul.append(ligne(m, noms));
+      for (const m of lot) ul.append(ligne(m));
       affiches += lot.length;
       if (affiches >= deja + reste.length) bouton.remove();
       else direRestant();

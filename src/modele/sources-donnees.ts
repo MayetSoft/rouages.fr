@@ -270,6 +270,13 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /représentants d.intérêts de la HATVP|répertoire de la HATVP/i,
+    liens: [
+      { titre: 'Répertoire des représentants d’intérêts (HATVP)', url: 'https://www.hatvp.fr/open-data-repertoire/' },
+      { titre: 'Le fichier JSON du répertoire', url: 'https://www.hatvp.fr/agora/opendata/agora_repertoire_opendata.json' },
+    ],
+  },
+  {
     motif: /BODACC/,
     liens: [{ titre: 'Annonces commerciales du BODACC', url: 'https://bodacc-datadila.opendatasoft.com/explore/dataset/annonces-commerciales/' }],
   },

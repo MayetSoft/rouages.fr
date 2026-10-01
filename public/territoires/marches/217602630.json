@@ -1,1 +1,1 @@
-{"m":[{"objet":"DECI TRANCHE 1","montant":200493,"date":"2024-12-20","procedure":0,"lots":1,"offres":4,"t":["530557677"]},{"objet":"PAC MATERNELLE","montant":54524,"date":"2024-07-08","procedure":0,"lots":1,"offres":2,"t":["389818907"]}],"t":{"389818907":"BRUNET","530557677":"SNTPB"}}
+{"m":[{"objet":"DECI TRANCHE 1","montant":200493,"date":"2024-12-20","procedure":0,"lots":1,"offres":4,"t":[["530557677","SNTPB"]]},{"objet":"PAC MATERNELLE","montant":54524,"date":"2024-07-08","procedure":0,"lots":1,"offres":2,"t":[["389818907","BRUNET"]]}]}

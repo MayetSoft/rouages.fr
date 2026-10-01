@@ -1,1 +1,1 @@
-{"m":[{"objet":"FACADE ITE ENDUIT","montant":61365,"date":"2025-02-25","procedure":0,"lots":1,"t":["831999669"]},{"objet":"MENUISERIE INTERIEURE AGENCEMENT","montant":51477,"date":"2025-02-25","procedure":0,"lots":1,"t":["752383216"]}],"t":{"752383216":"MENUISERIE JOLY","831999669":"BATI CLAIR"}}
+{"m":[{"objet":"FACADE ITE ENDUIT","montant":61365,"date":"2025-02-25","procedure":0,"lots":1,"t":[["831999669","BATI CLAIR"]]},{"objet":"MENUISERIE INTERIEURE AGENCEMENT","montant":51477,"date":"2025-02-25","procedure":0,"lots":1,"t":[["752383216","MENUISERIE JOLY"]]}]}

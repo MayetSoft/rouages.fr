@@ -1,1 +1,1 @@
-{"m":[{"objet":"Electricite","montant":69690,"date":"2023-09-20","procedure":0,"lots":1,"t":["440874097"]},{"objet":"Gros oeuvre","montant":157654,"date":"2023-09-01","procedure":0,"lots":1,"t":["885282038"]}],"t":{"440874097":"ENTREPRISE POYER PERE ET FILS","885282038":"GIL CONSTRUCTION"}}
+{"m":[{"objet":"Electricite","montant":69690,"date":"2023-09-20","procedure":0,"lots":1,"t":[["440874097","ENTREPRISE POYER PERE ET FILS"]]},{"objet":"Gros oeuvre","montant":157654,"date":"2023-09-01","procedure":0,"lots":1,"t":[["885282038","GIL CONSTRUCTION"]]}]}

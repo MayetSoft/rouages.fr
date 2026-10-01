@@ -1,1 +1,1 @@
-{"m":[{"objet":"Travaux annexe","montant":78000,"date":"2023-08-11","procedure":1,"lots":1,"t":["441522851"]},{"objet":"Travaux annexe","montant":50395,"date":"2023-08-11","procedure":1,"lots":1}],"t":{"441522851":"LEGER PERE ET FILS"}}
+{"m":[{"objet":"Travaux annexe","montant":78000,"date":"2023-08-11","procedure":1,"lots":1,"t":[["441522851","LEGER PERE ET FILS"]]},{"objet":"Travaux annexe","montant":50395,"date":"2023-08-11","procedure":1,"lots":1,"tx":1}]}

@@ -467,6 +467,15 @@ span.reglette i {
 }
 .p-maire-nom { font-size: 1rem; font-weight: 650; }
 .p-maire-depuis { font-size: .76rem; color: var(--encre-douce); }
+.p-adjoints { margin: -.5rem 0 .9rem; font-size: .88rem; }
+.p-adjoints summary { cursor: pointer; font-size: .76rem; font-weight: 600; color: var(--encre-douce); letter-spacing: .02em; }
+.p-adjoints ul { list-style: none; margin: .25rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .15rem 1.1rem; }
+.p-adjoints li { display: inline-flex; gap: .35rem; align-items: baseline; }
+.p-adjoint-fonction { font-size: .76rem; color: var(--encre-douce); }
+.p-declarations ul { display: grid; gap: .3rem; }
+.p-declarations li { display: block; }
+.p-declarations .p-adjoint-naissance { display: block; }
+.p-adjoint-naissance { font-size: .72rem; color: var(--encre-tres-douce); }
 
 /* --- ce qui est commandé ---
    Le montant à gauche, aligné et tabulaire : c'est lui qu'on balaie. L'objet
@@ -585,6 +594,13 @@ details.p-marche-acheteur[open] > summary { margin-bottom: .45rem; }
 .p-scrutin-listes, .p-scrutin-sieges {
   font-size: .78rem; color: var(--encre-douce); line-height: 1.45; margin: .35rem 0 0;
 }
+.p-representants { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .6rem; }
+.p-representants li { display: grid; gap: .1rem; }
+.p-scrutin-parliste { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .35rem; }
+.p-scrutin-parliste li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .5rem; font-size: .84rem; }
+.p-scrutin-nomliste { font-weight: 600; }
+.p-scrutin-nuance { font-size: .74rem; color: var(--encre-douce); border: 1px solid var(--trait, currentColor); border-radius: 3px; padding: 0 .3rem; }
+.p-scrutin-voix { flex-basis: 100%; font-size: .76rem; color: var(--encre-tres-douce); }
 
 /* Les listes chiffrées — groupes du conseil, domaines des associations : la
    colonne de chiffres à gauche, le nom à droite. */
@@ -1101,6 +1117,10 @@ a.p-sommaire-lien { text-decoration: none; }
 .sm-corps > p:last-of-type { margin-bottom: 0; }
 .sm-liens { margin: .6rem 0 0; padding: .55rem 0 0 1.1rem; border-top: 1px solid var(--trait); }
 .sm-liens li { margin-bottom: .2rem; }
+/* Les listes des blocs (associations, entreprises, représentants) se mettent en
+   grille ; celle des liens de source, qu'elles contiennent, reste une liste. */
+.p-assos .sm-liens { display: block; list-style: disc; margin: .6rem 0 0; padding: .55rem 0 0 1.1rem; }
+.p-assos .sm-liens li { display: list-item; }
 @media print {
   .sm-corps { display: block; }
 }

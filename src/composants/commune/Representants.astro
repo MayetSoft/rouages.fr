@@ -1,0 +1,45 @@
+---
+/**
+ * Les représentants d'intérêts installés dans la commune, d'après le
+ * répertoire de la HATVP : l'organisation, ce sur quoi elle agit, et les
+ * dirigeants qu'elle y déclare. Le site ne dit rien de plus — ni ce qu'elle
+ * a obtenu, ni auprès de qui : la fiche de la HATVP détaille ses actions.
+ */
+import type { Representants } from '../../modele/fiche-commune.ts';
+
+interface Props {
+  r: Representants;
+}
+const { r } = Astro.props;
+const FICHE = 'https://www.hatvp.fr/fiche-organisation/?organisation=';
+const jour = (iso: string) =>
+  iso ? new Date(iso).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : null;
+const minuscule = (f: string) => (f === f.toUpperCase() ? f.toLowerCase() : f.charAt(0).toLowerCase() + f.slice(1));
+---
+<p class="p-strate">
+  {`${r.liste.length} organisation${r.liste.length > 1 ? 's' : ''} dont l’adresse déclarée est ici ` +
+    'figure' + (r.liste.length > 1 ? 'nt' : '') + ' au répertoire des représentants d’intérêts : elles déclarent ' +
+    'chercher à influencer la décision publique, auprès de qui que ce soit, ici ou ailleurs.'}
+</p>
+<ul class="p-representants">
+  {r.liste.map((o) => (
+    <li class="p-risque-plan">
+      <span class="p-risque-nom"><a href={FICHE + encodeURIComponent(o.id)} target="_blank" rel="noopener">{o.nom}</a></span>
+      <span class="p-risque-detail">
+        {[o.categorie, ...(jour(o.depuis) ? [`inscrite depuis ${jour(o.depuis)}`] : [])].filter(Boolean).join(' · ')}
+      </span>
+      {o.secteurs.length > 0 && <span class="p-risque-detail">{o.secteurs.join(', ')}</span>}
+      {o.dirigeants.length > 0 && (
+        <span class="p-risque-detail">
+          {'Dirigeants déclarés : ' + o.dirigeants.map((d) => (d.fonction ? `${d.nom} (${minuscule(d.fonction)})` : d.nom)).join(', ')}
+        </span>
+      )}
+    </li>
+  ))}
+</ul>
+<p class="p-source-territoire">
+  {`D’après le répertoire des représentants d’intérêts de la HATVP (${r.maj}), sous licence ouverte. ` +
+    'Chaque organisation y déclare elle-même son adresse et ses dirigeants, et le site les reprend tels quels, ' +
+    'avec le lien vers sa fiche ; ni les collaborateurs, ni les coordonnées ne sont repris. Le rattachement suit ' +
+    'le code postal et la ville déclarés. Une demande de retrait s’adresse à l’éditeur (voir « Signaler »).'}
+</p>
