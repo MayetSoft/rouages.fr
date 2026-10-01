@@ -558,6 +558,57 @@ surveillances:
     ressource: "dateparution"
     lien: od-bodacc
 
+  # --- Octobre 2026 : zonages, subventions, loyers, recharge, objets ---------
+  - id: anct-croisement
+    nom: "ANCT — croisement des dispositifs"
+    alimente: "les programmes de l'État dont la commune bénéficie"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/617322c7c8e7b27041570e71/resources/?page_size=5"
+    lien: od-anct-programmes
+
+  - id: dgcl-investissement
+    nom: "DGCL — projets subventionnés par la DETR, la DSIL et la DPV"
+    alimente: "les projets que l'État a subventionnés"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/6176785207139a929a2776fe/resources/?page_size=5"
+    lien: od-dgcl-investissement
+
+  - id: fonds-vert
+    nom: "Fonds vert — projets subventionnés"
+    alimente: "les projets que l'État a subventionnés"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/66a215a463a9da4fb801b8cf/resources/?page_size=5"
+    lien: od-fonds-vert
+
+  # Un jeu par millésime : la collecte cherche le plus récent.
+  - id: carte-loyers
+    nom: "Carte des loyers"
+    alimente: "les loyers d'annonce"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/693aa2feed1bf4da603faa49/resources/?page_size=5"
+    lien: od-carte-loyers
+
+  - id: irve-consolidation
+    nom: "Bornes de recharge — consolidation nationale"
+    alimente: "les bornes de recharge de la commune"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/5448d3e0c751df01f85d0572/resources/?page_size=5"
+    lien: od-irve
+
+  - id: bnlc
+    nom: "Base nationale des lieux de covoiturage"
+    alimente: "les lieux de covoiturage de la commune"
+    type: disponibilite
+    url: "https://www.data.gouv.fr/api/2/datasets/5d6eaffc8b4c417cdc452ac3/resources/?page_size=5"
+    lien: od-bnlc
+
+  - id: palissy
+    nom: "Palissy — objets protégés"
+    alimente: "les objets mobiliers protégés"
+    type: disponibilite
+    url: "https://ministere-culture.s3.sbg.io.cloud.ovh.net/POP/palissy.csv"
+    lien: od-palissy
+
 decouverte:
   mots_cles:
     - "intercommunalité compétences"
