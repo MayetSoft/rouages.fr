@@ -202,6 +202,8 @@ const cacheRisques = new Map<string, RisquesDep | null>();
 const cacheJournal = new Map<string, JournalDep | null>();
 const cacheElections = new Map<string, ElectionsDep | null>();
 const cacheConseils = new Map<string, ConseilsDep | null>();
+type DeclarationsDep = { maj: string; c: Record<string, [string, string, [string, string, string, string][]][]> };
+const cacheDeclarations = new Map<string, DeclarationsDep | null>();
 const cacheUrbanisme = new Map<string, UrbanismeDep | null>();
 const cachePlu = new Map<string, PluDep | null>();
 const cacheLogements = new Map<string, LogementsDep | null>();
@@ -318,6 +320,9 @@ export interface Fiche {
   conseillers: { prenom: string; nom: string; naissance: string | null; cc: string | null }[];
   /** Le siège du maire au conseil communautaire, d'après le même répertoire. */
   maireCc: string | null;
+  /** Les déclarations d'intérêts des élus de la commune à la HATVP ; jamais une déclaration de patrimoine. */
+  declarations: { nom: string; page: string; liste: { type: string; qualite: string; statut: string; date: string }[] }[];
+  declarationsMaj: string | null;
   /** La date du fichier des conseillers d'où viennent les adjoints. */
   adjointsMaj: string | null;
   services: {
@@ -557,6 +562,7 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
   const fr = risq?.c[c.code];
 
   const adjointsDep = enCache(cacheConseils, c.dep, `dep/${c.dep}-conseils.json`);
+  const declarationsDep = enCache(cacheDeclarations, c.dep, `dep/${c.dep}-declarations.json`);
   return {
     commune: c,
     structures,
@@ -580,6 +586,12 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
       cc: cc || null,
     })),
     maireCc: adjointsDep?.c[c.code]?.mc ?? null,
+    declarations: (declarationsDep?.c[c.code] ?? []).map(([nom, page, l]) => ({
+      nom,
+      page,
+      liste: l.map(([type, qualite, statut, date]) => ({ type, qualite, statut, date })),
+    })),
+    declarationsMaj: declarationsDep?.maj ?? null,
     adjointsMaj: adjointsDep?.maj ?? null,
     services,
     voisines: servs?.v?.[c.code] ?? {},

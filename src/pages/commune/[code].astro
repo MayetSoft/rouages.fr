@@ -388,6 +388,30 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </details>
     )}
 
+    {fiche && fiche.declarations.length > 0 && (
+      <details class="p-adjoints p-declarations">
+        <summary>{`Déclarations d’intérêts à la HATVP (${fiche.declarations.length} élu${fiche.declarations.length > 1 ? 's' : ''})`}</summary>
+        <ul>
+          {fiche.declarations.map((d) => (
+            <li>
+              <a href={d.page} target="_blank" rel="noopener">{d.nom}</a>
+              <span class="p-adjoint-naissance">
+                {d.liste
+                  .map((x) => `${x.qualite} : ${x.type}, ${x.statut.toLowerCase()}${x.date ? `, ${new Date(x.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}`)
+                  .join(' ; ')}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p class="p-strate">
+          {'D’après la liste des déclarations que la HATVP publie' + (fiche.declarationsMaj ? ` (lue le ${fiche.declarationsMaj})` : '') +
+            ', rapprochée du répertoire des élus sur le nom, le prénom et le département, quand un seul élu du département ' +
+            'les porte. Le contenu de chaque déclaration est sur la page de la HATVP. Les déclarations de patrimoine ' +
+            'des élus locaux ne sont pas publiques : la loi les réserve au contrôle de la HATVP, et le site n’en dit rien.'}
+        </p>
+      </details>
+    )}
+
     {fiche?.maire && (
       <p class="p-source-territoire c-maire-source">
         {`Le maire${fiche.adjoints.length + fiche.conseillers.length > 0 ? ' et son conseil viennent' : ' vient'} du répertoire national des élus (${fiche.maire.maj}${fiche.adjointsMaj && fiche.adjoints.length + fiche.conseillers.length > 0 ? ` ; conseil : fichiers des conseillers municipaux et communautaires lus le ${fiche.adjointsMaj}, rapprochés sur la commune, le nom, le prénom et la date de naissance` : ''}). Pour une correction : `}

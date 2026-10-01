@@ -472,6 +472,9 @@ span.reglette i {
 .p-adjoints ul { list-style: none; margin: .25rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .15rem 1.1rem; }
 .p-adjoints li { display: inline-flex; gap: .35rem; align-items: baseline; }
 .p-adjoint-fonction { font-size: .76rem; color: var(--encre-douce); }
+.p-declarations ul { display: grid; gap: .3rem; }
+.p-declarations li { display: block; }
+.p-declarations .p-adjoint-naissance { display: block; }
 .p-adjoint-naissance { font-size: .72rem; color: var(--encre-tres-douce); }
 
 /* --- ce qui est commandé ---

@@ -136,6 +136,11 @@ Ce qui est autorisé à ce jour :
   la HATVP : nom, prénom, fonction, l'organisation et le lien vers sa fiche.
   Le registre est publié pour dire qui cherche à influencer la décision
   publique ;
+- **les déclarations des élus à la HATVP** : pour un élu déjà nommé, le
+  type de chaque déclaration, son statut, sa date et le lien vers sa page
+  nominative. **Jamais une déclaration de patrimoine d'élu local** : la loi ne
+  la rend pas publique, et sa divulgation est un délit (article 26 de la loi
+  du 11 octobre 2013) ;
 - **les entrepreneurs individuels** d'après SIRENE et le BODACC : le nom tel
   que publié, l'activité, la commune, le lien vers la fiche ou l'annonce.
   Jamais un entrepreneur en **diffusion partielle** au répertoire SIRENE — il

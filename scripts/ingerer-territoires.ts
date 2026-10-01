@@ -557,6 +557,24 @@ async function principal() {
     ),
   );
 
+  // Les déclarations d'intérêts des élus à la HATVP, rapprochées du fichier
+  // des conseillers que la collecte précédente vient de mettre en cache.
+  // Jamais une déclaration de patrimoine : voir l'en-tête de l'émetteur.
+  {
+    const { collecterDeclarations, ecrireDeclarations } = await import('./declarations-emettre.ts');
+    const { indexDuDecoupage } = await import('./entreprises-emettre.ts');
+    const declarations = await tenter('Déclarations des élus (HATVP)', () =>
+      collecterDeclarations(
+        telecharger,
+        CACHE,
+        (chemin) => createReadStream(chemin) as unknown as AsyncIterable<Uint8Array>,
+        new Map(indexDuDecoupage().map(([code, nom]) => [code, nom])),
+        (m) => dire(`${GRIS}${m}${RAZ}`),
+      ),
+    );
+    if (declarations) dire(`${GRIS}${ecrireDeclarations(SORTIE, declarations)} départements de déclarations écrits.${RAZ}`);
+  }
+
   // La population dans le temps : le dénominateur de tous les autres chiffres
   // du site méritait sa propre histoire.
   // Qui écrit la règle de ce qui peut se construire : un document par commune,

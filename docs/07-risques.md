@@ -169,6 +169,31 @@ avant la collecte :
   seulement pour celles qui font de la représentation d'intérêts : les
   autres restent anonymes, faute de source.
 
+### Les déclarations des élus à la HATVP (1er octobre 2026)
+
+Demande du mainteneur : sourcer les déclarations de patrimoine des élus. Ce
+que la loi permet, vérifié avant la collecte :
+
+- **Les déclarations de situation patrimoniale des élus locaux ne sont jamais
+  publiées.** La HATVP les contrôle, l'électeur n'y a pas accès, et leur
+  publication ou leur divulgation hors des cas prévus est punie (article 26
+  de la loi n° 2013-907). Le site n'en reprend rien, pas même l'existence.
+- **Les déclarations d'intérêts le sont** (article 12), pour les maires des
+  communes de plus de 20 000 habitants, les adjoints délégués de celles de
+  plus de 100 000, les présidents et vice-présidents délégués des grandes
+  intercommunalités. La HATVP publie la liste des déclarations en données
+  ouvertes, avec leur statut et la page nominative de chaque déclarant.
+
+Ce qui est repris : pour un élu que le site nomme déjà, chaque déclaration
+d'intérêts — sa qualité, son statut, sa date — et le lien vers sa page à la
+HATVP. Le rapprochement se fait sur le nom, le prénom et le département, et
+seulement quand un seul conseiller municipal du département porte ce nom et
+ce prénom ; quand la qualité nomme la commune, elle doit concorder. Ce qui
+ne l'est pas : le contenu des déclarations — activités, participations,
+mandats —, que la page de la HATVP donne elle-même. Le reprendre poserait une
+question à trancher avant : les conditions de réutilisation des déclarations
+publiées, notamment pour un usage commercial.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».
