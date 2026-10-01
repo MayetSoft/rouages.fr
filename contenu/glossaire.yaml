@@ -422,6 +422,11 @@ sigles:
     sigle: RER
     developpe: "Réseau express régional d'Île-de-France"
     definition: "Lignes de train de banlieue qui traversent Paris, exploitées selon les tronçons par la RATP ou par SNCF."
+  - id: sigle-crte
+    sigle: CRTE
+    developpe: "Contrat pour la réussite de la transition écologique"
+    definition: "Contrat entre l'État et un groupement de communes, le plus souvent l'intercommunalité, qui réunit ses projets et les financements de l'État."
+    liens: [od-anct-crte]
   - id: sigle-rte
     sigle: RTE
     developpe: "Réseau de transport d'électricité"

@@ -102,6 +102,8 @@ type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<st
 const productionDep = parDepartement<ProductionDep>('production');
 type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
 const monumentsDep = parDepartement<MonumentsDep>('monuments');
+type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2]> };
+const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
 const lieuxDep = parDepartement<LieuxDep>('lieux');
 
@@ -392,6 +394,19 @@ export interface Lieux {
   maj: string;
 }
 
+/**
+ * Les programmes de l'ANCT dont la commune bénéficie, et son classement en
+ * zone de montagne ; rien est une réponse.
+ */
+export interface Zonages {
+  programmes: string[];
+  territoireIndustrie: string | null;
+  crte: string | null;
+  montagne: 'non' | 'oui' | 'en partie';
+  dates: Record<string, string>;
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -416,6 +431,7 @@ export interface ComplementsVie {
   production: Production | null;
   monuments: Monuments | null;
   lieux: Lieux | null;
+  zonages: Zonages | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -691,6 +707,20 @@ function lieux(c: CommuneFiche): Lieux | null {
   return { patrimoine, nature, itineraires, maj: d.maj };
 }
 
+function zonages(c: CommuneFiche): Zonages | null {
+  const d = zonagesDep.get(c.dep);
+  if (!d) return null;
+  const [programmes, ti, crte, m] = d.c[c.code] ?? [[], '', '', 0];
+  return {
+    programmes,
+    territoireIndustrie: ti || null,
+    crte: crte || null,
+    montagne: m === 1 ? 'oui' : m === 2 ? 'en partie' : 'non',
+    dates: d.dates,
+    maj: d.maj,
+  };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -716,5 +746,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     production: production(c),
     monuments: monuments(c),
     lieux: lieux(c),
+    zonages: zonages(c),
   };
 }

@@ -72,6 +72,7 @@ import Defibrillateurs from '../../composants/commune/Defibrillateurs.astro';
 import Route from '../../composants/commune/Route.astro';
 import Gares from '../../composants/commune/Gares.astro';
 import Antennes from '../../composants/commune/Antennes.astro';
+import Zonages from '../../composants/commune/Zonages.astro';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import Lieux from '../../composants/commune/Lieux.astro';
@@ -256,6 +257,7 @@ const sommaire: [string, string, unknown][] = [
   ['preleve', 'Ce qui est prélevé ici', fiche?.fiscalite],
   ['intercommunalite', 'L’intercommunalité', plus.fluxPercus.length > 0],
   ['echelons', 'Les échelons', echelonsMontres],
+  ['zonages', 'Programmes et zonages', vie.zonages],
   ['logements', 'Les logements', vie.parc || vie.immobilier],
   ['dpe', 'Les étiquettes énergétiques', vie.dpe],
   ['vente', 'Une vente immobilière', dmtoDernier >= 0],
@@ -502,6 +504,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="echelons" class="p-finances p-echelons">
         <h2 class="badge">Les comptes des échelons au-dessus</h2>
         <Echelons echelons={plus.echelons} />
+      </section>
+    )}
+
+    {vie.zonages && (
+      <section id="zonages">
+        <h2 class="badge">Les programmes de l’État et les zonages</h2>
+        <Zonages z={vie.zonages} />
       </section>
     )}
 

@@ -300,6 +300,24 @@ const ENTREES: Entree[] = [
 
   // --- Le territoire --------------------------------------------------------
   {
+    motif: /Agence nationale de la cohésion des territoires/i,
+    liens: [
+      { titre: 'Petites villes de demain (ANCT)', url: dg('5fc1259b703620ed60a49d97') },
+      { titre: 'Action cœur de ville (ANCT)', url: dg('5acc7eddc751df5e21efdf20') },
+      { titre: 'Villages d’avenir (ANCT)', url: dg('65a11234a86f08c56f0c47b0') },
+      { titre: 'Territoires d’industrie (ANCT)', url: dg('5fc1472f114718d419e42f8a') },
+      { titre: 'Contrats pour la réussite de la transition écologique (ANCT)', url: dg('60799532757dbdef335c00c5') },
+      { titre: 'Croisement des dispositifs de l’ANCT', url: dg('617322c7c8e7b27041570e71') },
+    ],
+  },
+  {
+    motif: /zones défavorisées/i,
+    liens: [
+      { titre: 'Communes classées en zones défavorisées (ministère de l’Agriculture)', url: dg('5369911ea3a729239d203b94') },
+      { titre: 'Loi Montagne, article 3', url: 'https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000006847491' },
+    ],
+  },
+  {
     motif: /base Mérimée/i,
     liens: [
       { titre: 'Immeubles protégés au titre des monuments historiques', url: dg('5af120e5b595087cfabcde81') },

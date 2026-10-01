@@ -814,6 +814,12 @@ async function principal() {
   );
   if (lieux) grise(`${ecrireLieux(SORTIE, lieux)} départements de lieux écrits.`);
 
+  const { collecterZonages, ecrireZonages } = await import('./zonages-emettre.ts');
+  const zonages = await tenter('Programmes de l’ANCT et zone de montagne', () =>
+    collecterZonages(lireJson, enCache('ANCT et zones défavorisées (10 Mo)'), CACHE, grise),
+  );
+  if (zonages) grise(`${ecrireZonages(SORTIE, zonages)} départements de zonages écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),

@@ -564,3 +564,5 @@ sources:
   - { id: insee-def-sirene, type: page_officielle, titre: "INSEE — définition du système informatisé du répertoire national des entreprises et des établissements", url: "https://www.insee.fr/fr/metadonnees/definition/c1135", consulte_le: 2026-09-25 }
   - { id: wp-bodacc, type: wikipedia, titre: "Wikipédia — Bulletin officiel des annonces civiles et commerciales", url: "https://fr.wikipedia.org/wiki/Bulletin_officiel_des_annonces_civiles_et_commerciales", consulte_le: 2026-09-25 }
   - { id: dila-api-bodacc, type: page_officielle, titre: "DILA — le service de données du BODACC, bulletin annexé au Journal officiel", url: "https://www.dila.gouv.fr/services/api/api-bodacc-bulletin-officiel-des-annonces-civiles-et-commerciales-124/", consulte_le: 2026-09-25 }
+  # --- Programmes de l'ANCT et zone de montagne ------------------------------
+  - { id: od-anct-crte, type: donnees_ouvertes, titre: "ANCT — contrats pour la réussite de la transition écologique et leurs communes", url: "https://www.data.gouv.fr/datasets/60799532757dbdef335c00c5/", consulte_le: 2026-10-01 }

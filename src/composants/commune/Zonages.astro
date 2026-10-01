@@ -1,0 +1,52 @@
+---
+/**
+ * Les programmes de l'ANCT dont la commune bénéficie, et la zone de montagne.
+ * Ce sont des décisions de l'État sur le territoire : elles ouvrent des
+ * crédits, de l'ingénierie, ou appliquent une loi — voir
+ * `scripts/zonages-emettre.ts`.
+ */
+import type { Zonages } from '../../modele/fiche-vie.ts';
+import Glose from '../Glose.astro';
+
+interface Props {
+  z: Zonages;
+}
+const { z } = Astro.props;
+const NOMS: Record<string, string> = {
+  pvd: 'Petites villes de demain',
+  acv: 'Action cœur de ville',
+  va: 'Villages d’avenir',
+  ami: 'Avenir montagnes ingénierie',
+  amm: 'Avenir montagnes mobilités',
+  cite: 'une cité éducative',
+  cde: 'une cité de l’emploi',
+  fabp: 'une Fabrique prospective',
+  habinclus: 'l’appel à manifestation d’intérêt « Habitat inclusif »',
+};
+const programmes = z.programmes.map((p) => NOMS[p]).filter(Boolean);
+const date = (d?: string) => (d ? d.split('-').reverse().join('/') : '');
+---
+<ul class="c-structures">
+  {programmes.length > 0 ? (
+    <li><Glose texte={`Programmes de l’ANCT dont la commune bénéficie : ${programmes.join(', ')}.`} /></li>
+  ) : (
+    <li><Glose texte="La commune ne figure dans aucun des programmes de commune de l’ANCT : ni Petites villes de demain, ni Action cœur de ville, ni Villages d’avenir." /></li>
+  )}
+  {z.territoireIndustrie && <li>{`Elle est dans le Territoire d’industrie « ${z.territoireIndustrie} ».`}</li>}
+  {z.crte && <li><Glose texte={`Elle est couverte par le contrat pour la réussite de la transition écologique « ${z.crte} ».`} /></li>}
+  <li>
+    {z.montagne === 'oui'
+      ? 'Elle est classée en zone de montagne : la loi Montagne de 1985 s’y applique.'
+      : z.montagne === 'en partie'
+        ? 'Elle est en partie en zone de montagne : une partie de son territoire relève de la loi Montagne de 1985.'
+        : 'Elle n’est pas en zone de montagne au sens de la loi Montagne de 1985.'}
+  </li>
+</ul>
+<p class="p-strate">
+  <Glose texte={'Un programme de l’ANCT accompagne la commune ou son intercommunalité dans un projet — ingénierie, crédits, appui de l’État, selon le programme ; la liste ne dit rien des montants reçus. ' +
+    'Un Territoire d’industrie et un contrat pour la réussite de la transition écologique se signent à l’échelle d’un groupement de communes, le plus souvent l’intercommunalité. ' +
+    'La zone de montagne est délimitée par arrêté, en reprenant les zones agricoles défavorisées de montagne ; la liste publiée date de 2017, reportée ici sur les communes actuelles.'} />
+</p>
+<p class="p-source-territoire">
+  {`D’après les listes de communes des programmes de l’Agence nationale de la cohésion des territoires — Petites villes de demain (${date(z.dates.pvd)}), Action cœur de ville (${date(z.dates.acv)}), Villages d’avenir (${date(z.dates.va)}), Territoires d’industrie (${date(z.dates.ti)}), contrats pour la réussite de la transition écologique (${date(z.dates.crte)}) — et son tableau de croisement des dispositifs (${date(z.dates.croisement)}) ; la zone de montagne, d’après la liste des communes classées en zones défavorisées du ministère de l’Agriculture (${z.maj}).`}
+</p>
