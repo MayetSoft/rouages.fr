@@ -75,6 +75,7 @@ const tours = sc.tours.filter((t) => t.inscrits > 0).map((t) => ({
           <li>
             <span class="p-scrutin-nomliste">{l.nom || 'Liste sans libellé'}</span>
             {l.code && <span class="p-scrutin-nuance" title={l.code}>{l.nuance ?? l.code}</span>}
+            {l.tete && <span class="p-scrutin-voix">{`conduite par ${l.tete}`}</span>}
             <span class="p-scrutin-voix">
               {`${pc(l.part)} des exprimés · ${l.voix.toLocaleString('fr-FR')} voix` +
                 (l.sieges > 0 ? ` · ${l.sieges} siège${l.sieges > 1 ? 's' : ''}` : '')}
@@ -114,5 +115,6 @@ const tours = sc.tours.filter((t) => t.inscrits > 0).map((t) => ({
   que le préfet lui attribue, au <a href="https://www.resultats-elections.interieur.gouv.fr/municipales2026/referentiel.html"
     target="_blank" rel="noopener">référentiel du ministère</a>, dans les communes de 3 500 habitants et plus et les
   chefs-lieux d’arrondissement ; ailleurs, aucune n’est attribuée. Elle peut différer de l’étiquette que la liste
-  revendique.
+  revendique. La tête de chaque liste vient du fichier des candidatures du premier tour, rapproché sur le numéro de
+  panneau et le libellé de la liste.
 </p>

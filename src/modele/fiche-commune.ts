@@ -292,8 +292,8 @@ export interface CollectiviteDelibere {
 
 /**
  * Le dernier scrutin municipal, et ses listes avec la nuance que le ministère
- * leur attribue (depuis le 1er octobre 2026). Aucun nom de candidat : le
- * fichier des résultats par commune n'en porte pas.
+ * leur attribue (depuis le 1er octobre 2026), et la tête de chacune d'après le
+ * fichier des candidatures.
  */
 export interface Scrutin {
   nom: string;
@@ -312,7 +312,7 @@ export interface Scrutin {
      * du ministère, `code` son abréviation ; tous deux nuls là où le préfet n'en
      * attribue pas, sous 3 500 habitants hors chef-lieu d'arrondissement.
      */
-    parListe: { nom: string; code: string | null; nuance: string | null; voix: number; part: number; sieges: number }[];
+    parListe: { nom: string; tete: string | null; code: string | null; nuance: string | null; voix: number; part: number; sieges: number }[];
     medianeParticipation: number;
     medianeRefus: number;
   }[];
@@ -586,8 +586,8 @@ type TourDep = {
   nuls?: number;
   listes: number;
   tete?: number;
-  /** Libellé, code de nuance, voix, sièges au conseil municipal. */
-  l?: [string, string, number, number][];
+  /** Libellé, code de nuance, voix, sièges au conseil municipal, tête de liste. */
+  l?: [string, string, number, number, string?][];
 };
 type ElectionsDep = {
   scrutin: string;
@@ -1096,8 +1096,9 @@ function assemblerScrutin(commune: CommuneFiche, structures: StructureFiche[]): 
       blancs: t.blancs ?? null,
       nuls: t.nuls ?? null,
       listes: t.listes,
-      parListe: (t.l ?? []).map(([nom, code, voix, sieges]) => ({
+      parListe: (t.l ?? []).map(([nom, code, voix, sieges, tete]) => ({
         nom,
+        tete: tete || null,
         code: code || null,
         nuance: code ? (d.nuances?.[code] ?? null) : null,
         voix,

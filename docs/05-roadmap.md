@@ -3387,8 +3387,16 @@ attribue, sous le libellé du référentiel du ministère : à Vichy, « Vichy
 passionnément », liste divers droite, 32 sièges. 3 282 communes ont des
 listes nuancées ; ailleurs, aucune n'est attribuée et la page n'en devine
 pas. Le maire et ses adjoints portent leur année de naissance, jamais le jour
-ni le mois. Le fichier des résultats ne nomme pas les têtes de liste : ce
-serait le fichier des candidatures, pas encore lu.
+ni le mois. La tête de chaque liste vient du fichier des candidatures,
+rapprochée sur la commune, le numéro de panneau et le libellé abrégé :
+53 975 listes sur 54 119, aux deux tours ; une liste fusionnée qui change de
+libellé reste sans tête. Au Mayet-de-Montagne, la tête de liste n'est pas le
+maire élu : le site montre les deux faits, sans les commenter.
+
+**Et tout le conseil.** Chaque conseiller municipal est nommé — prénom, nom,
+année de naissance —, avec son siège au conseil communautaire quand il en a
+un : 61 115 sièges sur 62 111 rapprochés sur la commune, le nom, le prénom et
+la date de naissance complète.
 
 **Ce qui ne bouge pas.** Les dirigeants d'associations et de sociétés, les
 particuliers cités dans les délibérations, une opinion que le site
