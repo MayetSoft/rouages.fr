@@ -71,7 +71,7 @@ const aplatir = (s: string) =>
     .trim();
 
 /** Code postal et nom vers la commune actuelle, communes déléguées comprises. */
-function correspondances(): (cp: string, nom: string) => string | null {
+export function correspondances(): (cp: string, nom: string) => string | null {
   const chemin = createRequire(import.meta.url).resolve('@etalab/decoupage-administratif/data/communes.json');
   const toutes = JSON.parse(readFileSync(chemin, 'utf8')) as {
     code: string;

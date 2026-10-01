@@ -75,6 +75,7 @@ import Antennes from '../../composants/commune/Antennes.astro';
 import Zonages from '../../composants/commune/Zonages.astro';
 import Investissement from '../../composants/commune/Investissement.astro';
 import Loyers from '../../composants/commune/Loyers.astro';
+import Recharge from '../../composants/commune/Recharge.astro';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import Lieux from '../../composants/commune/Lieux.astro';
@@ -288,6 +289,7 @@ const sommaire: [string, string, unknown][] = [
   ['securite', 'La délinquance', vie.delinquance],
   ['route', 'Les accidents de la route', vie.route],
   ['gares', 'Le train', vie.gares],
+  ['recharge', 'Recharge et covoiturage', vie.recharge],
   ['agriculture', 'L’agriculture', vie.agriculture],
   ['journal', 'Ce qui a bougé', journal.length > 0],
 ];
@@ -840,6 +842,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="gares">
         <h2 class="badge">Prendre le train</h2>
         <Gares g={vie.gares} />
+      </section>
+    )}
+
+    {vie.recharge && (
+      <section id="recharge">
+        <h2 class="badge">Recharger, covoiturer</h2>
+        <Recharge r={vie.recharge} />
       </section>
     )}
 

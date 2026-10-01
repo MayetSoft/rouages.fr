@@ -353,6 +353,14 @@ const ENTREES: Entree[] = [
     liens: [{ titre: 'Bases des accidents corporels de la circulation', url: dg('53698f4ca3a729239d2036df') }],
   },
   {
+    motif: /infrastructures de recharge/i,
+    liens: [{ titre: 'Base nationale des infrastructures de recharge (IRVE)', url: dg('5448d3e0c751df01f85d0572') }],
+  },
+  {
+    motif: /lieux de covoiturage/i,
+    liens: [{ titre: 'Base nationale des lieux de covoiturage', url: dg('5d6eaffc8b4c417cdc452ac3') }],
+  },
+  {
     motif: /SNCF Gares/,
     liens: [
       { titre: 'Gares de voyageurs (SNCF)', url: 'https://ressources.data.sncf.com/explore/dataset/gares-de-voyageurs/' },

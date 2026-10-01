@@ -107,6 +107,8 @@ const investissementDep = parDepartement<InvestissementDep>('investissement');
 type LoyerBrut = [number, number, number, 0 | 1 | 2, number, number];
 type LoyersDep = { maj: string; millesime: number; c: Record<string, [LoyerBrut | null, LoyerBrut | null]> };
 const loyersDep = parDepartement<LoyersDep>('loyers');
+type RechargeDep = { maj: string; dates: { irve: string; bnlc: string }; c: Record<string, [number, number, number, number, number]> };
+const rechargeDep = parDepartement<RechargeDep>('recharge');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
@@ -441,6 +443,17 @@ export interface Loyers {
   maj: string;
 }
 
+/** Les bornes de recharge électrique et les lieux de covoiturage ; zéro est une réponse. */
+export interface Recharge {
+  stations: number;
+  points: number;
+  rapides: number;
+  lieuxCovoiturage: number;
+  places: number;
+  dates: { irve: string; bnlc: string };
+  maj: string;
+}
+
 export interface ComplementsVie {
   sante: Sante | null;
   eau: EauRobinet | null;
@@ -468,6 +481,7 @@ export interface ComplementsVie {
   zonages: Zonages | null;
   investissement: Investissement | null;
   loyers: Loyers | null;
+  recharge: Recharge | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -790,6 +804,13 @@ function loyers(c: CommuneFiche): Loyers | null {
   return { appartement: loyerEstime(x[0]), maison: loyerEstime(x[1]), millesime: d.millesime, maj: d.maj };
 }
 
+function recharge(c: CommuneFiche): Recharge | null {
+  const d = rechargeDep.get(c.dep);
+  if (!d) return null;
+  const [stations, points, rapides, lieuxCovoiturage, places] = d.c[c.code] ?? [0, 0, 0, 0, 0];
+  return { stations, points, rapides, lieuxCovoiturage, places, dates: d.dates, maj: d.maj };
+}
+
 export function complementsVie(c: CommuneFiche): ComplementsVie {
   return {
     sante: sante(c),
@@ -818,5 +839,6 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     zonages: zonages(c),
     investissement: investissement(c),
     loyers: loyers(c),
+    recharge: recharge(c),
   };
 }

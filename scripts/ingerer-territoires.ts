@@ -830,6 +830,12 @@ async function principal() {
   const loyers = await tenter('Carte des loyers', () => collecterLoyers(lireJson, enCache('Carte des loyers (10 Mo)'), CACHE, grise));
   if (loyers) grise(`${ecrireLoyers(SORTIE, loyers)} départements de loyers écrits.`);
 
+  const { collecterRecharge, ecrireRecharge } = await import('./recharge-emettre.ts');
+  const recharge = await tenter('Recharge et covoiturage', () =>
+    collecterRecharge(lireJson, enCache('IRVE et lieux de covoiturage (160 Mo)'), CACHE, grise),
+  );
+  if (recharge) grise(`${ecrireRecharge(SORTIE, recharge)} départements de recharge écrits.`);
+
   const { collecterAccidents, ecrireAccidents } = await import('./accidents-emettre.ts');
   const accidents = await tenter('Accidents de la route', () =>
     collecterAccidents(lireJson, enCache('Bases des accidents corporels (100 Mo)'), CACHE, grise),
