@@ -43,6 +43,7 @@ import Echelons from '../../composants/commune/Echelons.astro';
 import Dmto from '../../composants/commune/Dmto.astro';
 import Sru from '../../composants/commune/Sru.astro';
 import Marches from '../../composants/commune/Marches.astro';
+import Representants from '../../composants/commune/Representants.astro';
 import Deliberations from '../../composants/commune/Deliberations.astro';
 import Subventions from '../../composants/commune/Subventions.astro';
 import Associations from '../../composants/commune/Associations.astro';
@@ -219,6 +220,13 @@ const PLAFOND_JOURNAL = 40;
 const faits = journalCommune(commune, PLAFOND_JOURNAL).length;
 
 const region = meta?.regions?.[commune.dep];
+// « 1er adjoint au Maire » → « 1er adjoint » ; « Maire délégué » reste tel quel.
+/** « 13eme Vice-président du conseil communautaire » → « 13e vice-président du conseil communautaire ». */
+const siegeCc = (f: string) => {
+  const t = f.replace(/(\d+)\s*(?:ème|eme)\b/i, '$1e').replace(/^(\d+e |)([A-ZÉ])/, (_, r: string, l: string) => r + l.toLowerCase());
+  return /communautaire/i.test(t) ? t : `${t} du conseil communautaire`;
+};
+const fonctionCourte = (f: string) => f.replace(/\s+au\s+maire$/i, '').replace(/ème/, 'e');
 const ailleurs = sitesDeCommune({ ...commune, codeRegion: meta?.codesRegion?.[commune.dep] });
 const titre = `${commune.nom} — qui décide quoi`;
 const description = fiche
@@ -288,6 +296,7 @@ const sommaire: [string, string, unknown][] = [
   ['subventions', 'Les subventions', plus.subventions.length > 0],
   ['associations', 'Les associations', (plus.associations && plus.associations.total > 0) || droitLocal],
   ['entreprises', 'Les entreprises', plus.presentes || plus.entreprises],
+  ['representants', 'Les représentants d’intérêts', plus.representants],
   ['travail', 'Le travail', vie.travail],
   ['equipements', 'Ce qu’on trouve sur place', fiche?.equipements],
   ['services', 'Les services', (fiche?.services.length ?? 0) > 0],
@@ -343,12 +352,70 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         {moisAnnee(fiche.maire.depuis) && (
           <span class="p-maire-depuis">mandat en cours depuis {moisAnnee(fiche.maire.depuis)}</span>
         )}
+        {fiche.maire.naissance && <span class="p-maire-depuis">{`année de naissance ${fiche.maire.naissance}`}</span>}
+        {fiche.maireCc && <span class="p-maire-depuis">{siegeCc(fiche.maireCc)}</span>}
       </p>
+    )}
+
+    {fiche && fiche.adjoints.length > 0 && (
+      <details class="p-adjoints" open={fiche.adjoints.length <= 6}>
+        <summary>{`${fiche.adjoints.length === 1 ? 'Son adjoint' : `Ses ${fiche.adjoints.length} adjoints`}`}</summary>
+        <ul>
+          {fiche.adjoints.map((a) => (
+            <li>
+              <span class="p-adjoint-fonction">{fonctionCourte(a.fonction)}</span>
+              <span class="p-adjoint-nom">{`${a.prenom} ${a.nom}`}</span>
+              {a.naissance && <span class="p-adjoint-naissance">{`naissance ${a.naissance}`}</span>}
+              {a.cc && <span class="p-adjoint-naissance">{siegeCc(a.cc)}</span>}
+            </li>
+          ))}
+        </ul>
+      </details>
+    )}
+
+    {fiche && fiche.conseillers.length > 0 && (
+      <details class="p-adjoints p-conseillers">
+        <summary>{`${fiche.adjoints.length > 0 ? 'Les' : 'Ses'} ${fiche.conseillers.length} autre${fiche.conseillers.length > 1 ? 's' : ''} conseiller${fiche.conseillers.length > 1 ? 's' : ''} municipa${fiche.conseillers.length > 1 ? 'ux' : 'l'}`}</summary>
+        <ul>
+          {fiche.conseillers.map((m) => (
+            <li>
+              <span class="p-adjoint-nom">{`${m.prenom} ${m.nom}`}</span>
+              {m.naissance && <span class="p-adjoint-naissance">{`naissance ${m.naissance}`}</span>}
+              {m.cc && <span class="p-adjoint-naissance">{siegeCc(m.cc)}</span>}
+            </li>
+          ))}
+        </ul>
+      </details>
+    )}
+
+    {fiche && fiche.declarations.length > 0 && (
+      <details class="p-adjoints p-declarations">
+        <summary>{`Déclarations d’intérêts à la HATVP (${fiche.declarations.length} élu${fiche.declarations.length > 1 ? 's' : ''})`}</summary>
+        <ul>
+          {fiche.declarations.map((d) => (
+            <li>
+              <a href={d.page} target="_blank" rel="noopener">{d.nom}</a>
+              <span class="p-adjoint-naissance">
+                {d.liste
+                  .map((x) => `${x.qualite} : ${x.type}, ${x.statut.toLowerCase()}${x.date ? `, ${new Date(x.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}`)
+                  .join(' ; ')}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p class="p-strate">
+          {'D’après la liste des déclarations que la HATVP publie' + (fiche.declarationsMaj ? ` (lue le ${fiche.declarationsMaj})` : '') +
+            ', rapprochée du répertoire des élus sur le nom, le prénom et le département, quand un seul élu du département ' +
+            'les porte. Le contenu de chaque déclaration est sur la page de la HATVP. Les déclarations de patrimoine ' +
+            'des élus locaux ne sont pas publiques : la loi les réserve au contrôle de la HATVP, et le site n’en dit rien.'}
+        </p>
+      </details>
     )}
 
     {fiche?.maire && (
       <p class="p-source-territoire c-maire-source">
-        Le maire vient du répertoire national des élus ({fiche.maire.maj}).
+        {`Le maire${fiche.adjoints.length + fiche.conseillers.length > 0 ? ' et son conseil viennent' : ' vient'} du répertoire national des élus (${fiche.maire.maj}${fiche.adjointsMaj && fiche.adjoints.length + fiche.conseillers.length > 0 ? ` ; conseil : fichiers des conseillers municipaux et communautaires lus le ${fiche.adjointsMaj}, rapprochés sur la commune, le nom, le prénom et la date de naissance` : ''}). Pour une correction : `}
+        <a href="/signaler">le signalement</a>{' ; pour un retrait : '}<a href="/signaler#retrait">la demande à l’éditeur</a>.
       </p>
     )}
 
@@ -771,6 +838,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             <Entreprises e={plus.entreprises} nom={commune.nom} cp={commune.cp} />
           </>
         )}
+      </section>
+    )}
+
+    {plus.representants && (
+      <section id="representants" class="p-assos">
+        <h2 class="badge">Ses représentants d’intérêts</h2>
+        <Representants r={plus.representants} />
       </section>
     )}
 

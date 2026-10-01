@@ -115,12 +115,32 @@ peut figurer dans `public/territoires/` **si toutes ces conditions tiennent** :
 
 Ce qui est autorisé à ce jour :
 
-- **les élus exécutifs** — maire et adjoints — d'après le répertoire national
-  des élus : nom, prénom, fonction, date de prise de fonction. Les autres
-  conseillers restent décrits en agrégats ;
+- **les membres du conseil municipal** — maire, adjoints, conseillers —
+  d'après le répertoire national des élus : nom, prénom, fonction, date de
+  prise de fonction, et le siège au conseil communautaire, rapproché sur la
+  commune, le nom, le prénom et la date de naissance complète. Le sexe et la
+  profession restent des agrégats ;
 - **la date de naissance**, quand une source la donne, au mois et à l'année
-  seulement, comme l'INPI la diffuse pour les dirigeants. Le répertoire des
-  élus publie le jour : on ne le reprend pas ;
+  seulement, comme l'INPI la diffuse pour les dirigeants. Pour les élus,
+  **l'année seule** : elle dit la génération, c'est ce qui sert. Le répertoire
+  des élus publie le jour : on ne le reprend pas ;
+- **les candidats et les listes aux élections, avec leur nuance politique**,
+  telle que le ministère de l'Intérieur l'attribue et sous son libellé
+  officiel, sans commentaire, et **les têtes de liste** d'après le fichier des
+  candidatures. Un candidat a choisi de se présenter ; la nuance est un acte
+  public de l'administration, et l'élu a son droit de rectification ;
+- **les titulaires des marchés publics**, d'après les données essentielles de
+  la commande publique et SIRENE : la dénomination d'une société, le nom d'un
+  entrepreneur individuel sous la règle qui suit ;
+- **les dirigeants déclarés au répertoire des représentants d'intérêts** de
+  la HATVP : nom, prénom, fonction, l'organisation et le lien vers sa fiche.
+  Le registre est publié pour dire qui cherche à influencer la décision
+  publique ;
+- **les déclarations des élus à la HATVP** : pour un élu déjà nommé, le
+  type de chaque déclaration, son statut, sa date et le lien vers sa page
+  nominative. **Jamais une déclaration de patrimoine d'élu local** : la loi ne
+  la rend pas publique, et sa divulgation est un délit (article 26 de la loi
+  du 11 octobre 2013) ;
 - **les entrepreneurs individuels** d'après SIRENE et le BODACC : le nom tel
   que publié, l'activité, la commune, le lien vers la fiche ou l'annonce.
   Jamais un entrepreneur en **diffusion partielle** au répertoire SIRENE — il
@@ -131,4 +151,7 @@ Ce qui est autorisé à ce jour :
   personne, et le BODACC sert déjà les créanciers qu'elle concerne.
 
 Ce qui reste exclu : les particuliers cités dans les délibérations, les
-dirigeants d'associations, toute nuance politique associée à un nom.
+dirigeants d'associations hors du répertoire de la HATVP — aucun registre
+public ne les nomme —, et toute opinion du site. **Le site n'a pas d'opinion :
+il montre des recoupements de données sourcées**, et chaque recoupement dit
+sur quels champs il repose.

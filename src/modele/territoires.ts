@@ -55,7 +55,7 @@ type ServicesDep = {
   sdis?: string;
   v?: Record<string, Record<string, { n: number; l: string[] }>>;
 };
-type ElusDep = { maj: string; c: Record<string, [string, string, string]> };
+type ElusDep = { maj: string; c: Record<string, [string, string, string, string?]> };
 type EcolesDep = { rentrees: number[]; h: Record<string, [(number | null)[], (number | null)[]]> };
 type SruDep = { maj: string; c: Record<string, Record<string, unknown>> };
 type RisquesDep = {
@@ -91,7 +91,7 @@ type ElectionsDep = {
   c: Record<string, { cm: number; cc: number }>;
 };
 
-/** La composition des conseils du département, sans aucun nom. */
+/** La composition des conseils du département ; seuls les adjoints y sont nommés. */
 type ConseilsDep = {
   maj: string;
   groupes: string[];
@@ -99,7 +99,7 @@ type ConseilsDep = {
   age: number;
   c: Record<
     string,
-    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number }
+    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number; a?: [string, string, string, string, string?, string?][]; m?: [string, string, string, string?][]; mc?: string }
   >;
 };
 
@@ -202,6 +202,8 @@ const cacheRisques = new Map<string, RisquesDep | null>();
 const cacheJournal = new Map<string, JournalDep | null>();
 const cacheElections = new Map<string, ElectionsDep | null>();
 const cacheConseils = new Map<string, ConseilsDep | null>();
+type DeclarationsDep = { maj: string; c: Record<string, [string, string, [string, string, string, string][]][]> };
+const cacheDeclarations = new Map<string, DeclarationsDep | null>();
 const cacheUrbanisme = new Map<string, UrbanismeDep | null>();
 const cachePlu = new Map<string, PluDep | null>();
 const cacheLogements = new Map<string, LogementsDep | null>();
@@ -309,7 +311,20 @@ export interface Fiche {
   /** Compétence de Rouages -> ce qu'on peut en dire ici. */
   verdicts: Map<string, Verdict>;
   reserve: (competence: string) => string | null;
-  maire: { prenom: string; nom: string; depuis: string; maj: string } | null;
+  /** `naissance` : l'année seule, jamais le jour. */
+  maire: { prenom: string; nom: string; depuis: string; naissance: string | null; maj: string } | null;
+  /** Les adjoints et maires délégués, dans l'ordre du tableau, d'après le répertoire national des élus. */
+  /** `cc` : la fonction au conseil communautaire, quand l'élu y siège. */
+  adjoints: { fonction: string; prenom: string; nom: string; depuis: string; naissance: string | null; cc: string | null }[];
+  /** Les autres membres du conseil municipal, par nom. */
+  conseillers: { prenom: string; nom: string; naissance: string | null; cc: string | null }[];
+  /** Le siège du maire au conseil communautaire, d'après le même répertoire. */
+  maireCc: string | null;
+  /** Les déclarations d'intérêts des élus de la commune à la HATVP ; jamais une déclaration de patrimoine. */
+  declarations: { nom: string; page: string; liste: { type: string; qualite: string; statut: string; date: string }[] }[];
+  declarationsMaj: string | null;
+  /** La date du fichier des conseillers d'où viennent les adjoints. */
+  adjointsMaj: string | null;
   services: {
     famille: string;
     nom: string;
@@ -546,14 +561,38 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
   const risq = enCache(cacheRisques, c.dep, `dep/${c.dep}-risques.json`);
   const fr = risq?.c[c.code];
 
+  const adjointsDep = enCache(cacheConseils, c.dep, `dep/${c.dep}-conseils.json`);
+  const declarationsDep = enCache(cacheDeclarations, c.dep, `dep/${c.dep}-declarations.json`);
   return {
     commune: c,
     structures,
     verdicts,
     reserve: (comp) => m.reserves?.[comp] ?? null,
     maire: brutMaire
-      ? { prenom: brutMaire[0], nom: brutMaire[1], depuis: brutMaire[2], maj: elus!.maj }
+      ? { prenom: brutMaire[0], nom: brutMaire[1], depuis: brutMaire[2], naissance: brutMaire[3] || null, maj: elus!.maj }
       : null,
+    adjoints: (adjointsDep?.c[c.code]?.a ?? []).map(([fonction, prenom, nom, depuis, naissance, cc]) => ({
+      fonction,
+      prenom,
+      nom,
+      depuis,
+      naissance: naissance || null,
+      cc: cc || null,
+    })),
+    conseillers: (adjointsDep?.c[c.code]?.m ?? []).map(([prenom, nom, naissance, cc]) => ({
+      prenom,
+      nom,
+      naissance: naissance || null,
+      cc: cc || null,
+    })),
+    maireCc: adjointsDep?.c[c.code]?.mc ?? null,
+    declarations: (declarationsDep?.c[c.code] ?? []).map(([nom, page, l]) => ({
+      nom,
+      page,
+      liste: l.map(([type, qualite, statut, date]) => ({ type, qualite, statut, date })),
+    })),
+    declarationsMaj: declarationsDep?.maj ?? null,
+    adjointsMaj: adjointsDep?.maj ?? null,
     services,
     voisines: servs?.v?.[c.code] ?? {},
     sdis: servs?.sdis ?? m.services?.sdis?.[c.dep] ?? null,

@@ -110,6 +110,90 @@ une entreprise qui a obtenu un marché serait diffamatoire. La collecte qui
 rapproche dit donc sur quoi elle s'appuie — le nom seul, ou le nom avec le
 mois et l'année de naissance et la commune — et la page le montre.
 
+**Mise en œuvre.** Le statut de diffusion SIRENE est relu à chaque
+ingestion, et un SIREN inconnu de la copie vaut refus. Les oppositions sont
+tenues dans `retraits.yaml` par identifiant seulement ; la demande passe par
+le courriel de l'éditeur, jamais par une issue publique, qui exposerait la
+personne au moment même où elle demande à ne plus l'être. Une limite connue :
+le retrait vaut pour Rouages, pas pour la source, et une copie du site faite
+avant la mise à jour garde l'ancien état.
+
+### Les nuances politiques et l'année de naissance (1er octobre 2026)
+
+Décision du mainteneur, le même jour : **les élus ont choisi leur engagement
+et répondent de leurs actes et de leurs idées.** Le site rapporte des faits,
+et ils ont un droit de rectification.
+
+- **La nuance d'une liste ou d'un candidat** est attribuée par le préfet,
+  d'après une grille que le ministère publie (référentiel `nuances.xml`), dans
+  les communes de 3 500 habitants et plus et les chefs-lieux d'arrondissement.
+  Le Conseil d'État a rejeté en février 2026 les recours contre la circulaire
+  qui la fixe. Le site reprend le code et son libellé officiel, jamais une
+  appréciation à lui ; là où aucune n'est attribuée, il n'en devine pas.
+  L'étiquette qu'une liste revendique peut différer, et la page le dit.
+- **L'année de naissance des élus**, sans le jour ni le mois : elle dit la
+  génération de qui décide. Le répertoire publie la date complète ; la
+  réduire à l'année garde l'information utile et retire ce qui sert à
+  identifier une personne hors de sa fonction.
+
+### Les conseillers, les têtes de liste, les titulaires, la HATVP (1er octobre 2026)
+
+Décision du mainteneur, le même jour : le site n'a pas d'opinion, il montre
+des recoupements de données sourcées. Justification de chaque ajout, écrite
+avant la collecte :
+
+- **Les conseillers municipaux.** Le répertoire national des élus les publie
+  tous, et un conseiller vote les délibérations : savoir qui siège est la
+  question même du site. On retient le nom, le prénom, l'année de naissance
+  et le siège au conseil communautaire ; ni le sexe ni la profession, qui
+  restent des décomptes. Le siège communautaire vient d'un second fichier du
+  même répertoire, rapproché sur quatre champs — commune, nom, prénom, date
+  de naissance complète — : 61 115 sièges sur 62 111 trouvent leur
+  conseiller ; les autres ne sont pas affichés plutôt que devinés. Le
+  retrait d'un conseiller sans fonction passe par une empreinte, pour que
+  `retraits.yaml` ne le nomme pas.
+- **Les têtes de liste.** Le fichier des candidatures est publié par le
+  ministère pour que l'électeur sache qui se présente. La tête de liste est
+  nommée avec sa liste, rien de plus.
+- **Les titulaires des marchés.** Les données essentielles de la commande
+  publique sont publiées pour la transparence de la dépense : le SIRET du
+  titulaire y figure, et SIRENE dit à qui il appartient. Une société est
+  nommée par sa dénomination ; un entrepreneur individuel seulement s'il est
+  diffusible au répertoire, comme au BODACC.
+- **Les représentants d'intérêts.** Le répertoire de la HATVP est tenu pour
+  que le public sache qui cherche à influencer la décision publique ; ses
+  dirigeants y sont déclarés par l'organisation elle-même. On reprend
+  l'organisation, ses dirigeants et leur fonction, avec le lien vers la fiche
+  de la HATVP ; ni les collaborateurs, ni les adresses, ni les téléphones.
+  C'est le seul registre public qui nomme des dirigeants d'associations, et
+  seulement pour celles qui font de la représentation d'intérêts : les
+  autres restent anonymes, faute de source.
+
+### Les déclarations des élus à la HATVP (1er octobre 2026)
+
+Demande du mainteneur : sourcer les déclarations de patrimoine des élus. Ce
+que la loi permet, vérifié avant la collecte :
+
+- **Les déclarations de situation patrimoniale des élus locaux ne sont jamais
+  publiées.** La HATVP les contrôle, l'électeur n'y a pas accès, et leur
+  publication ou leur divulgation hors des cas prévus est punie (article 26
+  de la loi n° 2013-907). Le site n'en reprend rien, pas même l'existence.
+- **Les déclarations d'intérêts le sont** (article 12), pour les maires des
+  communes de plus de 20 000 habitants, les adjoints délégués de celles de
+  plus de 100 000, les présidents et vice-présidents délégués des grandes
+  intercommunalités. La HATVP publie la liste des déclarations en données
+  ouvertes, avec leur statut et la page nominative de chaque déclarant.
+
+Ce qui est repris : pour un élu que le site nomme déjà, chaque déclaration
+d'intérêts — sa qualité, son statut, sa date — et le lien vers sa page à la
+HATVP. Le rapprochement se fait sur le nom, le prénom et le département, et
+seulement quand un seul conseiller municipal du département porte ce nom et
+ce prénom ; quand la qualité nomme la commune, elle doit concorder. Ce qui
+ne l'est pas : le contenu des déclarations — activités, participations,
+mandats —, que la page de la HATVP donne elle-même. Le reprendre poserait une
+question à trancher avant : les conditions de réutilisation des déclarations
+publiées, notamment pour un usage commercial.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».

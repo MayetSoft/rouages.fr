@@ -44,6 +44,13 @@
  * assistance à maîtrise d'ouvrage durent plus d'un an et ne se repassent pas :
  * voir `PROJET`.
  *
+ * **Le titulaire, depuis le 1er octobre 2026.** Le jeu donne son SIRET, pas
+ * son nom ; SIRENE le donne (`sirene-noms.ts`). Une société est nommée par sa
+ * dénomination, un entrepreneur individuel seulement s'il est diffusible au
+ * répertoire, et un SIREN inconnu de la copie ne l'est pas : le marché dit
+ * alors combien de titulaires il ne nomme pas. Les lots regroupés d'un
+ * accord-cadre réunissent leurs titulaires.
+ *
  * Lancé seul — `npx tsx scripts/marches-emettre.ts` —, il réécrit les
  * fichiers des acheteurs que la dernière ingestion complète a retenus.
  */
@@ -51,6 +58,8 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { telechargerSiAbsent } from './par-departement.ts';
+import { retraits } from './retraits.ts';
+import { nomsSirene } from './sirene-noms.ts';
 
 const DECP =
   'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides';
@@ -75,6 +84,9 @@ export const DEPUIS = '2023-01-01';
  * un département : 2 ko à télécharger dans le cas médian au lieu de 1,5 Mo.
  */
 const PAR_ACHETEUR = 5;
+
+/** Les titulaires nommés d'un marché, au plus : au-delà, un accord-cadre à vingt lots se résume en un nombre. */
+const MAX_TITULAIRES = 4;
 
 /**
  * Les échéances qu'un acheteur porte dans le fichier du département : les plus
@@ -101,6 +113,13 @@ interface LigneDecp {
   codecpv: string | null;
   /** « Accord-cadre », « Sans objet », ou plusieurs techniques séparées de virgules. */
   techniques: string | null;
+  /** Jusqu'à trois titulaires : un identifiant, et son type — « SIRET » le plus souvent. */
+  titulaire_id_1?: string | null;
+  titulaire_typeidentifiant_1?: string | null;
+  titulaire_id_2?: string | null;
+  titulaire_typeidentifiant_2?: string | null;
+  titulaire_id_3?: string | null;
+  titulaire_typeidentifiant_3?: string | null;
 }
 
 export interface Marche {
@@ -120,6 +139,10 @@ export interface Marche {
    * juge pas — une spécialité rare n'a parfois qu'un candidat possible.
    */
   offres?: number;
+  /** Les titulaires nommés : SIREN et nom, d'après SIRENE. */
+  t?: [string, string][];
+  /** Les titulaires que le site ne nomme pas : non diffusibles, inconnus du répertoire, ou hors de France. */
+  tx?: number;
 }
 
 /** Un marché dont l'échéance prévisible tombe dans la fenêtre. */
@@ -252,9 +275,12 @@ export async function collecterMarches(
   json: <T>(url: string) => Promise<T>,
   sirensSuivis: Set<string>,
   dire: (m: string) => void,
+  /** Pour lire SIRENE ; sans lui, les titulaires ne sont pas nommés. */
+  texte?: (url: string) => Promise<string>,
 ): Promise<Marches | null> {
   const url =
-    `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques` +
+    `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques,` +
+    'titulaire_id_1,titulaire_typeidentifiant_1,titulaire_id_2,titulaire_typeidentifiant_2,titulaire_id_3,titulaire_typeidentifiant_3' +
     `&where=${encodeURIComponent(`datenotification>=date'${DEPUIS}'`)}`;
   const lignes = await json<LigneDecp[]>(url);
   if (lignes.length === 0) {
@@ -269,6 +295,9 @@ export async function collecterMarches(
   const totaux = new Map<string, number>();
   const parSiret = new Map<string, Map<string, number>>();
   const inconnues = new Set<string>();
+  // Les titulaires de chaque marché regroupé : un SIREN, ou « ? » pour un
+  // identifiant qui n'en est pas un (TVA, hors Union européenne…).
+  const titulaires = new Map<Marche, Set<string>>();
   for (const l of lignes) {
     const siren = String(l.acheteur_id ?? '').slice(0, 9);
     if (siren.length !== 9 || !sirensSuivis.has(siren)) continue;
@@ -288,9 +317,16 @@ export async function collecterMarches(
       m = new Map();
       brut.set(siren, m);
     }
+    const ids = ([1, 2, 3] as const)
+      .map((i) => [String(l[`titulaire_id_${i}`] ?? '').trim(), String(l[`titulaire_typeidentifiant_${i}`] ?? '').trim()])
+      .filter(([id, type]) => id && id !== 'CDL' && type !== 'CDL')
+      .map(([id, type]) => (type === 'SIRET' && /^\d{14}$/.test(id) ? id.slice(0, 9) : `?${type}:${id}`));
     const vu = m.get(cle);
     if (vu) {
       vu.lots++;
+      const deja = titulaires.get(vu) ?? new Set<string>();
+      for (const id of ids) deja.add(id);
+      titulaires.set(vu, deja);
     } else {
       // −1 quand le libellé n'est pas dans la liste : le client n'affichera
       // alors pas de procédure, plutôt que d'en inventer une.
@@ -310,8 +346,36 @@ export async function collecterMarches(
         ...(offres ? { offres } : {}),
         ...(duree && serenouvelle(l.codecpv, l.techniques, duree) ? { fin: ajouterMois(date, duree) } : {}),
       });
+      titulaires.set(m.get(cle)!, new Set(ids));
     }
     totaux.set(siren, (totaux.get(siren) ?? 0) + 1);
+  }
+
+  // Le nom de chaque titulaire, une fois pour tous les marchés.
+  if (texte) {
+    const tous = new Set<string>();
+    for (const ids of titulaires.values()) for (const id of ids) if (!id.startsWith('?')) tous.add(id);
+    const noms = await nomsSirene(texte, tous);
+    const retires = retraits().entreprises;
+    let nommes = 0;
+    let tus = 0;
+    for (const [marche, ids] of titulaires) {
+      const t: [string, string][] = [];
+      let tx = 0;
+      for (const id of ids) {
+        const n = id.startsWith('?') || retires.has(id) ? undefined : noms.get(id);
+        if (n && t.length < MAX_TITULAIRES) t.push([id, n.nom]);
+        else tx++;
+      }
+      if (t.length > 0) marche.t = t;
+      if (tx > 0) marche.tx = tx;
+      nommes += t.length;
+      tus += tx;
+    }
+    dire(
+      `  titulaires : ${tous.size.toLocaleString('fr-FR')} SIREN relus au répertoire, ${noms.size.toLocaleString('fr-FR')} nommables ; ` +
+        `${nommes.toLocaleString('fr-FR')} mentions nommées, ${tus.toLocaleString('fr-FR')} non nommées.`,
+    );
   }
 
   const maj = new Date().toISOString().slice(0, 10);
@@ -466,7 +530,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     parDep.set(dep, { sirens: Object.keys(d.h), com: new Map(Object.entries(d.com)) });
   }
   const suivis = new Set([...parDep.values()].flatMap((d) => d.sirens));
-  const m = await collecterMarches(async (url) => (await obstine(url)).json(), suivis, console.log);
+  const m = await collecterMarches(
+    async (url) => (await obstine(url)).json(),
+    suivis,
+    console.log,
+    async (url) => (await obstine(url)).text(),
+  );
   if (m) {
     let n = 0;
     for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m);

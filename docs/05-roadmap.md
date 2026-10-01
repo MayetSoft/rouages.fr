@@ -2294,7 +2294,9 @@ Trois règles, qui tiennent à celle des personnes physiques :
 - **les entrepreneurs individuels sont comptés, jamais nommés** — ils exercent
   sous leur nom. Le nom affiché vient de la liste des personnes de l'annonce,
   et une annonce qui en cite une physique n'est pas nommée du tout : le champ
-  « commerçant » mêlait, pour une vente, la société et l'ancien exploitant ;
+  « commerçant » mêlait, pour une vente, la société et l'ancien exploitant.
+  *Levée le 1er octobre 2026, sous condition : voir « Les adjoints et les
+  entrepreneurs individuels, nommés » ;*
 - **les procédures collectives sont comptées, avec un lien** vers la
   recherche du BODACC lui-même, jamais listées ;
 - **les dépôts de comptes ne sont pas repris.**
@@ -3348,6 +3350,79 @@ nommer demande de lire SIRENE, et la règle des noms vaut pour les
 entrepreneurs individuels. Le code CPV n'est pas publié non plus : il sert au
 tri, pas encore à l'affichage. `npx tsx scripts/marches-emettre.ts` relance
 cette seule collecte pour les acheteurs déjà suivis.
+
+### Les adjoints et les entrepreneurs individuels, nommés ✔
+
+La décision du 1er octobre 2026 (`CLAUDE.md`, « Les noms dans les données »)
+a déplacé deux limites ; la justification de chacune est dans
+`docs/07-risques.md`, écrite avant la collecte.
+
+- **Les adjoints.** Le fichier des conseillers municipaux du répertoire
+  national des élus, déjà lu pour les agrégats, donne la fonction de chacun.
+  La collecte des conseils garde, pour la commune, les adjoints et les maires
+  délégués — fonction, prénom, nom, date de prise de fonction —, dans l'ordre
+  du tableau. La page de commune les montre sous le maire, repliés au-delà de
+  six. Le Mayet-de-Montagne en a deux, en fonction depuis le 20 mars 2026 ;
+  Paris trente-six. Les autres conseillers restent des nombres.
+- **Les entrepreneurs individuels au BODACC.** L'annonce qui ne cite qu'une
+  personne physique avec un SIREN est désormais nommée — prénom, nom, nom
+  commercial s'il y en a un —, avec l'activité déclarée, si et seulement si
+  le répertoire SIRENE dit l'unité légale diffusible. Le statut est relu à
+  chaque ingestion, par lots de cent SIREN ; un SIREN que la copie ne connaît
+  pas encore n'est pas nommé, c'est le refus qui est le cas par défaut. Le
+  cas que le contrôle empêche existe : un entrepreneur nommé au BODACC et en
+  diffusion partielle au répertoire. Une annonce qui mêle une société et une
+  personne physique reste muette, et les procédures collectives restent
+  comptées. Le journal de la commune gagne trois genres — entreprise
+  individuelle créée, arrivée, radiée.
+- **Le retrait.** `retraits.yaml`, à la racine, tient les oppositions par
+  identifiant — SIREN, ou commune et fonction —, jamais par nom : écrire le
+  nom de qui demande à ne plus être nommé le nommerait une fois de plus. Les
+  trois collectes qui nomment le lisent. La demande arrive par le courriel de
+  l'éditeur, que `/signaler` donne à part de l'issue publique.
+
+**Puis, le même jour, les nuances et l'âge.** Le bloc du scrutin municipal
+donne chaque liste — libellé, voix, sièges — et la nuance que le préfet lui
+attribue, sous le libellé du référentiel du ministère : à Vichy, « Vichy
+passionnément », liste divers droite, 32 sièges. 3 282 communes ont des
+listes nuancées ; ailleurs, aucune n'est attribuée et la page n'en devine
+pas. Le maire et ses adjoints portent leur année de naissance, jamais le jour
+ni le mois. La tête de chaque liste vient du fichier des candidatures,
+rapprochée sur la commune, le numéro de panneau et le libellé abrégé :
+53 975 listes sur 54 119, aux deux tours ; une liste fusionnée qui change de
+libellé reste sans tête. Au Mayet-de-Montagne, la tête de liste n'est pas le
+maire élu : le site montre les deux faits, sans les commenter.
+
+**Et tout le conseil.** Chaque conseiller municipal est nommé — prénom, nom,
+année de naissance —, avec son siège au conseil communautaire quand il en a
+un : 61 115 sièges sur 62 111 rapprochés sur la commune, le nom, le prénom et
+la date de naissance complète.
+
+**Les titulaires des marchés.** Le SIRET de chaque titulaire, lu dans les
+données essentielles, est nommé par SIRENE : 67 368 SIREN relus, 66 789
+nommables — une société par sa dénomination, un entrepreneur individuel s'il
+est diffusible —, chacun lié à sa fiche sur l'annuaire des entreprises. Au
+Mayet-de-Montagne : ADN Travaux publics pour la place de la Mairie et la
+voirie, Alu FR pour les menuiseries de l'école. Les listes complètes à la
+demande passent de 47 à 78 Mo.
+
+**Les représentants d'intérêts.** Le répertoire de la HATVP, rattaché par
+l'adresse déclarée : 3 901 organisations dans 617 communes, avec 6 898
+dirigeants déclarés. C'est le seul registre public qui nomme des dirigeants
+d'associations ; les autres restent anonymes, faute de source.
+
+**Les déclarations des élus.** Pour un élu nommé, ses déclarations d'intérêts
+à la HATVP — qualité, statut, date, lien —, rapprochées sur le nom, le prénom
+et le département quand un seul conseiller du département les porte : 3 053
+déclarations dans 1 671 communes. Les déclarations de patrimoine des élus
+locaux ne sont jamais publiques, et leur divulgation est un délit : le site
+n'en dit rien. Le contenu des déclarations d'intérêts reste sur la page de la
+HATVP, en attendant de trancher ses conditions de réutilisation.
+
+**Ce qui ne bouge pas.** Les dirigeants d'associations hors HATVP, les
+particuliers cités dans les délibérations, une opinion que le site
+attribuerait lui-même. Le titre d'une association qui porte une civilité reste filtré : la
+décision n'a pas porté sur lui.
 
 ## Phase 3 — Élargir
 

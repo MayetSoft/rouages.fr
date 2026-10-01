@@ -10,8 +10,10 @@
  * Le ministère le publie lui-même (« % Voix/inscrits ») ; le collecteur le
  * recoupe commune par commune.
  *
- * **Aucune nuance politique, aucun nom de candidat.** Relier une personne à
- * une opinion reste interdit.
+ * Puis les listes, dans l'ordre des voix, avec la nuance que le ministère
+ * leur attribue — son libellé, sans commentaire — là où le préfet en
+ * attribue une. Décision du 1er octobre 2026 : un candidat a choisi de se
+ * présenter, et la nuance est un acte public de l'administration.
  */
 import type { Scrutin } from '../../modele/fiche-commune.ts';
 import Repere from './Repere.astro';
@@ -25,6 +27,7 @@ const pc = (v: number) => `${v.toLocaleString('fr-FR', { maximumFractionDigits: 
 const tours = sc.tours.filter((t) => t.inscrits > 0).map((t) => ({
   titre: sc.tours.length > 1 ? (t.numero === 1 ? 'Premier tour' : 'Second tour') : null,
   listes: t.listes,
+  parListe: t.parListe,
   lignes: [
     {
       nom: 'Participation',
@@ -66,6 +69,21 @@ const tours = sc.tours.filter((t) => t.inscrits > 0).map((t) => ({
           : `${t.listes} listes se présentaient. Dans ${sc.partListeUnique} % des communes, il n’y en avait qu’une.`}
       </p>
     )}
+    {t.parListe.length > 0 && (
+      <ul class="p-scrutin-parliste">
+        {t.parListe.map((l) => (
+          <li>
+            <span class="p-scrutin-nomliste">{l.nom || 'Liste sans libellé'}</span>
+            {l.code && <span class="p-scrutin-nuance" title={l.code}>{l.nuance ?? l.code}</span>}
+            {l.tete && <span class="p-scrutin-voix">{`conduite par ${l.tete}`}</span>}
+            <span class="p-scrutin-voix">
+              {`${pc(l.part)} des exprimés · ${l.voix.toLocaleString('fr-FR')} voix` +
+                (l.sieges > 0 ? ` · ${l.sieges} siège${l.sieges > 1 ? 's' : ''}` : '')}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
 ))}
 {sc.tete && (
@@ -93,6 +111,10 @@ const tours = sc.tours.filter((t) => t.inscrits > 0).map((t) => ({
 )}
 <slot />
 <p class="p-source-territoire">
-  D’après les résultats publiés par le ministère de l’Intérieur ({sc.maj}). Les nuances politiques
-  ne sont pas reprises : le site nomme des fonctions et des chiffres, pas des opinions.
+  D’après les résultats publiés par le ministère de l’Intérieur ({sc.maj}). La nuance d’une liste est celle
+  que le préfet lui attribue, au <a href="https://www.resultats-elections.interieur.gouv.fr/municipales2026/referentiel.html"
+    target="_blank" rel="noopener">référentiel du ministère</a>, dans les communes de 3 500 habitants et plus et les
+  chefs-lieux d’arrondissement ; ailleurs, aucune n’est attribuée. Elle peut différer de l’étiquette que la liste
+  revendique. La tête de chaque liste vient du fichier des candidatures du premier tour, rapproché sur le numéro de
+  panneau et le libellé de la liste.
 </p>

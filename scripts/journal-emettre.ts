@@ -101,17 +101,17 @@ export function rassembler(s: Sources, aujourdhui = new Date()): Evenement[] {
     }
   }
 
-  // Les dernières annonces des sociétés, déjà retenues par commune pour la page.
+  // Les dernières annonces nommées, déjà retenues par commune pour la page.
   if (s.entreprises) {
-    const GENRE_DE: Record<string, (typeof GENRES)[number]> = {
-      creation: 'Société créée',
-      immatriculation: 'Société arrivée',
-      vente: 'Fonds de commerce cédé',
-      radiation: 'Société radiée',
+    const GENRE_DE: Record<string, [(typeof GENRES)[number], (typeof GENRES)[number]]> = {
+      creation: ['Société créée', 'Entreprise individuelle créée'],
+      immatriculation: ['Société arrivée', 'Entreprise individuelle arrivée'],
+      vente: ['Fonds de commerce cédé', 'Fonds de commerce cédé'],
+      radiation: ['Société radiée', 'Entreprise individuelle radiée'],
     };
     for (const [code, liste] of s.entreprises.recentes) {
-      for (const [date, f, nom, id] of liste) {
-        const g = GENRE_DE[FAMILLES[f]];
+      for (const [date, f, nom, id, , ei] of liste) {
+        const g = GENRE_DE[FAMILLES[f]]?.[ei ?? 0];
         if (g) tout.push({ genre: GENRES.indexOf(g), date, quoi: nom, url: ANNONCE + id, commune: code });
       }
     }

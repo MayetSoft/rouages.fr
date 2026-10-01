@@ -7,21 +7,27 @@
  * combien de listes se présentaient, et combien de sièges le conseil compte —
  * au conseil municipal comme au conseil communautaire.
  *
- * **Ce que ce module ne collecte pas, et c'est délibéré : les nuances
- * politiques.** Le fichier les porte, liste par liste. Les republier
- * reviendrait à relier des personnes à une opinion, ce que `docs/07-risques.md`
- * interdit explicitement — la règle n'a pas été levée quand le site s'est mis à
- * nommer les maires, elle a été précisée. Le nom d'un titulaire est une donnée
- * d'annuaire ; sa couleur politique est autre chose. Le fichier des résultats
- * par commune ne porte d'ailleurs aucun nom de candidat : ils sont dans un
- * fichier séparé, que le site n'ouvre pas.
+ * **Les listes, avec leur nuance, depuis le 1er octobre 2026.** Le module
+ * taisait les nuances : relier une personne à une opinion était exclu. La
+ * décision du 1er octobre 2026 (`CLAUDE.md`, « Les noms dans les données ») les
+ * rend : un candidat a choisi de se présenter, la nuance est l'attribution
+ * publique du ministère, et la page la donne comme telle — le libellé du
+ * référentiel, jamais un commentaire. Le préfet n'en attribue que dans les
+ * communes de 3 500 habitants et plus et les chefs-lieux d'arrondissement :
+ * ailleurs, la liste a son nom et pas de nuance, et la page ne la devine pas.
+ * Le fichier des résultats ne porte pas le nom des têtes de liste — ses
+ * colonnes « Nom candidat » sont vides. Il vient du fichier des candidatures
+ * du premier tour, rapproché sur la commune et le numéro de panneau, **et**
+ * sur le libellé abrégé de la liste : une liste fusionnée au second tour, qui
+ * change de libellé, reste sans tête plutôt que d'en recevoir une fausse.
  *
  * Ce qui reste est structurel et se compare : la participation, le refus
  * exprimé par un bulletin blanc ou nul, le nombre de listes en présence, et le
  * poids de la commune dans son intercommunalité.
  */
-import { writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Municipales 2026. L'adresse porte l'horodatage de la publication, si bien
@@ -67,6 +73,12 @@ export interface TourCommune {
    * réuni 30 % des inscrits ou 80 %.
    */
   tete: number;
+  /**
+   * Les listes, dans l'ordre des voix : libellé, code de nuance (vide là où
+   * le préfet n'en attribue pas), voix, sièges au conseil municipal, et la
+   * tête de liste (« Prénom NOM »), vide quand le rapprochement échoue.
+   */
+  l?: [string, string, number, number, string?][];
 }
 
 export interface ElectionCommune {
@@ -90,7 +102,39 @@ export interface Elections {
   partListeUnique: number;
   /** La médiane nationale des voix de la liste en tête, en part des inscrits, au tour décisif. */
   medianeTete: number;
+  /** Le libellé de chaque code de nuance, d'après le référentiel du ministère. */
+  nuances: Record<string, string>;
   communes: Map<string, ElectionCommune>;
+}
+
+/** Les candidatures du premier tour : une ligne par candidat, la tête de liste marquée « OUI ». */
+const CANDIDATURES =
+  'https://static.data.gouv.fr/resources/elections-municipales-2026-listes-candidates-au-premier-tour/' +
+  '20260313-152615/municipales-2026-candidatures-france-entiere-tour-1-2026-03-13.csv';
+
+/** « commune|panneau » → [libellé abrégé, « Prénom NOM »]. */
+export function lireTetes(texte: string): Map<string, [string, string]> {
+  const tetes = new Map<string, [string, string]>();
+  for (const r of lireCsv(texte)) {
+    if ((r['Tête de liste'] ?? '').trim() !== 'OUI') continue;
+    const code = (r['Code circonscription'] ?? '').trim();
+    const panneau = (r['Numéro de panneau'] ?? '').trim();
+    const nom = `${(r['Prénom sur le bulletin de vote'] ?? '').trim()} ${(r['Nom sur le bulletin de vote'] ?? '').trim()}`.trim();
+    if (code && panneau && nom) tetes.set(`${code}|${panneau}`, [(r['Libellé abrégé de liste'] ?? '').trim(), nom]);
+  }
+  return tetes;
+}
+
+/** Le référentiel des nuances du scrutin, publié par le ministère à côté des résultats. */
+const NUANCES = 'https://www.resultats-elections.interieur.gouv.fr/telechargements/MUNPF2026/nuances/nuances.xml';
+
+/** `<NuanceListe><CodNuaListe>LDVD</CodNuaListe><LibNuaListe>Liste divers droite</LibNuaListe>…` */
+export function lireNuances(xml: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const m of xml.matchAll(/<NuanceListe>\s*<CodNuaListe>([^<]+)<\/CodNuaListe>\s*<LibNuaListe>([^<]+)<\/LibNuaListe>/g)) {
+    out[m[1].trim()] = m[2].trim().replace(/&apos;/g, '’').replace(/'/g, '’').replace(/&amp;/g, '&');
+  }
+  return out;
 }
 
 /**
@@ -151,7 +195,18 @@ function mediane(valeurs: number[]): number {
  * absente plutôt que de fixer un maximum, parce que le ministère en ajoute
  * autant que nécessaire — treize dans la commune la plus disputée.
  */
-function listesDe(r: Record<string, string>): { listes: number; cm: number; cc: number; tete: number; teteIns: number | null } {
+function listesDe(r: Record<string, string>, tetes: Map<string, [string, string]> = new Map()): {
+  listes: number;
+  cm: number;
+  cc: number;
+  tete: number;
+  teteIns: number | null;
+  l: [string, string, number, number, string?][];
+  tetesTrouvees: number;
+} {
+  const l: [string, string, number, number, string?][] = [];
+  let tetesTrouvees = 0;
+  const code = (r['Code commune'] ?? '').trim();
   let listes = 0;
   let cm = 0;
   let cc = 0;
@@ -164,6 +219,14 @@ function listesDe(r: Record<string, string>): { listes: number; cm: number; cc: 
     cm += entier(r[`Sièges au CM ${i}`]);
     cc += entier(r[`Sièges au CC ${i}`]);
     const voix = entier(r[`Voix ${i}`]);
+    const libelle = (r[`Libellé de liste ${i}`] || r[`Libellé abrégé de liste ${i}`] || '').trim();
+    const ligne: [string, string, number, number, string?] = [libelle, (r[`Nuance liste ${i}`] ?? '').trim(), voix, entier(r[`Sièges au CM ${i}`])];
+    const t = tetes.get(`${code}|${(r[`Numéro de panneau ${i}`] ?? '').trim()}`);
+    if (t && t[0] === (r[`Libellé abrégé de liste ${i}`] ?? '').trim()) {
+      ligne.push(t[1]);
+      tetesTrouvees++;
+    }
+    l.push(ligne);
     if (voix > tete) {
       tete = voix;
       // Le pourcentage que publie le ministère, pour recouper le nôtre.
@@ -171,7 +234,8 @@ function listesDe(r: Record<string, string>): { listes: number; cm: number; cc: 
       teteIns = Number.isFinite(p) ? p : null;
     }
   }
-  return { listes, cm, cc, tete, teteIns };
+  l.sort((a, b) => b[2] - a[2]);
+  return { listes, cm, cc, tete, teteIns, l, tetesTrouvees };
 }
 
 export async function collecterElections(
@@ -179,6 +243,21 @@ export async function collecterElections(
   dire: (m: string) => void,
 ): Promise<Elections | null> {
   const communes = new Map<string, ElectionCommune>();
+  let nuances: Record<string, string> = {};
+  try {
+    nuances = lireNuances(await texteDe(NUANCES));
+  } catch {
+    // Sans le référentiel, la page montre le code, comme aux législatives.
+  }
+  if (Object.keys(nuances).length === 0) dire('Élections : le référentiel des nuances n’a pas répondu, les codes seront montrés seuls.');
+  let tetes = new Map<string, [string, string]>();
+  try {
+    tetes = lireTetes(await texteDe(CANDIDATURES));
+  } catch {
+    dire('Élections : les candidatures n’ont pas répondu, les listes resteront sans tête.');
+  }
+  let tetesTrouvees = 0;
+  let listesVues = 0;
   const medianes: { participation: number; refus: number }[] = [];
   let listeUnique = 0;
   let ecarts = 0;
@@ -217,9 +296,12 @@ export async function collecterElections(
         listes: 0,
         tete: 0,
       };
-      const { listes, cm, cc, tete, teteIns } = listesDe(l);
+      const { listes, cm, cc, tete, teteIns, l: parListe, tetesTrouvees: tt } = listesDe(l, tetes);
+      tetesTrouvees += tt;
+      listesVues += listes;
       t.listes = listes;
       t.tete = tete;
+      t.l = parListe;
       if (teteIns !== null && inscrits > 0) {
         recoupees++;
         if (Math.abs((tete / inscrits) * 100 - teteIns) > 0.01) ecarts++;
@@ -254,6 +336,7 @@ export async function collecterElections(
     );
   }
 
+  dire(`  têtes de liste : ${tetesTrouvees.toLocaleString('fr-FR')} rapprochées sur ${listesVues.toLocaleString('fr-FR')} listes, aux deux tours.`);
   const partListeUnique = communes.size > 0 ? Math.round((listeUnique / communes.size) * 100) : 0;
   // Au tour qui a attribué les sièges : c'est la liste arrivée en tête de
   // celui-là qui tient le conseil.
@@ -278,6 +361,7 @@ export async function collecterElections(
     medianes,
     partListeUnique,
     medianeTete,
+    nuances,
     communes,
   };
 }
@@ -309,8 +393,36 @@ export function ecrireElections(
       medianes: e.medianes,
       listeUnique: e.partListeUnique,
       medianeTete: e.medianeTete,
+      nuances: e.nuances,
       c,
     }),
   );
   return n;
+}
+
+// Lancé seul : lit les résultats dans `.cache/munic-t1.csv` et `munic-t2.csv`
+// s'ils y sont, sinon sur data.gouv.fr, et réécrit `dep/XX-elections.json`.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const racine = join(fileURLToPath(new URL('.', import.meta.url)), '..');
+  const sortie = join(racine, 'public', 'territoires');
+  const local = new Map<string, string>([
+    ...TOURS.map((t): [string, string] => [t.url, join(racine, '.cache', `munic-t${t.tour}.csv`)]),
+    [CANDIDATURES, join(racine, '.cache', 'munic-candidatures.csv')],
+  ]);
+  const texte = async (url: string) => {
+    const f = local.get(url);
+    if (f && existsSync(f)) return readFileSync(f, 'utf8');
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`${url} : ${r.status}`);
+    return r.text();
+  };
+  const e = await collecterElections(texte, console.log);
+  if (e) {
+    const index = JSON.parse(readFileSync(join(sortie, 'index.json'), 'utf8')) as { c: [string, string, string, string, number][] };
+    const parDep = new Map<string, string[]>();
+    for (const [code, , , dep] of index.c) parDep.set(dep, [...(parDep.get(dep) ?? []), code]);
+    let n = 0;
+    for (const [dep, codes] of parDep) n += ecrireElections(sortie, dep, codes, e);
+    console.log(`${n} communes écrites, ${Object.keys(e.nuances).length} nuances au référentiel.`);
+  }
 }

@@ -6,6 +6,8 @@ import { DEPOT } from '../modele/signalement.ts';
 
 const reseau = construireReseau();
 const g = chargerGraphe();
+const contact = g.editeur?.contact ?? '';
+const courriel = contact.includes('@') ? contact : null;
 
 // Un index minuscule plutôt que le réseau entier : cette page n'a besoin que
 // de nommer une fiche et de dire quand elle a été vérifiée.
@@ -69,6 +71,24 @@ const fiches = reseau.noeuds.map((n) => {
     <p class="v-nature">
       Sans compte GitHub&nbsp;: copiez le signalement et transmettez-le par le
       moyen qui vous convient — il est complet, il se suffit à lui-même.
+    </p>
+
+    <h2 class="badge" id="retrait">Ne plus être nommé</h2>
+    <p>
+      Le site nomme le maire et ses adjoints, et les entreprises dont le BODACC
+      publie une annonce — <a href="/mentions">les mentions</a> disent d’où et
+      à quelles conditions. Pour demander à ne plus y figurer, n’ouvrez pas
+      d’issue publique&nbsp;: écrivez à l’éditeur{courriel ? (
+        <>, à <a href={`mailto:${courriel}?subject=${encodeURIComponent('Demande de retrait')}`}>{courriel}</a></>
+      ) : contact ? ` (${contact})` : ''}, en indiquant la page concernée.
+    </p>
+    <p class="v-nature">
+      La demande n’est pas discutée en public et n’a pas à être motivée. Le
+      dépôt n’en garde que l’identifiant — le numéro SIREN d’une entreprise, ou
+      la commune et la fonction d’un élu —, jamais le nom, et la mise à jour
+      suivante des données cesse de l’afficher. La source d’origine, elle,
+      continue de publier : le BODACC et le répertoire des élus relèvent de leurs
+      propres éditeurs.
     </p>
 
     <h2 class="badge">Ce qui se passe ensuite</h2>
