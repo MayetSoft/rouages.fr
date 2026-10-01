@@ -140,7 +140,7 @@ type AppellationsDep = { maj: string; dates: { ao: string; ig: string }; c: Reco
 const appellationsDep = parDepartement<AppellationsDep>('appellations');
 type SecheresseDep = { maj: string; annee: number; du: string; au: string; debut: number; c: Record<string, [number, number, number, number, number, number[]]> };
 const secheresseDep = parDepartement<SecheresseDep>('secheresse');
-type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?]> };
+type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?, (0 | 1 | 2)?]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
 type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
 const lieuxDep = parDepartement<LieuxDep>('lieux');
@@ -446,6 +446,8 @@ export interface Zonages {
   /** La zone du zonage ABC — A bis, A, B1, B2, C —, ou null si inconnue. */
   abc: string | null;
   quartiersPrioritaires: string[];
+  /** Le zonage de la taxe sur les logements vacants, au dernier décret ; null quand la collecte ne l'a pas encore lu. */
+  tendue: 'non' | 'tendue' | 'touristique et tendue' | null;
   dates: Record<string, string>;
   maj: string;
 }
@@ -859,7 +861,7 @@ function lieux(c: CommuneFiche): Lieux | null {
 function zonages(c: CommuneFiche): Zonages | null {
   const d = zonagesDep.get(c.dep);
   if (!d) return null;
-  const [programmes, ti, crte, m, abc, quartiers] = d.c[c.code] ?? [[], '', '', 0];
+  const [programmes, ti, crte, m, abc, quartiers, t] = d.c[c.code] ?? [[], '', '', 0];
   return {
     programmes,
     territoireIndustrie: ti || null,
@@ -867,6 +869,7 @@ function zonages(c: CommuneFiche): Zonages | null {
     montagne: m === 1 ? 'oui' : m === 2 ? 'en partie' : 'non',
     abc: abc || null,
     quartiersPrioritaires: quartiers ?? [],
+    tendue: !d.dates.tlv ? null : t === 1 ? 'tendue' : t === 2 ? 'touristique et tendue' : 'non',
     dates: d.dates,
     maj: d.maj,
   };

@@ -383,6 +383,13 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /zonage de la taxe sur les logements vacants/i,
+    liens: [
+      { titre: 'Liste des communes selon le zonage de la taxe sur les logements vacants', url: dg('657c88da2947e13be0597058') },
+      { titre: 'Majoration de la taxe d’habitation sur les résidences secondaires (CGI, art. 1407 ter)', url: 'https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006191695/' },
+    ],
+  },
+  {
     motif: /zones défavorisées/i,
     liens: [
       { titre: 'Communes classées en zones défavorisées (ministère de l’Agriculture)', url: dg('5369911ea3a729239d203b94') },

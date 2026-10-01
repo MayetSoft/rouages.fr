@@ -50,6 +50,7 @@ export const JEUX = {
   croisement: '617322c7c8e7b27041570e71',
   abc: '656715871172d08f8f680063',
   qpv: '5a561801c751df42d7fca9b6',
+  tlv: '657c88da2947e13be0597058',
 } as const;
 export const MONTAGNE =
   'https://agriculture.gouv.fr/telecharger/119649?token=546df48fb3ab2cf098f40d87928c6013edeaa8116e31dfa6be1e582ec0032c85';
@@ -63,7 +64,12 @@ export type Programme = 'pvd' | 'acv' | 'va' | keyof typeof DU_CROISEMENT;
  * CRTE (vides s'il n'y en a pas), la montagne — 0 non, 1 oui, 2 en partie —,
  * sa zone ABC (vide si inconnue) et le nom de ses quartiers prioritaires.
  */
-export type ZonagesCommune = [Programme[], string, string, 0 | 1 | 2, string, string[]];
+/**
+ * Programmes, territoire d'industrie, CRTE, montagne (0 non, 1 oui, 2 en
+ * partie), zone ABC, quartiers prioritaires, puis le zonage de la taxe sur les
+ * logements vacants : 0 non tendue, 1 zone tendue, 2 zone touristique et tendue.
+ */
+export type ZonagesCommune = [Programme[], string, string, 0 | 1 | 2, string, string[], 0 | 1 | 2];
 
 export interface Zonages {
   maj: string;
@@ -247,6 +253,25 @@ export async function collecterZonages(
     }
   }
 
+  // Le zonage de la taxe sur les logements vacants, au dernier décret : la colonne la plus à droite.
+  const tlv = new Map<string, 1 | 2>();
+  {
+    const vers = await lire('tlv', JEUX.tlv, /^zonage tlv$/i);
+    let n = 0;
+    for await (const v of lignes(vers, ';')) {
+      const code = actuelle(v('CODGEO25') ?? v.colonne(/^codgeo/i) ?? '');
+      const z = v.colonne(/^zonage tlv post/i) ?? '';
+      n++;
+      if (!code) continue;
+      if (/^1\./.test(z)) tlv.set(code, 1);
+      else if (/^2\./.test(z)) tlv.set(code, 2);
+    }
+    if (n < 30000) {
+      dire(`Zonages : ${n} communes seulement au zonage TLV, on garde l’ingestion précédente.`);
+      return null;
+    }
+  }
+
   const communes = new Map<string, ZonagesCommune>();
   const ordre: Programme[] = ['pvd', 'acv', 'va', 'ami', 'amm', 'cite', 'cde', 'fabp', 'habinclus'];
   for (const code of actuelles) {
@@ -255,15 +280,18 @@ export async function collecterZonages(
     const m = montagne.get(code) ?? 0;
     const zone = abc.get(code) ?? '';
     const quartiers = (qpv.get(code) ?? []).sort((x, y) => x.localeCompare(y, 'fr'));
-    if (!p && !nomTi && !nomCrte && !m && !zone && quartiers.length === 0) continue;
-    communes.set(code, [ordre.filter((x) => p?.has(x)), nomTi, nomCrte, m, zone, quartiers]);
+    const t = tlv.get(code) ?? 0;
+    if (!p && !nomTi && !nomCrte && !m && !zone && quartiers.length === 0 && !t) continue;
+    communes.set(code, [ordre.filter((x) => p?.has(x)), nomTi, nomCrte, m, zone, quartiers, t]);
   }
   const compte = (p: Programme) => [...communes.values()].filter((x) => x[0].includes(p)).length;
   dire(
     `Zonages : ${communes.size.toLocaleString('fr-FR')} communes ; Petites villes de demain ${compte('pvd')}, ` +
       `Action cœur de ville ${compte('acv')}, Villages d’avenir ${compte('va')}, ` +
       `zone de montagne ${montagne.size.toLocaleString('fr-FR')}, zonage ABC ${abc.size.toLocaleString('fr-FR')}, ` +
-      `communes à quartier prioritaire ${qpv.size.toLocaleString('fr-FR')}.`,
+      `communes à quartier prioritaire ${qpv.size.toLocaleString('fr-FR')}, ` +
+      `zone tendue ${[...tlv.values()].filter((x) => x === 1).length.toLocaleString('fr-FR')}, ` +
+      `touristique et tendue ${[...tlv.values()].filter((x) => x === 2).length.toLocaleString('fr-FR')}.`,
   );
   return { maj: new Date().toISOString().slice(0, 10), dates, communes };
 }

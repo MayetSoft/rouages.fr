@@ -694,6 +694,14 @@ surveillances:
     url: "https://www.data.gouv.fr/api/2/datasets/5a561801c751df42d7fca9b6/resources/?page_size=5"
     lien: od-qpv
 
+  - id: zonage-tlv
+    nom: "Zonage de la taxe sur les logements vacants"
+    alimente: "les zones tendues"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://www.data.gouv.fr/api/2/datasets/657c88da2947e13be0597058/resources/?page_size=5"
+    lien: od-zonage-tlv
+
   - id: urssaf-effectifs
     nom: "URSSAF — effectifs salariés par commune"
     alimente: "les salariés employés dans la commune"
