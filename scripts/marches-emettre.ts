@@ -100,6 +100,12 @@ export interface Marches {
   suites: Map<string, Marche[]>;
   /** SIREN -> nombre total de marchés notifiés depuis `DEPUIS`, avant troncature. */
   totaux: Map<string, number>;
+  /**
+   * SIREN -> le SIRET sous lequel l'acheteur a notifié le plus de marchés. Un
+   * groupement achète parfois sous plusieurs établissements ; c'est par ce
+   * SIRET que d'autres outils, comme Colibre, désignent l'acheteur.
+   */
+  sirets: Map<string, string>;
   depuis: string;
   maj: string;
 }
@@ -167,10 +173,17 @@ export async function collecterMarches(
   // date. Les afficher sept fois ferait passer une commande pour sept.
   const brut = new Map<string, Map<string, Marche>>();
   const totaux = new Map<string, number>();
+  const parSiret = new Map<string, Map<string, number>>();
   const inconnues = new Set<string>();
   for (const l of lignes) {
     const siren = String(l.acheteur_id ?? '').slice(0, 9);
     if (siren.length !== 9 || !sirensSuivis.has(siren)) continue;
+    const siret = String(l.acheteur_id ?? '').trim();
+    if (/^\d{14}$/.test(siret)) {
+      const c = parSiret.get(siren) ?? new Map<string, number>();
+      c.set(siret, (c.get(siret) ?? 0) + 1);
+      parSiret.set(siren, c);
+    }
     const objet = nettoyer(l.objet ?? '');
     const date = (l.datenotification ?? '').slice(0, 10);
     if (!objet || !date) continue;
@@ -226,10 +239,13 @@ export async function collecterMarches(
       `dont ${retenus.toLocaleString('fr-FR')} pour ${parAcheteur.size.toLocaleString('fr-FR')} ` +
       `acheteurs du bloc communal.`,
   );
+  const sirets = new Map<string, string>();
+  for (const [siren, c] of parSiret) sirets.set(siren, [...c].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]);
   return {
     parAcheteur,
     suites,
     totaux,
+    sirets,
     depuis: DEPUIS,
     maj: new Date().toISOString().slice(0, 10),
   };
@@ -251,12 +267,13 @@ export function ecrireMarches(
   sirenDeCommune: Map<string, string>,
   marches: Marches,
 ): number {
-  const h: Record<string, { n: number; m: Marche[] }> = {};
+  const h: Record<string, { n: number; m: Marche[]; s?: string }> = {};
   let n = 0;
   for (const siren of [...new Set(sirens)].sort()) {
     const liste = marches.parAcheteur.get(siren);
     if (!liste || liste.length === 0) continue;
-    h[siren] = { n: marches.totaux.get(siren) ?? liste.length, m: liste };
+    const siret = marches.sirets.get(siren);
+    h[siren] = { n: marches.totaux.get(siren) ?? liste.length, m: liste, ...(siret ? { s: siret } : {}) };
     n++;
   }
   if (n === 0) return 0;

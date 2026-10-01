@@ -60,6 +60,13 @@ for (const r of g.reperes.values()) recolter(r.sens ? [...r.liens, r.sens.lien] 
 // Les mentions légales citent chaque jeu surveillé par son lien : une source
 // qui n'apparaît que là est publiée, pas orpheline.
 for (const s of g.surveillances.values()) if (s.lien) citees.add(s.lien);
+// Un jeu sous ODbL impose de republier sous ODbL ce qu'on en dérive : les
+// mentions doivent dire quels fichiers, et la liste ne s'écrit pas après coup.
+for (const s of g.surveillances.values()) {
+  if (s.licence === 'odbl' && !s.fichiers?.length) {
+    erreurs.push(`surveillance « ${s.id} » sous ODbL sans la liste des fichiers qui en dérivent (champ fichiers)`);
+  }
+}
 for (const id of g.sources.keys()) {
   if (!citees.has(id)) avertissements.push(`page de référence « ${id} » déclarée mais liée depuis aucun nœud`);
 }

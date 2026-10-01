@@ -335,7 +335,10 @@ const ENTREES: Entree[] = [
   },
   {
     motif: /ADMIN EXPRESS/,
-    liens: [{ titre: 'Contours des communes (Etalab, d’après l’IGN)', url: dg('683424e996857155175d4f68') }],
+    liens: [
+      { titre: 'Admin Express COG, contours des communes (IGN)', url: dg('5808de39c751df1e0679df72') },
+      { titre: 'Admin Express sur la Géoplateforme', url: 'https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetCapabilities' },
+    ],
   },
   {
     motif: /Inventaire national du patrimoine naturel/,
@@ -377,6 +380,13 @@ const ENTREES: Entree[] = [
     liens: [
       { titre: 'Liste des communes selon le zonage ABC', url: dg('656715871172d08f8f680063') },
       { titre: 'Le zonage A, B, C expliqué (ministère)', url: 'https://www.ecologie.gouv.fr/politiques-publiques/zonage-b-c' },
+    ],
+  },
+  {
+    motif: /zonage de la taxe sur les logements vacants/i,
+    liens: [
+      { titre: 'Liste des communes selon le zonage de la taxe sur les logements vacants', url: dg('657c88da2947e13be0597058') },
+      { titre: 'Majoration de la taxe d’habitation sur les résidences secondaires (CGI, art. 1407 ter)', url: 'https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006191695/' },
     ],
   },
   {

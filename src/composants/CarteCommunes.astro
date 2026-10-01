@@ -1,0 +1,98 @@
+---
+/**
+ * Les communes d'une intercommunalité ou d'un département, chacune un lien
+ * vers sa page. La limite entre deux groupes — deux intercommunalités sur la
+ * carte d'un département, ou le bord du territoire — est tracée plus fort.
+ * Voir `src/modele/carte.ts`.
+ *
+ * Les contours partagent exactement leurs sommets d'une commune à l'autre :
+ * un segment qu'une seule commune emprunte, ou que deux communes de groupes
+ * différents empruntent, est une limite de groupe.
+ */
+import type { CarteCommunes, Point } from '../modele/carte.ts';
+
+interface Props {
+  carte: CarteCommunes;
+  /** Ce que la carte montre, pour les lecteurs d'écran. */
+  libelle: string;
+  /** Une phrase sous la carte, quand le trait fort a un sens à dire. */
+  legende?: string;
+}
+const { carte, libelle, legende } = Astro.props;
+
+const W = 560;
+const tous = carte.communes.flatMap((c) => c.anneaux.flat());
+const ys = tous.map(([, y]) => y);
+const k = Math.cos((((Math.min(...ys) + Math.max(...ys)) / 2 / 1e4) * Math.PI) / 180);
+const proj = ([x, y]: Point): Point => [x * k, -y];
+const pts = tous.map(proj);
+const x0 = Math.min(...pts.map(([x]) => x));
+const x1 = Math.max(...pts.map(([x]) => x));
+const y0 = Math.min(...pts.map(([, y]) => y));
+const y1 = Math.max(...pts.map(([, y]) => y));
+const marge = 6;
+const s = (W - 2 * marge) / (x1 - x0);
+const H = Math.round((y1 - y0) * s + 2 * marge);
+// Au pixel près : deux communes qui partagent un sommet le retrouvent au même pixel, et les points qui tombent sur
+// le même pixel que le précédent ne disent plus rien. C'est ce qui garde la carte d'un département légère.
+const px = ([x, y]: Point): [number, number] => [Math.round((x - x0) * s + marge), Math.round((y - y0) * s + marge)];
+const vue = (p: Point): string => px(proj(p)).join(' ');
+/** Un anneau en écarts au point précédent (« l dx dy ») : des nombres d'un ou deux chiffres. */
+const chemin = (r: Point[]) => {
+  const pts = r.map((p) => px(proj(p))).filter((p, i, t) => i === 0 || p[0] !== t[i - 1][0] || p[1] !== t[i - 1][1]);
+  if (pts.length < 3) return '';
+  let d = `M${pts[0][0]} ${pts[0][1]}l`;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0] - pts[i - 1][0];
+    const dy = pts[i][1] - pts[i - 1][1];
+    d += `${i > 1 && dx >= 0 ? ' ' : ''}${dx}${dy >= 0 ? ' ' : ''}${dy}`;
+  }
+  return d + 'z';
+};
+
+const formes = carte.communes.map((c) => ({ ...c, d: c.anneaux.map(chemin).join('') }));
+
+// Les segments que deux communes de groupes différents, ou une seule commune, empruntent.
+const usages = new Map<string, { a: Point; b: Point; groupes: string[] }>();
+for (const c of carte.communes) {
+  for (const r of c.anneaux) {
+    for (let i = 1; i < r.length; i++) {
+      const a = r[i - 1];
+      const b = r[i];
+      const ka = `${a[0]},${a[1]}`;
+      const kb = `${b[0]},${b[1]}`;
+      if (ka === kb) continue;
+      const cle = ka < kb ? `${ka};${kb}` : `${kb};${ka}`;
+      const u = usages.get(cle);
+      if (u) u.groupes.push(c.groupe);
+      else usages.set(cle, { a, b, groupes: [c.groupe] });
+    }
+  }
+}
+const segments = [...usages.values()]
+  .filter((u) => u.groupes.length === 1 || u.groupes[0] !== u.groupes[1])
+  .map((u) => [vue(u.a), vue(u.b)])
+  .filter(([a, b]) => a !== b);
+// Les segments mis bout à bout quand ils se suivent : un « M » par tronçon, pas un par segment.
+let limites = '';
+let fin = '';
+for (const [a, b] of segments) {
+  limites += a === fin ? `L${b}` : `M${a}L${b}`;
+  fin = b;
+}
+---
+<figure class="carte-communes">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={libelle}>
+    {formes.map((c) => (
+      <a href={`/commune/${c.code}`} class="carte-communes-commune">
+        <title>{c.nom}</title>
+        <path d={c.d} />
+      </a>
+    ))}
+    <path class="carte-communes-limite" d={limites} />
+  </svg>
+  {legende && <figcaption>{legende}</figcaption>}
+</figure>
+<p class="p-source-territoire">
+  {`D’après les contours des communes d’ADMIN EXPRESS COG de l’IGN, au découpage du 1er janvier ${carte.millesime}, simplifiés à ${carte.tolerance} mètres pour le dessin en gardant les limites partagées.`}
+</p>

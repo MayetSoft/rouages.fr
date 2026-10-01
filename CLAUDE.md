@@ -45,8 +45,8 @@ séries communales Sitadel (500 Mo), trois années de ventes immobilières DVF
 recensement (230 Mo), le référentiel FINESS (244 Mo), les objets protégés de la base
 Palissy (365 Mo), les bornes de recharge électrique (160 Mo) et l'historique
 des restrictions d'eau de VigiEau (590 Mo, 12 Go lus en flux) et les espaces
-naturels de l'INPN, lus sur la Géoplateforme par pages (350 Mo, mis en cache
-pour la journée). `--cache` les
+naturels de l'INPN et les contours des communes d'Admin Express, lus sur la
+Géoplateforme par pages (350 et 420 Mo, mis en cache pour la journée). `--cache` les
 réutilise, et sans lui il faut compter le téléchargement en plus.
 
 La réingestion complète se lance aussi en intégration continue : workflow

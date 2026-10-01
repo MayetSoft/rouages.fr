@@ -193,6 +193,8 @@ export interface AcheteurMarches {
   natureLibelle: string | null;
   /** Nombre total de marchés notifiés depuis `depuis`, avant troncature. */
   total: number;
+  /** Le SIRET sous lequel l'acheteur notifie le plus de marchés, quand les données en donnent un. */
+  siret: string | null;
   /** Les plus récents seulement. */
   liste: Marche[];
 }
@@ -620,7 +622,7 @@ type MarchesDep = {
   maj: string;
   procedures: string[];
   com: Record<string, string>;
-  h: Record<string, { n: number; m: { objet: string; montant: number | null; date: string; procedure: number; lots: number }[] }>;
+  h: Record<string, { n: number; s?: string; m: { objet: string; montant: number | null; date: string; procedure: number; lots: number }[] }>;
 };
 interface FichierFlux {
   annees: number[];
@@ -939,6 +941,7 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
       nom,
       natureLibelle,
       total: e.n,
+      siret: e.s ?? null,
       liste: e.m.map((m) => ({
         objet: m.objet,
         montant: m.montant,

@@ -426,6 +426,21 @@ export const Surveillance = z.object({
   ]),
   url: z.string().min(3),
   /**
+   * La licence sous laquelle le producteur publie le jeu, vérifiée sur sa fiche
+   * et non supposée : la Licence Ouverte d'Etalab dans sa version 2.0 ou 1.0
+   * (« licence-ouverte » quand le producteur ne précise pas la version), l'ODbL,
+   * qui impose de republier sous la même licence toute base qu'on en dérive,
+   * « variable » quand chaque publieur choisit la sienne, « non-precisee »
+   * quand la fiche n'en dit rien. /mentions l'affiche jeu par jeu.
+   */
+  licence: z.enum(['licence-ouverte-2.0', 'licence-ouverte-1.0', 'licence-ouverte', 'odbl', 'variable', 'non-precisee']),
+  /**
+   * Pour un jeu sous ODbL : les fichiers de `public/territoires/` qui en
+   * dérivent, et qui sont donc republiés sous ODbL eux aussi. Exigé par
+   * `scripts/valider.ts`, affiché sur /mentions.
+   */
+  fichiers: z.array(z.string()).optional(),
+  /**
    * Pour `ofgl-millesime` : l'échelon des repères que cette base alimente.
    *
    * L'OFGL publie un jeu par échelon, et un agrégat peut disparaître de l'un

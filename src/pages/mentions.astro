@@ -28,8 +28,24 @@ const jeux = [...g.surveillances.values()]
     nom: s.nom,
     alimente: s.alimente,
     lien: s.lien ? g.sources.get(s.lien) : undefined,
+    licence: s.licence,
+    fichiers: s.fichiers ?? [],
   }))
   .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+
+// Les licences, dans l'ordre où elles engagent le plus : l'ODbL d'abord, parce
+// qu'elle oblige le site à republier sous la même licence ce qu'il en tire.
+const LICENCES = [
+  { code: 'odbl', nom: 'Open Database License (ODbL)', url: 'https://opendatacommons.org/licenses/odbl/1-0/' },
+  { code: 'licence-ouverte-2.0', nom: 'Licence Ouverte 2.0', url: 'https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf' },
+  { code: 'licence-ouverte-1.0', nom: 'Licence Ouverte 1.0', url: 'https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf' },
+  { code: 'licence-ouverte', nom: 'Licence Ouverte, sans version précisée', url: 'https://www.etalab.gouv.fr/licence-ouverte-open-licence' },
+  { code: 'variable', nom: 'Licence choisie par chaque publieur', url: null },
+  { code: 'non-precisee', nom: 'Licence non précisée par le producteur', url: null },
+] as const;
+const parLicence = LICENCES.map((l) => ({ ...l, jeux: jeux.filter((j) => j.licence === l.code) })).filter((l) => l.jeux.length > 0);
+const nb = (code: string) => jeux.filter((j) => j.licence === code).length;
+const ouvertes = nb('licence-ouverte-2.0') + nb('licence-ouverte-1.0') + nb('licence-ouverte');
 ---
 
 <Base
@@ -115,34 +131,57 @@ const jeux = [...g.surveillances.values()]
       être repris, et réciproquement.
     </p>
     <p class="mesure">
-      Les <strong>données</strong> republiées ne sont pas couvertes par cette
-      licence. Elles restent sous celle de leur producteur, et toutes celles que
-      le site réutilise sont sous <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/">Licence
-      Ouverte</a> — vérifié jeu par jeu. Elle n’impose qu’une chose&nbsp;:
-      mentionner la source et la date de sa dernière mise à jour. C’est fait
-      dans le site lui-même, sous chaque bloc de chiffres, et rappelé ci-dessous.
+      Les <strong>données</strong> republiées ne sont pas couvertes par ces
+      licences. Elles restent sous celle de leur producteur, relevée sur la
+      fiche de chaque jeu et non supposée&nbsp;: {ouvertes} des {jeux.length} jeux
+      sont sous <strong>Licence Ouverte</strong> d’Etalab, qui n’impose que de
+      citer la source et la date de sa dernière mise à jour — c’est fait sous
+      chaque bloc de chiffres.
     </p>
-    <p class="mesure">
-      <strong>Aucun jeu sous ODbL n’est réutilisé.</strong> La distinction
-      compte&nbsp;: l’ODbL impose un partage à l’identique de la base dérivée,
-      incompatible avec la diffusion du reste du site sous CC BY-SA. Le découpage
-      administratif d’Etalab, qui reprenait autrefois des codes postaux sous
-      ODbL, est désormais entièrement en Licence Ouverte.
-    </p>
+    {nb('odbl') > 0 && (
+      <p class="mesure">
+        <strong>{nb('odbl')} jeux sont sous ODbL.</strong> C’est aussi une
+        licence ouverte, avec une obligation de plus&nbsp;: toute base qu’on en
+        dérive se republie sous la même licence. Les fichiers de données que le
+        site en tire, publiés dans <a href={DEPOT}>son dépôt</a>, sont donc sous
+        ODbL&nbsp;; ils sont nommés ci-dessous, jeu par jeu, dans
+        <code>public/territoires/</code> — <code>XX</code> y tient la place du
+        département.
+      </p>
+    )}
+    {(nb('variable') > 0 || nb('non-precisee') > 0) && (
+      <p class="mesure">
+        Deux cas restent à part, et sont dits comme tels&nbsp;: les jeux dont
+        chaque publieur choisit la licence, et ceux dont la fiche n’en précise
+        aucune. Le site les cite comme les autres.
+      </p>
+    )}
 
     <h2 class="badge">Les {jeux.length} jeux de données réutilisés</h2>
     <p class="mesure">
       Cette liste est celle que la veille surveille chaque semaine&nbsp;: elle ne
-      peut pas se désynchroniser de ce que le site ingère réellement.
+      peut pas se désynchroniser de ce que le site ingère réellement. Chaque jeu
+      est rangé sous sa licence.
     </p>
-    <ul class="mentions-jeux">
-      {jeux.map((j) => (
-        <li>
-          {j.lien ? <a href={j.lien.url}>{j.nom}</a> : <span>{j.nom}</span>}
-          <span class="mentions-usage">alimente {j.alimente}</span>
-        </li>
-      ))}
-    </ul>
+    {parLicence.map((l) => (
+      <>
+        <h3 class="mentions-licence">
+          {l.url ? <a href={l.url}>{l.nom}</a> : l.nom}
+          <span class="mentions-usage">{` · ${l.jeux.length} jeu${l.jeux.length > 1 ? 'x' : ''}`}</span>
+        </h3>
+        <ul class="mentions-jeux">
+          {l.jeux.map((j) => (
+            <li>
+              {j.lien ? <a href={j.lien.url}>{j.nom}</a> : <span>{j.nom}</span>}
+              <span class="mentions-usage">alimente {j.alimente}</span>
+              {j.fichiers.length > 0 && (
+                <span class="mentions-usage">{`republié sous ODbL dans ${j.fichiers.join(', ')}`}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </>
+    ))}
 
     <h2 class="badge">Responsabilité</h2>
     <p class="mesure">
