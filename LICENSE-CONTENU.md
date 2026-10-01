@@ -1,6 +1,7 @@
 # Licence du contenu
 
-Le **code** de ce dépôt est sous licence MIT — voir [`LICENSE`](LICENSE).
+Le **code** de ce dépôt est sous licence GNU AGPL 3.0 ou ultérieure, © 2026
+MayetCo SAS — voir [`LICENSE`](LICENSE).
 
 Le **contenu éditorial** — ce qui est dans `contenu/`, c'est-à-dire les
 acteurs, les compétences, les processus, les flux, les documents, le glossaire

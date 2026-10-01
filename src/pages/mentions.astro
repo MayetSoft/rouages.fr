@@ -14,6 +14,7 @@
 import Base from '../layouts/Base.astro';
 import { chargerGraphe } from '../modele/graphe.ts';
 import { ATTENTE_EDITEUR } from '../modele/schemas.ts';
+import { DEPOT } from '../modele/signalement.ts';
 
 const g = chargerGraphe();
 const editeur = g.editeur;
@@ -105,7 +106,9 @@ const jeux = [...g.surveillances.values()]
 
     <h2 class="badge">Licences</h2>
     <p class="mesure">
-      Le <strong>code</strong> est sous licence MIT. Le <strong>contenu
+      Le <strong>code</strong> est sous licence <a href="https://www.gnu.org/licenses/agpl-3.0.fr.html">GNU
+      AGPL 3.0</a> ou ultérieure, titulaire MayetCo SAS, et ses sources sont
+      publiées sur <a href={DEPOT}>GitHub</a>. Le <strong>contenu
       éditorial</strong> — acteurs, compétences, processus, flux, glossaire — est
       sous <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr">CC
       BY-SA 4.0</a>, la licence de Wikipédia&nbsp;: ce qui est écrit ici peut y

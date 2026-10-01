@@ -55,10 +55,11 @@ navigateurs sans JS voient tout le réseau.
 
 ## Points à trancher
 
-1. **Licence.** Proposition : contenu en **CC BY-SA 4.0** (compatible avec la
-   réutilisation depuis et vers Wikipédia), code en **MIT**. À confirmer : une
-   licence *share-alike* impose la réciprocité aux réutilisateurs, ce qui est
-   sans doute souhaitable ici, mais freine certains usages commerciaux (presse).
+1. **Licence.** *Tranché.* Contenu en **CC BY-SA 4.0** (compatible avec la
+   réutilisation depuis et vers Wikipédia) ; code en **GNU AGPL 3.0 ou
+   ultérieure**, titulaire MayetCo SAS, depuis le 1er octobre 2026 — il était
+   en MIT jusque-là. L'AGPL étend la réciprocité au service en ligne : qui
+   fait tourner une version modifiée pour d'autres en publie les sources.
 2. **Dépôt public ou privé.** Public dès maintenant permet la contribution et
    la crédibilité ; privé jusqu'à la phase 1 évite d'exposer des brouillons non
    vérifiés. Recommandation : **public dès la phase 1 publiée**.
