@@ -293,6 +293,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
   titre={titre}
   description={description}
   flux={journal.length > 0 ? `/commune/${commune.code}-flux.xml` : undefined}
+  section="chez-moi"
 >
   <div class="page page--etroite">
     <p class="badge">Commune · {commune.depNom}{region ? ` · ${region}` : ''}</p>

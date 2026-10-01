@@ -69,6 +69,7 @@ const nf = (v: number) => v.toLocaleString('fr-FR');
 <Base
   titre={e.nom}
   description={`${e.natureLibelle} de ${nf(n)} commune${n > 1 ? 's' : ''} : ce que ses communes lui ont transféré, ce qu’elle encaisse et dépense${annee ? ` en ${annee}` : ''}, et ce qu’elle perçoit.`}
+  section="chez-moi"
 >
   <div class="page page--etroite">
     <p class="badge">

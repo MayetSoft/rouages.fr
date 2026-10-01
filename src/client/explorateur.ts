@@ -846,7 +846,7 @@ function demarrer(reseau: Reseau) {
     const signaler = document.createElement('p');
     signaler.className = 'p-signaler';
     const vers = document.createElement('a');
-    vers.href = urlSignaler(undefined, territoire?.commune.code, '/');
+    vers.href = urlSignaler(undefined, territoire?.commune.code, '/fonctionnement');
     vers.textContent = 'Signaler une erreur';
     signaler.append(vers);
     panneau.append(signaler);

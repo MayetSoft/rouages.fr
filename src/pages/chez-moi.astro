@@ -1,0 +1,60 @@
+---
+/**
+ * Les données de chez moi : l'entrée par le territoire.
+ *
+ * Un champ unique pour la commune, l'intercommunalité, le département ou la
+ * région, puis, pour qui préfère parcourir — ou n'a pas JavaScript —, les
+ * régions et les départements en liste, et le chemin vers toutes les communes.
+ */
+import Base from '../layouts/Base.astro';
+import ChampTerritoire from '../composants/ChampTerritoire.astro';
+import { collectivitesPour, lienCollectivite } from '../modele/fiche-commune.ts';
+import { communes } from '../modele/territoires.ts';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const coll = collectivitesPour(filtre);
+const regions = coll.filter((c) => c.echelon === 'region').sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+const departements = coll
+  .filter((c) => c.echelon === 'departement')
+  .sort((a, b) => a.code.localeCompare(b.code, 'fr', { numeric: true }));
+const nCommunes = communes().length;
+const mayet = !filtre || filtre.length === 0 || filtre.includes('03');
+---
+<Base
+  titre="Les données de chez moi"
+  description="Votre commune, votre intercommunalité, votre département ou votre région : qui y exerce quoi, ses comptes, ses services, ses écoles, ses risques et son élection."
+  section="chez-moi"
+>
+  <div class="page page--etroite">
+    <p class="badge">Données de chez moi</p>
+    <h1>Les données de chez moi</h1>
+    <p class="resume">
+      {`Chaque commune de France a sa page — ${nCommunes.toLocaleString('fr-FR')} en tout —, comme chaque intercommunalité, chaque département et chaque région. On y trouve qui décide quoi sur place, et ce que disent les données publiques : les comptes, les écoles, les services, les risques, l’élection.`}
+    </p>
+
+    <ChampTerritoire id="chez-moi-champ" />
+
+    {mayet && (
+      <p class="cm-exemple">
+        Pour voir à quoi ressemble une page&nbsp;: <a href="/commune/03165">Le Mayet-de-Montagne</a>, dans l’Allier.
+        Et pour mettre deux communes côte à côte&nbsp;: <a href="/comparer">comparer</a>.
+      </p>
+    )}
+
+    <h2 class="badge">Les régions</h2>
+    <ul class="cm-grille">
+      {regions.map((r) => <li><a href={lienCollectivite(r)}>{r.nom}</a></li>)}
+    </ul>
+
+    <h2 class="badge">Les départements</h2>
+    <ul class="cm-grille">
+      {departements.map((d) => <li><a href={lienCollectivite(d)}>{`${d.code} · ${d.nom}`}</a></li>)}
+    </ul>
+
+    <h2 class="badge">Les communes et les intercommunalités</h2>
+    <p class="mesure">
+      Toutes les communes sont rangées par département dans <a href="/communes">la liste des communes</a>.
+      La page de chaque commune mène à son intercommunalité.
+    </p>
+  </div>
+</Base>

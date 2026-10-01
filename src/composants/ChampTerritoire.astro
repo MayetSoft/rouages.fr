@@ -1,0 +1,30 @@
+---
+/**
+ * Le grand champ de recherche des « Données de chez moi » : une commune, un
+ * code postal, une intercommunalité, un département ou une région. Sans
+ * JavaScript, la liste des territoires de la page `/chez-moi` prend le relais.
+ */
+interface Props {
+  id: string;
+  etiquette?: string;
+}
+const { id, etiquette = 'Votre commune, son code postal, votre intercommunalité, votre département…' } = Astro.props;
+---
+<div class="cm-champ">
+  <label for={id}>{etiquette}</label>
+  <input
+    id={id}
+    type="search"
+    placeholder="Le Mayet-de-Montagne, 03250, Allier…"
+    autocomplete="off"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-expanded="false"
+    aria-controls={`${id}-liste`}
+  />
+  <ul id={`${id}-liste`} class="cm-liste" role="listbox" aria-label="Territoires trouvés"></ul>
+</div>
+<script>
+  import { brancherChezMoi } from '../client/chez-moi.ts';
+  for (const champ of document.querySelectorAll<HTMLInputElement>('.cm-champ input')) brancherChezMoi(champ.id);
+</script>

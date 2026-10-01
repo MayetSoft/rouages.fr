@@ -2665,6 +2665,29 @@ environnement, le tunnel coupe les gros fichiers de l'INSEE servis compressés,
 qui n'annoncent pas leur longueur : ils ont été repris par `curl -C -`, puis
 contrôlés par `unzip -t`.
 
+### Trois portes : l'accueil, le fonctionnement, les données de chez moi ✔
+
+La carte du réseau était la page d'accueil, et les retours disaient qu'elle
+faisait peur : des centaines de nœuds et de traits avant d'avoir compris à
+quoi ils servent. Le site a désormais trois sections, et l'en-tête les nomme :
+
+- **L'accueil** (`/`) explique en une phrase ce que fait le site, propose
+  aussitôt de chercher sa commune, puis ouvre deux portes. Il dit ce qu'on
+  trouve sur une page de commune, pose trois questions qui mènent à des
+  fiches (l'eau, les collèges, le permis de construire) et rappelle les
+  engagements : sources citées, personne de nommé.
+- **Le fonctionnement** (`/fonctionnement`) commence par la carte, et réunit
+  ce qui l'accompagne sous un sous-menu : les pouvoirs, le glossaire, la
+  méthode ; les fiches de nœud en font partie. L'ancienne adresse `/#nœud`
+  renvoie au même nœud dans la carte.
+- **Les données de chez moi** (`/chez-moi`) : un seul champ pour une commune,
+  un code postal, une intercommunalité, un département ou une région, puis les
+  régions et les départements en liste. Les communes viennent de l'index déjà
+  classé par `verifier-recherche` ; les autres territoires d'un petit fichier,
+  `/territoires-autres.json`, chargé à la première frappe. Un nom exact passe
+  devant : « Allier » donne le département avant la commune des
+  Hautes-Pyrénées, « 03 » donne l'Allier.
+
 ## Plan d'octobre 2026 : sept lots
 
 Toutes les pistes proposées après les PR #10 et #11 ont été retenues. Elles sont

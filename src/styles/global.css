@@ -111,6 +111,14 @@ h1, h2, h3 { letter-spacing: -0.014em; }
 .marque { font-weight: 680; text-decoration: none; color: var(--encre); letter-spacing: -0.02em; }
 .baseline { color: var(--encre-douce); font-size: .82rem; }
 .bandeau nav { margin-left: auto; display: flex; gap: 1rem; font-size: .85rem; }
+.bandeau nav a[aria-current="page"] { color: var(--encre); font-weight: 600; text-decoration: none; }
+/* Le sous-menu du fonctionnement : une ligne fine sous l'en-tête. Sa hauteur
+   est fixe, parce que la carte occupe ce que l'en-tête laisse de l'écran. */
+.bandeau .sous-nav {
+  margin: 0; display: flex; gap: 1.1rem; align-items: center; height: 2.1rem; overflow-x: auto;
+  padding: 0 1.1rem; border-top: 1px solid var(--trait); background: var(--fond-bande); font-size: .82rem;
+  white-space: nowrap;
+}
 
 /* --- trouver une commune, depuis n'importe quelle page --- */
 .entete-commune { position: relative; font-size: .85rem; }
@@ -239,6 +247,7 @@ button.rond { width: 1.9rem; padding: .1rem 0; font-size: 1rem; line-height: 1.3
  * ------------------------------------------------------------------ */
 
 .explorateur { display: grid; grid-template-columns: 1fr 23rem; height: calc(100vh - 6.9rem); min-height: 32rem; }
+.avec-sous-nav .explorateur { height: calc(100vh - 9rem); }
 .scene { position: relative; overflow: hidden; background: var(--fond); }
 #toile { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #toile.deplace { cursor: grabbing; }
@@ -829,6 +838,7 @@ footer p { max-width: var(--mesure); margin: 0 0 .5rem; }
     height: calc(100dvh - 15.5rem); min-height: 20rem;
     border-bottom: 1px solid var(--trait);
   }
+  .avec-sous-nav .scene { height: calc(100dvh - 17.6rem); }
   #panneau { border-left: 0; }
   .outils { gap: .45rem .7rem; }
   .champ-recherche input { width: 100%; max-width: none; }
@@ -1003,4 +1013,49 @@ a.p-sommaire-lien { text-decoration: none; }
 .comparer-colonne h3 { font-size: 1rem; margin: 0 0 .5rem; }
 @media (max-width: 760px) {
   .comparer-choix, .comparer-grille { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------------------------ *
+ * L'accueil et les données de chez moi
+ * ------------------------------------------------------------------ */
+
+.accueil h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); max-width: 22ch; }
+.accueil-chapo { font-size: 1.12rem; }
+.cm-champ { position: relative; max-width: 36rem; margin: 0 0 .6rem; }
+.cm-champ label { display: block; font-weight: 600; margin-bottom: .35rem; }
+.cm-champ input {
+  font: inherit; font-size: 1.05rem; width: 100%; padding: .65rem 1rem;
+  border: 1px solid var(--trait-fort); border-radius: 999px; background: var(--fond-carte); color: var(--encre);
+}
+.cm-champ input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cm-liste {
+  position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + .3rem);
+  margin: 0; padding: .25rem; list-style: none; background: var(--fond-carte);
+  border: 1px solid var(--trait); border-radius: var(--rayon); box-shadow: 0 10px 30px rgb(0 0 0 / .14);
+}
+.cm-liste:empty { display: none; }
+.cm-liste a {
+  display: grid; grid-template-columns: 8.5rem 1fr; gap: 0 .7rem; padding: .45rem .6rem;
+  border-radius: calc(var(--rayon) - 2px); color: var(--encre); text-decoration: none;
+}
+.cm-liste [aria-selected="true"] a, .cm-liste a:hover { background: var(--accent-doux); }
+.cm-genre { grid-row: span 2; color: var(--encre-tres-douce); font-size: .78rem; padding-top: .15rem; }
+.cm-nom { font-weight: 600; }
+.cm-detail { color: var(--encre-douce); font-size: .82rem; }
+.cm-exemple { color: var(--encre-douce); font-size: .92rem; margin: 0 0 2rem; }
+.cm-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .3rem 1.2rem; padding: 0; list-style: none; margin: 0 0 2rem; }
+.accueil-portes { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; margin: 0 0 2.4rem; }
+.accueil-porte {
+  display: flex; flex-direction: column; gap: .4rem; padding: 1.1rem 1.2rem;
+  border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--fond-carte);
+  color: var(--encre-douce); text-decoration: none;
+}
+.accueil-porte:hover, .accueil-porte:focus-visible { border-color: var(--accent); }
+.accueil-porte-titre { color: var(--accent); font-weight: 650; font-size: 1.15rem; }
+.accueil-themes { max-width: var(--mesure); padding-left: 1.1rem; }
+.accueil-themes li { margin-bottom: .45rem; }
+.accueil-questions { padding-left: 1.1rem; margin-bottom: 2rem; }
+@media (max-width: 600px) {
+  .cm-liste a { grid-template-columns: 1fr; }
+  .cm-genre { grid-row: auto; }
 }
