@@ -77,8 +77,8 @@ permis parce qu'un annuaire est devenu lisible.
 ### Les adjoints et les entrepreneurs individuels (1er octobre 2026)
 
 Le site nomme désormais, en plus du maire, **ses adjoints** et **les
-entrepreneurs individuels** de la commune. Les conditions — source liée,
-aucune conclusion, minimisation, pas d'index par personne, retrait possible —
+entrepreneurs individuels** de la commune. Les conditions — registre dont la
+finalité couvre l'usage, source liée, aucune conclusion, retrait possible —
 sont dans `CLAUDE.md`, « Les noms dans les données ». Voici la justification
 de chacun, que la règle exige avant la collecte.
 
@@ -95,11 +95,20 @@ de chacun, que la règle exige avant la collecte.
   n'est pas nommé, et une procédure collective — la défaillance d'une personne
   — reste comptée, pas nommée.
 
-Le risque principal n'est pas la publication, c'est le rapprochement. Un nom
-seul ne fait pas une identité : sans identifiant commun entre le répertoire
-des élus et SIRENE, rapprocher un adjoint d'une entreprise sur son seul nom
-produirait des faux rapprochements, et un faux rapprochement entre un élu et
-un marché public est une diffamation. Le site ne le fait pas automatiquement.
+**Révision du même jour, après relecture.** Deux conditions de la première
+version sont levées : la minimisation (ni adresse, ni date de naissance, ni
+âge) et l'interdiction d'indexer une personne ou de la rapprocher d'une source
+à l'autre. Pappers le fait couramment pour les dirigeants, et la finalité est
+la même : savoir qui exerce quoi. La date de naissance reste limitée au mois
+et à l'année, comme l'INPI la diffuse.
+
+Ce qui reste à tenir relève de l'autre règle, celle des chiffres : un
+rapprochement est une affirmation, et on ne publie pas ce qu'on n'a pas
+vérifié. Il n'existe pas d'identifiant commun entre le répertoire des élus et
+SIRENE, et les homonymes sont nombreux. Un rapprochement faux entre un élu et
+une entreprise qui a obtenu un marché serait diffamatoire. La collecte qui
+rapproche dit donc sur quoi elle s'appuie — le nom seul, ou le nom avec le
+mois et l'année de naissance et la commune — et la page le montre.
 
 ## 4. Risques juridiques directs
 
