@@ -92,7 +92,7 @@ export interface ConseilCommune {
   /** Lignes du répertoire rattachées à la commune au conseil communautaire — non publié, voir l'en-tête. */
   cc: number;
   /** Les adjoints, dans l'ordre du tableau : fonction, prénom, nom, date de prise de fonction. */
-  a?: [string, string, string, string][];
+  a?: [string, string, string, string, string?][];
 }
 
 /** Le rang d'une fonction dans le tableau : 1er adjoint, 2e…, puis les maires délégués. */
@@ -186,6 +186,8 @@ export async function collecterConseils(
         (l["Prénom de l'élu"] ?? '').trim(),
         (l["Nom de l'élu"] ?? '').trim(),
         (l['Date de début de la fonction'] ?? '').trim(),
+        // L'année de naissance seule : le répertoire publie le jour, on ne le reprend pas.
+        /^(\d{4})-/.exec((l['Date de naissance'] ?? '').trim())?.[1] ?? '',
       ]);
       adjoints++;
     }

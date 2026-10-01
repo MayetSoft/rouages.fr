@@ -345,6 +345,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         {moisAnnee(fiche.maire.depuis) && (
           <span class="p-maire-depuis">mandat en cours depuis {moisAnnee(fiche.maire.depuis)}</span>
         )}
+        {fiche.maire.naissance && <span class="p-maire-depuis">{`année de naissance ${fiche.maire.naissance}`}</span>}
       </p>
     )}
 
@@ -356,6 +357,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             <li>
               <span class="p-adjoint-fonction">{fonctionCourte(a.fonction)}</span>
               <span class="p-adjoint-nom">{`${a.prenom} ${a.nom}`}</span>
+              {a.naissance && <span class="p-adjoint-naissance">{`naissance ${a.naissance}`}</span>}
             </li>
           ))}
         </ul>

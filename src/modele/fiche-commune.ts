@@ -277,8 +277,9 @@ export interface CollectiviteDelibere {
 }
 
 /**
- * Le dernier scrutin municipal. Aucune nuance politique, aucun nom de
- * candidat : le fichier des résultats par commune n'en porte pas.
+ * Le dernier scrutin municipal, et ses listes avec la nuance que le ministère
+ * leur attribue (depuis le 1er octobre 2026). Aucun nom de candidat : le
+ * fichier des résultats par commune n'en porte pas.
  */
 export interface Scrutin {
   nom: string;
@@ -292,6 +293,12 @@ export interface Scrutin {
     blancs: number | null;
     nuls: number | null;
     listes: number;
+    /**
+     * Les listes, dans l'ordre des voix. `nuance` est le libellé du référentiel
+     * du ministère, `code` son abréviation ; tous deux nuls là où le préfet n'en
+     * attribue pas, sous 3 500 habitants hors chef-lieu d'arrondissement.
+     */
+    parListe: { nom: string; code: string | null; nuance: string | null; voix: number; part: number; sieges: number }[];
     medianeParticipation: number;
     medianeRefus: number;
   }[];
@@ -556,17 +563,30 @@ type RevenusDep = {
   c: Record<string, [number | null, number | null]>;
 };
 type EtatCivilDep = { maj: string; annees: number[]; c: Record<string, [(number | null)[], (number | null)[]]> };
+type TourDep = {
+  inscrits: number;
+  votants: number;
+  exprimes: number;
+  refus: number;
+  blancs?: number;
+  nuls?: number;
+  listes: number;
+  tete?: number;
+  /** Libellé, code de nuance, voix, sièges au conseil municipal. */
+  l?: [string, string, number, number][];
+};
 type ElectionsDep = {
   scrutin: string;
   maj: string;
+  nuances?: Record<string, string>;
   medianes: { participation: number; refus: number }[];
   listeUnique: number;
   medianeTete?: number;
   c: Record<
     string,
     {
-      t1: { inscrits: number; votants: number; exprimes: number; refus: number; blancs?: number; nuls?: number; listes: number; tete?: number };
-      t2?: { inscrits: number; votants: number; exprimes: number; refus: number; blancs?: number; nuls?: number; listes: number; tete?: number };
+      t1: TourDep;
+      t2?: TourDep;
       decisif?: 1 | 2;
       cm: number;
       cc: number;
@@ -1048,6 +1068,14 @@ function assemblerScrutin(commune: CommuneFiche, structures: StructureFiche[]): 
       blancs: t.blancs ?? null,
       nuls: t.nuls ?? null,
       listes: t.listes,
+      parListe: (t.l ?? []).map(([nom, code, voix, sieges]) => ({
+        nom,
+        code: code || null,
+        nuance: code ? (d.nuances?.[code] ?? null) : null,
+        voix,
+        part: t.exprimes > 0 ? (voix / t.exprimes) * 100 : 0,
+        sieges,
+      })),
       medianeParticipation: m?.participation ?? 0,
       medianeRefus: m?.refus ?? 0,
     };

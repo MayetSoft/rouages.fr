@@ -55,7 +55,7 @@ type ServicesDep = {
   sdis?: string;
   v?: Record<string, Record<string, { n: number; l: string[] }>>;
 };
-type ElusDep = { maj: string; c: Record<string, [string, string, string]> };
+type ElusDep = { maj: string; c: Record<string, [string, string, string, string?]> };
 type EcolesDep = { rentrees: number[]; h: Record<string, [(number | null)[], (number | null)[]]> };
 type SruDep = { maj: string; c: Record<string, Record<string, unknown>> };
 type RisquesDep = {
@@ -99,7 +99,7 @@ type ConseilsDep = {
   age: number;
   c: Record<
     string,
-    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number; a?: [string, string, string, string][] }
+    { n: number; f: number; age: [number, number, number]; p: [number, number][]; cc: number; a?: [string, string, string, string, string?][] }
   >;
 };
 
@@ -309,9 +309,10 @@ export interface Fiche {
   /** Compétence de Rouages -> ce qu'on peut en dire ici. */
   verdicts: Map<string, Verdict>;
   reserve: (competence: string) => string | null;
-  maire: { prenom: string; nom: string; depuis: string; maj: string } | null;
+  /** `naissance` : l'année seule, jamais le jour. */
+  maire: { prenom: string; nom: string; depuis: string; naissance: string | null; maj: string } | null;
   /** Les adjoints et maires délégués, dans l'ordre du tableau, d'après le répertoire national des élus. */
-  adjoints: { fonction: string; prenom: string; nom: string; depuis: string }[];
+  adjoints: { fonction: string; prenom: string; nom: string; depuis: string; naissance: string | null }[];
   /** La date du fichier des conseillers d'où viennent les adjoints. */
   adjointsMaj: string | null;
   services: {
@@ -557,9 +558,15 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
     verdicts,
     reserve: (comp) => m.reserves?.[comp] ?? null,
     maire: brutMaire
-      ? { prenom: brutMaire[0], nom: brutMaire[1], depuis: brutMaire[2], maj: elus!.maj }
+      ? { prenom: brutMaire[0], nom: brutMaire[1], depuis: brutMaire[2], naissance: brutMaire[3] || null, maj: elus!.maj }
       : null,
-    adjoints: (adjointsDep?.c[c.code]?.a ?? []).map(([fonction, prenom, nom, depuis]) => ({ fonction, prenom, nom, depuis })),
+    adjoints: (adjointsDep?.c[c.code]?.a ?? []).map(([fonction, prenom, nom, depuis, naissance]) => ({
+      fonction,
+      prenom,
+      nom,
+      depuis,
+      naissance: naissance || null,
+    })),
     adjointsMaj: adjointsDep?.maj ?? null,
     services,
     voisines: servs?.v?.[c.code] ?? {},

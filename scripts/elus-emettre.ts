@@ -13,9 +13,11 @@
  * dans les fichiers produits ici, depuis le Répertoire national des élus.
  *
  * **Minimisation.** Le répertoire publie aussi la date de naissance, le sexe et
- * la catégorie socio-professionnelle de chaque élu. Rien de tout cela ne sert à
- * savoir qui décide : on ne garde que le nom, le prénom et la date de prise de
- * fonction. Ce qui n'est pas collecté n'a pas à être protégé.
+ * la catégorie socio-professionnelle de chaque élu. On garde le nom, le prénom,
+ * la date de prise de fonction et, depuis le 1er octobre 2026, **l'année de
+ * naissance seule** : elle dit la génération de qui décide, le jour et le mois
+ * n'y ajoutent rien. Ni le sexe, ni la profession. Ce qui n'est pas collecté
+ * n'a pas à être protégé.
  *
  * **La péremption est le vrai risque.** Un nom périmé est pire qu'un nom
  * absent : il envoie écrire à quelqu'un qui n'est plus en fonction. D'où la
@@ -27,8 +29,9 @@
  * figure à la date du dernier scrutin, et le site écrit donc « mandat en cours
  * depuis » plutôt qu'« en fonction depuis », qui serait faux pour lui.
  */
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { eluRetire } from './retraits.ts';
 
 /**
@@ -46,6 +49,8 @@ interface Maire {
   prenom: string;
   /** Début du mandat en cours : c'est elle qui date la réponse, pas l'ancienneté. */
   depuis: string;
+  /** L'année de naissance, ou une chaîne vide. */
+  naissance: string;
 }
 
 export interface Elus {
@@ -79,12 +84,13 @@ export async function collecterMaires(
       if (!code || !nom) continue;
       // Une opposition reçue : la commune garde son maire, sans nom.
       if (eluRetire(code, 'Maire')) continue;
-      // Ni date de naissance, ni sexe, ni catégorie socio-professionnelle :
-      // le répertoire les publie, ils ne servent pas ici.
+      // Ni le jour de naissance, ni le sexe, ni la catégorie
+      // socio-professionnelle : le répertoire les publie, ils ne servent pas ici.
       parCommune.set(code, {
         nom,
         prenom,
         depuis: String(l['Date de début de la fonction'] ?? l['Date de début du mandat'] ?? ''),
+        naissance: /^(\d{4})-/.exec(String(l['Date de naissance'] ?? ''))?.[1] ?? '',
       });
     }
   };
@@ -107,15 +113,41 @@ export async function collecterMaires(
 
 /** Un fichier par département, comme le reste. */
 export function ecrireElus(sortie: string, dep: string, codes: string[], elus: Elus): number {
-  const c: Record<string, [string, string, string]> = {};
+  const c: Record<string, [string, string, string, string?]> = {};
   let n = 0;
   for (const code of [...codes].sort()) {
     const m = elus.parCommune.get(code);
     if (!m) continue;
-    c[code] = [m.prenom, m.nom, m.depuis];
+    c[code] = m.naissance ? [m.prenom, m.nom, m.depuis, m.naissance] : [m.prenom, m.nom, m.depuis];
     n++;
   }
   if (n === 0) return 0;
   writeFileSync(join(sortie, 'dep', `${dep}-elus.json`), JSON.stringify({ dep, maj: elus.maj, c }));
   return n;
+}
+
+// Lancé seul : relit le répertoire des maires et réécrit `dep/XX-elus.json`.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const sortie = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'public', 'territoires');
+  const json = async <T,>(url: string): Promise<T> => {
+    for (let essai = 1; ; essai++) {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`${url} : ${r.status}`);
+        return (await r.json()) as T;
+      } catch (e) {
+        if (essai >= 4) throw e;
+        await new Promise((ok) => setTimeout(ok, 2000 * essai));
+      }
+    }
+  };
+  const elus = await collecterMaires(json, console.log);
+  if (elus) {
+    const index = JSON.parse(readFileSync(join(sortie, 'index.json'), 'utf8')) as { c: [string, string, string, string, number][] };
+    const parDep = new Map<string, string[]>();
+    for (const [code, , , dep] of index.c) parDep.set(dep, [...(parDep.get(dep) ?? []), code]);
+    let n = 0;
+    for (const [dep, codes] of parDep) n += ecrireElus(sortie, dep, codes, elus);
+    console.log(`${n} communes écrites.`);
+  }
 }
