@@ -75,8 +75,8 @@ const fiches = reseau.noeuds.map((n) => {
 
     <h2 class="badge" id="retrait">Ne plus être nommé</h2>
     <p>
-      Le site nomme le maire et ses adjoints, les entreprises dont le BODACC
-      publie une annonce, et les titulaires des marchés publics — <a
+      Le site nomme les élus municipaux, les entreprises dont le BODACC publie
+      une annonce, et les titulaires des marchés publics — <a
         href="/mentions">les mentions</a
       > disent d’où et à quelles conditions. Pour demander à ne plus y figurer,
       n’ouvrez pas d’issue publique&nbsp;: écrivez à l’éditeur{courriel ? (
@@ -86,9 +86,11 @@ const fiches = reseau.noeuds.map((n) => {
     <p class="v-nature">
       La demande n’est pas discutée en public et n’a pas à être motivée. Le
       dépôt n’en garde que l’identifiant — le numéro SIREN d’une entreprise, ou
-      la commune et la fonction d’un élu —, jamais le nom, et la mise à jour
-      suivante des données cesse de l’afficher. La source d’origine, elle,
-      continue de publier : le BODACC et le répertoire des élus relèvent de leurs
+      la commune et la fonction d’un élu ; pour un conseiller sans fonction,
+      une empreinte HMAC calculée avec une clé privée —, jamais le nom, et la
+      mise à jour suivante des données cesse de l’afficher. Les sources
+      d’origine continuent de publier : le BODACC, le répertoire des élus, les
+      données essentielles de la commande publique et SIRENE relèvent de leurs
       propres éditeurs.
     </p>
 
