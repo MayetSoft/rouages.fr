@@ -81,6 +81,30 @@ if (maisons && maisons.prixMaison !== null) {
   });
 }
 
+// Le loyer d'annonce d'un appartement type, au centime comme dans le bloc.
+const loyer = vie.loyers?.appartement ?? vie.loyers?.maison;
+if (loyer && vie.loyers) {
+  const quoi = vie.loyers.appartement ? 'appartement de 52 m²' : 'maison de 92 m²';
+  cartes.push({
+    id: 'loyers',
+    nom: 'Loyer d’annonce',
+    valeur: `${loyer.euros.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/m²`,
+    detail: `${quoi}, charges comprises`,
+  });
+}
+
+// L'accueil des tout-petits, à l'échelle que le bloc annonce.
+const pe = vie.petiteEnfance;
+if (pe) {
+  const un = (v: number) => v.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+  cartes.push({
+    id: 'petite-enfance',
+    nom: 'Accueil des moins de 3 ans',
+    valeur: `${un(pe.taux.global)} places pour 100`,
+    detail: `${pe.echelle === 'commune' ? 'dans la commune' : 'dans l’intercommunalité'} ; France ${un(pe.france.global)}`,
+  });
+}
+
 // La fibre : la part des locaux raccordables, arrondie comme dans le bloc.
 const fibre = vie.fibre;
 if (fibre && fibre.locaux > 0) {
@@ -109,6 +133,36 @@ if (fonctionnement && fonctionnement.valeur !== null) {
     nom: 'Dépenses de fonctionnement',
     valeur: `${euros(fonctionnement.valeur)} par habitant`,
     detail: fonctionnement.mediane !== null ? `médiane de la strate ${euros(fonctionnement.mediane)}` : null,
+  });
+}
+
+// Ce que l'État a subventionné, en investissement, sur la période du bloc.
+const inv = vie.investissement;
+if (inv && inv.projets.length > 0) {
+  const total = inv.projets.reduce((t, p) => t + p.subvention, 0);
+  cartes.push({
+    id: 'investissement',
+    nom: 'Projets subventionnés par l’État',
+    valeur: euros(total),
+    detail: `${nb(inv.projets.length)} projet${inv.projets.length > 1 ? 's' : ''}, ${inv.exercices[0]} à ${inv.exercices.at(-1)}`,
+  });
+}
+
+// Le zonage le plus parlant : la montagne, sinon un programme de l'ANCT.
+const z = vie.zonages;
+if (z && (z.montagne !== 'non' || z.programmes.some((p) => ['pvd', 'acv', 'va'].includes(p)))) {
+  const prog = z.programmes.includes('pvd')
+    ? 'Petites villes de demain'
+    : z.programmes.includes('acv')
+      ? 'Action cœur de ville'
+      : z.programmes.includes('va')
+        ? 'Villages d’avenir'
+        : null;
+  cartes.push({
+    id: 'zonages',
+    nom: 'Programmes et zonages',
+    valeur: z.montagne === 'oui' ? 'Zone de montagne' : z.montagne === 'en partie' ? 'En partie en montagne' : prog!,
+    detail: z.montagne !== 'non' && prog ? prog : z.abc ? `zone ${z.abc} du zonage ABC` : null,
   });
 }
 

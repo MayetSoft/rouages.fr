@@ -11,8 +11,8 @@
  * petite commune montre donc celui de son intercommunalité, et le dit.
  *
  * Un seul fichier national, `public/territoires/petite-enfance.json` : la
- * dernière année publiée, la France, les intercommunalités par SIREN et les
- * communes par code.
+ * dernière année publiée, la France, les intercommunalités par SIREN, les
+ * communes par code, les départements et les régions par leur numéro.
  *
  * Lancé seul — `tsx scripts/petite-enfance-emettre.ts`.
  */
@@ -33,6 +33,9 @@ export interface PetiteEnfance {
   france: Couverture;
   epci: Record<string, Couverture>;
   communes: Record<string, Couverture>;
+  /** Par numéro de département (CAF) et de région (INSEE). */
+  departements: Record<string, Couverture>;
+  regions: Record<string, Couverture>;
 }
 
 type Ligne = Record<string, string | number | null>;
@@ -42,7 +45,13 @@ export async function collecterPetiteEnfance(
   dire: (m: string) => void,
 ): Promise<PetiteEnfance | null> {
   const toutes = async (jeu: string) => (await lireJson(`${API}/${jeu}/exports/json`)) as Ligne[];
-  const [nat, epci, com] = await Promise.all([toutes('txcouv_pe_nat'), toutes('txcouv_pe_epci'), toutes('txcouv_pe_com')]);
+  const [nat, epci, com, dep, reg] = await Promise.all([
+    toutes('txcouv_pe_nat'),
+    toutes('txcouv_pe_epci'),
+    toutes('txcouv_pe_com'),
+    toutes('txcouv_pe_dep'),
+    toutes('txcouv_pe_reg'),
+  ]);
   const annee = Math.max(...epci.map((l) => Number(l.annee) || 0));
   if (!annee) throw new Error('taux de couverture : aucune année');
   const valeurs = (l: Ligne, suffixe: string): Couverture | null => {
@@ -67,6 +76,16 @@ export async function collecterPetiteEnfance(
     const v = valeurs(l, 'com');
     if (code && v) parCommune[code] = v;
   }
+  const parDep: Record<string, Couverture> = {};
+  for (const l of dep) {
+    const v = Number(l.annee) === annee ? valeurs(l, 'dep') : null;
+    if (v && l.numdep) parDep[String(l.numdep).padStart(2, '0')] = v;
+  }
+  const parReg: Record<string, Couverture> = {};
+  for (const l of reg) {
+    const v = Number(l.annee) === annee ? valeurs(l, 'reg') : null;
+    if (v && l.numregi) parReg[String(l.numregi).padStart(2, '0')] = v;
+  }
   if (Object.keys(parEpci).length < 1000) {
     dire(`Accueil du jeune enfant : ${Object.keys(parEpci).length} intercommunalités seulement, on garde l’ingestion précédente.`);
     return null;
@@ -75,11 +94,11 @@ export async function collecterPetiteEnfance(
     `Accueil du jeune enfant ${annee} : ${Object.keys(parEpci).length} intercommunalités, ` +
       `${Object.keys(parCommune).length} communes, France ${france[0]} places pour 100 enfants.`,
   );
-  return { maj: new Date().toISOString().slice(0, 10), annee, france, epci: parEpci, communes: parCommune };
+  return { maj: new Date().toISOString().slice(0, 10), annee, france, epci: parEpci, communes: parCommune, departements: parDep, regions: parReg };
 }
 
 export function ecrirePetiteEnfance(sortie: string, p: PetiteEnfance): void {
-  writeFileSync(join(sortie, 'petite-enfance.json'), JSON.stringify({ maj: p.maj, annee: p.annee, france: p.france, e: p.epci, c: p.communes }));
+  writeFileSync(join(sortie, 'petite-enfance.json'), JSON.stringify({ maj: p.maj, annee: p.annee, france: p.france, e: p.epci, c: p.communes, d: p.departements, r: p.regions }));
 }
 
 // Lancé seul : réécrit le fichier national.

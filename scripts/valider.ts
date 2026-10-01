@@ -56,7 +56,7 @@ for (const p of g.processus.values()) {
 // Le glossaire affiche ses liens comme n'importe quelle fiche : les oublier
 // ici signalait comme orpheline une source pourtant bien citée.
 for (const s of g.sigles.values()) recolter(s.liens);
-for (const r of g.reperes.values()) recolter(r.liens);
+for (const r of g.reperes.values()) recolter(r.sens ? [...r.liens, r.sens.lien] : r.liens);
 // Les mentions légales citent chaque jeu surveillé par son lien : une source
 // qui n'apparaît que là est publiée, pas orpheline.
 for (const s of g.surveillances.values()) if (s.lien) citees.add(s.lien);

@@ -822,7 +822,7 @@ async function principal() {
 
   const { collecterInvestissement, ecrireInvestissement } = await import('./investissement-emettre.ts');
   const investissement = await tenter('Subventions d’investissement de l’État', () =>
-    collecterInvestissement(lireJson, enCache('DGCL — projets subventionnés (10 Mo)'), CACHE, grise),
+    collecterInvestissement(lireJson, enCache('DGCL — projets subventionnés (10 Mo)'), CACHE, grise, SORTIE),
   );
   if (investissement) grise(`${ecrireInvestissement(SORTIE, investissement)} départements de projets subventionnés écrits.`);
 

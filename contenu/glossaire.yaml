@@ -427,6 +427,11 @@ sigles:
     developpe: "Dotation d'équipement des territoires ruraux"
     definition: "Subvention d'investissement que le préfet accorde, projet par projet, aux communes et intercommunalités rurales."
     liens: [od-dgcl-investissement]
+  - id: sigle-dsid
+    sigle: DSID
+    developpe: "Dotation de soutien à l'investissement des départements"
+    definition: "Subvention d'investissement que l'État accorde aux départements, projet par projet."
+    liens: [od-dgcl-investissement]
   - id: sigle-dsil
     sigle: DSIL
     developpe: "Dotation de soutien à l'investissement local"

@@ -356,6 +356,22 @@ export const Repere = z.object({
    */
   principal: z.boolean().default(false),
   /**
+   * Le sens dans lequel un écart à la médiane est réputé favorable, pour les
+   * seuls postes où l'analyse financière publique en a un : l'épargne brute,
+   * qui finance l'investissement et la dette ; la dette et ce qu'elle coûte.
+   * Ailleurs — impôts, dotations, dépenses de personnel —, plus n'est ni mieux
+   * ni pire, et le site ne colore pas : il dit « au-dessus » ou « au-dessous ».
+   * `lecture` donne les deux mots qui accompagnent la couleur, pour qui ne la
+   * voit pas ; `lien`, la source de la convention.
+   */
+  sens: z
+    .object({
+      vers: z.enum(['haut', 'bas']),
+      lecture: z.tuple([z.string().min(3).max(40), z.string().min(3).max(40)]),
+      lien: Id,
+    })
+    .optional(),
+  /**
    * Les échelons dont les comptes portent ce poste. Les allocations de RSA ne
    * se trouvent que chez le département, les cartes grises que chez la région.
    * L'intercommunalité est celle à fiscalité propre, dont l'OFGL publie les

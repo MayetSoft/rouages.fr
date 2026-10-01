@@ -577,3 +577,5 @@ sources:
   - { id: od-caf-accueil-jeune-enfant, type: donnees_ouvertes, titre: "CNAF — taux de couverture d'accueil du jeune enfant, par intercommunalité et par commune", url: "https://data.caf.fr/explore/dataset/txcouv_pe_epci/", consulte_le: 2026-10-01 }
   - { id: od-zonage-abc, type: donnees_ouvertes, titre: "Ministère chargé du logement — liste des communes selon le zonage A, B, C", url: "https://www.data.gouv.fr/datasets/656715871172d08f8f680063/", consulte_le: 2026-10-01 }
   - { id: od-qpv, type: donnees_ouvertes, titre: "ANCT — quartiers prioritaires de la politique de la ville 2024", url: "https://www.data.gouv.fr/datasets/5a561801c751df42d7fca9b6/", consulte_le: 2026-10-01 }
+  # L'épargne brute finance l'investissement et le remboursement de la dette ; le délai de désendettement rapporte la dette à cette épargne.
+  - { id: ofgl-dossier-dette, type: page_officielle, titre: "OFGL — l'encours de dette des collectivités locales et son coût : épargne brute, délai de désendettement", url: "https://www.collectivites-locales.gouv.fr/files/files/Etudes-et-statistiques/OFGL/rapports%20archives/Dossier%20dette%202024.pdf", consulte_le: 2026-10-01 }

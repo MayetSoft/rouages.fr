@@ -27,6 +27,10 @@
   --accent-doux: #e4eef1;
   --alerte: #8a4b12;
   --alerte-doux: #fbf0e2;
+  /* L'écart à la médiane, sur les seuls postes des comptes qui ont un sens de
+     lecture établi (épargne, dette). Ailleurs, aucune couleur : une flèche. */
+  --favorable: #1d7a4a;
+  --defavorable: #b3261e;
 
   /* --- Familles de relations ------------------------------------- *
    * Trois teintes seulement portent l'identité : c'est le seul triplet
@@ -66,6 +70,8 @@
     --accent-doux: #1d3238;
     --alerte: #e0a468;
     --alerte-doux: #2c2317;
+    --favorable: #5fc28e;
+    --defavorable: #f08a80;
     --sur-accent: #15171a;
 
     --rel-pouvoir: #3987e5;
@@ -1085,3 +1091,13 @@ a.p-sommaire-lien { text-decoration: none; }
 @media print {
   .sm-corps { display: block; }
 }
+
+/* ------------------------------------------------------------------ *
+ * L'écart à la médiane, dans les comptes
+ * ------------------------------------------------------------------ */
+
+.ec { display: inline-block; margin-left: .3rem; font-size: .78em; color: var(--encre-tres-douce); white-space: nowrap; }
+.ec-favorable { color: var(--favorable); font-weight: 600; }
+.ec-defavorable { color: var(--defavorable); font-weight: 600; }
+.ec-mot { margin-left: .2rem; font-weight: 500; }
+.cpt-legende-ecart { font-size: .78rem; color: var(--encre-douce); margin: .5rem 0 0; max-width: var(--mesure); }

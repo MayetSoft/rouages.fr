@@ -13,6 +13,7 @@
  * détail que les lignes de tête résument déjà.
  */
 import type { LigneCompte } from '../../modele/fiche-commune.ts';
+import EcartMediane from './EcartMediane.astro';
 
 interface Props {
   lignes: LigneCompte[];
@@ -50,7 +51,10 @@ const nom = (l: LigneCompte) => (l.dont ? `dont ${l.nom.charAt(0).toLowerCase()}
             <tr class={`cpt-n${Math.min(l.niveau, 4)}${l.dont ? ' cpt-dont' : ''}`}>
               <th scope="row" title={l.explication || undefined}>{nom(l)}</th>
               <td>{montant(l.montant!)}</td>
-              <td>{l.parHabitant !== null ? parHab(l.parHabitant) : '—'}</td>
+              <td>
+                {l.parHabitant !== null ? parHab(l.parHabitant) : '—'}
+                <EcartMediane id={l.id} valeur={l.parHabitant} mediane={l.mediane} compact />
+              </td>
               <td>
                 {l.mediane !== null ? parHab(l.mediane) : '—'}
                 {l.mediane !== null && effectif && l.effectif && l.effectif < effectif && (
@@ -62,5 +66,10 @@ const nom = (l: LigneCompte) => (l.dont ? `dont ${l.nom.charAt(0).toLowerCase()}
         </tbody>
       </table>
     </div>
+    <p class="cpt-legende-ecart">
+      ▲ au-dessus de la médiane, ▼ au-dessous, ≈ à moins de 5 % près. En vert ou en rouge, les seuls postes où l’écart
+      a un sens établi par l’analyse financière publique — l’épargne brute, la dette et ce qu’elle coûte —, selon qu’il
+      est favorable ou non ; ailleurs, plus n’est ni mieux ni pire.
+    </p>
   </details>
 )}

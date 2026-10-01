@@ -50,6 +50,7 @@ const entier = (v: number) => `${v < 0 ? '−' : ''}${Math.round(Math.abs(v)).to
     const aMediane = r.mediane !== null && r.mediane > 0;
     return (
       <Repere
+        repere={r.id}
         nom={r.nom}
         montant={euros(r.valeur!)}
         compare={aMediane

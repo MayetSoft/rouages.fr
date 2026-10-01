@@ -8,6 +8,7 @@
  * associations. C'était une douzaine de copies dans le panneau.
  */
 import { reglette, tendance } from '../../vues/graphiques.ts';
+import EcartMediane from './EcartMediane.astro';
 
 interface Props {
   nom: string;
@@ -20,8 +21,10 @@ interface Props {
   serie?: { valeurs: (number | null)[]; annees: number[]; formater?: (v: number) => string } | null;
   evolution?: string | null;
   detail?: string | null;
+  /** L'identifiant du repère des comptes, pour dire l'écart à la médiane — voir `modele/ecart-mediane.ts`. */
+  repere?: string;
 }
-const { nom, aide, montant, compare, mediane, serie, evolution, detail } = Astro.props;
+const { nom, aide, montant, compare, mediane, serie, evolution, detail, repere } = Astro.props;
 const svgReglette = compare && compare.mediane > 0 ? reglette(compare.valeur, compare.mediane, compare.reference) : null;
 const svgCourbe = serie ? tendance(serie.valeurs, serie.annees, serie.formater) : null;
 ---
@@ -31,6 +34,7 @@ const svgCourbe = serie ? tendance(serie.valeurs, serie.annees, serie.formater) 
     <span class="p-montant">{montant}</span>
     {svgReglette && <Fragment set:html={svgReglette} />}
     {mediane && <span class="p-mediane">{mediane}</span>}
+    {repere && compare && <EcartMediane id={repere} valeur={compare.valeur} mediane={compare.mediane} />}
     {detail && <span class="p-scrutin-detail">{detail}</span>}
     {svgCourbe && (
       <span class="p-tendance-ligne">

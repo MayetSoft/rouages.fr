@@ -9,8 +9,12 @@ import Glose from '../Glose.astro';
 
 interface Props {
   i: Investissement;
+  /** De qui sont les projets : la commune par défaut, une intercommunalité ou un département. */
+  echelon?: 'commune' | 'intercommunalite' | 'departement';
 }
-const { i } = Astro.props;
+const { i, echelon = 'commune' } = Astro.props;
+const deSujet = { commune: 'de la commune', intercommunalite: 'de l’intercommunalité', departement: 'du département' }[echelon];
+const dispositifs = echelon === 'departement' ? 'la DSID, la DSIL, la DETR ou le Fonds vert' : 'la DETR, la DSIL, la DPV ou le Fonds vert';
 const nf = (v: number) => v.toLocaleString('fr-FR');
 const euros = (v: number) => `${nf(v)} €`;
 const periode = `${i.exercices[0]} à ${i.exercices[i.exercices.length - 1]}`;
@@ -23,12 +27,12 @@ const MONTRES = 25;
 ---
 {n === 0 ? (
   <p class="mesure">
-    <Glose texte={`Aucun projet de la commune subventionné par la DETR, la DSIL, la DPV ou le Fonds vert de ${periode}.`} />
+    <Glose texte={`Aucun projet ${deSujet} subventionné par ${dispositifs} de ${periode}.`} />
   </p>
 ) : (
   <>
     <p class="mesure">
-      <Glose texte={`De ${periode}, l’État a subventionné ${n} projet${n > 1 ? 's' : ''} de la commune : ${euros(total)} de subventions` +
+      <Glose texte={`De ${periode}, l’État a subventionné ${n} projet${n > 1 ? 's' : ''} ${deSujet} : ${euros(total)} de subventions` +
         (cout > 0 ? `, pour ${euros(cout)} de travaux hors taxes${fondsVert ? ' — coût des projets du Fonds vert non publié' : ''}.` : '.')} />
     </p>
     <ul class="c-structures">
@@ -42,7 +46,10 @@ const MONTRES = 25;
 <p class="p-strate">
   <Glose texte={'La DETR — dotation d’équipement des territoires ruraux — et la DSIL — dotation de soutien à l’investissement local — sont des subventions que le préfet accorde projet par projet ; la DPV va aux communes de la politique de la ville. ' +
     'Le Fonds vert finance des projets de transition écologique ; seul le montant engagé est publié. ' +
-    'Ce n’est pas la dotation globale de fonctionnement, qui est un autre bloc. Un projet porté par l’intercommunalité ou un syndicat n’est pas compté ici : la liste ne dit pas où il se trouve. ' +
+    (echelon === 'departement' ? 'La DSID — dotation de soutien à l’investissement des départements — leur est réservée. ' : '') +
+    (echelon === 'commune'
+      ? 'Ce n’est pas la dotation globale de fonctionnement, qui est un autre bloc. Un projet porté par l’intercommunalité ou un syndicat n’est pas compté ici : la liste ne dit pas où il se trouve. '
+      : 'Seuls les projets dont la collectivité elle-même est bénéficiaire : ceux de ses communes sont sur leurs pages. ') +
     'Les intitulés sont ceux qu’a saisis la préfecture, accents manquants compris.'} />
 </p>
 <p class="p-source-territoire">
