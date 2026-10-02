@@ -53,7 +53,10 @@ La réingestion complète se lance aussi en intégration continue : workflow
 « Réingestion des territoires » (onglet Actions, à la main). Il tourne sur le
 réseau de GitHub, qui joint les sources sans tunnel, refait le contrôle de la
 CI et ouvre une PR avec les fichiers réécrits et la liste des collectes en
-échec. C'est la voie à préférer pour tout rafraîchir.
+échec. C'est la voie à préférer pour tout rafraîchir. Au lancement, la machine
+« auto-hebergee » l'exécute sur le runner de Rouages, qui garde le cache des
+gros fichiers six jours (`ROUAGES_CACHE_JOURS`) : voir
+`docs/08-runner-auto-heberge.md`.
 
 Chaque collecte de `scripts/*-emettre.ts` se lance aussi seule — `npx tsx
 scripts/dvf-emettre.ts` — et réécrit ses fichiers `dep/XX-<jeu>.json`. Depuis

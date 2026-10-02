@@ -88,17 +88,17 @@ export async function collecterElusEchelons(
   const parNaissance = new Map<string, Elu[]>();
   let lus = 0;
   for (const m of MANDATS) {
+    // Toujours relu à la source : le répertoire change à chaque élection
+    // partielle, et un cache gardé d'une ingestion à l'autre le figerait. Le
+    // fichier déjà là ne sert que si la source ne répond pas.
     const fichier = join(cache, m.fichier);
-    if (!existsSync(fichier)) {
-      const [url] = await ressourcesDuJeu(JEU, m.motif, json, dire);
-      if (!url) continue;
-      try {
-        await telecharger(url, fichier);
-      } catch {
-        dire(`  ${m.motif} n’a pas répondu.`);
-        continue;
-      }
+    const [url] = await ressourcesDuJeu(JEU, m.motif, json, dire);
+    try {
+      if (url) await telecharger(url, fichier);
+    } catch {
+      dire(`  ${m.motif} n’a pas répondu${existsSync(fichier) ? ' : le fichier précédent sert' : ''}.`);
     }
+    if (!existsSync(fichier)) continue;
     for await (const l of lignesCsvOuvert(fichier, lire)) {
       const nom = (l["Nom de l'élu"] ?? '').trim();
       const prenom = (l["Prénom de l'élu"] ?? '').trim();

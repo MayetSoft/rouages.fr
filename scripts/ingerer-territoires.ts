@@ -117,6 +117,12 @@ async function tenter<T>(quoi: string, f: () => Promise<T | null>): Promise<T | 
  * récente et qu'on change l'URL, le cache porterait toujours le même nom et
  * `--cache` servirait l'ancien millésime sans fin. Comparer l'URL est le seul
  * moyen de s'en apercevoir.
+ *
+ * Et une adresse qui ne bouge pas peut changer de contenu — le répertoire des
+ * associations est servi ainsi. Sur une machine qui garde son cache d'une
+ * ingestion à l'autre (le runner auto-hébergé, `docs/08-runner-auto-heberge.md`),
+ * `ROUAGES_CACHE_JOURS` borne l'âge d'un fichier réutilisé : au-delà, on le
+ * refait. Sans elle, `--cache` réutilise sans limite, comme avant.
  */
 async function telechargerEnCache(
   url: string,
@@ -126,11 +132,15 @@ async function telechargerEnCache(
 ): Promise<void> {
   const provenance = `${vers}.source`;
   const sourceConnue = existsSync(provenance) ? readFileSync(provenance, 'utf8').trim() : null;
-  if (reutiliser && existsSync(vers) && sourceConnue === url) {
+  const joursMax = Number(process.env.ROUAGES_CACHE_JOURS ?? '');
+  const tropVieux =
+    Number.isFinite(joursMax) && joursMax > 0 && existsSync(vers) && Date.now() - statSync(vers).mtimeMs > joursMax * 86_400_000;
+  if (reutiliser && tropVieux) dire(`${GRIS}${annonce} : en cache depuis plus de ${joursMax} jours, on le refait${RAZ}`);
+  if (reutiliser && !tropVieux && existsSync(vers) && sourceConnue === url) {
     dire(`${GRIS}${annonce} : déjà en cache (${(statSync(vers).size / 1e6).toFixed(0)} Mo)${RAZ}`);
     return;
   }
-  if (reutiliser && existsSync(vers)) {
+  if (reutiliser && !tropVieux && existsSync(vers)) {
     // Distinguer les deux : « je ne sais pas d'où vient ce fichier » n'est pas
     // « l'adresse a changé », et le journal ne doit pas laisser croire à une
     // mise à jour de la source là où il n'y en a pas eu.

@@ -8,6 +8,12 @@ name: Réingestion des territoires
 #
 # Déclenché à la main seulement. Compter une heure, téléchargements compris.
 #
+# Deux machines au choix, au lancement : celles de GitHub, par défaut, ou le
+# runner auto-hébergé de Rouages (étiquette `rouages`, voir
+# `docs/08-runner-auto-heberge.md`). Sur celui-ci, le cache des gros fichiers
+# est gardé d'une ingestion à l'autre, hors de l'espace de travail que le
+# checkout nettoie, et réutilisé tant qu'il a moins de six jours.
+#
 # Une PR ouverte avec le jeton du workflow ne déclenche pas les autres
 # workflows : le contrôle de `ci.yml` est donc refait ici, avant de pousser,
 # et une ingestion qui ne le passe pas ne produit pas de PR.
@@ -19,6 +25,12 @@ name: Réingestion des territoires
 
 on:
   workflow_dispatch:
+    inputs:
+      machine:
+        description: "Où ingérer"
+        type: choice
+        options: [github, auto-hebergee]
+        default: github
 
 permissions:
   contents: write
@@ -30,7 +42,9 @@ concurrency:
 
 jobs:
   reingerer:
-    runs-on: ubuntu-latest
+    # Le runner auto-hébergé ne sert qu'à ce déclenchement manuel, jamais à du
+    # code venu d'une pull request : voir la documentation.
+    runs-on: ${{ inputs.machine == 'auto-hebergee' && fromJSON('["self-hosted", "rouages"]') || 'ubuntu-latest' }}
     timeout-minutes: 180
     env:
       ROUAGES_RETRAITS_SECRET: ${{ secrets.ROUAGES_RETRAITS_SECRET }}
@@ -42,15 +56,28 @@ jobs:
           cache: npm
       - run: npm ci
 
+      - name: Brancher le cache persistant
+        if: inputs.machine == 'auto-hebergee'
+        run: |
+          mkdir -p "$HOME/rouages-cache"
+          rm -rf .cache
+          ln -s "$HOME/rouages-cache" .cache
+          du -sh "$HOME/rouages-cache" || true
+
       - name: Ingérer
         # Une collecte facultative qui échoue laisse ses fichiers d'avant en
         # place et le script continue ; seuls BANATIC et le découpage sont
         # fatals. On garde le journal pour dire dans la PR ce qui a échoué.
         env:
           NODE_OPTIONS: --max-old-space-size=6144
+          ROUAGES_CACHE_JOURS: 6
         run: |
           set -o pipefail
-          npm run territoires 2>&1 | tee ingestion.log
+          if [ "${{ inputs.machine }}" = "auto-hebergee" ]; then
+            npm run territoires -- --cache 2>&1 | tee ingestion.log
+          else
+            npm run territoires 2>&1 | tee ingestion.log
+          fi
 
       - name: Relever les collectes en échec
         if: always()
@@ -93,7 +120,7 @@ jobs:
           # Le corps de la PR : les collectes en échec, puis le nombre de
           # fichiers réécrits par jeu de données (`dep/XX-<jeu>.json`).
           {
-            echo "Réingestion complète lancée à la main ([journal]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))."
+            echo "Réingestion complète lancée à la main, sur la machine « ${{ inputs.machine }} » ([journal]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))."
             echo
             echo "Le contrôle de la CI (validation, recherche, journal, rattachement, réseau, types, build de l'Allier, du Finistère, de la Meuse et de Paris) est passé dans le même job : une PR ouverte par le workflow ne relance pas \`ci.yml\`."
             echo
