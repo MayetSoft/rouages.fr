@@ -42,9 +42,11 @@ le dire. Les collectes qui téléchargent toujours (HATVP, répertoire des
 
 ## Le serveur
 
-- **Un hébergeur en France**, si l'objectif est la souveraineté. L'hébergement
-  mutualisé qui sert le site ne convient pas : il ne fait pas tourner une
-  tâche d'une heure.
+- **Un hébergeur en France**, si l'objectif est la souveraineté. Un runner
+  GitHub est un service qui reste à l'écoute : il demande une machine où un
+  processus peut tourner en permanence, ce que l'hébergement mutualisé
+  d'o2switch ne permet pas. L'hébergement lui-même peut porter l'ingestion
+  par une autre voie, sans runner : voir plus bas.
 - **De quoi tenir l'ingestion** : elle demande 6 Go de mémoire à Node
   (`--max-old-space-size=6144`) et lit en flux des fichiers de plusieurs
   gigaoctets. Prévoir 8 Go de mémoire au moins, et un disque qui garde le
@@ -68,6 +70,53 @@ le dire. Les collectes qui téléchargent toujours (HATVP, répertoire des
    runner comme aux machines de GitHub.
 5. Lancer : onglet *Actions → Réingestion des territoires → Run workflow*,
    machine « auto-hebergee ».
+
+## L'autre voie : une tâche planifiée sur l'hébergement o2switch
+
+Une première version de cette page disait que l'hébergement mutualisé « ne
+fait pas tourner une tâche d'une heure ». C'était écrit sans vérification, et
+c'est faux pour l'essentiel. Ce qui est vérifié, d'après la documentation
+d'o2switch (octobre 2026) :
+
+- l'offre donne **12 threads, 48 Go de mémoire et 42 Mo/s d'entrées-sorties**,
+  partagés et non réservés comme sur un serveur dédié, et un disque NVMe sans
+  plafond annoncé ; elle compte **huit sous-comptes**, chacun avec les mêmes
+  ressources ;
+- **Node.js s'y exécute**, et les **tâches cron** lancent des commandes shell ;
+  seule la méthode par appel web est coupée à 360 secondes ;
+- **pas de processus permanent** : c'est ce qui exclut le runner, pas la durée.
+
+Ce qui reste à vérifier, par un premier essai à la main :
+
+- **la durée effective.** Aucune limite n'est documentée pour une commande
+  cron, mais l'environnement mutualisé (CloudLinux LVE) peut tuer un
+  processus qui consomme trop de CPU ou d'entrées-sorties sur une fenêtre
+  courte — un cas est rapporté sur o2switch pour une décompression de
+  plusieurs dizaines de gigaoctets. L'ingestion décompresse et lit en flux
+  plusieurs gigaoctets : il faut le constater, pas le supposer ;
+- **la version de Node** : le projet tourne sur Node 22. Le sélecteur de
+  cPanel ou une installation dans le dossier personnel (`nvm`) y pourvoit ;
+- **les conditions d'utilisation** de l'offre pour un traitement qui n'est
+  pas du service web : à demander au support avant d'en faire une habitude.
+
+Si l'essai passe, la voie est simple :
+
+1. **Un sous-compte dédié**, pour que l'ingestion — et les dépendances npm
+   qu'elle exécute — n'ait aucun accès aux fichiers du site en ligne.
+2. Un clone du dépôt, `npm ci`, et le secret `ROUAGES_RETRAITS_SECRET` dans
+   l'environnement du sous-compte.
+3. **Une tâche cron en commande shell**, protégée par `flock` comme le
+   recommande o2switch : récupérer `main`, `npm run territoires -- --cache`
+   avec `ROUAGES_CACHE_JOURS=6`, refaire les contrôles de la CI, pousser une
+   branche et ouvrir la PR par l'API de GitHub, avec un jeton à portée
+   limitée à ce dépôt (contenu et pull requests).
+4. Le workflow de GitHub reste le secours, et le contrôle de la CI s'exécute
+   toujours sur la PR.
+
+Ce qu'on y gagne : pas de serveur à louer, un hébergement français déjà
+payé, le cache gardé sur place. Ce qu'on y perd : la garantie de ressources
+d'une machine dédiée, et l'exécution n'est plus visible dans l'onglet
+Actions — le journal reste sur le sous-compte, et la PR dit ce qui a échoué.
 
 ## La sécurité
 
