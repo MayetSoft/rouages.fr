@@ -113,6 +113,11 @@ peut figurer dans `public/territoires/` **si toutes ces conditions tiennent** :
 4. **Le retrait est possible.** Une opposition reçue par `/signaler` est
    appliquée à l'ingestion suivante, et `/mentions` dit ce qui est collecté.
 
+Les empreintes de conseillers sans fonction reposent sur le secret privé
+`ROUAGES_RETRAITS_SECRET` (au moins 32 octets aléatoires), configuré dans GitHub
+Actions et dans l'environnement de l'ingestion locale. Ne jamais le publier ni
+le changer tant qu'une empreinte correspondante reste dans `retraits.yaml`.
+
 Ce qui est autorisé à ce jour :
 
 - **les membres du conseil municipal** — maire, adjoints, conseillers —
@@ -129,9 +134,11 @@ Ce qui est autorisé à ce jour :
   officiel, sans commentaire, et **les têtes de liste** d'après le fichier des
   candidatures. Un candidat a choisi de se présenter ; la nuance est un acte
   public de l'administration, et l'élu a son droit de rectification ;
-- **les titulaires des marchés publics**, d'après les données essentielles de
-  la commande publique et SIRENE : la dénomination d'une société, le nom d'un
-  entrepreneur individuel sous la règle qui suit ;
+- **les titulaires des marchés publics**, d'après le SIRET que donnent les
+  données essentielles et le nom que publie SIRENE : sous le marché obtenu,
+  avec un lien vers la fiche de l'annuaire des entreprises. Mêmes exclusions
+  de diffusion que pour les entrepreneurs individuels ; les oppositions vont dans
+  `retraits.yaml` ;
 - **les dirigeants déclarés au répertoire des représentants d'intérêts** de
   la HATVP : nom, prénom, fonction, l'organisation et le lien vers sa fiche.
   Le registre est publié pour dire qui cherche à influencer la décision

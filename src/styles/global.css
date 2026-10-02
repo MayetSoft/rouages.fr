@@ -538,6 +538,8 @@ details.p-marche-acheteur[open] > summary { margin-bottom: .45rem; }
 .p-marche-montant { font-variant-numeric: tabular-nums; font-weight: 650; font-size: .86rem; text-align: right; }
 .p-marche-objet { display: block; font-size: .84rem; line-height: 1.35; }
 .p-marche-detail { display: block; font-size: .74rem; color: var(--encre-tres-douce); }
+.p-marche-titulaire { display: block; font-size: .74rem; color: var(--encre-douce); }
+.p-marche-titulaire a { color: inherit; }
 /* Le bouton qui déplie la suite de la liste. Aligné sur la colonne des objets
    plutôt que sur le bord : il prolonge la liste, il n'ouvre pas autre chose. */
 .p-marche-suite {
