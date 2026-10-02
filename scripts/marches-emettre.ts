@@ -149,6 +149,12 @@ export interface Marche {
 export interface Echeance extends Marche {
   /** Mois d'échéance prévisible (AAAA-MM) : notification plus durée initiale. */
   fin: string;
+  /**
+   * Code CPV sans son chiffre de contrôle — « 90911200 » pour le nettoyage de
+   * bâtiments. C'est le filtre « mon métier » de qui veut répondre ; il ne
+   * voyage qu'avec les échéances.
+   */
+  cpv?: string;
 }
 
 /**
@@ -220,6 +226,12 @@ export function serenouvelle(cpv: string | null, techniques: string | null, dure
  * la formation, l'action sociale, la collecte et le nettoyage.
  */
 const PROJET = new Set([51, 70, 71, 73, 75, 76]);
+
+/** Les huit chiffres du code CPV, sans le chiffre de contrôle ; rien s'il est illisible. */
+function cpv(code: string | null): { cpv?: string } {
+  const m = /^\s*(\d{8})/.exec(code ?? '');
+  return m ? { cpv: m[1] } : {};
+}
 
 /** Un entier positif, ou rien : « MQ NC », une durée nulle ou négative ne disent rien. */
 function entierPositif(v: unknown): number | undefined {
@@ -344,7 +356,9 @@ export async function collecterMarches(
         procedure: proc,
         lots: 1,
         ...(offres ? { offres } : {}),
-        ...(duree && serenouvelle(l.codecpv, l.techniques, duree) ? { fin: ajouterMois(date, duree) } : {}),
+        ...(duree && serenouvelle(l.codecpv, l.techniques, duree)
+          ? { fin: ajouterMois(date, duree), ...cpv(l.codecpv) }
+          : {}),
       });
       titulaires.set(m.get(cle)!, new Set(ids));
     }
@@ -513,6 +527,76 @@ export function ecrireSuitesMarches(sortie: string, marches: Marches): number {
   return n;
 }
 
+/**
+ * Toutes les échéances du pays dans un seul fichier, `echeances.json`.
+ *
+ * Les fichiers par département servent la page de commune : douze échéances
+ * par acheteur, rangées sous lui. Qui veut répondre cherche autrement — un
+ * métier sur un territoire —, et il lui faut la liste entière, avec le nom de
+ * l'acheteur, ses départements et le code CPV. C'est une donnée publique, et
+ * elle reste publique : publiée ici, ouverte comme le reste, et c'est elle que
+ * lisent les services construits au-dessus.
+ *
+ * Écrit après les fichiers par département, qu'il relit : le nom d'un
+ * groupement est dans `dep/XX.json`, celui d'une commune aussi, son SIREN
+ * dans `dep/XX-marches.json`. Un acheteur qu'aucun département n'a retenu n'y
+ * figure pas, comme il ne figure sur aucune page.
+ */
+export function ecrireEcheancesNationales(sortie: string, marches: Marches): number {
+  const acheteurs = new Map<string, { nom: string | null; deps: string[] }>();
+  const dossier = join(sortie, 'dep');
+  for (const f of readdirSync(dossier).sort()) {
+    const dep = /^(\w+)-marches\.json$/.exec(f)?.[1];
+    if (!dep) continue;
+    const d = JSON.parse(readFileSync(join(dossier, f), 'utf8')) as {
+      com: Record<string, string>;
+      h: Record<string, unknown>;
+    };
+    let g: [string, string, ...unknown[]][] = [];
+    let c: [string, string, ...unknown[]][] = [];
+    try {
+      const s = JSON.parse(readFileSync(join(dossier, `${dep}.json`), 'utf8')) as { g?: typeof g; c?: typeof c };
+      g = s.g ?? [];
+      c = s.c ?? [];
+    } catch {
+      // Sans le fichier des structures, les acheteurs restent sans nom.
+    }
+    const noms = new Map<string, string>(g.map((x) => [x[0], x[1]]));
+    const nomCommune = new Map<string, string>(c.map((x) => [x[0], x[1]]));
+    for (const [code, siren] of Object.entries(d.com)) {
+      const n = nomCommune.get(code);
+      if (n) noms.set(siren, n);
+    }
+    for (const siren of Object.keys(d.h)) {
+      const a = acheteurs.get(siren) ?? { nom: null, deps: [] };
+      a.nom ??= noms.get(siren) ?? null;
+      if (!a.deps.includes(dep)) a.deps.push(dep);
+      acheteurs.set(siren, a);
+    }
+  }
+
+  const e: (Echeance & { a: string })[] = [];
+  for (const [siren, liste] of marches.echeances) {
+    if (!acheteurs.has(siren)) continue;
+    for (const x of liste) e.push({ a: siren, ...x });
+  }
+  e.sort((x, y) => x.fin.localeCompare(y.fin) || x.a.localeCompare(y.a) || x.objet.localeCompare(y.objet));
+  const cites = new Set(e.map((x) => x.a));
+  writeFileSync(
+    join(sortie, 'echeances.json'),
+    JSON.stringify({
+      maj: marches.maj,
+      fenetre: marches.fenetre,
+      procedures: PROCEDURES,
+      acheteurs: Object.fromEntries(
+        [...acheteurs].filter(([s]) => cites.has(s)).sort(([a], [b]) => a.localeCompare(b)),
+      ),
+      e,
+    }),
+  );
+  return e.length;
+}
+
 // Lancé seul : les acheteurs que la dernière ingestion complète a retenus,
 // relus dans ses fichiers. Un acheteur qui n'avait encore aucun marché n'y
 // figure pas : il n'entre qu'à la réingestion complète, qui connaît les
@@ -540,6 +624,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     let n = 0;
     for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m);
     const suites = ecrireSuitesMarches(sortie, m);
-    console.log(`${n} acheteurs écrits, ${suites} listes complètes à la demande.`);
+    const nationales = ecrireEcheancesNationales(sortie, m);
+    console.log(
+      `${n} acheteurs écrits, ${suites} listes complètes à la demande, ${nationales} échéances dans echeances.json.`,
+    );
   }
 }

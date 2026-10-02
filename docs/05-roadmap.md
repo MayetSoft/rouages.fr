@@ -3437,6 +3437,24 @@ particuliers cités dans les délibérations, une opinion que le site
 attribuerait lui-même. Le titre d'une association qui porte une civilité reste filtré : la
 décision n'a pas porté sur lui.
 
+### Les échéances du pays en un fichier, et la collecte du lundi ✔
+
+L'échéancier de la page de commune range douze échéances sous chaque
+acheteur. Qui veut répondre cherche autrement : un métier, sur un territoire.
+**`/territoires/echeances.json` donne toutes les échéances du pays** dans un
+seul fichier — 20 987 chez 3 250 acheteurs, de 5,3 Mo —, chacune avec
+l'acheteur nommé, ses départements, le **code CPV** (20 911 en ont un), le
+titulaire (20 869) et les offres reçues. C'est une donnée publique, publiée
+comme telle : les services construits au-dessus la lisent ici plutôt que de
+refaire la collecte. Le fichier est écrit après ceux des départements, qu'il
+relit pour nommer les acheteurs, et l'élagage du build le garde dans le site.
+
+**La collecte des marchés tourne seule chaque lundi** (`marches.yml`, 4 h 17
+UTC), parce que la source change chaque jour et que la réingestion complète
+ne se lance qu'à la main. Dix minutes, titulaires compris. Elle ne suit que
+les acheteurs déjà retenus — un acheteur nouveau n'entre qu'avec la
+réingestion complète —, refait le contrôle de la CI et ouvre une PR.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
