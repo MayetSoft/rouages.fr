@@ -1,0 +1,35 @@
+---
+/**
+ * Les déclarations d'un élu à la HATVP : leur statut, et le contenu de la
+ * dernière déclaration d'intérêts publiée, tel quel. Voir
+ * `scripts/declarations-emettre.ts`. Jamais une déclaration de patrimoine.
+ */
+import type { DeclarationElu } from '../modele/elus-echelons.ts';
+
+interface Props {
+  d: DeclarationElu;
+}
+const { d } = Astro.props;
+const jour = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<span class="p-adjoint-naissance">
+  {d.page ? <a href={d.page} target="_blank" rel="noopener">HATVP</a> : 'HATVP'}
+  {' : ' + d.liste.map((x) => `${x.type}, ${x.statut.toLowerCase()}${x.date ? `, ${jour(x.date)}` : ''}`).join(' ; ')}
+</span>
+{d.contenu && d.contenu.lignes.length > 0 && (
+  <details class="p-declaration-contenu">
+    <summary>
+      {`Sa dernière déclaration d’intérêts publiée — déposée le ${jour(d.contenu.depot)}` + (d.contenu.qualite ? `, comme ${d.contenu.qualite}` : '')}
+    </summary>
+    <ul>
+      {d.contenu.lignes.map((l) => (
+        <li>
+          <span class="p-declaration-rubrique">{l.rubrique}</span>
+          <span>{[l.intitule, l.precision].filter(Boolean).join(' — ')}</span>
+          <span class="p-adjoint-naissance">{[l.periode, l.montant].filter(Boolean).join(' · ')}</span>
+          {l.commentaire && <span class="p-adjoint-naissance p-declaration-commentaire">{`« ${l.commentaire} »`}</span>}
+        </li>
+      ))}
+    </ul>
+  </details>
+)}

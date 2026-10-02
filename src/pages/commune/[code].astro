@@ -439,6 +439,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <p class="p-source-territoire c-maire-source">
         {`Le maire${fiche.adjoints.length + fiche.conseillers.length > 0 ? ' et son conseil viennent' : ' vient'} du répertoire national des élus (${fiche.maire.maj}${fiche.adjointsMaj && fiche.adjoints.length + fiche.conseillers.length > 0 ? ` ; conseil : fichiers des conseillers municipaux et communautaires lus le ${fiche.adjointsMaj}, rapprochés sur la commune, le nom, le prénom et la date de naissance` : ''}). Pour une correction : `}
         <a href="/signaler">le signalement</a>{' ; pour un retrait : '}<a href="/signaler#retrait">la demande à l’éditeur</a>.
+        {' Les conseillers départementaux et régionaux, les députés et les sénateurs sont sur '}
+        <a href={`/departement/${commune.dep === '67' || commune.dep === '68' ? '67A' : commune.dep}#elus`}>la page du département</a>.
       </p>
     )}
 

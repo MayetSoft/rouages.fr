@@ -22,6 +22,8 @@ import CarteCommunes from './CarteCommunes.astro';
 import { carteDeCommunes } from '../modele/carte.ts';
 import Investissement from './commune/Investissement.astro';
 import PetiteEnfance from './commune/PetiteEnfance.astro';
+import ElusCollectivite from './ElusCollectivite.astro';
+import { elusDeCollectivite } from '../modele/elus-echelons.ts';
 
 interface Props {
   c: Collectivite;
@@ -51,6 +53,11 @@ const listes = deps
   .filter((d) => parDep.has(d))
   .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }))
   .map((d) => ({ d, ...parDep.get(d)! }));
+
+// Qui siège pour ce territoire. La Métropole de Lyon n'a pas de conseillers
+// départementaux : ceux du fichier du Rhône siègent au département du Rhône.
+const elus = c.echelon === 'departement' && c.code === '691' ? null : elusDeCollectivite(c.echelon === 'region' ? 'region' : 'departement', deps);
+const nomsDeps = Object.fromEntries(listes.map((l) => [l.d, l.nom]));
 
 // Les intercommunalités qui ont au moins une commune dans le département ;
 // une région en compte trop pour une liste utile.
@@ -172,6 +179,12 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
       <section id="petite-enfance">
         <h2 class="badge">L’accueil des tout-petits</h2>
         <PetiteEnfance p={petiteEnfance} />
+      </section>
+    )}
+    {elus && (
+      <section id="elus" class="p-echelons">
+        <h2 class="badge">Ses élus</h2>
+        <ElusCollectivite e={elus} nomsDeps={nomsDeps} />
       </section>
     )}
     {intercos.length > 0 && (

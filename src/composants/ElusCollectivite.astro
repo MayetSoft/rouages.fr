@@ -1,0 +1,94 @@
+---
+/**
+ * Qui siège pour ce territoire : l'exécutif et les membres du conseil
+ * départemental ou régional, et, pour un département, ses sénateurs et ses
+ * députés. Chacun avec ses déclarations d'intérêts à la HATVP.
+ */
+import type { ElusCollectivite, EluEchelon } from '../modele/elus-echelons.ts';
+import DeclarationElu from './DeclarationElu.astro';
+
+interface Props {
+  e: ElusCollectivite;
+  /** Le nom de chaque département, pour titrer les sections d'un conseil régional. */
+  nomsDeps?: Record<string, string>;
+}
+const { e, nomsDeps = {} } = Astro.props;
+/** « 4ème Vice-président du conseil régional » → « 4e vice-président ». */
+const fonction = (f: string) =>
+  f.replace(/\s+du conseil (?:départemental|régional)$/i, '').replace(/(\d+)\s*(?:ème|eme)\b/i, '$1e').replace(/^(\d+e |\d+er |)V/, '$1v');
+const titre = (g: { code: string; libelle: string }) => (nomsDeps[g.code] ? `${g.code} · ${nomsDeps[g.code]}` : g.libelle);
+const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
+---
+{e.executif.length > 0 && (
+  <details class="p-adjoints p-declarations" open>
+    <summary>{`L’exécutif du ${e.assemblee}`}</summary>
+    <ul>
+      {e.executif.map((x) => (
+        <li>
+          <span class="p-adjoint-fonction">{fonction(x.fonction)}</span>
+          <span class="p-adjoint-nom">{` ${x.nom}`}</span>
+          {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+          {x.declaration && <DeclarationElu d={x.declaration} />}
+        </li>
+      ))}
+    </ul>
+  </details>
+)}
+{e.groupes.length > 0 && (
+  <details class="p-adjoints p-declarations">
+    <summary>
+      {`Les autres membres du ${e.assemblee} (${e.groupes.reduce((n, g) => n + g.elus.length, 0)}, ${e.assemblee.endsWith('départemental') ? 'par canton' : 'par département'})`}
+    </summary>
+    <ul>
+      {e.groupes.map((g) => (
+        <li>
+          <span class="p-declaration-rubrique">{titre(g)}</span>
+          <ul>
+            {g.elus.map((x) => (
+              <li>
+                <span class="p-adjoint-nom">{x.nom}</span>
+                {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+                {x.declaration && <DeclarationElu d={x.declaration} />}
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ul>
+  </details>
+)}
+{e.deputes.length > 0 && (
+  <details class="p-adjoints p-declarations" open>
+    <summary>{`Ses ${e.deputes.length} député${e.deputes.length > 1 ? 's' : ''}`}</summary>
+    <ul>
+      {e.deputes.map((x) => (
+        <li>
+          <span class="p-adjoint-fonction">{x.libelle}</span>
+          <span class="p-adjoint-nom">{` ${x.nom}`}</span>
+          {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+          {x.declaration && <DeclarationElu d={x.declaration} />}
+        </li>
+      ))}
+    </ul>
+  </details>
+)}
+{e.senateurs.length > 0 && (
+  <details class="p-adjoints p-declarations" open>
+    <summary>{`Ses ${e.senateurs.length} sénateur${e.senateurs.length > 1 ? 's' : ''}`}</summary>
+    <ul>
+      {e.senateurs.map((x) => (
+        <li>
+          <span class="p-adjoint-nom">{x.nom}</span>
+          {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+          {x.declaration && <DeclarationElu d={x.declaration} />}
+        </li>
+      ))}
+    </ul>
+  </details>
+)}
+<p class="p-source-territoire">
+  {`D’après le répertoire national des élus (lu le ${e.maj}) : nom, prénom, fonction et année de naissance — ni le jour, ni le sexe, ` +
+    `ni la profession. Les déclarations d’intérêts viennent de la HATVP : statut rapproché sur le nom, le prénom et le département, ` +
+    `contenu de la dernière déclaration publiée rapproché sur le nom, le prénom et la date de naissance ; ${nbDecl([...e.executif, ...e.groupes.flatMap((g) => g.elus), ...e.deputes, ...e.senateurs])} élus en ont une ici. ` +
+    'Les déclarations de patrimoine ne sont pas reprises. Une demande de retrait s’adresse à l’éditeur (voir « Signaler »).'}
+</p>

@@ -226,6 +226,31 @@ de naissance : il est rapproché sur le nom, le prénom et le département, et
 seulement quand un seul conseiller municipal du département porte ce nom et
 ce prénom ; quand la qualité nomme la commune, elle doit concorder.
 
+### Les élus des départements, des régions et du Parlement (2 octobre 2026)
+
+Le répertoire national des élus publie aussi les conseillers départementaux,
+les conseillers régionaux, les députés et les sénateurs, pour la même raison
+que les conseillers municipaux : rendre lisible qui exerce un mandat. Le
+site les nomme sur la page du département — les conseillers départementaux
+par canton, les sénateurs, les députés par circonscription — et sur celle de
+la région, avec leur fonction et leur année de naissance ; ni le jour de
+naissance, ni le sexe, ni la profession.
+
+Leurs déclarations d'intérêts à la HATVP suivent la règle déjà écrite pour
+les élus municipaux : statut et lien d'après la liste, rapprochés sur le nom,
+le prénom et le département quand un seul élu de l'échelon les porte ;
+contenu de la dernière déclaration publiée d'après le fichier XML, rapproché
+sur le nom, le prénom et la date de naissance complète. Celles-là sont
+publiées en nombre, contrairement à celles des communes élues en 2026. **Les
+déclarations de patrimoine restent exclues à tous les échelons** : celles
+des élus locaux ne sont jamais publiques, celles des parlementaires ne se
+consultent qu'en préfecture et leur divulgation est punie.
+
+Le site ne rattache pas encore ces élus à une commune : le découpage qu'il
+lit ne donne ni le canton ni la circonscription, et une correspondance
+devinée nommerait le mauvais élu. La page de la commune renvoie à celle du
+département.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes ».
