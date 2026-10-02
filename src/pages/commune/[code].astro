@@ -412,6 +412,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
                         <span class="p-declaration-rubrique">{l.rubrique}</span>
                         <span>{[l.intitule, l.precision].filter(Boolean).join(' — ')}</span>
                         <span class="p-adjoint-naissance">{[l.periode, l.montant].filter(Boolean).join(' · ')}</span>
+                        {l.commentaire && <span class="p-adjoint-naissance p-declaration-commentaire">{`« ${l.commentaire} »`}</span>}
                       </li>
                     ))}
                   </ul>
@@ -424,9 +425,10 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
           {'D’après la liste des déclarations que la HATVP publie' + (fiche.declarationsMaj ? ` (lue le ${fiche.declarationsMaj})` : '') +
             ', rapprochée du répertoire des élus sur le nom, le prénom et le département, quand un seul élu du département ' +
             'les porte. Le contenu vient du fichier des déclarations publiées, rapproché sur le nom, le prénom et la date de ' +
-            'naissance : ce sont des extraits tels quels — activités, mandats, organes dirigeants, participations financières, ' +
-            'fonctions bénévoles, montants publiés —, sans l’activité du conjoint, les collaborateurs ni les commentaires. ' +
-            'La déclaration entière est sur la page de la HATVP, et peut avoir été déposée pour un autre mandat. Les ' +
+            'naissance : tout ce que la HATVP publie, tel quel — activités, mandats, organes dirigeants, participations ' +
+            'financières, fonctions bénévoles, activité du conjoint, collaborateurs, commentaires, observations, montants —, ' +
+            'et rien de ce qu’elle masque, dont le nom du conjoint. La déclaration, déposée parfois pour un autre mandat, ' +
+            'est sur la page de la HATVP. Les ' +
             'déclarations de patrimoine des élus locaux ne sont pas publiques : la loi les réserve au contrôle de la HATVP, ' +
             'et le site n’en dit rien.'}
         </p>

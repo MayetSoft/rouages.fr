@@ -148,9 +148,10 @@ Ce qui est autorisé à ce jour :
   nominative ; et le **contenu de sa dernière déclaration d'intérêts
   publiée**, tel quel — activités professionnelles et de conseil, mandats,
   participations aux organes dirigeants, participations financières,
-  fonctions bénévoles, avec les montants publiés. Rien qui concerne une autre
-  personne : ni l'activité du conjoint, ni les collaborateurs, ni les
-  commentaires libres. Les déclarations publiées sont librement réutilisables
+  fonctions bénévoles, activité du conjoint, collaborateurs, commentaires et
+  observations, avec les montants publiés — tout ce que la HATVP publie, et
+  seulement cela : ce qu'elle masque (« [Données non publiées] », dont le nom
+  du conjoint) reste masqué. Les déclarations publiées sont librement réutilisables
   (délibération HATVP n° 2017-111, article 7), sans altération ni
   dénaturation, avec leur source et leur date (article L. 322-1 du code des
   relations entre le public et l'administration). **Jamais une déclaration de
