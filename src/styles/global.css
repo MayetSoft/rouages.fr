@@ -473,6 +473,11 @@ span.reglette i {
 .p-adjoints li { display: inline-flex; gap: .35rem; align-items: baseline; }
 .p-adjoint-fonction { font-size: .76rem; color: var(--encre-douce); }
 .p-declarations ul { display: grid; gap: .3rem; }
+.p-declaration-contenu { margin: .25rem 0 .2rem; font-size: .8rem; }
+.p-declaration-contenu summary { cursor: pointer; color: var(--encre-douce); }
+.p-declaration-contenu ul { display: grid; gap: .25rem; margin: .3rem 0 0; padding: 0; list-style: none; }
+.p-declaration-contenu li { display: grid; gap: 0; }
+.p-declaration-rubrique { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--encre-tres-douce); }
 .p-declarations li { display: block; }
 .p-declarations .p-adjoint-naissance { display: block; }
 .p-adjoint-naissance { font-size: .72rem; color: var(--encre-tres-douce); }

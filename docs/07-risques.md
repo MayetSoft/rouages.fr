@@ -186,13 +186,33 @@ que la loi permet, vérifié avant la collecte :
 
 Ce qui est repris : pour un élu que le site nomme déjà, chaque déclaration
 d'intérêts — sa qualité, son statut, sa date — et le lien vers sa page à la
-HATVP. Le rapprochement se fait sur le nom, le prénom et le département, et
+HATVP. **Et, depuis le 2 octobre 2026, le contenu de sa dernière déclaration
+d'intérêts publiée**, à la demande du mainteneur : c'est la partie la plus
+obscure de la transparence de la vie publique, publiée mais rarement lue.
+
+Vérifié avant la collecte : la délibération de la HATVP n° 2017-111 (article
+7) dit que les déclarations publiées « peuvent être réutilisées librement »,
+sous licence ouverte, libre et gratuite, dans le respect de l'article
+L. 322-1 du code des relations entre le public et l'administration — ne pas
+altérer, ne pas dénaturer, citer la source et la date. Aucune restriction
+d'usage commercial n'y figure. Le site reprend donc les rubriques telles
+quelles, en disant que ce sont des extraits et où lire la déclaration
+entière.
+
+Retenu : les activités professionnelles des cinq dernières années, les
+activités de conseil, les mandats électifs, les participations aux organes
+dirigeants, les participations financières, les fonctions bénévoles, et les
+rémunérations que la déclaration publie. Écarté : l'activité du conjoint et
+les collaborateurs — d'autres personnes, que la règle ne nomme pas —, les
+commentaires et observations libres, qui peuvent en citer, et tout ce que la
+HATVP marque « [Données non publiées] ». Le contenu est rapproché du
+répertoire des élus sur le nom, le prénom **et la date de naissance
+complète**, que la déclaration et le répertoire portent tous deux.
+
+Le statut des déclarations, lui, vient de la liste, qui ne porte pas la date
+de naissance : il est rapproché sur le nom, le prénom et le département, et
 seulement quand un seul conseiller municipal du département porte ce nom et
-ce prénom ; quand la qualité nomme la commune, elle doit concorder. Ce qui
-ne l'est pas : le contenu des déclarations — activités, participations,
-mandats —, que la page de la HATVP donne elle-même. Le reprendre poserait une
-question à trancher avant : les conditions de réutilisation des déclarations
-publiées, notamment pour un usage commercial.
+ce prénom ; quand la qualité nomme la commune, elle doit concorder.
 
 ## 4. Risques juridiques directs
 

@@ -14,8 +14,18 @@
  * Communauté », ou « Adjoint au maire » sans commune. On cherche, parmi les
  * conseillers municipaux du département au répertoire national des élus,
  * celui qui porte ce nom et ce prénom : **un seul**, ou rien. Quand la qualité
- * nomme une commune, elle doit être la sienne. Le contenu des déclarations
- * n'est pas repris ; la page de la HATVP le donne.
+ * nomme une commune, elle doit être la sienne.
+ *
+ * **Le contenu de la dernière déclaration d'intérêts publiée**, depuis le
+ * 2 octobre 2026, vient du fichier XML que la HATVP publie à côté. Il porte
+ * la date de naissance du déclarant : le rapprochement s'y fait sur le nom,
+ * le prénom et la date de naissance complète, comme pour les sièges
+ * communautaires. Sont repris tels quels les rubriques qui concernent l'élu
+ * lui-même — activités, mandats, organes dirigeants, participations
+ * financières, fonctions bénévoles — et les montants publiés ; jamais
+ * l'activité du conjoint, les collaborateurs ni les commentaires libres. Les
+ * déclarations publiées sont librement réutilisables (délibération HATVP
+ * n° 2017-111, article 7), sans altération et avec leur source et leur date.
  *
  * Lancé seul — `npx tsx scripts/declarations-emettre.ts` —, il relit
  * `.cache/hatvp-liste.csv` et `.cache/rne-conseillers-municipaux.csv`.
@@ -28,6 +38,7 @@ import { lignesCsvOuvert } from './donnees-ouvertes.ts';
 import { telechargerSiAbsent } from './par-departement.ts';
 
 const LISTE = 'https://www.hatvp.fr/livraison/opendata/liste.csv';
+const CONTENUS = 'https://www.hatvp.fr/livraison/merge/declarations.xml';
 const PAGE = 'https://www.hatvp.fr';
 
 /** Les types de document que le site reprend : les déclarations d'intérêts, et leurs modifications. */
@@ -36,8 +47,77 @@ const TYPES: Record<string, string> = {
   dim: 'modification de la déclaration d’intérêts',
 };
 
-/** « Prénom NOM », page nominative, puis par déclaration : type, qualité, statut, date (AAAA-MM-JJ). */
-export type Declarant = [string, string, [string, string, string, string][]];
+/**
+ * Une ligne de déclaration : rubrique, intitulé, précision (employeur,
+ * structure, part du capital…), période, dernier montant publié.
+ */
+export type Ligne = [string, string, string, string, string];
+
+/** La dernière déclaration d'intérêts publiée : date de dépôt (AAAA-MM-JJ), qualité, lignes. */
+export type Contenu = [string, string, Ligne[]];
+
+/** « Prénom NOM », page nominative, par déclaration (type, qualité, statut, date), et le contenu publié. */
+export type Declarant = [string, string, [string, string, string, string][], Contenu?];
+
+/** Les rubriques reprises, dans l'ordre où la page les montre. Ni le conjoint, ni les collaborateurs. */
+const RUBRIQUES: [string, string, string, string][] = [
+  // section, rubrique, champ de l'intitulé, champ de la précision
+  ['activProfCinqDerniereDto', 'activité professionnelle', 'description', 'employeur'],
+  ['activConsultantDto', 'activité de conseil', 'description', 'nomEmployeur'],
+  ['mandatElectifDto', 'mandat électif', 'descriptionMandat', ''],
+  ['participationDirigeantDto', 'organe dirigeant', 'activite', 'nomSociete'],
+  ['participationFinanciereDto', 'participation financière', 'nomSociete', 'capitalDetenu'],
+  ['fonctionBenevoleDto', 'fonction bénévole', 'descriptionActivite', 'nomStructure'],
+];
+
+const MASQUE = /\[\s*Donn[ée]es? non publi[ée]es?\s*\]/gi;
+const entites = (t: string) =>
+  t.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+const champ = (xml: string, tag: string) => {
+  const m = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`).exec(xml);
+  return m ? entites(m[1]).replace(MASQUE, '').replace(/\s+/g, ' ').trim() : '';
+};
+const VIDE = /^(n[ée]ant|aucune?s?|sans objet|non|-|\.)?$/i;
+
+/** « 03/2020 » et « » → « depuis 03/2020 » ; avec une fin, « 03/2020 – 07/2021 ». */
+const periode = (debut: string, fin: string) => (debut && fin ? `${debut} – ${fin}` : debut ? `depuis ${debut}` : fin ? `jusqu’en ${fin}` : '');
+
+/** Le montant de la dernière année publiée : « 8 457 € net en 2021 ». */
+function montant(item: string): string {
+  const r = /<remuneration>([\s\S]*?)<\/remuneration>/.exec(item)?.[1] ?? '';
+  const annees = [...r.matchAll(/<annee>(\d{4})<\/annee>\s*<montant>([^<]*)<\/montant>/g)];
+  const dernier = annees.sort((a, b) => Number(a[1]) - Number(b[1])).at(-1);
+  if (!dernier) return '';
+  const v = dernier[2].replace(MASQUE, '').trim();
+  if (!v || /^0+$/.test(v.replace(/\s/g, ''))) return '';
+  const brutNet = champ(r, 'brutNet').toLowerCase();
+  return `${v} €${brutNet ? ` ${brutNet}` : ''} en ${dernier[1]}`;
+}
+
+/** Les lignes d'une déclaration, rubrique par rubrique. */
+export function lignesDe(declaration: string): Ligne[] {
+  const out: Ligne[] = [];
+  for (const [section, rubrique, intitule, precision] of RUBRIQUES) {
+    const bloc = new RegExp(`<${section}>([\\s\\S]*?)</${section}>`).exec(declaration)?.[1];
+    if (!bloc || champ(bloc, 'neant') === 'true') continue;
+    for (const item of bloc.split(/<items>\s*(?=<motif>)/).slice(1)) {
+      const titre = champ(item, intitule);
+      if (VIDE.test(titre)) continue;
+      let detail = precision ? champ(item, precision) : '';
+      if (section === 'participationFinanciereDto') {
+        const parts = champ(item, 'nombreParts');
+        detail = [detail && `${detail.replace(/\s*%$/, '')} % du capital`, parts && `${parts} parts`].filter(Boolean).join(', ');
+      }
+      out.push([rubrique, titre, VIDE.test(detail) ? '' : detail, periode(champ(item, 'dateDebut'), champ(item, 'dateFin')), montant(item)]);
+    }
+  }
+  return out;
+}
+
+const isoDe = (jjmmaaaa: string) => {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(jjmmaaaa);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
+};
 
 export interface Declarations {
   maj: string;
@@ -84,12 +164,18 @@ export async function collecterDeclarations(
   // Les conseillers municipaux, par département et par nom : la commune, ou
   // « ? » dès qu'un second porte le même nom et le même prénom.
   const conseillers = new Map<string, string>();
+  // Et, pour le contenu, par nom, prénom et date de naissance complète.
+  const parNaissance = new Map<string, string>();
   for await (const l of lignesCsvOuvert(fichierRne, lire)) {
     const dep = (l['Code du département'] ?? '').trim();
     const code = (l['Code de la commune'] ?? '').trim();
-    const k = `${dep}|${cle(l["Nom de l'élu"] ?? '', l["Prénom de l'élu"] ?? '')}`;
+    const nom = cle(l["Nom de l'élu"] ?? '', l["Prénom de l'élu"] ?? '');
+    const k = `${dep}|${nom}`;
     const deja = conseillers.get(k);
     conseillers.set(k, deja && deja !== code ? '?' : code);
+    const kn = `${nom}|${(l['Date de naissance'] ?? '').trim()}`;
+    const dejaN = parNaissance.get(kn);
+    parNaissance.set(kn, dejaN && dejaN !== code ? '?' : code);
   }
 
   const lignes = readFileSync(fichierListe, 'utf8').split(/\r?\n/).filter(Boolean);
@@ -141,6 +227,45 @@ export async function collecterDeclarations(
     parCommune.set(code, m);
     retenues++;
   }
+  // Le contenu : la dernière déclaration d'intérêts complète de chaque élu,
+  // rattachée au déclarant de la liste qui porte le même nom dans la commune.
+  let contenus = 0;
+  try {
+    const fichierXml = join(cache, 'hatvp-declarations.xml');
+    await telecharger(CONTENUS, fichierXml);
+    const xml = readFileSync(fichierXml, 'utf8');
+    const derniere = new Map<string, { depot: string; qualite: string; decl: string }>();
+    for (const m of xml.matchAll(/<declaration>([\s\S]*?)<\/declaration>/g)) {
+      const d = m[1];
+      const general = /<general>([\s\S]*?)<\/general>/.exec(d)?.[1] ?? '';
+      if (champ(/<typeDeclaration>([\s\S]*?)<\/typeDeclaration>/.exec(general)?.[1] ?? '', 'id') !== 'DI') continue;
+      if (champ(general, 'declarationModificative') === 'true') continue;
+      const declarant = /<declarant>([\s\S]*?)<\/declarant>/.exec(general)?.[1] ?? '';
+      const nom = cle(champ(declarant, 'nom'), champ(declarant, 'prenom'));
+      const code = parNaissance.get(`${nom}|${isoDe(champ(declarant, 'dateNaissance'))}`);
+      if (!code || code === '?') continue;
+      const depot = isoDe(champ(d, 'dateDepot'));
+      const k = `${code}|${nom}`;
+      const deja = derniere.get(k);
+      if (deja && deja.depot >= depot) continue;
+      const organe = champ(/<organe>([\s\S]*?)<\/organe>/.exec(general)?.[1] ?? '', 'labelOrgane');
+      const qualite = [champ(general, 'qualiteDeclarant'), organe].filter(Boolean).join(', ');
+      derniere.set(k, { depot, qualite, decl: d });
+    }
+    for (const [k, { depot, qualite, decl }] of derniere) {
+      const [code, nom] = [k.slice(0, k.indexOf('|')), k.slice(k.indexOf('|') + 1)];
+      const declarant = [...(parCommune.get(code)?.values() ?? [])].find((x) => {
+        const [prenom, ...reste] = x[0].split(' ');
+        return cle(reste.join(' '), prenom) === nom;
+      });
+      if (!declarant) continue;
+      declarant[3] = [depot, qualite, lignesDe(decl)];
+      contenus++;
+    }
+  } catch (e) {
+    dire(`Déclarations HATVP : le fichier des contenus n’a pas pu être lu (${String(e)}) ; les statuts restent.`);
+  }
+
   const communes = new Map<string, Declarant[]>();
   for (const [code, m] of parCommune) {
     const l = [...m.values()];
@@ -150,7 +275,8 @@ export async function collecterDeclarations(
   dire(
     `Déclarations HATVP : ${retenues.toLocaleString('fr-FR')} déclarations d'intérêts rapprochées dans ` +
       `${communes.size.toLocaleString('fr-FR')} communes ; écartées : ${ambigues} homonymes dans le département, ` +
-      `${absentes} déclarants absents du répertoire des élus, ${discordantes} dont la commune ne concorde pas.`,
+      `${absentes} déclarants absents du répertoire des élus, ${discordantes} dont la commune ne concorde pas ; ` +
+      `${contenus} déclarations d'intérêts publiées reprises.`,
   );
   return { maj: new Date().toISOString().slice(0, 10), communes };
 }
