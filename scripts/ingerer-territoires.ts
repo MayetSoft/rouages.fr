@@ -575,6 +575,22 @@ async function principal() {
     if (declarations) dire(`${GRIS}${ecrireDeclarations(SORTIE, declarations)} départements de déclarations écrits.${RAZ}`);
   }
 
+  // Les élus des départements, des régions et du Parlement, avec leurs
+  // déclarations d'intérêts : un fichier par département.
+  {
+    const { collecterElusEchelons, ecrireElusEchelons } = await import('./elus-echelons-emettre.ts');
+    const echelons = await tenter('Élus des départements, des régions et du Parlement', () =>
+      collecterElusEchelons(
+        telecharger,
+        CACHE,
+        (chemin) => createReadStream(chemin) as unknown as AsyncIterable<Uint8Array>,
+        async <T,>(url: string) => (await obstine(url)).json() as Promise<T>,
+        (m) => dire(`${GRIS}${m}${RAZ}`),
+      ),
+    );
+    if (echelons) dire(`${GRIS}${ecrireElusEchelons(SORTIE, echelons)} départements d’élus écrits.${RAZ}`);
+  }
+
   // La population dans le temps : le dénominateur de tous les autres chiffres
   // du site méritait sa propre histoire.
   // Qui écrit la règle de ce qui peut se construire : un document par commune,

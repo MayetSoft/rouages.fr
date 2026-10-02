@@ -3465,6 +3465,25 @@ ne se lance qu'à la main. Dix minutes, titulaires compris. Elle ne suit que
 les acheteurs déjà retenus — un acheteur nouveau n'entre qu'avec la
 réingestion complète —, refait le contrôle de la CI et ouvre une PR.
 
+### Les élus des départements, des régions et du Parlement ✔
+
+La page de chaque département nomme l'exécutif et les membres du conseil
+départemental par canton, ses députés par circonscription et ses sénateurs ;
+celle de chaque région, l'exécutif et les membres du conseil régional par
+département. Chacun avec ses déclarations d'intérêts à la HATVP, rapprochées
+comme pour les élus municipaux : 5 080 déclarations, dont 1 875 au contenu
+publié — bien plus qu'aux communes, dont les déclarations de 2026 attendent
+leur publication. Dans l'Allier : le président du conseil départemental et
+ses dix vice-présidents, 38 conseillers, 3 députés, 2 sénateurs.
+
+Deux codes du répertoire ne sont pas des départements : « 69M », la section
+de la Métropole de Lyon au conseil régional, rangée sous le Rhône, et
+« 6AE », la Collectivité européenne d'Alsace, dont les cantons disent le
+département. Ces élus ne sont pas rattachés à une commune : le découpage ne
+donne ni le canton ni la circonscription, et une correspondance devinée
+nommerait le mauvais élu. La page de la commune renvoie à celle du
+département.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

@@ -125,6 +125,11 @@ Ce qui est autorisé à ce jour :
   prise de fonction, et le siège au conseil communautaire, rapproché sur la
   commune, le nom, le prénom et la date de naissance complète. Le sexe et la
   profession restent des agrégats ;
+- **les élus des autres échelons** — conseillers départementaux par canton,
+  conseillers régionaux par section départementale, députés par
+  circonscription, sénateurs par département — d'après le même répertoire :
+  nom, prénom, fonction, année de naissance, sur la page du département et de
+  la région ;
 - **la date de naissance**, quand une source la donne, au mois et à l'année
   seulement, comme l'INPI la diffuse pour les dirigeants. Pour les élus,
   **l'année seule** : elle dit la génération, c'est ce qui sert. Le répertoire

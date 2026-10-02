@@ -42,12 +42,17 @@ import { retraits } from './retraits.ts';
 
 const LISTE = 'https://www.hatvp.fr/livraison/opendata/liste.csv';
 const CONTENUS = 'https://www.hatvp.fr/livraison/merge/declarations.xml';
-const PAGE = 'https://www.hatvp.fr';
+export const PAGE = 'https://www.hatvp.fr';
+export const LISTE_URL = 'https://www.hatvp.fr/livraison/opendata/liste.csv';
+export const CONTENUS_URL = 'https://www.hatvp.fr/livraison/merge/declarations.xml';
 
 /** Les types de document que le site reprend : les déclarations d'intérêts, et leurs modifications. */
-const TYPES: Record<string, string> = {
+export const TYPES: Record<string, string> = {
   di: 'déclaration d’intérêts',
   dim: 'modification de la déclaration d’intérêts',
+  // Les parlementaires déposent une déclaration d'intérêts et d'activités.
+  dia: 'déclaration d’intérêts et d’activités',
+  diam: 'modification de la déclaration d’intérêts et d’activités',
 };
 
 /**
@@ -137,7 +142,7 @@ export function lignesDe(declaration: string): Ligne[] {
   return out;
 }
 
-const isoDe = (jjmmaaaa: string) => {
+export const isoDe = (jjmmaaaa: string) => {
   const m = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(jjmmaaaa);
   return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
 };
@@ -147,7 +152,80 @@ export interface Declarations {
   communes: Map<string, Declarant[]>;
 }
 
-const cle = (nom: string, prenom: string) => `${normaliser(nom)}|${normaliser(prenom)}`;
+export const cle = (nom: string, prenom: string) => `${normaliser(nom)}|${normaliser(prenom)}`;
+
+/** Une ligne de la liste des déclarations, réduite à ce qui sert. */
+export interface LigneListe {
+  prenom: string;
+  nom: string;
+  mandat: string;
+  qualite: string;
+  type: string;
+  dep: string;
+  date: string;
+  url: string;
+  statut: string;
+}
+
+/** La liste des déclarations de la HATVP, limitée aux déclarations d'intérêts ; null si elle a changé de forme. */
+export function lireListe(texte: string): LigneListe[] | null {
+  const lignes = texte.split(/\r?\n/).filter(Boolean);
+  const entetes = decouper(lignes.shift() ?? '');
+  const j = (n: string) => entetes.indexOf(n);
+  const [jPrenom, jNom, jMandat, jQualite, jType, jDep, jPub, jDepot, jUrl, jStatut] = [
+    'prenom', 'nom', 'type_mandat', 'qualite', 'type_document', 'departement', 'date_publication', 'date_depot', 'url_dossier', 'statut_publication',
+  ].map(j);
+  if ([jPrenom, jNom, jMandat, jQualite, jType, jDep, jUrl, jStatut].some((x) => x === -1)) return null;
+  const out: LigneListe[] = [];
+  for (const ligne of lignes) {
+    const v = decouper(ligne);
+    const type = (v[jType] ?? '').trim();
+    if (!TYPES[type]) continue;
+    out.push({
+      prenom: (v[jPrenom] ?? '').trim(),
+      nom: (v[jNom] ?? '').trim(),
+      mandat: (v[jMandat] ?? '').trim(),
+      qualite: (v[jQualite] ?? '').trim(),
+      type,
+      dep: (v[jDep] ?? '').trim().padStart(2, '0'),
+      date: ((jPub === -1 ? '' : (v[jPub] ?? '').trim()) || (jDepot === -1 ? '' : (v[jDepot] ?? '').trim())).slice(0, 10),
+      url: (v[jUrl] ?? '').trim(),
+      statut: (v[jStatut] ?? '').trim(),
+    });
+  }
+  return out;
+}
+
+/**
+ * La dernière déclaration d'intérêts complète de chaque déclarant, par
+ * « nom|prénom|date de naissance AAAA-MM-JJ » : une déclaration d'intérêts, ou
+ * d'intérêts et d'activités pour un parlementaire ; jamais une modificative,
+ * jamais une déclaration de patrimoine.
+ */
+export function dernieresDeclarations(xml: string): Map<string, { depot: string; qualite: string; decl: string }> {
+  const derniere = new Map<string, { depot: string; qualite: string; decl: string }>();
+  for (const m of xml.matchAll(/<declaration>([\s\S]*?)<\/declaration>/g)) {
+    const d = m[1];
+    const general = /<general>([\s\S]*?)<\/general>/.exec(d)?.[1] ?? '';
+    const type = champ(/<typeDeclaration>([\s\S]*?)<\/typeDeclaration>/.exec(general)?.[1] ?? '', 'id');
+    if (type !== 'DI' && type !== 'DIA') continue;
+    if (champ(general, 'declarationModificative') === 'true') continue;
+    const declarant = /<declarant>([\s\S]*?)<\/declarant>/.exec(general)?.[1] ?? '';
+    const k = `${cle(champ(declarant, 'nom'), champ(declarant, 'prenom'))}|${isoDe(champ(declarant, 'dateNaissance'))}`;
+    const depot = isoDe(champ(d, 'dateDepot'));
+    const deja = derniere.get(k);
+    if (deja && deja.depot >= depot) continue;
+    const organe = champ(/<organe>([\s\S]*?)<\/organe>/.exec(general)?.[1] ?? '', 'labelOrgane');
+    derniere.set(k, { depot, qualite: [champ(general, 'qualiteDeclarant'), organe].filter(Boolean).join(', '), decl: d });
+  }
+  return derniere;
+}
+
+/** Le contenu repris d'une déclaration, sans les rubriques retirées à la demande de qui elles concernent. */
+export function contenuDe(page: string, d: { depot: string; qualite: string; decl: string }): Contenu {
+  const retirees = retraits().declarations;
+  return [d.depot, d.qualite, lignesDe(d.decl).filter((l) => !retirees.has(`${page}|${l[0]}`))];
+}
 
 function decouper(ligne: string): string[] {
   const champs: string[] = [];
@@ -201,13 +279,8 @@ export async function collecterDeclarations(
     parNaissance.set(kn, dejaN && dejaN !== code ? '?' : code);
   }
 
-  const lignes = readFileSync(fichierListe, 'utf8').split(/\r?\n/).filter(Boolean);
-  const entetes = decouper(lignes.shift() ?? '');
-  const j = (n: string) => entetes.indexOf(n);
-  const [jPrenom, jNom, jMandat, jQualite, jType, jDep, jPub, jDepot, jUrl, jStatut] = [
-    'prenom', 'nom', 'type_mandat', 'qualite', 'type_document', 'departement', 'date_publication', 'date_depot', 'url_dossier', 'statut_publication',
-  ].map(j);
-  if ([jPrenom, jNom, jMandat, jQualite, jType, jDep, jUrl, jStatut].some((x) => x === -1)) {
+  const liste = lireListe(readFileSync(fichierListe, 'utf8'));
+  if (!liste) {
     dire('Déclarations HATVP : la liste a changé de forme.');
     return null;
   }
@@ -217,13 +290,9 @@ export async function collecterDeclarations(
   let ambigues = 0;
   let absentes = 0;
   let discordantes = 0;
-  for (const ligne of lignes) {
-    const v = decouper(ligne);
-    const type = (v[jType] ?? '').trim();
-    const mandat = (v[jMandat] ?? '').trim();
-    if (!TYPES[type] || (mandat !== 'commune' && mandat !== 'epci')) continue;
-    const dep = (v[jDep] ?? '').trim().padStart(2, '0');
-    const code = conseillers.get(`${dep}|${cle(v[jNom] ?? '', v[jPrenom] ?? '')}`);
+  for (const v of liste) {
+    if ((v.type !== 'di' && v.type !== 'dim') || (v.mandat !== 'commune' && v.mandat !== 'epci')) continue;
+    const code = conseillers.get(`${v.dep}|${cle(v.nom, v.prenom)}`);
     if (!code) {
       absentes++;
       continue;
@@ -232,21 +301,18 @@ export async function collecterDeclarations(
       ambigues++;
       continue;
     }
-    const qualite = (v[jQualite] ?? '').trim();
     // « Maire de Vichy », « Adjointe au maire d'Angers » : la commune nommée doit être la sienne.
-    const nommee = mandat === 'commune' ? /\bmaire (?:de |d'|d’|du |des )(.+)$/i.exec(qualite)?.[1] : undefined;
+    const nommee = v.mandat === 'commune' ? /\bmaire (?:de |d'|d’|du |des )(.+)$/i.exec(v.qualite)?.[1] : undefined;
     if (nommee && normaliser(nommee) !== normaliser(nomsCommunes.get(code) ?? '')) {
       discordantes++;
       continue;
     }
-    const url = (v[jUrl] ?? '').trim();
-    const date = ((v[jPub] ?? '').trim() || (v[jDepot] ?? '').trim()).slice(0, 10);
     const m = parCommune.get(code) ?? new Map<string, Declarant>();
-    const d = m.get(url) ?? [`${(v[jPrenom] ?? '').trim()} ${(v[jNom] ?? '').trim()}`, url ? PAGE + url : '', []];
-    const t: [string, string, string, string] = [TYPES[type], qualite, (v[jStatut] ?? '').trim(), date];
+    const d = m.get(v.url) ?? [`${v.prenom} ${v.nom}`, v.url ? PAGE + v.url : '', []];
+    const t: [string, string, string, string] = [TYPES[v.type], v.qualite, v.statut, v.date];
     // La liste répète parfois une déclaration à l'identique.
     if (!d[2].some((x) => x.join('|') === t.join('|'))) d[2].push(t);
-    m.set(url, d);
+    m.set(v.url, d);
     parCommune.set(code, m);
     retenues++;
   }
@@ -256,35 +322,18 @@ export async function collecterDeclarations(
   try {
     const fichierXml = join(cache, 'hatvp-declarations.xml');
     await telecharger(CONTENUS, fichierXml);
-    const xml = readFileSync(fichierXml, 'utf8');
-    const derniere = new Map<string, { depot: string; qualite: string; decl: string }>();
-    for (const m of xml.matchAll(/<declaration>([\s\S]*?)<\/declaration>/g)) {
-      const d = m[1];
-      const general = /<general>([\s\S]*?)<\/general>/.exec(d)?.[1] ?? '';
-      if (champ(/<typeDeclaration>([\s\S]*?)<\/typeDeclaration>/.exec(general)?.[1] ?? '', 'id') !== 'DI') continue;
-      if (champ(general, 'declarationModificative') === 'true') continue;
-      const declarant = /<declarant>([\s\S]*?)<\/declarant>/.exec(general)?.[1] ?? '';
-      const nom = cle(champ(declarant, 'nom'), champ(declarant, 'prenom'));
-      const code = parNaissance.get(`${nom}|${isoDe(champ(declarant, 'dateNaissance'))}`);
+    const dernieres = dernieresDeclarations(readFileSync(fichierXml, 'utf8'));
+    for (const [k, d] of dernieres) {
+      // « nom|prénom|naissance » : la commune de l'élu au répertoire.
+      const nom = k.slice(0, k.lastIndexOf('|'));
+      const code = parNaissance.get(k);
       if (!code || code === '?') continue;
-      const depot = isoDe(champ(d, 'dateDepot'));
-      const k = `${code}|${nom}`;
-      const deja = derniere.get(k);
-      if (deja && deja.depot >= depot) continue;
-      const organe = champ(/<organe>([\s\S]*?)<\/organe>/.exec(general)?.[1] ?? '', 'labelOrgane');
-      const qualite = [champ(general, 'qualiteDeclarant'), organe].filter(Boolean).join(', ');
-      derniere.set(k, { depot, qualite, decl: d });
-    }
-    for (const [k, { depot, qualite, decl }] of derniere) {
-      const [code, nom] = [k.slice(0, k.indexOf('|')), k.slice(k.indexOf('|') + 1)];
       const declarant = [...(parCommune.get(code)?.values() ?? [])].find((x) => {
         const [prenom, ...reste] = x[0].split(' ');
         return cle(reste.join(' '), prenom) === nom;
       });
       if (!declarant) continue;
-      // Une ligne retirée à la demande de qui elle concerne : page nominative et rubrique.
-      const retirees = retraits().declarations;
-      declarant[3] = [depot, qualite, lignesDe(decl).filter((l) => !retirees.has(`${declarant[1]}|${l[0]}`))];
+      declarant[3] = contenuDe(declarant[1], d);
       contenus++;
     }
   } catch (e) {
