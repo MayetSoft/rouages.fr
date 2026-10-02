@@ -1,0 +1,83 @@
+name: Collecte des marchés
+
+# Les données essentielles de la commande publique changent chaque jour, et
+# l'échéancier comme les titulaires en dépendent. La réingestion complète ne
+# se lance qu'à la main : celle-ci ne refait que les marchés, chaque lundi,
+# pour les acheteurs que la dernière réingestion complète a retenus — un
+# acheteur nouveau n'entre qu'avec elle. Elle réécrit les fichiers de marchés
+# par département, la suite des listes par acheteur et `echeances.json`.
+#
+# Comme `reingerer.yml`, le résultat part dans une branche et une pull
+# request : on relit le diff avant qu'il n'arrive en ligne, et le contrôle de
+# `ci.yml` est refait ici, puisqu'une PR ouverte avec le jeton du workflow ne
+# le déclenche pas.
+
+on:
+  schedule:
+    # Le lundi à 4 h 17 UTC, avant la veille du lundi matin.
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: reingestion
+  cancel-in-progress: false
+
+jobs:
+  marches:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Collecter les marchés
+        run: |
+          set -o pipefail
+          npx tsx scripts/marches-emettre.ts 2>&1 | tee collecte.log
+
+      - name: Contrôler comme la CI
+        run: |
+          npm run valider
+          npm run verifier-journal
+          npm run verifier-types
+          ROUAGES_DEPS='03,29,55,75' npx astro build
+
+      - name: Pousser une branche et ouvrir la PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain public/territoires)" ]; then
+            echo "::notice::Aucun marché n'a changé : rien à proposer."
+            exit 0
+          fi
+          jour=$(date -u +%Y-%m-%d)
+          branche="marches/$jour-${GITHUB_RUN_ID}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branche"
+          git add public/territoires
+          git commit -q -m "Marchés : collecte du $jour"
+          git push -q origin "$branche"
+          {
+            echo "Collecte des marchés du $jour ([journal]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))."
+            echo
+            echo '```'
+            sed 's/\x1b\[[0-9;]*m//g' collecte.log | tail -6
+            echo '```'
+            echo
+            echo "Le contrôle de la CI (validation, journal, types, build de l'Allier, du Finistère, de la Meuse et de Paris) est passé dans le même job."
+          } > corps.md
+          cat corps.md >> "$GITHUB_STEP_SUMMARY"
+          if ! gh pr create --base "${GITHUB_REF_NAME}" --head "$branche" \
+               --title "Marchés : collecte du $jour" --body-file corps.md; then
+            echo "::warning::La PR n'a pas pu être ouverte. Ouvrez-la à la main :"
+            echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/$branche?expand=1"
+          fi

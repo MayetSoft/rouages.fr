@@ -68,7 +68,9 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         'se relancent pas. L’échéance est prévisible : la date de notification plus la durée initiale ' +
         'déclarée. Un avenant ou une reconduction la déplace, et le recensement national ne ' +
         'publie pas ces modifications de durée. Le tri suit ce que l’acheteur a déclaré : une ' +
-        'étude ou un chantier déclarés en accord-cadre y figurent.'}
+        'étude ou un chantier déclarés en accord-cadre y figurent. '}
+      <a href="/territoires/echeances.json">{'Toutes les échéances du pays, en un fichier'}</a>
+      {' — avec l’acheteur, son département, le code CPV et le titulaire.'}
     </p>
     <ul>
       {echeances.slice(0, AFFICHEES).map((m) => (
