@@ -63,9 +63,19 @@ déjà reçu le code ou le contenu.
 - Elle n'inclut aucun élément tiers incompatible avec l'AGPL 3.0 (pour le
   code) ou avec la CC BY-SA 4.0 (pour le contenu). Tout élément tiers est
   signalé dans la demande, avec sa licence.
-- Elle respecte les règles éditoriales du projet, dont celle-ci : **le
-  contenu ne nomme aucune personne physique** (voir `CLAUDE.md`). La
-  validation la vérifie, mais elle ne voit pas tout.
+- Elle respecte les règles éditoriales du projet (voir `CLAUDE.md`), et
+  d'abord celles qui touchent aux personnes :
+  - **le contenu ne nomme aucune personne physique** : le graphe de
+    `contenu/` décrit des fonctions, jamais leurs titulaires. La validation
+    le vérifie, mais elle ne voit pas tout ;
+  - **une donnée territoriale ne nomme quelqu'un que dans les cas que
+    `CLAUDE.md` énumère** (« Les noms dans les données ») : un registre
+    public dont la finalité couvre l'usage, une justification écrite dans
+    `docs/07-risques.md` avant la collecte, la source et la date affichées
+    avec un lien vers la fiche d'origine, aucune conclusion du site, un
+    retrait possible. Une collecte qui nommerait une catégorie de personnes
+    absente de cette liste commence par cette justification, et c'est le
+    mainteneur qui tranche.
 
 ## Avant d'ouvrir une demande
 
