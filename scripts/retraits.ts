@@ -16,6 +16,8 @@ export interface Retraits {
   elus: Set<string>;
   /** Les empreintes des conseillers sans fonction, voir `empreinteElu`. */
   empreintes: Set<string>;
+  /** « page nominative HATVP|rubrique » : une rubrique de déclaration retirée. */
+  declarations: Set<string>;
 }
 
 /**
@@ -44,12 +46,14 @@ export function retraits(): Retraits {
     ? ((parse(readFileSync(chemin, 'utf8')) ?? {}) as {
         entreprises?: unknown[];
         elus?: { commune?: string; fonction?: string; empreinte?: string }[];
+        declarations?: { page?: string; rubrique?: string }[];
       })
     : {};
   lus = {
     entreprises: new Set((brut.entreprises ?? []).map((x) => String(x).replace(/\D/g, '')).filter((x) => x.length === 9)),
     elus: new Set((brut.elus ?? []).filter((e) => e?.commune && e?.fonction).map((e) => `${e.commune}|${e.fonction}`)),
     empreintes: new Set((brut.elus ?? []).filter((e) => e?.empreinte).map((e) => String(e.empreinte))),
+    declarations: new Set((brut.declarations ?? []).filter((d) => d?.page && d?.rubrique).map((d) => `${d.page}|${d.rubrique}`)),
   };
   return lus;
 }

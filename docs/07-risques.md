@@ -202,10 +202,22 @@ entière.
 Retenu : les activités professionnelles des cinq dernières années, les
 activités de conseil, les mandats électifs, les participations aux organes
 dirigeants, les participations financières, les fonctions bénévoles, et les
-rémunérations que la déclaration publie. Écarté : l'activité du conjoint et
-les collaborateurs — d'autres personnes, que la règle ne nomme pas —, les
-commentaires et observations libres, qui peuvent en citer, et tout ce que la
-HATVP marque « [Données non publiées] ». Le contenu est rapproché du
+rémunérations que la déclaration publie.
+
+**Puis, le même jour, le reste de ce que la HATVP publie**, à la demande du
+mainteneur : l'activité professionnelle du conjoint, les collaborateurs, les
+commentaires de chaque ligne et les observations libres. La première version
+les écartait parce qu'ils concernent d'autres personnes ; le mainteneur a
+tranché qu'ils sont publiés précisément pour cela — un employeur du conjoint
+qui contracte avec la collectivité, un collaborateur parlementaire de la
+famille, comme dans l'affaire du couple Fillon. Ce qui protège les tiers est
+ce que la HATVP elle-même masque, et le site s'y tient : le nom du conjoint
+est « [Données non publiées] » dans le fichier, et reste absent ; tout ce qui
+porte cette mention est retiré. Les collaborateurs ne figurent que dans les
+déclarations des parlementaires : ils apparaissent pour un député ou un
+sénateur qui siège aussi au conseil municipal. Un collaborateur ou un
+conjoint qui demande le retrait de la ligne qui le concerne l'obtient par
+`retraits.yaml`, sans y être nommé. Le contenu est rapproché du
 répertoire des élus sur le nom, le prénom **et la date de naissance
 complète**, que la déclaration et le répertoire portent tous deux.
 

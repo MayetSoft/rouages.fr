@@ -204,7 +204,7 @@ const cacheElections = new Map<string, ElectionsDep | null>();
 const cacheConseils = new Map<string, ConseilsDep | null>();
 type DeclarationsDep = {
   maj: string;
-  c: Record<string, [string, string, [string, string, string, string][], [string, string, [string, string, string, string, string][]]?][]>;
+  c: Record<string, [string, string, [string, string, string, string][], [string, string, [string, string, string, string, string, string?][]]?][]>;
 };
 const cacheDeclarations = new Map<string, DeclarationsDep | null>();
 const cacheUrbanisme = new Map<string, UrbanismeDep | null>();
@@ -332,7 +332,7 @@ export interface Fiche {
     contenu: {
       depot: string;
       qualite: string;
-      lignes: { rubrique: string; intitule: string; precision: string; periode: string; montant: string }[];
+      lignes: { rubrique: string; intitule: string; precision: string; periode: string; montant: string; commentaire: string }[];
     } | null;
   }[];
   declarationsMaj: string | null;
@@ -607,7 +607,14 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
         ? {
             depot: contenu[0],
             qualite: contenu[1],
-            lignes: contenu[2].map(([rubrique, intitule, precision, periode, montant]) => ({ rubrique, intitule, precision, periode, montant })),
+            lignes: contenu[2].map(([rubrique, intitule, precision, periode, montant, commentaire]) => ({
+              rubrique,
+              intitule,
+              precision,
+              periode,
+              montant,
+              commentaire: commentaire ?? '',
+            })),
           }
         : null,
     })),

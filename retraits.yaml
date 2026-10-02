@@ -17,5 +17,10 @@
 #                 fonction, la commune et l'empreinte que calcule
 #                 `npx tsx scripts/retraits.ts <commune> <NOM> <Prénom> <naissance>`
 #                 avec ROUAGES_RETRAITS_SECRET défini dans l'environnement.
+#   declarations: la page nominative de l'élu à la HATVP et la rubrique
+#                 retirée (« activité du conjoint », « collaborateur »,
+#                 « observation »…) — pour un conjoint ou un collaborateur qui
+#                 demande à ne plus figurer, sans être nommé ici.
 entreprises: []
 elus: []
+declarations: []

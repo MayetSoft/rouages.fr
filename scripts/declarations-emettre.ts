@@ -20,10 +20,12 @@
  * 2 octobre 2026, vient du fichier XML que la HATVP publie à côté. Il porte
  * la date de naissance du déclarant : le rapprochement s'y fait sur le nom,
  * le prénom et la date de naissance complète, comme pour les sièges
- * communautaires. Sont repris tels quels les rubriques qui concernent l'élu
- * lui-même — activités, mandats, organes dirigeants, participations
- * financières, fonctions bénévoles — et les montants publiés ; jamais
- * l'activité du conjoint, les collaborateurs ni les commentaires libres. Les
+ * communautaires. Tout ce que la HATVP publie est repris tel quel —
+ * activités, mandats, organes dirigeants, participations financières,
+ * fonctions bénévoles, activité du conjoint, collaborateurs, commentaires,
+ * observations, montants —, et rien de ce qu'elle masque : la mention
+ * « [Données non publiées] », qui couvre le nom du conjoint, est retirée. Une
+ * ligne peut être retirée par `retraits.yaml` (page nominative et rubrique). Les
  * déclarations publiées sont librement réutilisables (délibération HATVP
  * n° 2017-111, article 7), sans altération et avec leur source et leur date.
  *
@@ -36,6 +38,7 @@ import { fileURLToPath } from 'node:url';
 import { normaliser } from '../src/client/recherche-commune.ts';
 import { lignesCsvOuvert } from './donnees-ouvertes.ts';
 import { telechargerSiAbsent } from './par-departement.ts';
+import { retraits } from './retraits.ts';
 
 const LISTE = 'https://www.hatvp.fr/livraison/opendata/liste.csv';
 const CONTENUS = 'https://www.hatvp.fr/livraison/merge/declarations.xml';
@@ -49,9 +52,9 @@ const TYPES: Record<string, string> = {
 
 /**
  * Une ligne de déclaration : rubrique, intitulé, précision (employeur,
- * structure, part du capital…), période, dernier montant publié.
+ * structure, part du capital…), période, dernier montant publié, commentaire.
  */
-export type Ligne = [string, string, string, string, string];
+export type Ligne = [string, string, string, string, string, string];
 
 /** La dernière déclaration d'intérêts publiée : date de dépôt (AAAA-MM-JJ), qualité, lignes. */
 export type Contenu = [string, string, Ligne[]];
@@ -59,7 +62,7 @@ export type Contenu = [string, string, Ligne[]];
 /** « Prénom NOM », page nominative, par déclaration (type, qualité, statut, date), et le contenu publié. */
 export type Declarant = [string, string, [string, string, string, string][], Contenu?];
 
-/** Les rubriques reprises, dans l'ordre où la page les montre. Ni le conjoint, ni les collaborateurs. */
+/** Les rubriques, dans l'ordre où la page les montre : toutes celles d'une déclaration d'intérêts. */
 const RUBRIQUES: [string, string, string, string][] = [
   // section, rubrique, champ de l'intitulé, champ de la précision
   ['activProfCinqDerniereDto', 'activité professionnelle', 'description', 'employeur'],
@@ -68,6 +71,10 @@ const RUBRIQUES: [string, string, string, string][] = [
   ['participationDirigeantDto', 'organe dirigeant', 'activite', 'nomSociete'],
   ['participationFinanciereDto', 'participation financière', 'nomSociete', 'capitalDetenu'],
   ['fonctionBenevoleDto', 'fonction bénévole', 'descriptionActivite', 'nomStructure'],
+  // Le nom du conjoint est masqué par la HATVP : l'intitulé est sa profession.
+  ['activProfConjointDto', 'activité du conjoint', 'activiteProf', 'employeurConjoint'],
+  // Seulement chez les parlementaires : le nom du collaborateur, publié.
+  ['activCollaborateursDto', 'collaborateur', 'nom', 'employeur'],
 ];
 
 const MASQUE = /\[\s*Donn[ée]es? non publi[ée]es?\s*\]/gi;
@@ -104,12 +111,28 @@ export function lignesDe(declaration: string): Ligne[] {
       const titre = champ(item, intitule);
       if (VIDE.test(titre)) continue;
       let detail = precision ? champ(item, precision) : '';
+      if (section === 'activCollaborateursDto') {
+        detail = [detail, champ(item, 'descriptionActivite')].filter((x) => x && !VIDE.test(x)).join(', ');
+      }
       if (section === 'participationFinanciereDto') {
         const parts = champ(item, 'nombreParts');
         detail = [detail && `${detail.replace(/\s*%$/, '')} % du capital`, parts && `${parts} parts`].filter(Boolean).join(', ');
       }
-      out.push([rubrique, titre, VIDE.test(detail) ? '' : detail, periode(champ(item, 'dateDebut'), champ(item, 'dateFin')), montant(item)]);
+      out.push([
+        rubrique,
+        titre,
+        VIDE.test(detail) ? '' : detail,
+        periode(champ(item, 'dateDebut'), champ(item, 'dateFin')),
+        montant(item),
+        VIDE.test(champ(item, 'commentaire')) ? '' : champ(item, 'commentaire'),
+      ]);
     }
+  }
+  // Les observations libres, en une ou plusieurs entrées.
+  const obs = /<observationInteretDto>([\s\S]*?)<\/observationInteretDto>/.exec(declaration)?.[1] ?? '';
+  for (const m of obs.matchAll(/<contenu>([\s\S]*?)<\/contenu>/g)) {
+    const texte = entites(m[1]).replace(MASQUE, '').replace(/\s+/g, ' ').trim();
+    if (!VIDE.test(texte)) out.push(['observation', texte, '', '', '', '']);
   }
   return out;
 }
@@ -259,7 +282,9 @@ export async function collecterDeclarations(
         return cle(reste.join(' '), prenom) === nom;
       });
       if (!declarant) continue;
-      declarant[3] = [depot, qualite, lignesDe(decl)];
+      // Une ligne retirée à la demande de qui elle concerne : page nominative et rubrique.
+      const retirees = retraits().declarations;
+      declarant[3] = [depot, qualite, lignesDe(decl).filter((l) => !retirees.has(`${declarant[1]}|${l[0]}`))];
       contenus++;
     }
   } catch (e) {
