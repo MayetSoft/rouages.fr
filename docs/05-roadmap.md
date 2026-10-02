@@ -3429,8 +3429,18 @@ d'associations ; les autres restent anonymes, faute de source.
 et le département quand un seul conseiller du département les porte : 3 053
 déclarations dans 1 671 communes. Les déclarations de patrimoine des élus
 locaux ne sont jamais publiques, et leur divulgation est un délit : le site
-n'en dit rien. Le contenu des déclarations d'intérêts reste sur la page de la
-HATVP, en attendant de trancher ses conditions de réutilisation.
+n'en dit rien.
+
+**Puis leur contenu (2 octobre 2026).** Les déclarations publiées sont
+librement réutilisables — délibération de la HATVP n° 2017-111, article 7,
+vérifiée sur le texte —, sans altération et avec leur source et leur date. La
+page reprend, pour chaque élu, les extraits de sa dernière déclaration
+d'intérêts publiée : activités, mandats, organes dirigeants, participations
+financières, fonctions bénévoles et montants, rapprochés sur le nom, le
+prénom et la date de naissance complète. 203 déclarations à ce jour : celles
+de la mandature précédente pour les élus reconduits, les déclarations de mars
+2026 étant presque toutes « publication à venir ». Elles apparaîtront d'elles-
+mêmes aux ingestions suivantes, à mesure que la HATVP les publie.
 
 **Ce qui ne bouge pas.** Les dirigeants d'associations hors HATVP, les
 particuliers cités dans les délibérations, une opinion que le site

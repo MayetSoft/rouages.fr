@@ -202,7 +202,10 @@ const cacheRisques = new Map<string, RisquesDep | null>();
 const cacheJournal = new Map<string, JournalDep | null>();
 const cacheElections = new Map<string, ElectionsDep | null>();
 const cacheConseils = new Map<string, ConseilsDep | null>();
-type DeclarationsDep = { maj: string; c: Record<string, [string, string, [string, string, string, string][]][]> };
+type DeclarationsDep = {
+  maj: string;
+  c: Record<string, [string, string, [string, string, string, string][], [string, string, [string, string, string, string, string][]]?][]>;
+};
 const cacheDeclarations = new Map<string, DeclarationsDep | null>();
 const cacheUrbanisme = new Map<string, UrbanismeDep | null>();
 const cachePlu = new Map<string, PluDep | null>();
@@ -321,7 +324,17 @@ export interface Fiche {
   /** Le siège du maire au conseil communautaire, d'après le même répertoire. */
   maireCc: string | null;
   /** Les déclarations d'intérêts des élus de la commune à la HATVP ; jamais une déclaration de patrimoine. */
-  declarations: { nom: string; page: string; liste: { type: string; qualite: string; statut: string; date: string }[] }[];
+  declarations: {
+    nom: string;
+    page: string;
+    liste: { type: string; qualite: string; statut: string; date: string }[];
+    /** La dernière déclaration d'intérêts publiée, en extraits tels quels. */
+    contenu: {
+      depot: string;
+      qualite: string;
+      lignes: { rubrique: string; intitule: string; precision: string; periode: string; montant: string }[];
+    } | null;
+  }[];
   declarationsMaj: string | null;
   /** La date du fichier des conseillers d'où viennent les adjoints. */
   adjointsMaj: string | null;
@@ -586,10 +599,17 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
       cc: cc || null,
     })),
     maireCc: adjointsDep?.c[c.code]?.mc ?? null,
-    declarations: (declarationsDep?.c[c.code] ?? []).map(([nom, page, l]) => ({
+    declarations: (declarationsDep?.c[c.code] ?? []).map(([nom, page, l, contenu]) => ({
       nom,
       page,
       liste: l.map(([type, qualite, statut, date]) => ({ type, qualite, statut, date })),
+      contenu: contenu
+        ? {
+            depot: contenu[0],
+            qualite: contenu[1],
+            lignes: contenu[2].map(([rubrique, intitule, precision, periode, montant]) => ({ rubrique, intitule, precision, periode, montant })),
+          }
+        : null,
     })),
     declarationsMaj: declarationsDep?.maj ?? null,
     adjointsMaj: adjointsDep?.maj ?? null,
