@@ -70,7 +70,9 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         'publie pas ces modifications de durée. Le tri suit ce que l’acheteur a déclaré : une ' +
         'étude ou un chantier déclarés en accord-cadre y figurent. '}
       <a href="/territoires/echeances.json">{'Toutes les échéances du pays, en un fichier'}</a>
-      {' — avec l’acheteur, son département, le code CPV et le titulaire.'}
+      {' — avec l’acheteur, son département, le code CPV et le titulaire ; et '}
+      <a href="/territoires/attributions.json">{'les marchés attribués ces quatre-vingt-dix derniers jours'}</a>
+      {', de même.'}
     </p>
     <ul>
       {echeances.slice(0, AFFICHEES).map((m) => (

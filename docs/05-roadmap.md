@@ -3465,6 +3465,25 @@ ne se lance qu'à la main. Dix minutes, titulaires compris. Elle ne suit que
 les acheteurs déjà retenus — un acheteur nouveau n'entre qu'avec la
 réingestion complète —, refait le contrôle de la CI et ouvre une PR.
 
+### Les marchés tout juste attribués en un fichier, et les intercommunalités de chaque acheteur ✔
+
+**`/territoires/attributions.json` donne les marchés notifiés ces
+quatre-vingt-dix derniers jours**, pour tout le pays : 13 296 au 3 octobre
+2026, depuis le 5 juillet, chez 2 249 acheteurs, chacun avec le code CPV
+(13 241) et le titulaire (13 230). C'est le pendant d'`echeances.json` : l'un
+dit ce qui va se rejouer, l'autre ce qui vient de se jouer. Quatre-vingt-dix
+jours, parce que les données essentielles arrivent avec retard : un marché
+publié cette semaine date souvent de plusieurs semaines.
+
+**Les deux fichiers décrivent mieux chaque acheteur** : le code INSEE d'une
+commune, et les intercommunalités où il agit — la sienne pour une commune,
+elle-même pour une intercommunalité, celles de ses communes membres pour un
+syndicat —, avec la liste des intercommunalités nommées (1 222). Tous les
+acheteurs en ont une sauf L'Île-d'Yeu, commune sans intercommunalité. C'est
+ce qui permet de chercher sur une intercommunalité plutôt que sur un
+département, et à une intercommunalité de voir ce que ses membres
+renouvellent ensemble.
+
 ### Les élus des départements, des régions et du Parlement ✔
 
 La page de chaque département nomme l'exécutif et les membres du conseil
