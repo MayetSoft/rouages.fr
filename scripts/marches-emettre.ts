@@ -421,10 +421,11 @@ export async function collecterMarches(
     const tout = [...m.values()].sort(
       (a, b) => b.date.localeCompare(a.date) || (b.montant ?? 0) - (a.montant ?? 0),
     );
-    // L'échéance et le code CPV ne voyagent qu'avec les échéances et les
-    // attributions : les porter sur chacun des 420 000 marchés alourdirait
-    // les listes pour une information qu'elles n'affichent pas.
-    const liste = tout.map(({ fin: _fin, cpv: _cpv, ...sans }): Marche => sans);
+    // L'échéance ne voyage qu'avec les échéances : la porter sur chacun des
+    // 420 000 marchés alourdirait les listes pour une information qu'elles
+    // n'affichent pas. Le code CPV reste, comme avant, sur les marchés qui se
+    // renouvellent — ceux qui ont une échéance — et seulement sur eux.
+    const liste = tout.map(({ fin, cpv, ...sans }): Marche => (fin && cpv ? { ...sans, cpv } : sans) as Marche);
     const neufs = tout.filter((x) => x.date >= recentsDepuis).map(({ fin: _fin, ...sans }): Attribution => sans);
     if (neufs.length > 0) {
       recents.set(siren, neufs);
