@@ -99,6 +99,14 @@ export const ECHEANCES = 12;
 /** La fenêtre des échéances, en mois à partir de celui de l'ingestion. */
 const FENETRE_MOIS = 12;
 
+/**
+ * Combien de jours de marchés notifiés `attributions.json` porte. Les données
+ * essentielles arrivent avec retard — un acheteur publie souvent ses marchés
+ * des semaines après les avoir notifiés —, et un marché qui apparaît cette
+ * semaine peut dater de deux mois : quatre-vingt-dix jours le rattrapent.
+ */
+export const RECENTS_JOURS = 90;
+
 interface LigneDecp {
   acheteur_id: string | null;
   objet: string | null;
@@ -157,6 +165,11 @@ export interface Echeance extends Marche {
   cpv?: string;
 }
 
+/** Un marché récemment notifié, avec son code CPV : c'est le filtre « mon métier » de qui suit les attributions. */
+export interface Attribution extends Marche {
+  cpv?: string;
+}
+
 /**
  * Les procédures, énumérées une fois.
  *
@@ -187,6 +200,10 @@ export interface Marches {
   totaux: Map<string, number>;
   /** SIREN -> ses marchés à échéance dans la fenêtre, du plus proche au plus lointain. */
   echeances: Map<string, Echeance[]>;
+  /** SIREN -> ses marchés notifiés depuis `recentsDepuis`, du plus récent au plus ancien. */
+  recents: Map<string, Attribution[]>;
+  /** Le premier jour couvert par `recents` (AAAA-MM-JJ). */
+  recentsDepuis: string;
   /** Premier et dernier mois de la fenêtre des échéances (AAAA-MM), bornes comprises. */
   fenetre: [string, string];
   /**
@@ -303,7 +320,7 @@ export async function collecterMarches(
   // Regroupées avant d'être comptées : un accord-cadre multi-attributaires
   // publie une ligne par lot, avec le même objet, le même montant et la même
   // date. Les afficher sept fois ferait passer une commande pour sept.
-  const brut = new Map<string, Map<string, Echeance | Marche>>();
+  const brut = new Map<string, Map<string, Attribution & { fin?: string }>>();
   const totaux = new Map<string, number>();
   const parSiret = new Map<string, Map<string, number>>();
   const inconnues = new Set<string>();
@@ -356,9 +373,8 @@ export async function collecterMarches(
         procedure: proc,
         lots: 1,
         ...(offres ? { offres } : {}),
-        ...(duree && serenouvelle(l.codecpv, l.techniques, duree)
-          ? { fin: ajouterMois(date, duree), ...cpv(l.codecpv) }
-          : {}),
+        ...(duree && serenouvelle(l.codecpv, l.techniques, duree) ? { fin: ajouterMois(date, duree) } : {}),
+        ...cpv(l.codecpv),
       });
       titulaires.set(m.get(cle)!, new Set(ids));
     }
@@ -394,26 +410,30 @@ export async function collecterMarches(
 
   const maj = new Date().toISOString().slice(0, 10);
   const fenetre: [string, string] = [ajouterMois(maj, 0), ajouterMois(maj, FENETRE_MOIS - 1)];
+  const recentsDepuis = new Date(Date.parse(maj) - RECENTS_JOURS * 86_400_000).toISOString().slice(0, 10);
   const parAcheteur = new Map<string, Marche[]>();
   const suites = new Map<string, Marche[]>();
   const echeances = new Map<string, Echeance[]>();
+  const recents = new Map<string, Attribution[]>();
   let nEcheances = 0;
+  let nRecents = 0;
   for (const [siren, m] of brut) {
     const tout = [...m.values()].sort(
       (a, b) => b.date.localeCompare(a.date) || (b.montant ?? 0) - (a.montant ?? 0),
     );
-    // L'échéance ne voyage qu'avec les échéances : la porter sur chacun des
-    // 420 000 marchés alourdirait les listes pour une information qu'elles
-    // n'affichent pas.
-    const liste = tout.map((x): Marche => {
-      if (!('fin' in x)) return x;
-      const { fin: _fin, ...sans } = x;
-      return sans;
-    });
+    // L'échéance et le code CPV ne voyagent qu'avec les échéances et les
+    // attributions : les porter sur chacun des 420 000 marchés alourdirait
+    // les listes pour une information qu'elles n'affichent pas.
+    const liste = tout.map(({ fin: _fin, cpv: _cpv, ...sans }): Marche => sans);
+    const neufs = tout.filter((x) => x.date >= recentsDepuis).map(({ fin: _fin, ...sans }): Attribution => sans);
+    if (neufs.length > 0) {
+      recents.set(siren, neufs);
+      nRecents += neufs.length;
+    }
     parAcheteur.set(siren, liste.slice(0, PAR_ACHETEUR));
     if (liste.length > PAR_ACHETEUR) suites.set(siren, liste.slice(PAR_ACHETEUR));
     const proches = tout
-      .filter((x): x is Echeance => 'fin' in x && x.fin >= fenetre[0] && x.fin <= fenetre[1])
+      .filter((x): x is Echeance => x.fin !== undefined && x.fin >= fenetre[0] && x.fin <= fenetre[1])
       .sort((a, b) => a.fin.localeCompare(b.fin) || (b.montant ?? 0) - (a.montant ?? 0));
     if (proches.length > 0) {
       echeances.set(siren, proches);
@@ -433,7 +453,7 @@ export async function collecterMarches(
     `Marchés publics : ${lignes.length.toLocaleString('fr-FR')} notifiés depuis ${DEPUIS.slice(0, 4)}, ` +
       `dont ${retenus.toLocaleString('fr-FR')} pour ${parAcheteur.size.toLocaleString('fr-FR')} ` +
       `acheteurs du bloc communal ; ${nEcheances.toLocaleString('fr-FR')} à échéance prévisible ` +
-      `de ${fenetre[0]} à ${fenetre[1]}.`,
+      `de ${fenetre[0]} à ${fenetre[1]} ; ${nRecents.toLocaleString('fr-FR')} notifiés depuis le ${recentsDepuis}.`,
   );
   const sirets = new Map<string, string>();
   for (const [siren, c] of parSiret) sirets.set(siren, [...c].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]);
@@ -442,6 +462,8 @@ export async function collecterMarches(
     suites,
     totaux,
     echeances,
+    recents,
+    recentsDepuis,
     fenetre,
     sirets,
     depuis: DEPUIS,
@@ -527,6 +549,115 @@ export function ecrireSuitesMarches(sortie: string, marches: Marches): number {
   return n;
 }
 
+/** Les natures de groupement à fiscalité propre : ce qu'on appelle une intercommunalité. */
+const A_FISCALITE_PROPRE = new Set(['CC', 'CA', 'CU', 'METRO', 'MET69', 'EPT', 'SAN']);
+
+/** Un acheteur, tel que les fichiers nationaux le décrivent. */
+interface Acheteur {
+  nom: string | null;
+  deps: string[];
+  /** Le code INSEE, pour une commune : sa page sur rouages.fr. */
+  commune?: string;
+  /**
+   * Les intercommunalités sur le territoire desquelles il agit : la sienne
+   * pour une commune, elle-même pour une intercommunalité, celles de ses
+   * communes membres pour un syndicat. C'est le périmètre « une
+   * intercommunalité » de qui cherche des marchés, et le territoire d'une
+   * intercommunalité qui regarde ses membres.
+   */
+  epci?: string[];
+}
+
+/**
+ * Les acheteurs retenus par au moins un département, avec leur nom, leurs
+ * départements et leurs intercommunalités ; et les intercommunalités du pays,
+ * nommées. Relus dans les fichiers déjà écrits : groupements et communes dans
+ * `dep/XX.json`, SIREN des communes dans `dep/XX-marches.json`.
+ */
+function acheteursNommes(sortie: string): {
+  acheteurs: Map<string, Acheteur>;
+  epci: Map<string, { nom: string; deps: string[] }>;
+} {
+  const acheteurs = new Map<string, Acheteur>();
+  const epci = new Map<string, { nom: string; deps: string[] }>();
+  const dossier = join(sortie, 'dep');
+  const ajouter = <T>(liste: T[], x: T) => {
+    if (!liste.includes(x)) liste.push(x);
+  };
+  for (const f of readdirSync(dossier).sort()) {
+    const dep = /^(\w+)-marches\.json$/.exec(f)?.[1];
+    if (!dep) continue;
+    const d = JSON.parse(readFileSync(join(dossier, f), 'utf8')) as {
+      com: Record<string, string>;
+      h: Record<string, unknown>;
+    };
+    // Groupement : SIREN, nom, nature. Commune : code, nom, population, indices de ses groupements.
+    let g: [string, string, string, ...unknown[]][] = [];
+    let c: [string, string, number, number[], ...unknown[]][] = [];
+    try {
+      const s = JSON.parse(readFileSync(join(dossier, `${dep}.json`), 'utf8')) as { g?: typeof g; c?: typeof c };
+      g = s.g ?? [];
+      c = s.c ?? [];
+    } catch {
+      // Sans le fichier des structures, les acheteurs restent sans nom ni intercommunalité.
+    }
+    const noms = new Map<string, string>(g.map((x) => [x[0], x[1]]));
+    const intercos = new Set(g.filter((x) => A_FISCALITE_PROPRE.has(x[2])).map((x) => x[0]));
+    for (const [siren, nom, nature] of g) {
+      if (!A_FISCALITE_PROPRE.has(nature)) continue;
+      const e = epci.get(siren) ?? { nom, deps: [] };
+      ajouter(e.deps, dep);
+      epci.set(siren, e);
+    }
+    // Les intercommunalités de chaque commune, et par là celles de chaque syndicat.
+    const deCommune = new Map<string, string[]>();
+    const deGroupement = new Map<string, string[]>();
+    for (const [code, , , membres] of c) {
+      const siens = (membres ?? []).map((i) => g[i]?.[0]).filter((s): s is string => !!s);
+      const ses = siens.filter((s) => intercos.has(s));
+      deCommune.set(code, ses);
+      for (const s of siens) {
+        const l = deGroupement.get(s) ?? [];
+        for (const e of ses) ajouter(l, e);
+        deGroupement.set(s, l);
+      }
+    }
+    const codeDeSiren = new Map<string, string>();
+    for (const [code, siren] of Object.entries(d.com)) {
+      codeDeSiren.set(siren, code);
+      const n = c.find((x) => x[0] === code)?.[1];
+      if (n) noms.set(siren, n);
+    }
+    for (const siren of Object.keys(d.h)) {
+      const a = acheteurs.get(siren) ?? { nom: null, deps: [] };
+      a.nom ??= noms.get(siren) ?? null;
+      ajouter(a.deps, dep);
+      const code = codeDeSiren.get(siren);
+      if (code) a.commune = code;
+      const ses = intercos.has(siren) ? [siren] : code ? deCommune.get(code) : deGroupement.get(siren);
+      if (ses && ses.length > 0) {
+        a.epci ??= [];
+        for (const e of ses) ajouter(a.epci, e);
+      }
+      acheteurs.set(siren, a);
+    }
+  }
+  return { acheteurs, epci };
+}
+
+/** Les acheteurs et les intercommunalités qu'un fichier national cite. */
+function cites(
+  { acheteurs, epci }: ReturnType<typeof acheteursNommes>,
+  sirens: Set<string>,
+): { acheteurs: Record<string, Acheteur>; epci: Record<string, { nom: string; deps: string[] }> } {
+  const retenus = [...acheteurs].filter(([s]) => sirens.has(s)).sort(([a], [b]) => a.localeCompare(b));
+  const ses = new Set(retenus.flatMap(([, a]) => a.epci ?? []));
+  return {
+    acheteurs: Object.fromEntries(retenus),
+    epci: Object.fromEntries([...epci].filter(([s]) => ses.has(s)).sort(([a], [b]) => a.localeCompare(b))),
+  };
+}
+
 /**
  * Toutes les échéances du pays dans un seul fichier, `echeances.json`.
  *
@@ -543,58 +674,57 @@ export function ecrireSuitesMarches(sortie: string, marches: Marches): number {
  * figure pas, comme il ne figure sur aucune page.
  */
 export function ecrireEcheancesNationales(sortie: string, marches: Marches): number {
-  const acheteurs = new Map<string, { nom: string | null; deps: string[] }>();
-  const dossier = join(sortie, 'dep');
-  for (const f of readdirSync(dossier).sort()) {
-    const dep = /^(\w+)-marches\.json$/.exec(f)?.[1];
-    if (!dep) continue;
-    const d = JSON.parse(readFileSync(join(dossier, f), 'utf8')) as {
-      com: Record<string, string>;
-      h: Record<string, unknown>;
-    };
-    let g: [string, string, ...unknown[]][] = [];
-    let c: [string, string, ...unknown[]][] = [];
-    try {
-      const s = JSON.parse(readFileSync(join(dossier, `${dep}.json`), 'utf8')) as { g?: typeof g; c?: typeof c };
-      g = s.g ?? [];
-      c = s.c ?? [];
-    } catch {
-      // Sans le fichier des structures, les acheteurs restent sans nom.
-    }
-    const noms = new Map<string, string>(g.map((x) => [x[0], x[1]]));
-    const nomCommune = new Map<string, string>(c.map((x) => [x[0], x[1]]));
-    for (const [code, siren] of Object.entries(d.com)) {
-      const n = nomCommune.get(code);
-      if (n) noms.set(siren, n);
-    }
-    for (const siren of Object.keys(d.h)) {
-      const a = acheteurs.get(siren) ?? { nom: null, deps: [] };
-      a.nom ??= noms.get(siren) ?? null;
-      if (!a.deps.includes(dep)) a.deps.push(dep);
-      acheteurs.set(siren, a);
-    }
-  }
-
+  const lus = acheteursNommes(sortie);
+  const { acheteurs } = lus;
   const e: (Echeance & { a: string })[] = [];
   for (const [siren, liste] of marches.echeances) {
     if (!acheteurs.has(siren)) continue;
     for (const x of liste) e.push({ a: siren, ...x });
   }
   e.sort((x, y) => x.fin.localeCompare(y.fin) || x.a.localeCompare(y.a) || x.objet.localeCompare(y.objet));
-  const cites = new Set(e.map((x) => x.a));
   writeFileSync(
     join(sortie, 'echeances.json'),
     JSON.stringify({
       maj: marches.maj,
       fenetre: marches.fenetre,
       procedures: PROCEDURES,
-      acheteurs: Object.fromEntries(
-        [...acheteurs].filter(([s]) => cites.has(s)).sort(([a], [b]) => a.localeCompare(b)),
-      ),
+      ...cites(lus, new Set(e.map((x) => x.a))),
       e,
     }),
   );
   return e.length;
+}
+
+/**
+ * Les marchés notifiés ces quatre-vingt-dix derniers jours, pour tout le pays,
+ * dans `attributions.json` : qui a obtenu quoi, chez quel acheteur, avec le
+ * code CPV. Le pendant d'`echeances.json` — l'un dit ce qui va se rejouer,
+ * l'autre ce qui vient de se jouer —, publié de même pour être téléchargé, et
+ * lu par les services qui alertent sur les nouvelles attributions.
+ *
+ * Même forme qu'`echeances.json` : les acheteurs une fois, nommés, puis les
+ * marchés, du plus récent au plus ancien.
+ */
+export function ecrireAttributionsNationales(sortie: string, marches: Marches): number {
+  const lus = acheteursNommes(sortie);
+  const { acheteurs } = lus;
+  const m: (Attribution & { a: string })[] = [];
+  for (const [siren, liste] of marches.recents) {
+    if (!acheteurs.has(siren)) continue;
+    for (const x of liste) m.push({ a: siren, ...x });
+  }
+  m.sort((x, y) => y.date.localeCompare(x.date) || x.a.localeCompare(y.a) || x.objet.localeCompare(y.objet));
+  writeFileSync(
+    join(sortie, 'attributions.json'),
+    JSON.stringify({
+      maj: marches.maj,
+      depuis: marches.recentsDepuis,
+      procedures: PROCEDURES,
+      ...cites(lus, new Set(m.map((x) => x.a))),
+      m,
+    }),
+  );
+  return m.length;
 }
 
 // Lancé seul : les acheteurs que la dernière ingestion complète a retenus,
@@ -625,8 +755,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m);
     const suites = ecrireSuitesMarches(sortie, m);
     const nationales = ecrireEcheancesNationales(sortie, m);
+    const attributions = ecrireAttributionsNationales(sortie, m);
     console.log(
-      `${n} acheteurs écrits, ${suites} listes complètes à la demande, ${nationales} échéances dans echeances.json.`,
+      `${n} acheteurs écrits, ${suites} listes complètes à la demande, ${nationales} échéances dans echeances.json, ` +
+        `${attributions} marchés dans attributions.json.`,
     );
   }
 }

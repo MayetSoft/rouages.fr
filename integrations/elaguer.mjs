@@ -16,10 +16,11 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Ce que le navigateur lit à la racine de `/territoires`, et `echeances.json`,
- * que personne ne lit sur le site : il est publié pour être téléchargé.
+ * Ce que le navigateur lit à la racine de `/territoires`, et `echeances.json`
+ * et `attributions.json`, que personne ne lit sur le site : ils sont publiés
+ * pour être téléchargés.
  */
-const RACINE_GARDEE = new Set(['index.json', 'deps.json', 'meta.json', 'dep', 'marches', 'echeances.json']);
+const RACINE_GARDEE = new Set(['index.json', 'deps.json', 'meta.json', 'dep', 'marches', 'echeances.json', 'attributions.json']);
 
 /** Par département : les groupements (`03.json`) et le prix de l'eau (`03-eau.json`). */
 const DEP_GARDE = /^[0-9AB]{2,3}(-eau)?\.json$/;

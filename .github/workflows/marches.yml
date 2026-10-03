@@ -5,7 +5,8 @@ name: Collecte des marchés
 # se lance qu'à la main : celle-ci ne refait que les marchés, chaque lundi,
 # pour les acheteurs que la dernière réingestion complète a retenus — un
 # acheteur nouveau n'entre qu'avec elle. Elle réécrit les fichiers de marchés
-# par département, la suite des listes par acheteur et `echeances.json`.
+# par département, la suite des listes par acheteur, `echeances.json` et
+# `attributions.json`.
 #
 # Comme `reingerer.yml`, le résultat part dans une branche et une pull
 # request : on relit le diff avant qu'il n'arrive en ligne, et le contrôle de
