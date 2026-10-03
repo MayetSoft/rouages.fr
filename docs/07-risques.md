@@ -37,12 +37,21 @@ Le prebunking peut faire basculer la perception du site de « ressource » à
 « militant », et rétroactivement discréditer les familles A à C.
 
 **Garde-fous** : mécanismes uniquement, **aucun nom de personne physique dans
-le contenu** (règle vérifiée automatiquement, sur tout `contenu/` et non plus
-seulement sur cette famille) ; sources académiques ou cas documentés
+le contenu** — le graphe de `contenu/` ; la règle est vérifiée automatiquement,
+sur tout `contenu/` et non plus seulement sur cette famille. Les données
+territoriales, elles, nomment depuis le 1er octobre 2026 les catégories que
+`CLAUDE.md` énumère (« Les noms dans les données »), chacune justifiée plus bas
+avant sa collecte ; sources académiques ou cas documentés
 publiquement ; publication seulement après la phase 2 ; séparation visuelle
 claire de cette famille.
 
 ### La frontière, depuis que le site nomme les maires
+
+*Écrit quand seuls les maires étaient nommés. La frontière entre le graphe et
+les données tient toujours ; la liste de ce qui est collecté s'est étendue
+depuis — conseillers, année de naissance, titulaires, entrepreneurs
+individuels, déclarations à la HATVP —, chaque fois par une section datée
+ci-dessous, et `CLAUDE.md` en tient la liste à jour.*
 
 La règle n'a pas été levée, elle a été **précisée** — et en le devenant, elle
 s'est durcie plutôt qu'assouplie.
@@ -253,7 +262,9 @@ département.
 
 ## 4. Risques juridiques directs
 
-- **Diffamation** (famille D) : traitée par la règle « pas de personnes ».
+- **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans
+  le graphe, et, dans les données, par celle des noms : un nom ne vient que
+  d'un registre public, avec sa source, sans qualificatif ni conclusion.
 - **Droit d'auteur** : ne pas recopier service-public.fr ou Wikipédia — citer,
   lier, reformuler. Vérifier la licence de chaque jeu de données réutilisé
   (Licence Ouverte, ODbL : obligations de partage à l'identique différentes).

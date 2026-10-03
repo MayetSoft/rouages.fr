@@ -1,37 +1,37 @@
 # Qui édite ce site.
 #
 # Un site accessible au public doit dire qui le publie et qui l'héberge
-# (article 6 de la loi pour la confiance dans l'économie numérique). Ces
-# informations ne se devinent pas depuis le dépôt : elles sont déclarées ici,
-# et `npm run valider` refuse de publier tant qu'elles portent encore leur
-# valeur d'attente. C'est la même règle que pour le reste du contenu — ce qui
-# doit être vrai est vérifié par le build, pas par la mémoire de quelqu'un.
+# (article 1-1 de la loi pour la confiance dans l'économie numérique, où la loi
+# du 21 mai 2024 a déplacé ce qui était l'article 6, III). Ces informations ne
+# se devinent pas depuis le dépôt : elles sont déclarées ici, et
+# `npm run valider` refuse de publier tant qu'elles portent encore leur valeur
+# d'attente. C'est la même règle que pour le reste du contenu — ce qui doit être
+# vrai est vérifié par le build, pas par la mémoire de quelqu'un.
 #
-# Le nom qui figure ici est le seul du site, et il est là parce que la loi
-# l'exige : la règle « le contenu ne nomme aucune personne physique » vaut
-# pour le graphe, qui décrit des fonctions. Les mentions légales, elles,
-# désignent quelqu'un — c'est leur objet. La validation le sait : le contrôle
-# des noms porte sur les acteurs, compétences, documents, flux, sources,
-# sigles, repères et processus, pas sur ce fichier.
+# Le nom du directeur de la publication est le seul nom de personne de
+# `contenu/`, et il est là parce que la loi l'exige : la règle « le contenu ne
+# nomme aucune personne physique » vaut pour le graphe, qui décrit des
+# fonctions. Les mentions légales, elles, désignent quelqu'un — c'est leur
+# objet. La validation le sait : le contrôle des noms porte sur les acteurs,
+# compétences, documents, flux, sources, sigles, repères et processus, pas sur
+# ce fichier.
 editeur:
-  # Une personne physique peut se limiter à son nom et à un moyen de contact ;
-  # une association ou une société déclare sa raison sociale et son siège.
-  nom: "François Fournier"
+  # MayetCo SAS édite rouages.fr comme Rouages Pro, et elle exploite aussi le
+  # site techniquement : il n'y a plus de ligne « réalisation technique » à part.
+  # Relevé au répertoire SIRENE et sur l'annuaire des entreprises le 3 octobre
+  # 2026 (SIREN, siège) ; le capital et le greffe, d'après les extraits publiés.
+  nom: >-
+    MayetCo SAS (marque MayetSoft), société par actions simplifiée au capital
+    de 1 000 €, RCS Cusset 920 330 420 — 8 Les Parodelles, 03250 Le
+    Mayet-de-Montagne.
   # Un courriel, un formulaire ou une adresse : ce qui permet de vous joindre.
   contact: "contact@rouages.fr"
-  # La personne responsable de ce qui est publié. Souvent la même que l'éditeur.
-  directeur_publication: "François Fournier"
+  # La personne responsable de ce qui est publié : pour une société, son
+  # représentant légal.
+  directeur_publication: "François Fournier, président de MayetCo SAS"
   # Nom et adresse de l'hébergeur, tels qu'il les publie lui-même — ceux-ci
   # sont relevés sur o2switch.fr le 22 septembre 2026, pas écrits de mémoire.
-  #
-  # Ce champ ne nomme que celui qui stocke le site. MayetCo SAS, sous la marque
-  # MayetSoft, en est l'éditeur technique : c'est une autre chose, et l'y mêler
-  # rendrait la mention moins précise que ce que la loi demande.
   hebergeur: >-
     o2switch, SAS au capital de 100 000 €, RCS Clermont-Ferrand,
     SIRET 510 909 807 00032 — Chemin des Pardiaux, 63000 Clermont-Ferrand,
     04 44 44 60 40.
-  # Facultatif, et hors de l'article 6 : qui exploite techniquement le site.
-  # Ce n'est ni l'éditeur ni l'hébergeur, et c'est pourquoi la ligne est à
-  # part plutôt que mêlée à l'une des deux.
-  realisation_technique: "MayetCo SAS, sous la marque MayetSoft (mayetsoft.fr)"

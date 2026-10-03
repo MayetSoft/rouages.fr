@@ -329,7 +329,7 @@ if (verifierLiens) {
 /* ------------------------------------------------------------------ *
  * Les mentions légales
  *
- * L'article 6 de la loi pour la confiance dans l'économie numérique impose à
+ * L'article 1-1 de la loi pour la confiance dans l'économie numérique impose à
  * tout site accessible au public de dire qui l'édite et qui l'héberge. Ces
  * informations ne se déduisent d'aucune donnée : elles sont déclarées dans
  * `contenu/editeur.yaml`.
