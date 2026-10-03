@@ -13,8 +13,10 @@
  * lui, suit les déclarations faites à l'URSSAF : une embauche le fait passer à
  * « employeur », le départ du dernier salarié l'en fait sortir.
  *
- * Rien n'est nommé : ce sont des décomptes. Les entrepreneurs individuels y
- * sont, comme partout ailleurs sur le site, comptés et jamais nommés.
+ * Rien n'est nommé : ce sont des décomptes. Les entreprises nommées ailleurs
+ * sur le site — titulaires de marchés, annonces du BODACC — le sont sous les
+ * conditions de `CLAUDE.md` (« Les noms dans les données ») ; un entrepreneur
+ * individuel en diffusion partielle ne l'est jamais.
  *
  * La source est la copie de la base SIRENE qu'Opendatasoft tient à jour, qui
  * permet d'agréger côté serveur : un département répond en deux secondes, là

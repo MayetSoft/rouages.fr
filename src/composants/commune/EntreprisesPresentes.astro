@@ -9,7 +9,7 @@
  * déclaré un salarié à l'URSSAF. La réglette porte sur les employeurs, rapportés
  * aux habitants : c'est le chiffre qui se compare d'une commune à l'autre.
  *
- * Aucun nom : des décomptes seulement.
+ * Des décomptes seulement : ce bloc ne nomme aucun établissement.
  */
 import type { Presentes } from '../../modele/fiche-commune.ts';
 import Repere from './Repere.astro';
@@ -71,5 +71,5 @@ const detail = (total: number, employeurs: number) =>
   {`D’après la base SIRENE de l’INSEE, dans la copie tenue par Opendatasoft (${p.source ?? p.maj}). ` +
     'Un établissement actif au répertoire n’est pas forcément ouvert : une SCI qui détient un bien, un toit équipé ' +
     'de panneaux solaires, un auto-entrepreneur qui ne facture plus y restent tant qu’on ne les a pas radiés. ' +
-    'Les entrepreneurs individuels sont comptés, jamais nommés.'}
+    'Ce bloc compte les établissements, il n’en nomme aucun.'}
 </p>

@@ -474,7 +474,8 @@ export const Decouverte = z.object({
 /**
  * Qui édite le site, et qui l'héberge.
  *
- * L'article 6 de la loi pour la confiance dans l'économie numérique impose ces
+ * L'article 1-1 de la loi pour la confiance dans l'économie numérique (l'ancien
+ * article 6, III, déplacé par la loi du 21 mai 2024) impose ces
  * mentions à tout site accessible au public. Elles ne se devinent pas depuis le
  * dépôt : elles sont déclarées dans `contenu/editeur.yaml`, et la validation
  * refuse de publier tant qu'un champ porte encore sa valeur d'attente. C'est la
