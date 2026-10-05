@@ -1,5 +1,5 @@
 {
-  "dernier_controle": "2026-09-28",
+  "dernier_controle": "2026-10-05",
   "constats": {
     "banatic-referentiel": {
       "empreinte": "a9d1b65dfa4eea62",
@@ -24,7 +24,7 @@
       "gravite": "ok"
     },
     "annuaire-education": {
-      "millesime": 68574,
+      "millesime": 68565,
       "gravite": "ok"
     },
     "dmto-recettes": {
@@ -32,7 +32,7 @@
       "gravite": "ok"
     },
     "decp-marches": {
-      "millesime": 711685,
+      "millesime": 714398,
       "gravite": "ok"
     },
     "effectifs-ecoles": {
@@ -40,7 +40,7 @@
       "gravite": "ok"
     },
     "annuaire-administration": {
-      "millesime": 93778,
+      "millesime": 93782,
       "gravite": "ok"
     },
     "sru-inventaire": {
@@ -80,7 +80,7 @@
       "gravite": "alerte"
     },
     "deliberations-megalis": {
-      "empreinte": "82d37ea1df8a4ad7",
+      "empreinte": "38985712c31d8d59",
       "gravite": "a-regarder"
     },
     "subventions-schema": {
@@ -109,16 +109,181 @@
       "millesime": "2023",
       "gravite": "ok"
     },
+    "insee-diplomes": {
+      "empreinte": "2026-07-30",
+      "millesime": "2023",
+      "gravite": "ok"
+    },
+    "insee-filosofi": {
+      "empreinte": "2026-08-06",
+      "millesime": "2023",
+      "gravite": "ok"
+    },
+    "drees-apl": {
+      "gravite": "ok"
+    },
+    "eau-controle-sanitaire": {
+      "empreinte": "2026-09-02",
+      "gravite": "ok"
+    },
+    "anct-fibre": {
+      "empreinte": "d496235bbaee6e91",
+      "gravite": "ok"
+    },
+    "agence-ore": {
+      "gravite": "ok"
+    },
+    "insee-logement": {
+      "empreinte": "2026-06-28",
+      "millesime": "2023",
+      "gravite": "ok"
+    },
+    "insee-activite": {
+      "empreinte": "2026-07-10",
+      "millesime": "2023",
+      "gravite": "ok"
+    },
+    "insee-navettes": {
+      "empreinte": "2026-06-25",
+      "millesime": "2023",
+      "gravite": "ok"
+    },
+    "dvf-geo": {
+      "empreinte": "2026-05-18",
+      "gravite": "a-regarder"
+    },
+    "ips-ecoles": {
+      "millesime": 97080,
+      "gravite": "ok"
+    },
+    "ips-colleges": {
+      "millesime": 21061,
+      "gravite": "ok"
+    },
+    "delinquance-communale": {
+      "empreinte": "16701183206d7dc3",
+      "gravite": "ok"
+    },
+    "elections-nationales": {
+      "empreinte": "e85f4b3b95970bd1",
+      "gravite": "ok"
+    },
+    "agreste-ra2020": {
+      "empreinte": "a22743211449b1db",
+      "gravite": "ok"
+    },
+    "cerema-conso-enaf": {
+      "empreinte": "5996e33712d5b83b",
+      "gravite": "ok"
+    },
+    "asn-radon": {
+      "empreinte": "09abf3c56f25841e",
+      "gravite": "ok"
+    },
+    "ademe-dpe": {
+      "gravite": "ok"
+    },
+    "ofgl-dotations-communes": {
+      "gravite": "ok"
+    },
+    "cnaf-prestations-communes": {
+      "gravite": "ok"
+    },
+    "geodae": {
+      "empreinte": "c1ceb08a514bd82b",
+      "gravite": "ok"
+    },
+    "sncf-gares": {
+      "gravite": "ok"
+    },
+    "sncf-frequentation": {
+      "gravite": "ok"
+    },
+    "datatourisme": {
+      "empreinte": "c17b54766aa50219",
+      "gravite": "ok"
+    },
+    "merimee": {
+      "empreinte": "dd88e812270efad2",
+      "gravite": "ok"
+    },
+    "rte-registre-production": {
+      "gravite": "ok"
+    },
+    "arcep-sites-mobiles": {
+      "gravite": "ok"
+    },
+    "onisr-baac": {
+      "empreinte": "07a1f8370a3e0591",
+      "gravite": "ok"
+    },
     "sirene-etablissements": {
       "empreinte": "2026-08-01",
       "gravite": "a-regarder"
     },
     "rna-waldec": {
-      "empreinte": "2026-09-01",
-      "gravite": "ok"
+      "empreinte": "2026-10-01",
+      "gravite": "a-regarder"
     },
     "bodacc-annonces": {
-      "empreinte": "2026-09-27",
+      "empreinte": "2026-10-04",
+      "gravite": "a-regarder"
+    },
+    "hatvp-repertoire": {
+      "gravite": "ok"
+    },
+    "hatvp-declarations": {
+      "gravite": "ok"
+    },
+    "anct-croisement": {
+      "gravite": "ok"
+    },
+    "dgcl-investissement": {
+      "gravite": "ok"
+    },
+    "fonds-vert": {
+      "gravite": "ok"
+    },
+    "carte-loyers": {
+      "gravite": "ok"
+    },
+    "irve-consolidation": {
+      "gravite": "ok"
+    },
+    "bnlc": {
+      "gravite": "ok"
+    },
+    "caf-accueil-jeune-enfant": {
+      "gravite": "ok"
+    },
+    "zonage-abc": {
+      "gravite": "ok"
+    },
+    "qpv-2024": {
+      "gravite": "ok"
+    },
+    "zonage-tlv": {
+      "gravite": "ok"
+    },
+    "urssaf-effectifs": {
+      "gravite": "ok"
+    },
+    "dares-inscrits": {
+      "gravite": "ok"
+    },
+    "inao-aires": {
+      "gravite": "ok"
+    },
+    "vigieau": {
+      "gravite": "ok"
+    },
+    "contours-communes": {
+      "gravite": "ok"
+    },
+    "espaces-naturels": {
+      "gravite": "ok"
+    },
+    "palissy": {
       "gravite": "ok"
     }
   },
