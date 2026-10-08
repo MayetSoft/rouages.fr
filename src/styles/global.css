@@ -455,6 +455,75 @@ span.reglette i {
 .p-sommaire-lien:hover, .p-sommaire-lien:focus-visible {
   color: var(--accent); border-color: var(--accent);
 }
+.p-sommaire-lien[hidden] { display: none; }
+
+/* --- les onglets de la page d'une commune ---
+   Les blocs rangés par grande famille ; la barre reste en haut de l'écran
+   pendant qu'on descend, avec la recherche dans la page. Sans JavaScript, la
+   barre est cachée et la page reste entière. */
+.c-onglets {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--fond); border-bottom: 1px solid var(--trait);
+  margin: 1.4rem 0 .8rem; padding: .5rem 0 .55rem;
+}
+.c-onglets[hidden] { display: none; }
+.c-onglets-barre {
+  display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: thin;
+  padding-bottom: .15rem;
+}
+.c-onglet {
+  flex: 0 0 auto; font: inherit; font-size: .82rem; cursor: pointer;
+  background: var(--fond-doux); color: var(--encre-douce);
+  border: 1px solid var(--trait); border-radius: 999px; padding: .3rem .75rem;
+  display: inline-flex; align-items: center; gap: .4rem;
+}
+.c-onglet:hover, .c-onglet:focus-visible { color: var(--accent); border-color: var(--accent); }
+.c-onglet[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--fond-carte); }
+.c-onglet-nombre { font-size: .7rem; opacity: .8; font-variant-numeric: tabular-nums; }
+.c-onglet-nombre:empty { display: none; }
+.c-chercher { margin: .5rem 0 0; position: relative; }
+.c-chercher-etiquette {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.c-chercher-champ {
+  width: 100%; font: inherit; font-size: .88rem; padding: .4rem .7rem;
+  border: 1px solid var(--trait-fort); border-radius: 6px; background: var(--fond-carte); color: var(--encre);
+}
+.c-chercher-champ:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.c-chercher-resultats:empty, .c-chercher-resultats[hidden] { display: none; }
+.c-chercher-resultats {
+  margin-top: .35rem; max-height: 45vh; overflow-y: auto;
+  background: var(--fond-carte); border: 1px solid var(--trait); border-radius: 6px; padding: .4rem .5rem;
+}
+.c-chercher-resume { margin: 0 0 .3rem; font-size: .78rem; color: var(--encre-douce); }
+.c-chercher-resultats ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .15rem; }
+.c-chercher-resultat {
+  display: grid; gap: .05rem; width: 100%; text-align: left; font: inherit; font-size: .82rem; cursor: pointer;
+  background: none; border: 0; border-radius: 4px; padding: .3rem .35rem; color: var(--encre);
+}
+.c-chercher-resultat:hover, .c-chercher-resultat:focus-visible { background: var(--accent-doux); }
+.c-chercher-ou { font-size: .72rem; color: var(--encre-tres-douce); }
+.c-chercher-resultat mark { background: var(--alerte-doux); color: inherit; padding: 0 .1rem; border-radius: 2px; }
+::highlight(rouages-recherche) { background-color: #ffd54a; color: #17171a; }
+/* Le bloc visé par un lien ne passe pas sous la barre collée en haut. */
+main section[id] { scroll-margin-top: 9rem; }
+@media (min-width: 700px) {
+  .c-onglets-barre { flex-wrap: wrap; overflow-x: visible; }
+  main section[id] { scroll-margin-top: 10.5rem; }
+}
+
+/* --- revenir en haut --- */
+.haut-de-page {
+  position: fixed; right: 1rem; bottom: 1rem; z-index: 6;
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--accent); color: var(--fond-carte); text-decoration: none;
+  border-radius: 999px; padding: .5rem .85rem; font-size: .82rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / .18);
+}
+.haut-de-page[hidden] { display: none; }
+.haut-de-page:hover, .haut-de-page:focus-visible { filter: brightness(1.1); outline: 2px solid var(--fond-carte); outline-offset: -4px; }
+@media (max-width: 520px) { .haut-de-page-texte { display: none; } .haut-de-page { padding: .6rem .8rem; } }
+@media print { .c-onglets, .haut-de-page { display: none !important; } main section[hidden] { display: block !important; } }
 
 /* --- qui est le maire ---
    La fonction en étiquette, le nom en encre pleine, la date en dessous :

@@ -321,6 +321,44 @@ const sommaire: [string, string, unknown][] = [
   ['journal', 'Ce qui a bougé', journal.length > 0],
 ];
 const entrees = sommaire.filter(([, , present]) => !!present);
+
+/**
+ * Les onglets : les blocs rangés par grande famille. Le HTML garde tous les
+ * blocs, dans l'ordre — la page reste entière sans JavaScript et pour les
+ * moteurs de recherche ; `client/onglets-commune.ts` les regroupe à
+ * l'affichage. Un bloc absent d'ici suit la famille du bloc qui le précède.
+ */
+const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
+  { id: 'decider', nom: 'Qui décide', blocs: ['election', 'conseil', 'votes', 'qui-exerce', 'echelons'] },
+  {
+    id: 'argent',
+    nom: 'L’argent',
+    blocs: ['comptes', 'dotations', 'investissement', 'ccas', 'caf', 'preleve', 'intercommunalite', 'marches', 'deliberations', 'subventions'],
+  },
+  {
+    id: 'habitants',
+    nom: 'Habitants et économie',
+    blocs: ['habitants', 'niveaux', 'travail', 'entreprises', 'representants', 'associations', 'agriculture', 'appellations'],
+  },
+  {
+    id: 'logement',
+    nom: 'Se loger, construire',
+    blocs: ['zonages', 'logements', 'loyers', 'dpe', 'vente', 'urbanisme', 'construit', 'sols', 'logement-social'],
+  },
+  {
+    id: 'quotidien',
+    nom: 'Au quotidien',
+    blocs: ['equipements', 'services', 'sante', 'defibrillateurs', 'petite-enfance', 'ecoles', 'reseaux', 'gares', 'recharge', 'mobile', 'securite', 'route'],
+  },
+  {
+    id: 'environnement',
+    nom: 'Environnement et patrimoine',
+    blocs: ['risques', 'secheresse', 'nature', 'production', 'monuments', 'a-voir'],
+  },
+  { id: 'suivre', nom: 'Suivre la commune', blocs: ['journal', 'ailleurs'] },
+];
+const familleDe = new Map(FAMILLES.flatMap((f) => f.blocs.map((b) => [b, f.id] as const)));
+const famillesPresentes = FAMILLES.map((f) => ({ ...f, n: entrees.filter(([id]) => familleDe.get(id) === f.id).length })).filter((f) => f.n > 0);
 const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
 ---
 
@@ -448,11 +486,33 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
 
     <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
 
+    {famillesPresentes.length > 1 && (
+      <div class="c-onglets" data-onglets hidden>
+        <div class="c-onglets-barre" role="tablist" aria-label="Les familles d’informations sur la commune">
+          {famillesPresentes.map((f) => (
+            <button type="button" role="tab" class="c-onglet" id={`onglet-${f.id}`} data-famille={f.id} aria-selected="false" tabindex="-1">
+              {f.nom}
+              <span class="c-onglet-nombre" data-trouves>{f.n}</span>
+            </button>
+          ))}
+        </div>
+        <form class="c-chercher" role="search">
+          <label class="c-chercher-etiquette" for="chercher-page">Chercher dans la page</label>
+          <input id="chercher-page" class="c-chercher-champ" type="search" autocomplete="off" placeholder="un mot : école, marché, inondation, adjoint…" />
+          <div class="c-chercher-resultats" aria-live="polite"></div>
+        </form>
+      </div>
+    )}
+
     {entrees.length > 1 && (
       <nav class="p-sommaire c-sommaire" aria-label="Les blocs de cette commune">
-        {entrees.map(([id, etiquette]) => <a class="p-sommaire-lien" href={`#${id}`}>{etiquette}</a>)}
+        {entrees.map(([id, etiquette]) => <a class="p-sommaire-lien" href={`#${id}`} data-famille={familleDe.get(id)}>{etiquette}</a>)}
       </nav>
     )}
+    <script is:inline type="application/json" id="familles-commune" set:html={JSON.stringify(Object.fromEntries(familleDe))} />
+    <script>
+      import '../../client/onglets-commune.ts';
+    </script>
 
     {(plus.histoire || plus.etatCivil || plus.ages) && (
       <section id="habitants" class="p-habitants">

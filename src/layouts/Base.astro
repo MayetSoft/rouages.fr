@@ -74,6 +74,14 @@ const sousCourant = (s: string) => (sousPage === s ? 'page' : undefined);
       <slot />
     </main>
 
+    <a href="#contenu" class="haut-de-page" hidden>
+      <span aria-hidden="true">↑</span>
+      <span class="haut-de-page-texte">Haut de page</span>
+    </a>
+    <script>
+      import '../client/haut-de-page.ts';
+    </script>
+
     {!plein && (
       <footer>
         <p>
