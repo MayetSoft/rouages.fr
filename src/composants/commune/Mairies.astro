@@ -1,0 +1,74 @@
+---
+/**
+ * La mairie : où elle est, comment la joindre, quand elle ouvre — et ses
+ * mairies déléguées pour une commune nouvelle. D'après l'Annuaire de
+ * l'administration (`scripts/mairies-emettre.ts`).
+ *
+ * Son site est aussi l'endroit où la commune publie la liste de ses
+ * délibérations : la page le dit, faute de les collecter partout.
+ */
+import type { Mairies } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  m: Mairies;
+  population: number;
+}
+const { m, population } = Astro.props;
+const [mairie, ...autres] = m.liste;
+const deleguees = autres.length > 0 && autres.every((x) => /^Mairie déléguée/i.test(x.nom));
+const nomCourt = (nom: string) => nom.replace(/^Mairie( déléguée)?\s*-\s*/i, '');
+const domaine = (url: string) => new URL(url).hostname.replace(/^www\./, '');
+const carte = (p: { lat: number; lon: number }) => `https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lon}#map=18/${p.lat}/${p.lon}`;
+const tel = (t: string) => `tel:${t.replace(/[^\d+]/g, '')}`;
+---
+<div class="c-mairie">
+  <p class="badge">La mairie</p>
+  {mairie.adresse && (
+    <p class="c-mairie-ligne">
+      {mairie.adresse}
+      {mairie.position && <>{' · '}<a href={carte(mairie.position)} target="_blank" rel="noopener">la situer</a></>}
+    </p>
+  )}
+  {(mairie.telephone || mairie.courriels.length > 0 || mairie.site) && (
+    <p class="c-mairie-ligne">
+      {[
+        mairie.telephone && <a href={tel(mairie.telephone)}>{mairie.telephone}</a>,
+        ...mairie.courriels.map((c) => <a href={`mailto:${c}`}>{c}</a>),
+        mairie.site && <a href={mairie.site} target="_blank" rel="noopener">{domaine(mairie.site)}</a>,
+      ]
+        .filter(Boolean)
+        .map((x, i) => <>{i > 0 && ' · '}{x}</>)}
+    </p>
+  )}
+  {mairie.horaires && <p class="c-mairie-ligne">{`Ouverte ${mairie.horaires}.`}</p>}
+  {mairie.precision && <p class="c-mairie-precision">{mairie.precision}</p>}
+  {mairie.site && (
+    <p class="c-mairie-precision">
+      {'C’est sur son site que la commune met en ligne, dans la semaine, la liste des délibérations examinées par le conseil municipal (code général des collectivités territoriales, art. L2121-25)' +
+        (population < 3500
+          ? ', et ses actes, si elle n’a pas choisi de les afficher ou de les publier sur papier, comme la loi le permet sous 3 500 habitants (art. L2131-1).'
+          : ', et ses actes (art. L2131-1).') +
+        ' Rouages ne collecte pas encore les délibérations de toutes les communes.'}
+    </p>
+  )}
+  {autres.length > 0 && (
+    <details class="p-adjoints">
+      <summary>{deleguees ? `Ses ${autres.length} mairie${autres.length > 1 ? 's' : ''} déléguée${autres.length > 1 ? 's' : ''}` : `Les ${autres.length} autres mairies de la commune`}</summary>
+      <ul class="c-structures">
+        {autres.map((x) => (
+          <li>
+            {x.fiche ? <a href={x.fiche} target="_blank" rel="noopener">{nomCourt(x.nom)}</a> : <strong>{nomCourt(x.nom)}</strong>}
+            <span class="v-nature">
+              {[x.adresse, x.telephone, x.horaires && `ouverte ${x.horaires}`].filter(Boolean).join(' · ')}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
+  )}
+  <p class="p-source-territoire">
+    {`D’après l’Annuaire de l’administration de service-public.fr, tenu par la Direction de l’information légale et administrative (lu le ${m.maj}). `}
+    {mairie.fiche && <a href={mairie.fiche} target="_blank" rel="noopener">La fiche de la mairie dans l’annuaire</a>}
+    {mairie.fiche && '.'}
+  </p>
+</div>

@@ -38,7 +38,23 @@ type EmploiDep = {
   c: Record<string, [Valeurs | null, number[] | null]>;
 };
 type PrixLigne = [number, number | null, number | null, number, number | null, ...number[]];
-type DvfDep = { maj: string; annees: number[]; minimum: number; dep: PrixLigne | null; c: Record<string, PrixLigne> };
+type DetailLigne = [
+  [number, number, number, number, number] | null,
+  [number, number, number, number] | null,
+  [number, number | null, number | null, number | null, number | null],
+  [number, number | null, number | null],
+  [number, number | null, number | null],
+];
+type DvfDep = {
+  maj: string;
+  annees: number[];
+  minimum: number;
+  dep: PrixLigne | null;
+  c: Record<string, PrixLigne>;
+  /** Le détail — fourchettes, surfaces, terrains nus —, quand la collecte l'a écrit. */
+  x?: Record<string, DetailLigne>;
+  xdep?: DetailLigne | null;
+};
 type Reference = { dep: (number | null)[]; france: (number | null)[] };
 type IpsDep = {
   maj: string;
@@ -111,6 +127,8 @@ type RechargeDep = { maj: string; dates: { irve: string; bnlc: string }; c: Reco
 const rechargeDep = parDepartement<RechargeDep>('recharge');
 type ObjetsDep = { maj: string; c: Record<string, [number, number, [string, string, 0 | 1][]]> };
 const objetsDep = parDepartement<ObjetsDep>('objets');
+type MairiesDep = { maj: string; c: Record<string, [string, string, string, string, string, number | null, number | null, string, string, string][]> };
+const mairiesDep = parDepartement<MairiesDep>('mairies');
 type SolsPolluesDep = {
   maj: string;
   inventaires: string[];
@@ -234,11 +252,22 @@ export interface PrixVentes {
   parAnnee: number[];
 }
 
+/** La fourchette et les surfaces des logements vendus, et les terrains nus ; voir `scripts/dvf-emettre.ts`. */
+export interface DetailVentes {
+  maison: { q1: number; q3: number; surface: number; pieces: number; terrain: number | null } | null;
+  appartement: { q1: number; q3: number; surface: number; pieces: number } | null;
+  batir: { ventes: number; m2: number | null; q1: number | null; q3: number | null; surface: number | null };
+  terres: { ventes: number; hectare: number | null; surface: number | null };
+  bois: { ventes: number; hectare: number | null; surface: number | null };
+}
+
 export interface Immobilier {
   annees: number[];
   minimum: number;
   commune: PrixVentes;
   departement: PrixVentes | null;
+  detail: DetailVentes | null;
+  detailDepartement: DetailVentes | null;
   maj: string;
 }
 
@@ -449,6 +478,22 @@ export interface SolsPollues {
   maj: string;
 }
 
+/** Les mairies de la commune — la mairie, puis ses mairies déléguées —, d'après l'Annuaire de l'administration. */
+export interface Mairies {
+  liste: {
+    nom: string;
+    site: string | null;
+    telephone: string | null;
+    courriels: string[];
+    adresse: string | null;
+    position: { lat: number; lon: number } | null;
+    horaires: string | null;
+    precision: string | null;
+    fiche: string | null;
+  }[];
+  maj: string;
+}
+
 /** Les installations classées ; aucune est une réponse. */
 export interface Installations {
   total: number;
@@ -617,6 +662,7 @@ export interface ComplementsVie {
   production: Production | null;
   monuments: Monuments | null;
   solsPollues: SolsPollues | null;
+  mairies: Mairies | null;
   installations: Installations | null;
   lieux: Lieux | null;
   zonages: Zonages | null;
@@ -698,11 +744,31 @@ function ventes(x: PrixLigne): PrixVentes {
   return { maisons, m2Maison, prixMaison, appartements, m2Appartement, parAnnee };
 }
 
+function detailVentes(x: DetailLigne | null | undefined): DetailVentes | null {
+  if (!x) return null;
+  const [m, a, b, t, w] = x;
+  return {
+    maison: m ? { q1: m[0], q3: m[1], surface: m[2], pieces: m[3], terrain: m[4] || null } : null,
+    appartement: a ? { q1: a[0], q3: a[1], surface: a[2], pieces: a[3] } : null,
+    batir: { ventes: b[0], m2: b[1], q1: b[2], q3: b[3], surface: b[4] },
+    terres: { ventes: t[0], hectare: t[1], surface: t[2] },
+    bois: { ventes: w[0], hectare: w[1], surface: w[2] },
+  };
+}
+
 function immobilier(c: CommuneFiche): Immobilier | null {
   const d = dvfDep.get(c.dep);
   const x = d?.c[c.code];
   if (!d || !x) return null;
-  return { annees: d.annees, minimum: d.minimum, commune: ventes(x), departement: d.dep ? ventes(d.dep) : null, maj: d.maj };
+  return {
+    annees: d.annees,
+    minimum: d.minimum,
+    commune: ventes(x),
+    departement: d.dep ? ventes(d.dep) : null,
+    detail: detailVentes(d.x?.[c.code]),
+    detailDepartement: detailVentes(d.xdep),
+    maj: d.maj,
+  };
 }
 
 function ecoles(c: CommuneFiche): Ecoles | null {
@@ -897,6 +963,26 @@ function monuments(c: CommuneFiche): Monuments | null {
     objets: o
       ? { classes, inscrits, liste: liste.map(([reference, titre, classe]) => ({ reference, titre, classe: classe === 1 })), maj: o.maj }
       : null,
+  };
+}
+
+function mairies(c: CommuneFiche): Mairies | null {
+  const d = mairiesDep.get(c.dep);
+  const l = d?.c[c.code];
+  if (!d || !l || l.length === 0) return null;
+  return {
+    liste: l.map(([nom, site, telephone, courriel, adresse, lat, lon, horaires, precision, fiche]) => ({
+      nom,
+      site: site || null,
+      telephone: telephone || null,
+      courriels: courriel.split(/[;,\s]+/).filter((x) => x.includes('@')),
+      adresse: adresse || null,
+      position: lat !== null && lon !== null ? { lat, lon } : null,
+      horaires: horaires || null,
+      precision: precision || null,
+      fiche: fiche || null,
+    })),
+    maj: d.maj,
   };
 }
 
@@ -1171,6 +1257,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     production: production(c),
     monuments: monuments(c),
     solsPollues: solsPollues(c),
+    mairies: mairies(c),
     installations: installations(c),
     lieux: lieux(c),
     zonages: zonages(c),

@@ -40,6 +40,11 @@ const compare = (i: number, sur: number) =>
     .join(' · ');
 const m = immobilier?.commune;
 const d = depNom ? immobilier?.departement : null;
+const x = immobilier?.detail ?? null;
+const xd = depNom ? (immobilier?.detailDepartement ?? null) : null;
+const decimal = (v: number) => v.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+const pieces = (v: number) => `${decimal(v)} pièce${v >= 2 ? 's' : ''}`;
+const terrainsNus = x ? x.batir.ventes + x.terres.ventes + x.bois.ventes : 0;
 ---
 {recent && (
   <>
@@ -74,7 +79,7 @@ const d = depNom ? immobilier?.departement : null;
     </p>
   </>
 )}
-{m && (m.maisons > 0 || m.appartements > 0) && (
+{m && (m.maisons > 0 || m.appartements > 0 || terrainsNus > 0) && (
   <>
     <h3 class="p-titre-echelon">{`Ce qu’ils se vendent, de ${immobilier!.annees[0]} à ${immobilier!.annees.at(-1)}`}</h3>
     <p class="mesure">
@@ -90,6 +95,45 @@ const d = depNom ? immobilier?.departement : null;
             ? `, à ${euros(m.m2Appartement)} le mètre carré en médiane` + (d?.m2Appartement ? ` (${depNom} : ${euros(d.m2Appartement)})` : '') + '.'
             : ' — trop peu pour une médiane.')}
     </p>
+    {(x?.maison || x?.appartement) && (
+      <p class="mesure">
+        {x.maison &&
+          `La moitié des maisons s’est vendue entre ${euros(x.maison.q1)} et ${euros(x.maison.q3)} ; en médiane, ` +
+            `${entier(x.maison.surface)} m² habitables, ${pieces(x.maison.pieces)}` +
+            (x.maison.terrain ? ` et ${entier(x.maison.terrain)} m² de terrain.` : '.')}
+        {x.appartement &&
+          ` La moitié des appartements entre ${euros(x.appartement.q1)} et ${euros(x.appartement.q3)} ; en médiane, ` +
+            `${entier(x.appartement.surface)} m² et ${pieces(x.appartement.pieces)}.`}
+      </p>
+    )}
+    {x && terrainsNus > 0 && (
+      <p class="mesure">
+        {[
+          x.batir.ventes > 0 &&
+            `${entier(x.batir.ventes)} terrain${x.batir.ventes > 1 ? 's' : ''} à bâtir` +
+              (x.batir.m2 !== null
+                ? `, à ${euros(x.batir.m2)} le mètre carré en médiane — la moitié entre ${euros(x.batir.q1!)} et ${euros(x.batir.q3!)} —, pour ${entier(x.batir.surface!)} m²` +
+                  (xd?.batir.m2 ? ` (${depNom} : ${euros(xd.batir.m2)} le m²)` : '')
+                : ''),
+          x.terres.ventes > 0 &&
+            `${entier(x.terres.ventes)} vente${x.terres.ventes > 1 ? 's' : ''} de terres et de prés` +
+              (x.terres.hectare !== null
+                ? `, à ${euros(x.terres.hectare)} l’hectare en médiane, pour ${decimal(x.terres.surface!)} ha` +
+                  (xd?.terres.hectare ? ` (${depNom} : ${euros(xd.terres.hectare)} l’hectare)` : '')
+                : ''),
+          x.bois.ventes > 0 &&
+            `${entier(x.bois.ventes)} vente${x.bois.ventes > 1 ? 's' : ''} de bois` +
+              (x.bois.hectare !== null
+                ? `, à ${euros(x.bois.hectare)} l’hectare en médiane, pour ${decimal(x.bois.surface!)} ha` +
+                  (xd?.bois.hectare ? ` (${depNom} : ${euros(xd.bois.hectare)} l’hectare)` : '')
+                : ''),
+        ]
+          .filter(Boolean)
+          .join(' ; ') + '.'}
+        {[x.batir, x.terres, x.bois].some((g) => g.ventes > 0 && g.ventes < immobilier!.minimum) &&
+          ` Sous ${immobilier!.minimum} ventes, pas de prix : il serait celui de quelques terrains.`}
+      </p>
+    )}
     <p class="p-strate">
       {`Ventes de logements, année par année : ${immobilier!.annees.map((a, i) => `${entier(m.parAnnee[i] ?? 0)} en ${a}`).join(', ')}.`}
       {' Chaque vente passe devant un '}<a href="/n/notaire">notaire</a>{', qui collecte les droits de mutation : l’essentiel revient au département, une part aux communes, une autre à l’État.'}
@@ -97,7 +141,11 @@ const d = depNom ? immobilier?.departement : null;
     <p class="p-source-territoire">
       {`D’après les demandes de valeurs foncières de la DGFiP, version géolocalisée publiée par data.gouv (${immobilier!.maj}). ` +
         'Ne sont comptées que les ventes d’un seul logement, avec ou sans dépendances, dans une seule commune ; la médiane est le prix ' +
-        'qui partage ces ventes en deux moitiés. DVF ne couvre ni l’Alsace, ni la Moselle, ni Mayotte.'}
+        'qui partage ces ventes en deux moitiés, la fourchette celle des quartiles — la moitié des ventes tombe entre les deux. ' +
+        'Les terrains nus sont les ventes sans aucun local, d’une seule nature cadastrale : terrains à bâtir à partir de 100 m², ' +
+        'terres et prés, bois à partir de 1 000 m² ; les vignes et les vergers, dont le prix tient à l’appellation, n’y sont pas. ' +
+        '« Terrain à bâtir » est la nature déclarée à la vente : elle ne dit pas ce que le plan local d’urbanisme permet. ' +
+        'DVF ne couvre ni l’Alsace, ni la Moselle, ni Mayotte.'}
     </p>
   </>
 )}

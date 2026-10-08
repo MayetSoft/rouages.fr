@@ -813,6 +813,10 @@ async function principal() {
   );
   if (conso) grise(`${ecrireArtificialisation(SORTIE, conso)} départements de consommation d’espaces écrits.`);
 
+  const { collecterMairies, ecrireMairies } = await import('./mairies-emettre.ts');
+  const mairies = await tenter('Mairies', () => collecterMairies(lireJson, grise));
+  if (mairies) grise(`${ecrireMairies(SORTIE, mairies)} départements de mairies écrits.`);
+
   const { collecterRadon, ecrireRadon } = await import('./radon-emettre.ts');
   const radon = await tenter('Potentiel radon', () => collecterRadon(enCache('Zonage radon (1 Mo)'), CACHE, grise));
   if (radon) grise(`${ecrireRadon(SORTIE, radon)} départements de zonage radon écrits.`);

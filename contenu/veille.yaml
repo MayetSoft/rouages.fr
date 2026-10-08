@@ -113,7 +113,7 @@ surveillances:
 
   - id: annuaire-administration
     nom: "Annuaire de l'administration"
-    alimente: "les France services, les CCAS et les SDIS"
+    alimente: "les France services, les CCAS, les SDIS et les mairies"
     type: opendatasoft-total
     licence: licence-ouverte-1.0
     url: "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration"
