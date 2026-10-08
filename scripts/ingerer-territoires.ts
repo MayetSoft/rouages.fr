@@ -438,6 +438,7 @@ async function principal() {
       sirensSuivis,
       (m) => dire(`${GRIS}${m}${RAZ}`),
       async (url: string) => (await obstine(url)).text(),
+      SORTIE,
     ),
   );
 

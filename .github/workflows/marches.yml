@@ -8,6 +8,15 @@ name: Collecte des marchés
 # par département, la suite des listes par acheteur, `echeances.json` et
 # `attributions.json`.
 #
+# Depuis le 8 octobre 2026, elle lit aussi l'annuaire de l'administration —
+# le téléphone, l'adresse et le site de chaque acheteur, dans les fichiers
+# nationaux — et le BOAMP : `avis.json`, les avis de marché encore ouverts
+# des acheteurs suivis, parus ces soixante derniers jours. Le BOAMP n'est
+# relu en détail que depuis la collecte précédente, moins deux jours : le
+# fichier précédent, committé, garde le reste. L'une et l'autre collecte sont
+# isolées : si elle échoue, les fichiers s'écrivent sans contact, et
+# `avis.json` reste tel qu'il était.
+#
 # Comme `reingerer.yml`, le résultat part dans une branche et une pull
 # request : on relit le diff avant qu'il n'arrive en ligne, et le contrôle de
 # `ci.yml` est refait ici, puisqu'une PR ouverte avec le jeton du workflow ne

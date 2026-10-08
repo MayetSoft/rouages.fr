@@ -239,6 +239,12 @@ sigles:
     definition: "L'annexe du Journal officiel où paraissent les immatriculations, modifications, ventes de fonds et radiations des entreprises inscrites au registre du commerce, et leurs procédures collectives."
     liens: [od-bodacc, dila-api-bodacc, wp-bodacc]
 
+  - id: sigle-boamp
+    sigle: BOAMP
+    developpe: "Bulletin officiel des annonces des marchés publics"
+    definition: "Le bulletin où les acheteurs publics annoncent leurs consultations — avis de marché, rectificatifs, annulations — puis leurs résultats. La DILA le publie chaque jour."
+    liens: [od-boamp]
+
   - id: sigle-hatvp
     sigle: HATVP
     developpe: "Haute Autorité pour la transparence de la vie publique"
@@ -272,7 +278,7 @@ sigles:
   - id: sigle-dila
     sigle: DILA
     developpe: "Direction de l'information légale et administrative"
-    definition: "L'administration qui publie le Journal officiel et le BODACC."
+    definition: "L'administration qui publie le Journal officiel, le BODACC et le BOAMP."
     liens: [dila-api-bodacc]
 
   - id: sigle-sirene
