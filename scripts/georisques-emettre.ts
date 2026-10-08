@@ -28,15 +28,14 @@
  * un téléchargement tronqué ou un plafond du serveur, et la collecte s'arrête
  * plutôt que d'écrire des communes sans leurs sites.
  *
- * **Les noms.** Un exploitant se nomme comme les titulaires des marchés
- * (`CLAUDE.md`, « Les noms dans les données ») : par son SIRET, le répertoire
- * SIRENE décide — une société sous le nom que la source publie, un
- * entrepreneur individuel sous le nom que SIRENE publie et seulement s'il est
- * diffusible, un SIREN inconnu jamais. Sans SIRET — la plupart des anciens
- * sites, fermés avant le répertoire —, le nom n'est repris que s'il porte une
- * forme de société. Un nom qui n'est pas repris reste sur la fiche du BRGM ou
- * de Géorisques, vers laquelle chaque ligne renvoie. Justification :
- * `docs/07-risques.md`.
+ * **Les noms.** Pour garder la trace historique, l'exploitant est nommé tel
+ * que le registre le publie, anciennes entreprises comprises (`CLAUDE.md`,
+ * « Les noms dans les données ») — sauf un entrepreneur individuel que
+ * SIRENE dit en diffusion partielle : il a exercé son droit d'opposition, et
+ * son nom n'est pas repris. Avec un SIRET connu de SIRENE, une société garde
+ * le nom du registre et un entrepreneur prend celui de SIRENE. Une opposition
+ * inscrite dans `retraits.yaml` — par SIREN, ou par le code du site quand il
+ * n'y a pas de SIRET — s'applique. Justification : `docs/07-risques.md`.
  *
  * Lancé seul — `npx tsx scripts/georisques-emettre.ts` —, il réécrit
  * `public/territoires/dep/XX-sols-pollues.json` et `dep/XX-icpe.json`.
@@ -46,7 +45,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { codeCommune, communeDe, ecrireParDepartement, lignesCsv, reportsDuDecoupage, telechargerSiAbsent } from './par-departement.ts';
 import { retraits } from './retraits.ts';
-import { nomsSirene } from './sirene-noms.ts';
+import { diffusionSirene } from './sirene-noms.ts';
 
 export const SERVICE = 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0';
 /** L'adresse que la fiche data.gouv de la CASIAS donne pour son fichier CSV, couche par couche. */
@@ -70,16 +69,6 @@ export const COUCHES_ICPE = [
 /** Ce qu'une page montre en liste ; les décomptes, eux, portent sur tout. */
 const MAX_LISTE = 40;
 const FICHES_BRGM = 'https://fiches-risques.brgm.fr/georisques/';
-
-/**
- * Une forme de société dans le nom : il désigne alors une personne morale, pas
- * quelqu'un. Volontairement étroit — « Garage Martin » n'y passe pas, et c'est
- * voulu : sans SIRET, rien ne dit s'il s'agit d'une société.
- */
-const FORME_SOCIETE =
-  /\b(S\.?A\.?R\.?L|S\.?A\.?S\.?U?|S\.?N\.?C|E\.?U\.?R\.?L|S\.?C\.?I|S\.?C\.?E\.?A|S\.?C\.?A|G\.?A\.?E\.?C|E\.?A\.?R\.?L|SOCI[EÉ]T[EÉ]|COMPAGNIE|ETABLISSEMENTS? PUBLICS?|COMMUNE|SYNDICAT)\b/i;
-const FORME_SA = /(^|[\s(])S\.?A\.?($|[\s),])/;
-export const porteFormeSociete = (nom: string) => FORME_SOCIETE.test(nom) || FORME_SA.test(nom);
 
 /** [code, nom ou null, état, inventaires, fiche (chemin sous fiches-risques.brgm.fr/georisques/), activité ou -1] */
 export type LigneSsp = [string, string | null, number, number[], string, number];
@@ -299,18 +288,20 @@ export async function collecterGeorisques(
     ...[...parCommuneIcpe.values()].flatMap((l) => l.slice(0, MAX_LISTE)),
   ];
   const sirens = montres.map((x) => x.siret.slice(0, 9)).filter((x) => /^\d{9}$/.test(x));
-  const noms = await nomsSirene(texte, sirens);
-  const retires = retraits().entreprises;
+  const { noms, refuses } = await diffusionSirene(texte, sirens);
+  const r = retraits();
   let nommes = 0;
   let tus = 0;
-  const nommer = (x: { nom: string; siret: string }): string | null => {
+  const nommer = (x: { code: string; nom: string; siret: string }): string | null => {
     const siren = x.siret.slice(0, 9);
-    let n: string | null = null;
-    if (/^\d{9}$/.test(siren)) {
-      const s = retires.has(siren) ? undefined : noms.get(siren);
-      // Une société sous le nom que la source publie, un entrepreneur sous celui de SIRENE.
-      if (s) n = s.ei ? s.nom : x.nom || s.nom;
-    } else if (x.nom && porteFormeSociete(x.nom)) n = x.nom;
+    let n: string | null = x.nom || null;
+    if (r.sites.has(x.code) || r.entreprises.has(siren) || refuses.has(siren)) n = null;
+    else {
+      // Une société sous le nom que le registre publie, un entrepreneur sous celui de SIRENE.
+      const s = noms.get(siren);
+      if (s?.ei) n = s.nom;
+      else if (!n && s) n = s.nom;
+    }
     if (n) nommes++;
     else tus++;
     return n;

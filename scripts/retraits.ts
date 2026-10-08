@@ -18,6 +18,8 @@ export interface Retraits {
   empreintes: Set<string>;
   /** « page nominative HATVP|rubrique » : une rubrique de déclaration retirée. */
   declarations: Set<string>;
+  /** Le code d'un site pollué (SSP…) ou d'une installation classée (AIOT) dont l'exploitant n'est plus nommé. */
+  sites: Set<string>;
 }
 
 /**
@@ -47,6 +49,7 @@ export function retraits(): Retraits {
         entreprises?: unknown[];
         elus?: { commune?: string; fonction?: string; empreinte?: string }[];
         declarations?: { page?: string; rubrique?: string }[];
+        sites?: unknown[];
       })
     : {};
   lus = {
@@ -54,6 +57,7 @@ export function retraits(): Retraits {
     elus: new Set((brut.elus ?? []).filter((e) => e?.commune && e?.fonction).map((e) => `${e.commune}|${e.fonction}`)),
     empreintes: new Set((brut.elus ?? []).filter((e) => e?.empreinte).map((e) => String(e.empreinte))),
     declarations: new Set((brut.declarations ?? []).filter((d) => d?.page && d?.rubrique).map((d) => `${d.page}|${d.rubrique}`)),
+    sites: new Set((brut.sites ?? []).map((x) => String(x).trim()).filter(Boolean)),
   };
   return lus;
 }

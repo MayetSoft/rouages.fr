@@ -3517,9 +3517,10 @@ Le service refuse les machines de GitHub et l'environnement de
 développement : la collecte ne tourne que depuis l'hébergement français, et
 ses fichiers n'existent pas encore. Ni le nombre de sites ni celui des
 installations n'est donc écrit ici : il le sera d'après la première
-ingestion. Restent à faire : les instructions des pollutions ex-BASOL (leur
-état, « en cours » ou « terminée »), et la décision du mainteneur sur le nom
-des anciens exploitants sans SIRET (`docs/07-risques.md`).
+ingestion. Les exploitants sont nommés tels que le registre les publie,
+anciennes entreprises comprises (`docs/07-risques.md`). Reste à faire : les
+instructions des pollutions ex-BASOL (leur état, « en cours » ou
+« terminée »).
 
 ## Phase 3 — Élargir
 

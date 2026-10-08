@@ -21,6 +21,10 @@
 #                 retirée (« activité du conjoint », « collaborateur »,
 #                 « observation »…) — pour un conjoint ou un collaborateur qui
 #                 demande à ne plus figurer, sans être nommé ici.
+#   sites       : le code d'un site des sols pollués (« SSP… ») ou d'une
+#                 installation classée (code AIOT, dix chiffres), pour un
+#                 exploitant sans SIRET qui demande à ne plus être nommé.
 entreprises: []
 elus: []
 declarations: []
+sites: []

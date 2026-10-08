@@ -282,8 +282,9 @@ l'environnement :
 
 Ce qu'une personne peut en attendre : qu'une activité soumise au contrôle de
 l'État, ou qui a pu polluer un terrain, soit connue de ceux qui y vivent ou
-y achètent. Pas que son nom soit repris par un tiers hors du registre quand
-rien ne dit qu'elle exerçait en société.
+y achètent, sous le nom qu'elle exploitait — le registre le publie pour
+cela. Un entrepreneur qui s'est opposé à la diffusion de son identité peut,
+lui, attendre qu'on respecte ce choix.
 
 Ce qui est retenu, pour chaque site ou installation : le code du registre et
 le lien vers sa fiche, l'inventaire ou le régime, l'état d'activité, le
@@ -293,26 +294,25 @@ inspection, l'activité. Ce qui ne l'est pas : l'adresse, les coordonnées,
 les rubriques de la nomenclature, la description des pollutions — la fiche
 d'origine les donne.
 
-Le nom de l'exploitant suit la règle des titulaires des marchés :
+Le nom de l'exploitant est repris tel que le registre le publie, anciennes
+entreprises comprises : c'est la trace historique que la CASIAS est faite
+pour garder (décision du mainteneur, 8 octobre 2026). Deux exceptions :
 
-- **avec un SIRET**, SIRENE décide : une société sous le nom que le registre
-  publie, un entrepreneur individuel sous le nom de SIRENE et seulement s'il
-  est diffusible ; un SIREN que SIRENE ne connaît pas n'est pas nommé, et
-  une opposition inscrite dans `retraits.yaml` s'applique ;
-- **sans SIRET**, le nom n'est repris que s'il porte une forme de société
-  (SARL, SA, SAS, SNC, EARL, GAEC, société, commune, syndicat…). « Garage
-  Martin » n'est pas repris : rien ne dit s'il s'agit d'une société ou d'un
-  artisan, et la fiche du BRGM, vers laquelle la ligne renvoie, le donne.
+- **un entrepreneur individuel en diffusion partielle** au répertoire
+  SIRENE — il a exercé son droit d'opposition (article R123-232-1 du code de
+  commerce) — n'est pas nommé, même quand le registre le nomme ; avec un
+  SIRET diffusible, il est nommé sous le nom que publie SIRENE ;
+- **une opposition inscrite dans `retraits.yaml`**, par SIREN ou, sans SIRET,
+  par le code du site ou de l'installation, retire le nom à l'ingestion
+  suivante.
+
+Sans SIRET, rien ne permet de vérifier une opposition : le nom est repris
+comme le registre le publie, et le retrait reste ouvert à tout moment.
 
 Le site ne conclut rien : un site recensé à la CASIAS n'est pas un sol
 pollué, et la page le dit à chaque fois ; une installation classée n'est
 pas une infraction. Aucun rapprochement entre un exploitant et un élu ou un
 marché n'est fait.
-
-Ce qui reste au mainteneur : reprendre les noms des anciens exploitants
-sans SIRET. C'est la mémoire que la CASIAS est faite pour garder, mais ce
-sont souvent des artisans en nom propre, décédés ou retirés depuis
-longtemps, que SIRENE ne permet pas de vérifier.
 
 ## 4. Risques juridiques directs
 

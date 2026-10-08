@@ -156,9 +156,11 @@ Ce qui est autorisé à ce jour :
   `retraits.yaml` ;
 - **les exploitants des sites et sols pollués et des installations classées**,
   d'après Géorisques et le BRGM, sous le site ou l'installation, avec le lien
-  vers sa fiche : avec un SIRET, la règle des titulaires des marchés ; sans
-  SIRET, seulement un nom qui porte une forme de société. Un site recensé à
-  la CASIAS n'est pas présenté comme un sol pollué ;
+  vers sa fiche : le nom tel que le registre le publie, anciennes entreprises
+  comprises, pour garder la trace historique — sauf un entrepreneur
+  individuel en diffusion partielle à SIRENE et les retraits de
+  `retraits.yaml` (par SIREN, ou par code du site sans SIRET). Un site
+  recensé à la CASIAS n'est pas présenté comme un sol pollué ;
 - **les dirigeants déclarés au répertoire des représentants d'intérêts** de
   la HATVP : nom, prénom, fonction, l'organisation et le lien vers sa fiche.
   Le registre est publié pour dire qui cherche à influencer la décision
