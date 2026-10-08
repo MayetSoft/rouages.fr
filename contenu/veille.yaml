@@ -786,6 +786,16 @@ surveillances:
   # de Géorisques, lues depuis l'hébergement français le 8 octobre 2026,
   # placent ses contenus sous la Licence Ouverte d'Etalab, avec un lien vers
   # sa version 2.0 (github.com/etalab/licence-ouverte, LO.md).
+  # Kohesio : la plateforme Socrata de la Commission. On demande une ligne,
+  # pour savoir que le jeu répond encore sous la même adresse.
+  - id: kohesio-2014-2020
+    nom: "Commission européenne — Kohesio, projets de la politique de cohésion 2014-2020"
+    alimente: "les projets européens localisés dans la commune"
+    type: disponibilite
+    licence: cc0
+    url: "https://cohesiondata.ec.europa.eu/resource/557j-pmg8.json?$limit=1"
+    lien: od-kohesio
+
   - id: brgm-casias
     nom: "BRGM — sites et sols pollués et installations classées (Géorisques)"
     alimente: "les sites et sols pollués et les installations classées de la commune"

@@ -813,6 +813,11 @@ async function principal() {
   );
   if (conso) grise(`${ecrireArtificialisation(SORTIE, conso)} départements de consommation d’espaces écrits.`);
 
+  // Les contours de l'ingestion précédente suffisent à rattacher un projet à sa commune.
+  const { collecterEurope, ecrireEurope } = await import('./europe-emettre.ts');
+  const europe = await tenter('Fonds européens (Kohesio)', () => collecterEurope(lireJson, SORTIE, grise));
+  if (europe) grise(`${ecrireEurope(SORTIE, europe)} départements de projets européens écrits.`);
+
   const { collecterMairies, ecrireMairies } = await import('./mairies-emettre.ts');
   const mairies = await tenter('Mairies', () => collecterMairies(lireJson, grise));
   if (mairies) grise(`${ecrireMairies(SORTIE, mairies)} départements de mairies écrits.`);

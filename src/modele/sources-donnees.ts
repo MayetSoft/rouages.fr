@@ -411,6 +411,13 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /Kohesio/i,
+    liens: [
+      { titre: 'Kohesio, projets 2014-2020 (Commission européenne)', url: 'https://cohesiondata.ec.europa.eu/dataset/2014-2020-Kohesio-projects/557j-pmg8' },
+      { titre: 'Kohesio, la plateforme', url: 'https://kohesio.ec.europa.eu/fr/' },
+    ],
+  },
+  {
     motif: /Annuaire de l.administration/i,
     liens: [
       { titre: 'Annuaire de l’administration, base de données locales (DILA)', url: 'https://www.data.gouv.fr/datasets/service-public-gouv-fr-annuaire-de-ladministration-base-de-donnees-locales/' },

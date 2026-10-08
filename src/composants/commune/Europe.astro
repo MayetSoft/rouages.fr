@@ -1,0 +1,70 @@
+---
+/**
+ * Ce que l'Union européenne a cofinancé dans la commune, au titre de la
+ * politique de cohésion, d'après Kohesio (`scripts/europe-emettre.ts`).
+ *
+ * La base ne localise qu'une partie des opérations, et ne nomme pas les
+ * bénéficiaires français : le bloc le dit, plutôt que de laisser croire à un
+ * inventaire complet.
+ */
+import type { Europe } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  e: Europe;
+}
+const { e } = Astro.props;
+const MONTRES = 15;
+const euros = (v: number) => `${Math.round(v).toLocaleString('fr-FR')} €`;
+const annee = (iso: string) => iso.slice(0, 4);
+const [debut, fin] = e.periode.split('-');
+---
+{e.projets === 0 ? (
+  <p class="mesure">
+    {`Aucun projet de la politique de cohésion ${e.periode} n’est localisé dans la commune par la base de la Commission européenne. ` +
+      'Ce qui ne veut pas dire qu’aucun ne l’a servie : près d’une opération française sur deux n’y a pas de lieu.'}
+  </p>
+) : (
+  <>
+    <p class="mesure">
+      {`De ${debut} à ${fin}, ${e.projets} projet${e.projets > 1 ? 's' : ''} cofinancé${e.projets > 1 ? 's' : ''} par l’Union européenne au titre de la politique de cohésion ${e.projets > 1 ? 'sont localisés' : 'est localisé'} dans la commune : ` +
+        `${euros(e.ue)} de l’Union pour ${euros(e.total)} de dépenses éligibles` +
+        (e.total > 0 ? `, soit ${Math.round((e.ue / e.total) * 100)} %.` : '.')}
+      {e.fonds.length > 1 && ` Par fonds : ${e.fonds.map((f) => `${f.nom}, ${f.projets} projet${f.projets > 1 ? 's' : ''} et ${euros(f.ue)}`).join(' ; ')}.`}
+    </p>
+    <ul class="c-structures">
+      {e.liste.slice(0, MONTRES).map((p) => (
+        <li>
+          {p.kohesio ? <a href={p.kohesio} target="_blank" rel="noopener">{p.nom}</a> : <strong>{p.nom}</strong>}
+          <span class="v-nature">
+            {[
+              p.fonds,
+              `${euros(p.ue)} de l’Union sur ${euros(p.total)}${p.taux ? ` (${Math.round(p.taux)} %)` : ''}`,
+              p.debut && p.fin ? `${annee(p.debut)}–${annee(p.fin)}` : p.debut ? annee(p.debut) : '',
+              p.autorite,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        </li>
+      ))}
+    </ul>
+    {e.projets > Math.min(MONTRES, e.liste.length) && (
+      <p class="p-strate">{`Et ${e.projets - Math.min(MONTRES, e.liste.length)} autres, des plus gros aux plus petits, sur Kohesio.`}</p>
+    )}
+    <p class="mesure">
+      Ce ne sont que les projets que la base localise, à l’endroit que déclare l’autorité de gestion&nbsp;: le lieu du
+      projet, ou l’adresse de qui le porte. Une formation suivie dans tout le département peut tomber sur la commune de
+      l’organisme, et une action sans lieu précis n’apparaît nulle part. La base ne nomme pas les porteurs français.
+    </p>
+  </>
+)}
+<p class="p-strate">
+  La politique de cohésion est le premier budget d’investissement de l’Union. En France, ses programmes sont gérés
+  surtout par les conseils régionaux, autorités de gestion, et en partie par l’État. Le Fonds européen de développement
+  régional (FEDER) finance l’investissement — rénovation énergétique, numérique, entreprises, espaces naturels —, le
+  Fonds social européen (FSE) l’emploi, la formation et l’inclusion, l’Initiative pour l’emploi des jeunes (IEJ)
+  l’accès des jeunes à l’emploi. La période 2021-2027 n’est pas encore dans ce jeu de données.
+</p>
+<p class="p-source-territoire">
+  {`D’après Kohesio, la base des projets de la politique de cohésion tenue par la Commission européenne à partir des listes d’opérations des autorités de gestion, période ${e.periode} (lue le ${e.maj}), versée au domaine public (CC0).`}
+</p>
