@@ -51,6 +51,7 @@ import CentresSociaux from '../../composants/commune/CentresSociaux.astro';
 import Entreprises from '../../composants/commune/Entreprises.astro';
 import EntreprisesPresentes from '../../composants/commune/EntreprisesPresentes.astro';
 import Essentiel from '../../composants/commune/Essentiel.astro';
+import DeclarationElu from '../../composants/DeclarationElu.astro';
 import Demarches from '../../composants/commune/Demarches.astro';
 import Fiscalite from '../../composants/commune/Fiscalite.astro';
 import Logements from '../../composants/commune/Logements.astro';
@@ -333,6 +334,10 @@ const entrees = sommaire.filter(([, , present]) => !!present);
  * l'affichage. Un bloc absent d'ici suit la famille du bloc qui le précède.
  */
 const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
+  // Le haut de la page — le maire, son conseil, la carte, l'essentiel — est
+  // un onglet lui aussi, ouvert d'abord : la barre arrive sous le nom de la
+  // commune, sans qu'il faille descendre pour la trouver.
+  { id: 'apercu', nom: 'En bref', blocs: ['apercu'] },
   { id: 'decider', nom: 'Qui décide', blocs: ['election', 'conseil', 'votes', 'qui-exerce', 'echelons'] },
   {
     id: 'argent',
@@ -362,7 +367,7 @@ const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   { id: 'suivre', nom: 'Suivre la commune', blocs: ['journal', 'ailleurs'] },
 ];
 const familleDe = new Map(FAMILLES.flatMap((f) => f.blocs.map((b) => [b, f.id] as const)));
-const famillesPresentes = FAMILLES.map((f) => ({ ...f, n: entrees.filter(([id]) => familleDe.get(id) === f.id).length })).filter((f) => f.n > 0);
+const famillesPresentes = FAMILLES.map((f) => ({ ...f, n: entrees.filter(([id]) => familleDe.get(id) === f.id).length })).filter((f) => f.n > 0 || f.id === 'apercu');
 const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
 ---
 
@@ -387,6 +392,36 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </p>
     )}
 
+    {famillesPresentes.length > 1 && (
+      <div class="c-onglets" data-onglets hidden>
+        <div class="c-onglets-barre" role="tablist" aria-label="Les familles d’informations sur la commune">
+          {famillesPresentes.map((f) => (
+            <button type="button" role="tab" class="c-onglet" id={`onglet-${f.id}`} data-famille={f.id} aria-selected="false" tabindex="-1">
+              {f.nom}
+              <span class="c-onglet-nombre" data-trouves>{f.id === 'apercu' ? '' : f.n}</span>
+            </button>
+          ))}
+        </div>
+        <form class="c-chercher" role="search">
+          <label class="c-chercher-etiquette" for="chercher-page">Chercher dans la page</label>
+          <input id="chercher-page" class="c-chercher-champ" type="search" autocomplete="off" placeholder="un mot : école, marché, inondation, adjoint…" />
+          <div class="c-chercher-resultats" aria-live="polite"></div>
+        </form>
+      </div>
+    )}
+
+    {entrees.length > 1 && (
+      <nav class="p-sommaire c-sommaire" aria-label="Les blocs de cette commune">
+        {entrees.map(([id, etiquette]) => <a class="p-sommaire-lien" href={`#${id}`} data-famille={familleDe.get(id)}>{etiquette}</a>)}
+      </nav>
+    )}
+    <script is:inline type="application/json" id="familles-commune" set:html={JSON.stringify(Object.fromEntries(familleDe))} />
+    <script>
+      import '../../client/onglets-commune.ts';
+    </script>
+
+    <section id="apercu">
+      <h2 class="visuellement-cache">En bref</h2>
     {fiche?.maire && (
       <p class="p-maire">
         <span class="p-maire-fonction">Maire</span>
@@ -407,7 +442,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             <li>
               <span class="p-adjoint-fonction">{fonctionCourte(a.fonction)}</span>
               <span class="p-adjoint-nom">{`${a.prenom} ${a.nom}`}</span>
-              {a.naissance && <span class="p-adjoint-naissance">{`naissance ${a.naissance}`}</span>}
+              {a.naissance && <span class="p-adjoint-naissance"><abbr title="année de naissance">n.</abbr>{`\u00a0${a.naissance}`}</span>}
               {a.cc && <span class="p-adjoint-naissance">{siegeCc(a.cc)}</span>}
             </li>
           ))}
@@ -422,7 +457,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
           {fiche.conseillers.map((m) => (
             <li>
               <span class="p-adjoint-nom">{`${m.prenom} ${m.nom}`}</span>
-              {m.naissance && <span class="p-adjoint-naissance">{`naissance ${m.naissance}`}</span>}
+              {m.naissance && <span class="p-adjoint-naissance"><abbr title="année de naissance">n.</abbr>{`\u00a0${m.naissance}`}</span>}
               {m.cc && <span class="p-adjoint-naissance">{siegeCc(m.cc)}</span>}
             </li>
           ))}
@@ -436,30 +471,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <ul>
           {fiche.declarations.map((d) => (
             <li>
-              <a href={d.page} target="_blank" rel="noopener">{d.nom}</a>
-              <span class="p-adjoint-naissance">
-                {d.liste
-                  .map((x) => `${x.qualite} : ${x.type}, ${x.statut.toLowerCase()}${x.date ? `, ${new Date(x.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}`)
-                  .join(' ; ')}
-              </span>
-              {d.contenu && d.contenu.lignes.length > 0 && (
-                <details class="p-declaration-contenu">
-                  <summary>
-                    {`Sa dernière déclaration d’intérêts publiée — déposée le ${new Date(d.contenu.depot).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` +
-                      (d.contenu.qualite ? `, comme ${d.contenu.qualite}` : '')}
-                  </summary>
-                  <ul>
-                    {d.contenu.lignes.map((l) => (
-                      <li>
-                        <span class="p-declaration-rubrique">{l.rubrique}</span>
-                        <span>{[l.intitule, l.precision].filter(Boolean).join(' — ')}</span>
-                        <span class="p-adjoint-naissance">{[l.periode, l.montant].filter(Boolean).join(' · ')}</span>
-                        {l.commentaire && <span class="p-adjoint-naissance p-declaration-commentaire">{`« ${l.commentaire} »`}</span>}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              )}
+              <span class="p-adjoint-nom">{d.nom}</span>
+              <DeclarationElu d={d} qualite />
             </li>
           ))}
         </ul>
@@ -489,34 +502,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {carte && <CarteSituation carte={carte} nom={commune.nom} depNom={commune.depNom} />}
 
     <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
+    </section>
 
-    {famillesPresentes.length > 1 && (
-      <div class="c-onglets" data-onglets hidden>
-        <div class="c-onglets-barre" role="tablist" aria-label="Les familles d’informations sur la commune">
-          {famillesPresentes.map((f) => (
-            <button type="button" role="tab" class="c-onglet" id={`onglet-${f.id}`} data-famille={f.id} aria-selected="false" tabindex="-1">
-              {f.nom}
-              <span class="c-onglet-nombre" data-trouves>{f.n}</span>
-            </button>
-          ))}
-        </div>
-        <form class="c-chercher" role="search">
-          <label class="c-chercher-etiquette" for="chercher-page">Chercher dans la page</label>
-          <input id="chercher-page" class="c-chercher-champ" type="search" autocomplete="off" placeholder="un mot : école, marché, inondation, adjoint…" />
-          <div class="c-chercher-resultats" aria-live="polite"></div>
-        </form>
-      </div>
-    )}
-
-    {entrees.length > 1 && (
-      <nav class="p-sommaire c-sommaire" aria-label="Les blocs de cette commune">
-        {entrees.map(([id, etiquette]) => <a class="p-sommaire-lien" href={`#${id}`} data-famille={familleDe.get(id)}>{etiquette}</a>)}
-      </nav>
-    )}
-    <script is:inline type="application/json" id="familles-commune" set:html={JSON.stringify(Object.fromEntries(familleDe))} />
-    <script>
-      import '../../client/onglets-commune.ts';
-    </script>
 
     {(plus.histoire || plus.etatCivil || plus.ages) && (
       <section id="habitants" class="p-habitants">
@@ -1145,7 +1132,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     <h2 class="badge">Aller plus loin</h2>
     <ul>
       <li>
-        <a href={`/?commune=${commune.code}`}>Voir cette commune sur la carte</a> — chaque
+        <a href={`/fonctionnement?commune=${commune.code}`}>Voir cette commune sur la carte</a> — chaque
         compétence y montre qui l’exerce ici, parmi tous les acteurs qui la partagent.
       </li>
       {fiche?.soumiseSru && (

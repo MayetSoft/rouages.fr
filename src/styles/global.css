@@ -456,6 +456,7 @@ span.reglette i {
   color: var(--accent); border-color: var(--accent);
 }
 .p-sommaire-lien[hidden] { display: none; }
+.c-sommaire[hidden] { display: none; }
 
 /* --- les onglets de la page d'une commune ---
    Les blocs rangés par grande famille ; la barre reste en haut de l'écran
