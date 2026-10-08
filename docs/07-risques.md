@@ -314,6 +314,34 @@ pollué, et la page le dit à chaque fois ; une installation classée n'est
 pas une infraction. Aucun rapprochement entre un exploitant et un élu ou un
 marché n'est fait.
 
+### Les coordonnées des acheteurs et les avis du BOAMP (8 octobre 2026)
+
+Écrit avant la première collecte. Deux sources de plus pour les fichiers
+nationaux des marchés, qu'aucune personne physique ne doit traverser :
+
+- **L'annuaire de l'administration** (service-public.fr, Licence Ouverte)
+  publie pour chaque mairie et chaque intercommunalité un téléphone, une
+  adresse électronique et un site, pour que le public puisse les joindre.
+  C'est l'usage qu'en fait le site : dire à qui écrire au sujet d'un marché.
+  Est retenue la fiche de la mairie principale ou de l'intercommunalité, pas
+  celle d'un service ni d'une mairie déléguée ; le nom d'un responsable, que
+  certaines fiches portent (`affectation_personne`), n'est pas lu. Une petite
+  commune publie parfois l'adresse de sa secrétaire — « prénom.nom@… » — :
+  une adresse dont un morceau est un prénom connu des conseils municipaux,
+  hors du nom de la collectivité, n'est pas reprise. Le filtre se trompe dans
+  les deux sens : il écarte une adresse faite d'un prénom seul « @mairie-… »,
+  qui est peut-être celle du secrétariat, et laisserait passer une initiale
+  suivie d'un nom, qui ne contient pas de prénom entier. Le second cas se signale et se retire comme le reste.
+- **Le BOAMP** (DILA, Licence Ouverte) publie les avis de marché pour que les
+  entreprises y répondent. Il nomme souvent la personne à contacter, voire
+  le maire en tant que représentant du pouvoir adjudicateur
+  (`correspondantPRM`). Rien de cela n'est retenu : de chaque avis, le site
+  garde l'identifiant, la date de parution, la date limite, l'objet, le code
+  CPV, la nature du marché, le lien vers l'avis, et l'acheteur rattaché —
+  une collectivité. Le rattachement dit sur quoi il repose (`par` : le SIRET
+  publié dans l'avis, ou le nom dans le même département), et un nom qui
+  désigne plusieurs acheteurs ne rattache rien.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans

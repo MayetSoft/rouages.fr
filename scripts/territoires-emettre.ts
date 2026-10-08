@@ -21,7 +21,7 @@ import { ecrireFinances, metaFinances, type ComptesCommunes } from './finances-e
 import { ecrireFlux, type FluxGroupements } from './flux-emettre.ts';
 import { ecrireEcoles, type Effectifs } from './ecoles-emettre.ts';
 import { ecrireElus, type Elus } from './elus-emettre.ts';
-import { ecrireAttributionsNationales, ecrireEcheancesNationales, ecrireMarches, ecrireSuitesMarches, type Marches } from './marches-emettre.ts';
+import { ecrireAttributionsNationales, ecrireAvisNationaux, ecrireEcheancesNationales, ecrireMarches, ecrireSuitesMarches, type Marches } from './marches-emettre.ts';
 import { ecrireSru, type InventaireSru } from './sru-emettre.ts';
 import { ecrireDmto, type Dmto } from './dmto-emettre.ts';
 import { ecrireEchelons, type Echelons } from './echelons-emettre.ts';
@@ -729,11 +729,15 @@ export function emettre(o: {
     // Après les fichiers par département, qu'il relit pour nommer les acheteurs.
     const nationales = ecrireEcheancesNationales(sortie, o.marches);
     const attributions = ecrireAttributionsNationales(sortie, o.marches);
+    // Les avis ouverts du BOAMP, rattachés aux mêmes acheteurs ; sans collecte, l'ancien fichier reste.
+    const avis = ecrireAvisNationaux(sortie, o.marches);
     dire(
       `${GRIS}Marchés publics : ${marchesEcrits.toLocaleString('fr-FR')} acheteurs chiffrés, ` +
         `${suites.toLocaleString('fr-FR')} listes complètes à la demande, ` +
         `${nationales.toLocaleString('fr-FR')} échéances dans echeances.json, ` +
-        `${attributions.toLocaleString('fr-FR')} marchés récents dans attributions.json.${RAZ}`,
+        `${attributions.toLocaleString('fr-FR')} marchés récents dans attributions.json, ` +
+        (avis ? `${avis.avis.toLocaleString('fr-FR')} avis ouverts dans avis.json.` : 'avis.json inchangé.') +
+        RAZ,
     );
   }
   if (o.elus) {

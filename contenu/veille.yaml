@@ -101,6 +101,20 @@ surveillances:
     attendu: 704853
     lien: od-decp-bercy
 
+  # Les avis de marché du BOAMP, quotidiens : c'est la date de la dernière
+  # parution qu'on regarde. La fiche Opendatasoft ne dit pas la licence ; la
+  # fiche « BOAMP » de data.gouv.fr, publiée par le Premier ministre (DILA), la
+  # donne : Licence Ouverte (fr-lo, version 1.0), relevé le 8 octobre 2026.
+  - id: boamp-avis
+    nom: "BOAMP — avis de marchés publics"
+    alimente: "les avis de marché ouverts de chaque acheteur suivi (avis.json)"
+    type: opendatasoft-fraicheur
+    licence: licence-ouverte-1.0
+    url: "https://boamp-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/boamp"
+    ressource: "dateparution"
+    attendu: 7
+    lien: od-boamp
+
   - id: effectifs-ecoles
     nom: "Effectifs d'élèves par école"
     alimente: "le nombre de classes et d'élèves, école par école"
@@ -113,7 +127,7 @@ surveillances:
 
   - id: annuaire-administration
     nom: "Annuaire de l'administration"
-    alimente: "les France services, les CCAS, les SDIS et les mairies"
+    alimente: "les France services, les CCAS, les SDIS et les mairies ; le téléphone, l'adresse et le site de chaque acheteur public"
     type: opendatasoft-total
     licence: licence-ouverte-1.0
     url: "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration"

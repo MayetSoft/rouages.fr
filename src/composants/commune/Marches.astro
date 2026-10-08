@@ -29,6 +29,11 @@ interface Props {
 const { liste, depuis, fenetre, procedures } = Astro.props;
 /** La fiche publique d'une entreprise, sur l'annuaire de l'État. */
 const FICHE = 'https://annuaire-entreprises.data.gouv.fr/entreprise/';
+/**
+ * Rouages Pro, le service de veille de l'éditeur. Le lien mène à la fiche de
+ * l'acheteur, ouverte sans compte ; la page publique n'en dépend pas.
+ */
+const PRO = 'https://pro.rouages.fr';
 const autres = (m: AcheteurMarches['liste'][number]) =>
   m.autresTitulaires > 0
     ? `${m.titulaires.length > 0 ? 'et ' : ''}${m.autresTitulaires} titulaire${m.autresTitulaires > 1 ? 's' : ''} non nommé${m.autresTitulaires > 1 ? 's' : ''}`
@@ -168,6 +173,12 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
       {a.siret && (
         <p class="p-marche-ailleurs">
           <a href={`https://colibre.fr/acheteurs/${a.siret}`}>{'Tous ses marchés, avec les titulaires, sur Colibre'}</a>
+        </p>
+      )}
+      {a.echeances.length > 0 && (
+        <p class="p-marche-ailleurs">
+          <a href={`${PRO}/acheteur/${a.siren}`}>{'Être alerté quand il relance ses marchés'}</a>
+          {' — Rouages Pro, le service payant de l’éditeur, sur les mêmes données'}
         </p>
       )}
     </Groupe>

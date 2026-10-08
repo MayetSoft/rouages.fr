@@ -3567,6 +3567,57 @@ Restent à faire :
 - les institutions européennes elles-mêmes comme acteurs du réseau
   (Commission, Parlement, Conseil), avec leurs liens aux compétences.
 
+### Le contact de chaque acheteur, et les avis ouverts du BOAMP (8 octobre 2026) ✔
+
+**Les fichiers nationaux des marchés disent à qui écrire.** Chaque acheteur
+d'`echeances.json`, d'`attributions.json` et d'`avis.json` porte, quand
+l'annuaire de l'administration a sa fiche, un champ `contact` : le téléphone,
+l'adresse électronique, le site et le lien vers la fiche de service-public.fr.
+Le rapprochement se fait par le SIREN — les neuf premiers chiffres du SIRET de
+la fiche —, sur la mairie principale ou l'intercommunalité, jamais une mairie
+déléguée ni un CCAS : 11 550 des 12 862 acheteurs suivis ont une fiche, et
+dans les fichiers, 2 831 des 3 255 acheteurs d'`echeances.json`, 1 968 des
+2 166 d'`attributions.json`. Au Mayet-de-Montagne : 04 70 59 70 52,
+mairie@lemayetdemontagne.fr ; à Vichy Communauté : 04 70 96 57 00,
+accueil@vichy-communaute.fr. Dix adresses sur 11 489 sont écartées parce
+qu'elles sont faites d'un prénom — la secrétaire de mairie plutôt que la
+mairie —, d'après les prénoms des conseillers municipaux du pays.
+
+**`/territoires/avis.json` donne les avis de marché encore ouverts** des
+acheteurs suivis, parus ces soixante derniers jours : 3 098 au 8 octobre
+2026, chez 1 529 acheteurs, chacun avec sa date de parution, sa date limite
+en heure de Paris, l'objet, le code CPV (2 864) et la nature du marché. C'est
+le troisième fichier national : ce qui va se rejouer, ce qui vient de se
+jouer, ce qui se joue maintenant. Seuls les avis de marché comptent ; un
+rectificatif corrige la date limite de l'avis qu'il vise, une annulation le
+retire, et un avis dont la date est passée sort.
+
+**Le rattachement dit sur quoi il repose.** 2 232 avis (72 %) portent dans
+leurs données le SIRET d'un acheteur suivi ; 866 (28 %) sont rattachés par le
+nom, plié et réduit (« Commune du Mayet-de-Montagne », « Le
+Mayet-de-Montagne »), comparé aux acheteurs du même département, et seulement
+quand il en désigne un seul. Pas de ressemblance approchée. Vérifié à la main
+sur une centaine de rattachements par le nom, dont Lapalisse et Cusset
+dans l'Allier : aucun faux.
+
+**Ce que la collecte coûte.** Le premier passage lit la liste légère des
+soixante jours (13 052 versions, 7 Mo), le texte des 794 rectificatifs
+nationaux (1 Mo) et les données détaillées des 7 259 avis ouverts — 105 Mo,
+16 Mo compressés —, en une minute. Les suivants ne relisent le détail que
+depuis la collecte précédente moins deux jours : 809 avis et 10 Mo pour
+le second passage du même jour, qui a recalculé toutes les dates limites
+et gardé les rattachements du premier. La collecte du lundi
+(`marches.yml`) le fait d'elle-même, en dix minutes comme avant. Les deux
+collectes sont isolées : si l'annuaire tombe, les fichiers s'écrivent sans
+contact ; si le BOAMP tombe, `avis.json` garde sa version précédente.
+
+**Ce qui reste imparfait.** 107 avis ont une date limite inconnue (`null`) :
+l'avis initial n'en donnait pas, ou un rectificatif national la change dans
+une phrase qu'on ne sait pas lire — 171 des 794 rectificatifs en parlent sans
+forme lisible, et donner l'ancienne date serait pire que n'en donner aucune.
+Un avis dont l'acheteur s'écrit autrement que sur BANATIC (« Communauté
+communes Coutances mer et bocage ») et sans SIRET n'est pas rattaché.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
