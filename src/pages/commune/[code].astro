@@ -389,7 +389,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {!fiche && (
       <p class="c-vide">
         Les données territoriales de cette commune n’ont pas pu être assemblées.
-        La carte reste le meilleur endroit d’où repartir.
+        Le <a href="/fonctionnement">réseau des acteurs publics</a> reste le meilleur endroit d’où repartir.
       </p>
     )}
 
@@ -1135,7 +1135,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     <h2 class="badge">Aller plus loin</h2>
     <ul>
       <li>
-        <a href={`/fonctionnement?commune=${commune.code}`}>Voir cette commune sur la carte</a> — chaque
+        <a href={`/fonctionnement?commune=${commune.code}`}>Voir cette commune dans le réseau des acteurs publics</a> — chaque
         compétence y montre qui l’exerce ici, parmi tous les acteurs qui la partagent.
       </li>
       {fiche?.soumiseSru && (

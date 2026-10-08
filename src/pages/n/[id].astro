@@ -131,7 +131,7 @@ const groupes = ORDRE_LIENS.map((type) => ({
     {source && 'verifie_le' in source && (
       <p class="v-nature">Vérifié le {formaterDate(source.verifie_le)}.</p>
     )}
-    <p><a href={`/fonctionnement#${noeud.id}`}>Voir ce nœud dans la carte</a></p>
+    <p><a href={`/fonctionnement#${noeud.id}`}>Voir ce nœud dans le réseau</a></p>
     <p class="p-signaler">
       <a href={urlSignaler(noeud.id)}>Signaler une erreur sur cette fiche</a>
     </p>

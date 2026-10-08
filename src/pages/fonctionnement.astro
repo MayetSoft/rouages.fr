@@ -17,16 +17,16 @@ const parEchelon = reseau.carte.colonnes.map((c) => ({
 ---
 
 <Base
-  titre="La carte des rouages"
-  description="Qui décide quoi, avec quel argent, et avec qui — une carte navigable des acteurs publics et de leurs relations, reliée à Wikipédia, Légifrance et l'open data."
+  titre="Le réseau des acteurs publics"
+  description="Qui décide quoi, avec quel argent, et avec qui — le réseau navigable des acteurs publics et de leurs relations, reliée à Wikipédia, Légifrance et l'open data."
   plein
   section="fonctionnement"
   sousPage="carte"
 >
-  {/* La carte n'a pas de titre visible — l'en-tête et la légende en tiennent
+  {/* Le réseau n'a pas de titre visible — l'en-tête et la légende en tiennent
       lieu —, mais un lecteur d'écran qui parcourt les titres doit en trouver
       un. Le repli sans JavaScript passe donc au second niveau. */}
-  <h1 class="visuellement-cache">La carte des rouages</h1>
+  <h1 class="visuellement-cache">Le réseau des acteurs publics</h1>
   <div class="outils">
     <div class="champ-recherche">
       <label class="visuellement-cache" for="recherche">Chercher un acteur, une compétence</label>
@@ -79,7 +79,7 @@ const parEchelon = reseau.carte.colonnes.map((c) => ({
 
   <div class="explorateur">
     <div class="scene">
-      <svg id="toile" role="application" aria-label="Carte des acteurs publics et de leurs relations"></svg>
+      <svg id="toile" role="application" aria-label="Réseau des acteurs publics et de leurs relations"></svg>
       {/* Le geste n'est pas le même au doigt et à la souris : on le dit
           différemment plutôt que de parler de survol à qui ne survole pas. */}
       <p class="aide" id="aide">
@@ -95,9 +95,9 @@ const parEchelon = reseau.carte.colonnes.map((c) => ({
 
   <noscript>
     <div class="page">
-      <h2>La carte des rouages, en liste</h2>
+      <h2>Le réseau des acteurs publics, en liste</h2>
       <p class="resume">
-        La carte interactive demande JavaScript. Voici la même matière, en liste :
+        Le réseau interactif demande JavaScript. Voici la même matière, en liste :
         chaque acteur a sa page, avec ses relations et ses liens de référence.
       </p>
       {parEchelon.map((c) => (
