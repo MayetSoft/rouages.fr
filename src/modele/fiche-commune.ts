@@ -347,6 +347,8 @@ export interface Associations {
   /** Les associations existantes au fichier Waldec : leur nombre, et les plus récemment déclarées. */
   existantes: number;
   liste: { titre: string; objet: string; domaine: string | null; annee: number | null; site: string | null }[];
+  /** La table des domaines, pour la suite chargée à la demande. */
+  domainesTous: string[];
   taux: number;
   medianeTaux: number;
   maj: string;
@@ -1203,6 +1205,7 @@ function assemblerAssociations(commune: CommuneFiche, population: number): Assoc
       domaine: dom >= 0 ? (d.domaines[dom] ?? null) : null,
     })),
     existantes: f.e ?? 0,
+    domainesTous: d.domaines,
     liste: (f.x ?? []).map(([titre, objet, dom, annee, site]) => ({
       titre,
       objet,

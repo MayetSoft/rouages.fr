@@ -46,7 +46,7 @@
  * commune, rien d'autre : ni la voie, ni le numéro, ni la civilité du
  * dirigeant, que le répertoire publie pourtant.
  */
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { nommeUnePersonne } from '../src/modele/civilites.ts';
 import { debutFenetre, GENRES, type Evenement } from '../src/modele/journal.ts';
@@ -150,7 +150,11 @@ export type Creation = [mois: string, titre: string, domaine: number];
  * dans le fichier historique, sans code de commune.
  */
 export type Existante = [titre: string, objet: string, domaine: number, annee: number, site: string];
-/** Les existantes listées par commune, de la plus récemment déclarée à la plus ancienne ; le nombre, lui, est complet. */
+/**
+ * Les existantes écrites dans le fichier du département, de la plus
+ * récemment déclarée à la plus ancienne ; la suite a son propre fichier,
+ * `associations/<code>.json`, que le bouton « Voir les autres » va chercher.
+ */
 const EXISTANTES_LISTEES = 20;
 const MAX_OBJET = 70;
 
@@ -188,6 +192,8 @@ export interface Associations {
   effectif: number;
   /** Créations qu'aucune commune du découpage ne réclame. */
   horsDecoupage: number;
+  /** Les existantes au-delà des vingt du fichier du département, par commune. */
+  suites: Map<string, Existante[]>;
   total: number;
 }
 
@@ -252,10 +258,6 @@ export async function collecterAssociations(
     }
     e.n++;
     e.l.push([decla, x]);
-    if (e.l.length > EXISTANTES_LISTEES * 2) {
-      e.l.sort((a, b) => b[0].localeCompare(a[0]));
-      e.l.length = EXISTANTES_LISTEES;
-    }
   };
   const siteDe = (brut: string) => {
     try {
@@ -343,6 +345,7 @@ export async function collecterAssociations(
   }
 
   let nExistantes = 0;
+  const suites = new Map<string, Existante[]>();
   for (const [code, e] of existantes) {
     let c = communes.get(code);
     if (!c) {
@@ -352,6 +355,7 @@ export async function collecterAssociations(
     e.l.sort((a, b) => b[0].localeCompare(a[0]));
     c.e = e.n;
     c.x = e.l.slice(0, EXISTANTES_LISTEES).map(([, x]) => x);
+    if (e.l.length > EXISTANTES_LISTEES) suites.set(code, e.l.slice(EXISTANTES_LISTEES).map(([, x]) => x));
     nExistantes += e.n;
   }
 
@@ -393,6 +397,7 @@ export async function collecterAssociations(
     mediane,
     effectif: taux.length,
     horsDecoupage,
+    suites,
     total,
   };
 }
@@ -431,4 +436,19 @@ export function ecrireAssociations(
     }),
   );
   return n;
+}
+
+/**
+ * La liste complète des associations existantes, à la demande : un fichier par
+ * commune qui en compte plus que le fichier du département n'en porte. Le
+ * dossier est refait à chaque fois, pour qu'une commune qui en a perdu ne
+ * garde pas l'ancienne liste.
+ */
+export function ecrireSuitesAssociations(sortie: string, a: Associations): number {
+  if (a.suites.size === 0) return 0;
+  const dossier = join(sortie, 'associations');
+  rmSync(dossier, { recursive: true, force: true });
+  mkdirSync(dossier, { recursive: true });
+  for (const [code, x] of a.suites) writeFileSync(join(dossier, `${code}.json`), JSON.stringify({ x }));
+  return a.suites.size;
 }

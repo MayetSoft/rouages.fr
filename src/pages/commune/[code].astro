@@ -910,7 +910,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {plus.associations && (plus.associations.total > 0 || plus.associations.existantes > 0) && (
       <section id="associations" class="p-assos">
         <h2 class="badge">Les associations</h2>
-        <Associations a={plus.associations} />
+        <Associations a={plus.associations} code={commune.code} />
       </section>
     )}
     {droitLocal && (

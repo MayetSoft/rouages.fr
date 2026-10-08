@@ -25,7 +25,7 @@ import { ecrireAttributionsNationales, ecrireEcheancesNationales, ecrireMarches,
 import { ecrireSru, type InventaireSru } from './sru-emettre.ts';
 import { ecrireDmto, type Dmto } from './dmto-emettre.ts';
 import { ecrireEchelons, type Echelons } from './echelons-emettre.ts';
-import { ecrireAssociations, type Associations } from './associations-emettre.ts';
+import { ecrireAssociations, ecrireSuitesAssociations, type Associations } from './associations-emettre.ts';
 import { ecrirePopulations, type Populations } from './population-emettre.ts';
 import { ecrireConseils, type Conseils } from './conseils-emettre.ts';
 import { ecrireUrbanisme, type Urbanisme } from './urbanisme-emettre.ts';
@@ -687,8 +687,10 @@ export function emettre(o: {
     );
   }
   if (o.associations) {
+    const suitesAsso = ecrireSuitesAssociations(sortie, o.associations);
     dire(
-      `${GRIS}Associations : ${assoEcrites.toLocaleString('fr-FR')} communes où il s'en est créé.${RAZ}`,
+      `${GRIS}Associations : ${assoEcrites.toLocaleString('fr-FR')} communes écrites, ` +
+        `${suitesAsso.toLocaleString('fr-FR')} listes complètes à la demande.${RAZ}`,
     );
   }
   if (journal.length > 0) {
