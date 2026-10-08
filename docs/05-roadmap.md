@@ -3533,6 +3533,31 @@ de course ; une collecte lancée seule l'écrit en se terminant, et une
 collecte en échec garde ses dates. Un lien qu'aucune lecture ne rejoint —
 un article de loi, une page d'explication — reste sans date.
 
+### L'Europe dans la commune et dans le réseau — en attente de la prochaine ingestion
+
+Sur la page de chaque commune, dans l'onglet « L'argent » : les projets de la
+politique de cohésion 2014-2020 localisés dans la commune, d'après Kohesio
+(Commission européenne, CC0) — 23 950 opérations françaises localisées sur
+43 942, dans 3 976 communes. Au Mayet-de-Montagne, la chaufferie bois de
+l'école Yves Duteil et le plan de gestion de l'espace naturel des hêtres
+tortueux de la Bletterie.
+
+Dans le réseau, le flux « Fonds européens » est détaillé fonds par fonds,
+d'après qui les gère en France sur 2021-2027 : FEDER, FSE+, FTJ, FEADER,
+FEAMPA, et les trois fonds du ministère de l'Intérieur (FAMI, FSI, IGFV).
+
+Restent à faire :
+- les opérations 2021-2027, quand Kohesio ou les régions les publieront
+  en données ouvertes réutilisables — aujourd'hui, une liste par région, chacune
+  dans son format ;
+- le FEADER et le FEAMPA par commune : listes d'opérations publiées par les
+  régions et l'État, à rapprocher ;
+- les aides de la PAC, que l'Union oblige à publier par bénéficiaire : elles
+  nomment des agriculteurs, et demandent d'abord une justification dans
+  `docs/07-risques.md` et la décision du mainteneur ;
+- les institutions européennes elles-mêmes comme acteurs du réseau
+  (Commission, Parlement, Conseil), avec leurs liens aux compétences.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
