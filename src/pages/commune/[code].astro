@@ -660,7 +660,11 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {vie.caf && (
       <section id="caf" class="p-finances">
         <h2 class="badge">Les allocataires de la CAF</h2>
-        <Caf c={vie.caf} />
+        <Caf
+          c={vie.caf}
+          population={plus.histoire ? { valeur: plus.histoire.actuelle, annee: plus.histoire.anneeActuelle } : null}
+          menages={vie.parc?.commune[0] ? { valeur: vie.parc.commune[0][1], annee: vie.parc.millesimes[0] } : null}
+        />
       </section>
     )}
 
