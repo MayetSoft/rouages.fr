@@ -20,6 +20,7 @@ if (conteneur && carte) {
   const familleDe = JSON.parse(carte.textContent ?? '{}') as Record<string, string>;
   const boutons = [...conteneur.querySelectorAll<HTMLButtonElement>('button[data-famille]')];
   const liens = [...document.querySelectorAll<HTMLAnchorElement>('.c-sommaire a[data-famille]')];
+  const sommaire = document.querySelector<HTMLElement>('.c-sommaire');
   const champ = conteneur.querySelector<HTMLInputElement>('.c-chercher-champ')!;
   const resultats = conteneur.querySelector<HTMLElement>('.c-chercher-resultats')!;
   const nomDe = new Map(boutons.map((b) => [b.dataset.famille!, b.firstChild?.textContent?.trim() ?? '']));
@@ -49,6 +50,8 @@ if (conteneur && carte) {
     }
     for (const b of blocs) b.section.hidden = b.famille !== famille;
     for (const l of liens) l.hidden = l.dataset.famille !== famille;
+    // « En bref » n'a pas de sommaire : on ne laisse pas un cadre vide.
+    if (sommaire) sommaire.hidden = !liens.some((l) => !l.hidden);
   }
 
   /** Ouvre l'onglet d'un élément, déplie ce qui le cache, et y descend. */
@@ -141,7 +144,7 @@ if (conteneur && carte) {
     if (aiguille.length < 2) {
       for (const b of boutons) {
         const n = liens.filter((l) => l.dataset.famille === b.dataset.famille).length;
-        b.querySelector('[data-trouves]')!.textContent = String(n);
+        b.querySelector('[data-trouves]')!.textContent = n ? String(n) : '';
       }
       return;
     }

@@ -1,6 +1,7 @@
 /**
  * Replier les sources et les réserves de chaque bloc dans un encadré
- * « Sources et méthode ».
+ * « Sources » — d'abord appelé « Sources et méthode » : le titre revenait
+ * soixante-dix fois sur la page d'une commune, l'icône dit le reste.
  *
  * Les blocs disent d'où vient chaque chiffre et ce qu'il ne dit pas — c'est
  * ce qui les rend fiables, et c'est aussi ce qui faisait de la page de commune
@@ -59,7 +60,7 @@ export function replierSources(html: string): string {
         '</ul>'
       : '';
     return (
-      `<details class="sm"><summary>${ICONE}<span>Sources et méthode</span></summary>` +
+      `<details class="sm"><summary>${ICONE}<span>Sources</span></summary>` +
       `<div class="sm-corps">${suite.trim()}${liste}</div></details>`
     );
   });

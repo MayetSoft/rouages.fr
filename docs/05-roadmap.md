@@ -3524,7 +3524,7 @@ instructions des pollutions ex-BASOL (leur état, « en cours » ou
 
 ### La date de chaque source — en attente de la prochaine ingestion
 
-Sous chaque lien de l'encadré « Sources et méthode » : le jour où l'ingestion
+Sous chaque lien de l'encadré « Sources » : le jour où l'ingestion
 a récupéré la source, et la date de la version lue quand la source la publie
 — l'en-tête `Last-Modified` du fichier, ou la date des données d'un portail
 Opendatasoft quand elle précède la lecture. `scripts/provenance.ts` note

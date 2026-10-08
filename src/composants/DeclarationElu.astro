@@ -8,8 +8,10 @@ import type { DeclarationElu } from '../modele/elus-echelons.ts';
 
 interface Props {
   d: DeclarationElu;
+  /** Dire à quel titre chaque déclaration a été déposée (maire, président…) : utile sur la page d'une commune. */
+  qualite?: boolean;
 }
-const { d } = Astro.props;
+const { d, qualite = false } = Astro.props;
 const jour = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 /** Les sigles que la HATVP donne elle-même à ses types de document (`di`, `dim`, `dia`, `diam`). */
 const SIGLES: Record<string, string> = {
@@ -18,6 +20,17 @@ const SIGLES: Record<string, string> = {
   'déclaration d’intérêts et d’activités': 'DIA',
   'modification de la déclaration d’intérêts et d’activités': 'DIAM',
 };
+// Les déclarations de même type et de même statut ne sont nommées qu'une
+// fois, suivies de leurs dates : un élu en compte parfois neuf, presque toutes
+// « DIM, livrée ».
+const groupes: { qualite: string; type: string; statut: string; dates: string[] }[] = [];
+for (const x of d.liste) {
+  const q = qualite ? x.qualite : '';
+  const g = groupes.find((y) => y.qualite === q && y.type === x.type && y.statut === x.statut);
+  if (g) {
+    if (x.date) g.dates.push(x.date);
+  } else groupes.push({ qualite: q, type: x.type, statut: x.statut, dates: x.date ? [x.date] : [] });
+}
 // Les lignes arrivent rangées par rubrique : on ne nomme la rubrique qu'une
 // fois, au lieu de la répéter à chaque ligne — « Organe dirigeant » revenait
 // deux cents fois sur la page d'un département.
@@ -31,11 +44,12 @@ for (const l of d.contenu?.lignes ?? []) {
 <span class="p-adjoint-naissance">
   {d.page ? <a href={d.page} target="_blank" rel="noopener">HATVP</a> : 'HATVP'}
   {' : '}
-  {d.liste.map((x, i) => (
+  {groupes.map((g, i) => (
     <>
       {i > 0 && ' ; '}
-      {SIGLES[x.type] ? <abbr title={x.type}>{SIGLES[x.type]}</abbr> : x.type}
-      {`, ${x.statut.toLowerCase()}${x.date ? `, ${jour(x.date)}` : ''}`}
+      {g.qualite && `${g.qualite} : `}
+      {SIGLES[g.type] ? <abbr title={g.type}>{SIGLES[g.type]}</abbr> : g.type}
+      {`${g.dates.length > 1 ? ` (${g.dates.length})` : ''}, ${g.statut.toLowerCase()}${g.dates.length ? ` : ${g.dates.map(jour).join(', ')}` : ''}`}
     </>
   ))}
 </span>

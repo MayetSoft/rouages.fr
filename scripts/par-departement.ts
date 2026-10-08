@@ -154,7 +154,7 @@ export async function* lignesCsv(
 export function telechargerSiAbsent(racine: string) {
   const cache = join(racine, '.cache');
   if (!existsSync(cache)) mkdirSync(cache, { recursive: true });
-  // Les lectures datent les sources de l'encadré « Sources et méthode » ;
+  // Les lectures datent les sources de l'encadré « Sources » ;
   // une collecte lancée seule les écrit en se terminant (voir `provenance.ts`).
   journaliserLesLectures();
   ecrireProvenanceEnSortant(join(racine, 'public', 'territoires'));
