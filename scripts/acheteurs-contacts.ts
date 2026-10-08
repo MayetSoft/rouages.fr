@@ -67,6 +67,7 @@ interface LigneAnnuaire {
   adresse_courriel: string | null;
   site_internet: string | null;
   url_service_public: string | null;
+  statut_de_diffusion: string | boolean | null;
 }
 
 /** Les champs imbriqués de l'annuaire arrivent en JSON encodé dans une chaîne. */
@@ -102,11 +103,13 @@ export async function collecterContacts(
   dire: (m: string) => void,
 ): Promise<Map<string, FicheAnnuaire>> {
   const lignes = await json<LigneAnnuaire[]>(
-    `${ANNUAIRE}/exports/json?select=nom,siret,pivot,telephone,adresse_courriel,site_internet,url_service_public` +
+    `${ANNUAIRE}/exports/json?select=nom,siret,pivot,telephone,adresse_courriel,site_internet,url_service_public,statut_de_diffusion` +
       `&where=${encodeURIComponent('siret is not null and (pivot like "mairie" or pivot like "epci")')}`,
   );
   const meilleures = new Map<string, { rang: number; siret: string; l: LigneAnnuaire }>();
   for (const l of lignes) {
+    // Une fiche que l'annuaire ne diffuse pas n'est pas reprise, comme dans `mairies-emettre.ts`.
+    if (String(l.statut_de_diffusion ?? 'true') === 'false') continue;
     const siret = String(l.siret ?? '').replace(/\s/g, '');
     if (!/^\d{14}$/.test(siret)) continue;
     const siren = siret.slice(0, 9);
