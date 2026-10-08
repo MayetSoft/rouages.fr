@@ -22,10 +22,20 @@ CI dans le même job, la PR ouverte avec les fichiers réécrits et la liste des
 collectes en échec. Les machines de GitHub restent le choix par défaut, et le
 secours quand le serveur est éteint.
 
-Ce que le runner ne change pas : les sources que l'environnement de
-développement ne joint pas (data.gouv.fr en gros volume, Légifrance,
-Géorisques) sont joignables depuis GitHub comme depuis un serveur ordinaire.
-Le tunnel est une limite de l'environnement de développement, pas de GitHub.
+Ce que le runner change, ou non, selon la source :
+
+- data.gouv.fr en gros volume et Légifrance, que l'environnement de
+  développement ne joint pas, répondent depuis GitHub : là, le tunnel est une
+  limite de l'environnement de développement, pas de GitHub.
+- **Géorisques et sa copie au BRGM refusent aussi les machines de GitHub.**
+  Constaté le 8 octobre 2026 par le workflow « Sonder des sources » :
+  `georisques.gouv.fr` coupe la connexion ou ne l'établit pas, `files.georisques.fr`
+  répond 403, et le service WFS `mapsref.brgm.fr` renvoie une page « Request
+  Rejected » de pare-feu applicatif, comme depuis l'environnement de
+  développement. Les sites et sols pollués (CASIAS, ex-BASOL, SIS) et les
+  installations classées ne s'ingèrent donc que depuis une machine que ces
+  services acceptent — un serveur en France est le premier essai à faire,
+  sans garantie tant qu'il n'est pas fait.
 
 ## Le cache, et ce qui l'empêche de mentir
 

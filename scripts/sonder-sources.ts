@@ -17,6 +17,30 @@ interface Sonde {
 }
 
 const SONDES: Sonde[] = [
+  // Les sites et sols pollués de Géorisques (ex-BASIAS, ex-BASOL, SIS) :
+  // quelle forme ont les réponses, par commune, et existe-t-il un fichier
+  // national ? Le Mayet-de-Montagne, puis Vichy, qui doit en avoir.
+  { url: 'https://georisques.gouv.fr/api/v1/ssp/casias?code_insee=03165&page=1&page_size=3' },
+  { url: 'https://georisques.gouv.fr/api/v1/ssp/casias?code_insee=03310&page=1&page_size=3' },
+  { url: 'https://georisques.gouv.fr/api/v1/ssp/instructions?code_insee=03310&page=1&page_size=3' },
+  { url: 'https://georisques.gouv.fr/api/v1/ssp/conclusions_sis?code_insee=03310&page=1&page_size=3' },
+  { url: 'https://georisques.gouv.fr/api/v1/ssp?code_insee=03310&page=1&page_size=3' },
+  { url: 'https://georisques.gouv.fr/api/v1/installations_classees?code_insee=03310&page=1&page_size=3' },
+  {
+    url: 'https://www.georisques.gouv.fr/donnees/bases-de-donnees',
+    motifs: [/href="[^"]*(?:\.csv|\.zip|telechargement|download)[^"]*"/gi, /href="[^"]*(?:casias|basias|basol|sis|ssp|instruction)[^"]*"/gi],
+  },
+  {
+    url: 'https://www.georisques.gouv.fr/donnees/bases-de-donnees/secteurs-dinformations-sur-les-sols-sis',
+    motifs: [/href="[^"]*(?:\.csv|\.zip|telechargement|download)[^"]*"/gi],
+  },
+  { url: 'https://files.georisques.fr/', motifs: [/href="[^"]+"/g] },
+  // La copie que le BRGM sert pour data.gouv.fr : un WFS qui rend la CASIAS en CSV.
+  { url: 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0&request=getfeature&typename=etablissement_point&outputformat=csvtext&count=3' },
+  {
+    url: 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0&request=GetCapabilities',
+    motifs: [/<Name>[^<]*<\/Name>/g],
+  },
   // La Cour des comptes et les chambres régionales : leurs publications sont-
   // elles listées quelque part de lisible par un programme ?
   { url: 'https://www.ccomptes.fr/robots.txt', motifs: [/^Sitemap:.*$/gim] },
