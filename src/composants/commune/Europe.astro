@@ -1,102 +1,130 @@
 ---
 /**
  * Ce que l'Union européenne a cofinancé dans la commune, au titre de la
- * politique de cohésion, d'après Kohesio (`scripts/europe-emettre.ts`).
+ * politique de cohésion, d'après Kohesio (`scripts/europe-emettre.ts`) :
+ * la période 2021-2027, en cours, puis 2014-2020.
  *
- * La base ne localise qu'une partie des opérations, et ne nomme pas les
- * bénéficiaires français : le bloc le dit, plutôt que de laisser croire à un
+ * La base ne localise qu'une partie des opérations, et le site ne nomme pas
+ * les bénéficiaires : le bloc le dit, plutôt que de laisser croire à un
  * inventaire complet.
  */
-import type { Europe } from '../../modele/fiche-vie.ts';
+import type { Europe, EuropePeriode } from '../../modele/fiche-vie.ts';
+import { formaterDate } from '../../modele/graphe.ts';
 
 interface Props {
   e: Europe;
 }
 const { e } = Astro.props;
 const MONTRES = 15;
-const euros = (v: number) => `${Math.round(v).toLocaleString('fr-FR')} €`;
+const euros = (v: number) => `${Math.round(v).toLocaleString('fr-FR')} €`;
 const annee = (iso: string) => iso.slice(0, 4);
-const [debut, fin] = e.periode.split('-');
+const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`;
+const enCours = (p: EuropePeriode) => p.periode === '2021-2027';
+const titre = (p: EuropePeriode) => (enCours(p) ? 'De 2021 à 2027, période en cours' : 'De 2014 à 2020');
 ---
-{e.projets === 0 ? (
-  <p class="mesure">
-    {`Aucun projet de la politique de cohésion ${e.periode} n’est localisé dans la commune par la base de la Commission européenne. ` +
-      'Ce qui ne veut pas dire qu’aucun ne l’a servie : près d’une opération française sur deux n’y a pas de lieu.'}
-  </p>
-) : (
+{e.periodes.map((p) => (
   <>
-    <p class="mesure">
-      {`De ${debut} à ${fin}, ${e.projets} projet${e.projets > 1 ? 's' : ''} cofinancé${e.projets > 1 ? 's' : ''} par l’Union européenne au titre de la politique de cohésion ${e.projets > 1 ? 'sont localisés' : 'est localisé'} dans la commune : ` +
-        `${euros(e.ue)} de l’Union pour ${euros(e.total)} de dépenses éligibles` +
-        (e.total > 0 ? `, soit ${Math.round((e.ue / e.total) * 100)} %.` : '.')}
-      {e.fonds.length > 1 && ` Par fonds : ${e.fonds.map((f) => `${f.nom}, ${f.projets} projet${f.projets > 1 ? 's' : ''} et ${euros(f.ue)}`).join(' ; ')}.`}
-    </p>
-    <ul class="c-structures">
-      {e.liste.slice(0, MONTRES).map((p) => (
-        <li>
-          {p.kohesio ? <a href={p.kohesio} target="_blank" rel="noopener">{p.nom}</a> : <strong>{p.nom}</strong>}
-          <span class="v-nature">
-            {[
-              p.fonds,
-              `${euros(p.ue)} de l’Union sur ${euros(p.total)}${p.taux ? ` (${Math.round(p.taux)} %)` : ''}`,
-              p.debut && p.fin ? `${annee(p.debut)}–${annee(p.fin)}` : p.debut ? annee(p.debut) : '',
-              p.autorite,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
-          <span class="v-nature c-europe-lieu">
-            {p.correction ? (
-              <>
-                Localisation corrigée par Rouages, d’après{' '}
-                {p.correction.sources.map((s, i) => (
+    <h3 class="p-titre-echelon">{titre(p)}</h3>
+    {p.projets + p.partages === 0 ? (
+      <p class="mesure">
+        {`Aucun projet de la politique de cohésion ${p.periode} n’est localisé dans la commune par la base de la Commission européenne. ` +
+          (enCours(p)
+            ? 'La période n’y entre qu’au fil des listes publiées par les autorités de gestion.'
+            : 'Ce qui ne veut pas dire qu’aucun ne l’a servie : près d’une opération française sur deux n’y a pas de lieu.')}
+      </p>
+    ) : (
+      <>
+        <p class="mesure">
+          {p.projets > 0 &&
+            `${pluriel(p.projets, 'projet')} cofinancé${p.projets > 1 ? 's' : ''} par l’Union européenne ${p.projets > 1 ? 'sont localisés' : 'est localisé'} dans la commune seule : ` +
+              `${euros(p.ue)} de l’Union pour ${euros(p.total)} de dépenses éligibles` +
+              (p.total > 0 ? `, soit ${Math.round((p.ue / p.total) * 100)} %.` : '.')}
+          {p.projets > 0 && p.fonds.length > 1 && ` Par fonds : ${p.fonds.map((f) => `${f.nom}, ${pluriel(f.projets, 'projet')} et ${euros(f.ue)}`).join(' ; ')}.`}
+          {p.partages > 0 &&
+            ` ${p.projets > 0 ? 'Et ' : ''}${pluriel(p.partages, 'projet')} ${p.partages > 1 ? 'sont menés' : 'est mené'} aussi dans d’autres communes : ` +
+              'la base ne dit pas quelle part du montant revient à chacune, et ces projets restent hors des totaux.'}
+        </p>
+        <ul class="c-structures">
+          {p.liste.slice(0, MONTRES).map((x) => (
+            <li>
+              {x.kohesio ? <a href={x.kohesio} target="_blank" rel="noopener">{x.nom}</a> : <strong>{x.nom}</strong>}
+              <span class="v-nature">
+                {[
+                  x.fonds,
+                  `${euros(x.ue)} de l’Union sur ${euros(x.total)}${x.taux ? ` (${Math.round(x.taux)} %)` : ''}`,
+                  x.debut && x.fin && annee(x.debut) !== annee(x.fin) ? `${annee(x.debut)}–${annee(x.fin)}` : x.debut ? annee(x.debut) : '',
+                  x.autorite,
+                  x.communes > 1 ? `sur ${x.communes} communes, montant non réparti` : '',
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+              <span class="v-nature c-europe-lieu">
+                {x.correction ? (
                   <>
-                    {i > 0 && (i === p.correction!.sources.length - 1 ? ' et ' : ', ')}
-                    <a href={s.url} target="_blank" rel="noopener">{s.titre}</a>
-                  </>
-                ))}
-                {` : ${p.correction.constat} `}
-                <a href={p.point.cartes} target="_blank" rel="noopener">cartes.gouv.fr</a>
-                {' · '}
-                <a href={p.point.osm} target="_blank" rel="noopener">OpenStreetMap</a>
-                {p.correction.kohesio && (
-                  <>
+                    Localisation corrigée par Rouages, d’après{' '}
+                    {x.correction.sources.map((s, i) => (
+                      <>
+                        {i > 0 && (i === x.correction!.sources.length - 1 ? ' et ' : ', ')}
+                        <a href={s.url} target="_blank" rel="noopener">{s.titre}</a>
+                      </>
+                    ))}
+                    {` : ${x.correction.constat} `}
+                    <a href={x.point.cartes} target="_blank" rel="noopener">cartes.gouv.fr</a>
                     {' · '}
-                    <a href={p.correction.kohesio.osm} target="_blank" rel="noopener">le point de Kohesio</a>
+                    <a href={x.point.osm} target="_blank" rel="noopener">OpenStreetMap</a>
+                    {x.correction.kohesio && (
+                      <>
+                        {' · '}
+                        <a href={x.correction.kohesio.osm} target="_blank" rel="noopener">le point de Kohesio</a>
+                      </>
+                    )}
+                    {x.correction.signale && ` · erreur signalée à Kohesio le ${formaterDate(new Date(x.correction.signale))}`}
+                  </>
+                ) : (
+                  <>
+                    {x.communes > 1 ? 'Localisé par Kohesio, ici en ce point' : 'Localisé par Kohesio'}&nbsp;:{' '}
+                    <a href={x.point.cartes} target="_blank" rel="noopener">cartes.gouv.fr</a>
+                    {' · '}
+                    <a href={x.point.osm} target="_blank" rel="noopener">OpenStreetMap</a>
                   </>
                 )}
-              </>
-            ) : (
-              <>
-                Localisé par Kohesio&nbsp;:{' '}
-                <a href={p.point.cartes} target="_blank" rel="noopener">cartes.gouv.fr</a>
-                {' · '}
-                <a href={p.point.osm} target="_blank" rel="noopener">OpenStreetMap</a>
-              </>
-            )}
-          </span>
-        </li>
-      ))}
-    </ul>
-    {e.projets > Math.min(MONTRES, e.liste.length) && (
-      <p class="p-strate">{`Et ${e.projets - Math.min(MONTRES, e.liste.length)} autres, des plus gros aux plus petits, sur Kohesio.`}</p>
+              </span>
+            </li>
+          ))}
+        </ul>
+        {p.projets + p.partages > Math.min(MONTRES, p.liste.length) && (
+          <p class="p-strate">{`Et ${p.projets + p.partages - Math.min(MONTRES, p.liste.length)} autres, des plus gros aux plus petits, sur Kohesio.`}</p>
+        )}
+      </>
     )}
-    <p class="mesure">
-      Ce ne sont que les projets que la base localise, à l’endroit que déclare l’autorité de gestion&nbsp;: le lieu du
-      projet, ou l’adresse de qui le porte. Une formation suivie dans tout le département peut tomber sur la commune de
-      l’organisme, et une action sans lieu précis n’apparaît nulle part. La base ne nomme pas les porteurs français.
-      Chaque ligne mène au point retenu&nbsp;: quand celui de Kohesio est faux et que le bon est vérifié, Rouages le
-      corrige, dit d’après quoi, et signale l’erreur à Kohesio.
-    </p>
   </>
-)}
+))}
+<p class="mesure">
+  Ce ne sont que les projets que la base localise, à l’endroit que déclare l’autorité de gestion&nbsp;: le lieu du
+  projet, ou l’adresse de qui le porte. Une formation suivie dans tout le département peut tomber sur la commune de
+  l’organisme, et une action sans lieu précis n’apparaît nulle part. Pour 2021-2027, la base nomme les bénéficiaires,
+  mais sans leur numéro SIREN&nbsp;: le site ne sait pas y distinguer une entreprise d’un entrepreneur individuel, et
+  ne les reprend pas. Chaque ligne mène au point retenu&nbsp;: quand celui de Kohesio est faux et que le bon est
+  vérifié, Rouages le corrige, dit d’après quoi, et signale l’erreur à Kohesio.
+</p>
 <p class="p-strate">
   La politique de cohésion est le premier budget d’investissement de l’Union. En France, ses programmes sont gérés
   surtout par les conseils régionaux, autorités de gestion, et en partie par l’État. Le Fonds européen de développement
   régional (FEDER) finance l’investissement — rénovation énergétique, numérique, entreprises, espaces naturels —, le
-  Fonds social européen (FSE) l’emploi, la formation et l’inclusion, l’Initiative pour l’emploi des jeunes (IEJ)
-  l’accès des jeunes à l’emploi. La période 2021-2027 n’est pas encore dans ce jeu de données.
+  Fonds social européen (FSE, FSE+ depuis 2021) l’emploi, la formation et l’inclusion, l’Initiative pour l’emploi des
+  jeunes (IEJ) l’accès des jeunes à l’emploi jusqu’en 2020, et le Fonds pour une transition juste (FTJ), depuis 2021,
+  les territoires qui sortent du charbon et de l’industrie lourde. La période 2021-2027 n’entre dans Kohesio qu’au fil
+  des listes que publient les autorités de gestion.
 </p>
 <p class="p-source-territoire">
-  {`D’après Kohesio, la base des projets de la politique de cohésion tenue par la Commission européenne à partir des listes d’opérations des autorités de gestion, période ${e.periode} (lue le ${e.maj}), versée au domaine public (CC0).`}
+  {`D’après Kohesio, la base des projets de la politique de cohésion tenue par la Commission européenne à partir des listes d’opérations des autorités de gestion : ` +
+    e.periodes
+      .map((p) =>
+        enCours(p)
+          ? `période ${p.periode} lue le ${p.maj} dans l’API de Kohesio, réutilisable sous licence CC BY 4.0 d’après la mention légale de la Commission`
+          : `période ${p.periode} lue le ${p.maj} sur cohesiondata.ec.europa.eu, versée au domaine public (CC0)`,
+      )
+      .join(' ; ') +
+    '.'}
 </p>

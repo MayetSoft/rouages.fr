@@ -12,8 +12,10 @@ import type { Mairies } from '../../modele/fiche-vie.ts';
 interface Props {
   m: Mairies;
   population: number;
+  /** La commune verse-t-elle ses délibérations en données ouvertes ? Le bloc y renvoie. */
+  delibs?: boolean;
 }
-const { m, population } = Astro.props;
+const { m, population, delibs = false } = Astro.props;
 const [mairie, ...autres] = m.liste;
 const deleguees = autres.length > 0 && autres.every((x) => /^Mairie déléguée/i.test(x.nom));
 const nomCourt = (nom: string) => nom.replace(/^Mairie( déléguée)?\s*-\s*/i, '');
@@ -57,8 +59,15 @@ const tel = (t: string) => `tel:${t.replace(/[^\d+]/g, '')}`;
       {'C’est sur son site que la commune met en ligne, dans la semaine, la liste des délibérations examinées par le conseil municipal (code général des collectivités territoriales, art. L2121-25)' +
         (population < 3500
           ? ', et ses actes, si elle n’a pas choisi de les afficher ou de les publier sur papier, comme la loi le permet sous 3 500 habitants (art. L2131-1).'
-          : ', et ses actes (art. L2131-1).') +
-        ' Rouages ne collecte pas encore les délibérations de toutes les communes.'}
+          : ', et ses actes (art. L2131-1).')}
+      {delibs ? (
+        <>
+          {' Elle les verse aussi en données ouvertes : '}
+          <a href="#deliberations">les dernières sont plus bas</a>, dans l’onglet de l’argent.
+        </>
+      ) : (
+        ' Elle ne les verse pas en données ouvertes, ou pas dans un fichier que Rouages sait lire : le site ne peut donc pas encore les montrer.'
+      )}
     </p>
   )}
   {autres.length > 0 && (

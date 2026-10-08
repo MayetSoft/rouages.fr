@@ -77,7 +77,22 @@ export const FAMILLES_ACTES = [
  */
 const DECLARES = [
   { jeu: 'deliberations-des-organismes-adherents-de-megalis-bretagne', motif: 'deliberation-' },
+  // Les communes et intercommunalités partenaires de Haute-Garonne Open Data,
+  // en un fichier : au schéma, en-têtes en minuscules.
+  { jeu: 'donnees-deliberations-partenaires-agregees-1', motif: 'deliberations-partenaires-agregees.csv' },
 ];
+
+/**
+ * Le schéma écrit ses colonnes en majuscules, certains portails les rendent
+ * en minuscules ; et une date se trouve parfois écrite jj/mm/aaaa.
+ */
+function normaliser(l: Record<string, string>): Record<string, string> {
+  const n: Record<string, string> = {};
+  for (const [k, v] of Object.entries(l)) n[k.toUpperCase()] = v;
+  const fr = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(n['DELIB_DATE'] ?? '');
+  if (fr) n['DELIB_DATE'] = `${fr[3]}-${fr[2]}-${fr[1]}`;
+  return n;
+}
 
 /** Combien de délibérations le fichier du département porte, par collectivité. */
 const PAR_COLLECTIVITE = 5;
@@ -152,7 +167,8 @@ export async function collecterDeliberations(
       echecs++;
       continue;
     }
-    for (const l of lignes) {
+    for (const brute of lignes) {
+      const l = normaliser(brute);
       const siren = (l['COLL_SIRET'] ?? '').replace(/\s/g, '').slice(0, 9);
       if (siren.length !== 9 || !estSuivi(siren)) continue;
       const objet = (l['DELIB_OBJET'] ?? '').trim();

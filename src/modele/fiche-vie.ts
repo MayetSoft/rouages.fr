@@ -130,14 +130,16 @@ const objetsDep = parDepartement<ObjetsDep>('objets');
 type EuropeDep = {
   maj: string;
   periode: string;
-  c: Record<string, { n: number; ue: number; total: number; f: [string, number, number][]; p: ProjetEurope[] }>;
+  c: Record<string, { n: number; ue: number; total: number; f: [string, number, number][]; m?: number; p: ProjetEurope[] }>;
 };
 /** Voir `Projet` dans `scripts/europe-emettre.ts`. */
 type ProjetEurope = [
   string, string, number, number, number, string, string, string, string, number, number,
-  { s: [string, string][]; c: string; k: [number, number] | null } | 0,
+  { s: [string, string][]; c: string; k: [number, number] | null; d?: string } | 0,
+  number?,
 ];
 const europeDep = parDepartement<EuropeDep>('europe');
+const europe21Dep = parDepartement<EuropeDep>('europe21');
 type MairiesDep = { maj: string; c: Record<string, [string, string, string, string, string, number | null, number | null, string, string, string][]> };
 const mairiesDep = parDepartement<MairiesDep>('mairies');
 type SolsPolluesDep = {
@@ -489,10 +491,19 @@ export interface SolsPollues {
   maj: string;
 }
 
-/** Les projets de la politique de cohésion localisés dans la commune, d'après Kohesio ; aucun est une réponse, sur ce que la base localise. */
+/** Les projets de la politique de cohésion localisés dans la commune, d'après Kohesio, période par période. */
 export interface Europe {
+  /** 2021-2027 d'abord, puis 2014-2020. */
+  periodes: EuropePeriode[];
+}
+
+/** Une période de programmation ; aucun projet est une réponse, sur ce que la base localise. */
+export interface EuropePeriode {
   periode: string;
+  /** Les projets propres à la commune, ceux dont les montants entrent dans les totaux. */
   projets: number;
+  /** Les projets partagés avec d'autres communes : listés, hors des totaux. */
+  partages: number;
   ue: number;
   total: number;
   fonds: { nom: string; projets: number; ue: number }[];
@@ -506,10 +517,12 @@ export interface Europe {
     fin: string;
     kohesio: string | null;
     autorite: string;
+    /** Le nombre de communes où le projet est localisé, quand il y en a plusieurs. */
+    communes: number;
     /** Le point retenu, celui de Kohesio ou celui de la correction. */
     point: Point;
     /** Rouages a corrigé la localisation : d'après quoi, pourquoi, et où Kohesio le plaçait. */
-    correction: { sources: { titre: string; url: string }[]; constat: string; kohesio: Point | null } | null;
+    correction: { sources: { titre: string; url: string }[]; constat: string; kohesio: Point | null; signale: string | null } | null;
   }[];
   maj: string;
 }
@@ -1021,16 +1034,22 @@ function monuments(c: CommuneFiche): Monuments | null {
 }
 
 function europe(c: CommuneFiche): Europe | null {
-  const d = europeDep.get(c.dep);
-  if (!d) return null;
-  const x = d.c[c.code];
+  const periodes = [europe21Dep.get(c.dep), europeDep.get(c.dep)]
+    .filter((d): d is EuropeDep => Boolean(d))
+    .map((d) => periodeEurope(d, c.code));
+  return periodes.length ? { periodes } : null;
+}
+
+function periodeEurope(d: EuropeDep, code: string): EuropePeriode {
+  const x = d.c[code];
   return {
     periode: d.periode,
     projets: x?.n ?? 0,
+    partages: x?.m ?? 0,
     ue: x?.ue ?? 0,
     total: x?.total ?? 0,
     fonds: (x?.f ?? []).map(([nom, projets, ue]) => ({ nom, projets, ue })),
-    liste: (x?.p ?? []).map(([nom, fonds, ue, total, taux, debut, fin, id, autorite, lat, lon, corr]) => ({
+    liste: (x?.p ?? []).map(([nom, fonds, ue, total, taux, debut, fin, id, autorite, lat, lon, corr, communes]) => ({
       nom,
       fonds,
       ue,
@@ -1040,12 +1059,14 @@ function europe(c: CommuneFiche): Europe | null {
       fin,
       kohesio: id ? `https://kohesio.ec.europa.eu/fr/projets/${id}` : null,
       autorite,
+      communes: communes ?? 1,
       point: point(lat, lon),
       correction: corr
         ? {
             sources: corr.s.map(([titre, url]) => ({ titre, url })),
             constat: corr.c,
             kohesio: corr.k ? point(corr.k[0], corr.k[1]) : null,
+            signale: corr.d ?? null,
           }
         : null,
     })),
