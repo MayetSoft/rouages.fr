@@ -300,7 +300,7 @@ const sommaire: [string, string, unknown][] = [
   ['marches', 'Les marchés', plus.marches.length > 0],
   ['deliberations', 'Les délibérations', plus.deliberations.length > 0],
   ['subventions', 'Les subventions', plus.subventions.length > 0],
-  ['associations', 'Les associations', (plus.associations && plus.associations.total > 0) || droitLocal],
+  ['associations', 'Les associations', (plus.associations && (plus.associations.total > 0 || plus.associations.existantes > 0)) || droitLocal],
   ['entreprises', 'Les entreprises', plus.presentes || plus.entreprises],
   ['representants', 'Les représentants d’intérêts', plus.representants],
   ['travail', 'Le travail', vie.travail],
@@ -907,9 +907,9 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
-    {plus.associations && plus.associations.total > 0 && (
+    {plus.associations && (plus.associations.total > 0 || plus.associations.existantes > 0) && (
       <section id="associations" class="p-assos">
-        <h2 class="badge">Ce qui se crée en associations</h2>
+        <h2 class="badge">Les associations</h2>
         <Associations a={plus.associations} />
       </section>
     )}
