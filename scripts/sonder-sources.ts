@@ -35,6 +35,12 @@ const SONDES: Sonde[] = [
     motifs: [/href="[^"]*(?:\.csv|\.zip|telechargement|download)[^"]*"/gi],
   },
   { url: 'https://files.georisques.fr/', motifs: [/href="[^"]+"/g] },
+  // La copie que le BRGM sert pour data.gouv.fr : un WFS qui rend la CASIAS en CSV.
+  { url: 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0&request=getfeature&typename=etablissement_point&outputformat=csvtext&count=3' },
+  {
+    url: 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0&request=GetCapabilities',
+    motifs: [/<Name>[^<]*<\/Name>/g],
+  },
   // La Cour des comptes et les chambres régionales : leurs publications sont-
   // elles listées quelque part de lisible par un programme ?
   { url: 'https://www.ccomptes.fr/robots.txt', motifs: [/^Sitemap:.*$/gim] },
