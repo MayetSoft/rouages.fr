@@ -17,6 +17,7 @@ import type { AcheteurMarches } from '../../modele/fiche-commune.ts';
 import Glose from '../Glose.astro';
 import { moisAnnee, montantCourt } from '../../vues/graphiques.ts';
 import { procedureAffichee } from '../../vues/sigles-marches.ts';
+import { detailMarcheHtml } from '../../vues/detail-marche.ts';
 
 interface Props {
   liste: AcheteurMarches[];
@@ -48,6 +49,7 @@ const echeances = liste
   .flatMap((a) => a.echeances)
   .sort((a, b) => a.fin.localeCompare(b.fin) || (b.montant ?? 0) - (a.montant ?? 0));
 const totalEcheances = liste.reduce((t, a) => t + a.totalEcheances, 0);
+const sirenDe = new Map(liste.map((a) => [a.nom, a.siren]));
 const plusieursAcheteurs = liste.length > 1;
 const detailEcheance = (m: (typeof echeances)[number]) =>
   [
@@ -99,6 +101,9 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
                 {autres(m) && ` ${autres(m)}`}
               </span>
             )}
+            {m.detail && sirenDe.has(m.acheteur) && (
+              <Fragment set:html={detailMarcheHtml(m.detail, { nom: m.acheteur, siren: sirenDe.get(m.acheteur)! })} />
+            )}
           </span>
         </li>
       ))}
@@ -144,6 +149,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
                   {autres(m) && `${m.titulaires.length > 0 ? ' ' : ''}${autres(m)}`}
                 </span>
               )}
+              {m.detail && <Fragment set:html={detailMarcheHtml(m.detail, { nom: a.nom, siren: a.siren })} />}
             </span>
           </li>
         ))}
@@ -154,6 +160,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
           class="p-marche-suite"
           hidden
           data-siren={a.siren}
+          data-nom={a.nom}
           data-total={a.total}
           data-affiches={a.liste.length}
         >{`Voir les ${(a.total - a.liste.length).toLocaleString('fr-FR')} autres`}</button>
@@ -176,6 +183,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
 <script is:inline type="application/json" id="marches-procedures" set:html={JSON.stringify(procedures).replace(/</g, "\\u003c")} />
 <script>
   import { procedureAffichee } from '../../vues/sigles-marches.ts';
+  import { detailDepuisBrut, detailMarcheHtml, type DetailBrut } from '../../vues/detail-marche.ts';
   /**
    * « Voir les 403 autres ». Le premier clic va chercher le fichier de
    * l'acheteur, une fois ; les suivants n'ajoutent que vingt-cinq lignes, parce
@@ -203,6 +211,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     offres?: number;
     t?: [string, string][];
     tx?: number;
+    x?: DetailBrut;
   };
   const span = (classe: string, texte: string) => {
     const s = document.createElement('span');
@@ -210,7 +219,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     s.textContent = texte;
     return s;
   };
-  const ligne = (m: Brut) => {
+  const ligne = (m: Brut, acheteur: { nom: string; siren: string }) => {
     const li = document.createElement('li');
     const droite = document.createElement('span');
     const sous: (string | { sigle: string; titre: string })[] = [moisAnnee(m.date) ?? m.date];
@@ -248,6 +257,8 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
       if (m.tx) t.append(`${(m.t ?? []).length > 0 ? ' et ' : ''}${m.tx} titulaire${m.tx > 1 ? 's' : ''} non nommé${m.tx > 1 ? 's' : ''}`);
       droite.append(t);
     }
+    const volet = detailDepuisBrut(m.x);
+    if (volet) droite.insertAdjacentHTML('beforeend', detailMarcheHtml(volet, acheteur));
     li.append(span('p-marche-montant', montantCourt(m.montant)), droite);
     return li;
   };
@@ -290,7 +301,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         reste = f.m;
       }
       const lot = reste.slice(affiches - deja, affiches - deja + PAS);
-      for (const m of lot) ul.append(ligne(m));
+      for (const m of lot) ul.append(ligne(m, { nom: bouton.dataset.nom ?? '', siren }));
       affiches += lot.length;
       if (affiches >= deja + reste.length) bouton.remove();
       else direRestant();

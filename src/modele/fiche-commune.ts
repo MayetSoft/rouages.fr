@@ -16,6 +16,7 @@
  * reste.
  */
 import { existsSync, readFileSync } from 'node:fs';
+import { detailDepuisBrut, type DetailAffiche, type DetailBrut } from '../vues/detail-marche.ts';
 import { join } from 'node:path';
 import { anneePlausible } from './annees.ts';
 
@@ -190,6 +191,8 @@ export interface Marche {
   titulaires: { siren: string; nom: string }[];
   /** Les titulaires que le site ne nomme pas. */
   autresTitulaires: number;
+  /** Ce que les données essentielles déclarent en plus, quand la collecte l'a écrit. */
+  detail: DetailAffiche | null;
 }
 
 /** Un marché dont l'échéance prévisible tombe dans la fenêtre du fichier. */
@@ -672,6 +675,7 @@ type MarcheBrut = {
   offres?: number;
   t?: [string, string][];
   tx?: number;
+  x?: DetailBrut;
 };
 type MarchesDep = {
   depuis: string;
@@ -1040,6 +1044,7 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
       offres: m.offres ?? null,
       titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom })),
       autresTitulaires: m.tx ?? 0,
+      detail: detailDepuisBrut(m.x),
     });
     out.push({
       siren,

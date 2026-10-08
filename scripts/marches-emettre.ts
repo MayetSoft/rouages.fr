@@ -128,7 +128,30 @@ interface LigneDecp {
   titulaire_typeidentifiant_2?: string | null;
   titulaire_id_3?: string | null;
   titulaire_typeidentifiant_3?: string | null;
+  /** L'identifiant que l'acheteur donne au marché : « 2025-01-TMA-L3 », souvent avec le numéro du lot. */
+  id?: string | null;
+  lieuexecution_code?: string | null;
+  lieuexecution_typecode?: string | null;
+  formeprix?: string | null;
+  modalitesexecution?: string | null;
+  soustraitancedeclaree?: string | null;
+  considerationssociales?: string | null;
+  considerationsenvironnementales?: string | null;
+  marcheinnovant?: string | null;
 }
+
+/**
+ * Le détail d'un marché, tel que les données essentielles le déclarent :
+ * [identifiant, durée initiale en mois (0 inconnue), lieu d'exécution, forme
+ * du prix, modalités d'exécution, sous-traitance déclarée (1, 0 ou -1 si non
+ * dit), considérations sociales, considérations environnementales, marché
+ * innovant (1, 0 ou -1), les autres lots de la même consultation].
+ *
+ * **Les autres lots sont un rapprochement**, pas une donnée : deux lignes du
+ * même acheteur, notifiées le même jour, dont l'identifiant ne diffère que
+ * par le numéro de lot (« …-L1 », « …-L3 »). La page le dit.
+ */
+export type DetailMarche = [string, number, string, string, string, number, string, string, number, [string, number | null][]];
 
 export interface Marche {
   /** Objet du marché, tronqué : la phrase entière tient rarement en un panneau. */
@@ -151,6 +174,8 @@ export interface Marche {
   t?: [string, string][];
   /** Les titulaires que le site ne nomme pas : non diffusibles, inconnus du répertoire, ou hors de France. */
   tx?: number;
+  /** Le détail déclaré : voir `DetailMarche`. */
+  x?: DetailMarche;
 }
 
 /** Un marché dont l'échéance prévisible tombe dans la fenêtre. */
@@ -300,6 +325,44 @@ function nettoyer(objet: string): string {
     .trim();
 }
 
+/** Une valeur déclarée, ou rien : « CDL » et « MQ NC » sont les absences du jeu. */
+const declare = (v: string | null | undefined) => {
+  const t = String(v ?? '').trim();
+  return t === 'CDL' || t === 'MQ NC' || t === 'Sans objet' ? '' : t;
+};
+const ouiNon = (v: string | null | undefined) => {
+  const t = declare(v).toLowerCase();
+  return t === 'oui' || t === 'true' ? 1 : t === 'non' || t === 'false' ? 0 : -1;
+};
+/** Une considération sociale ou environnementale : rien quand l'acheteur dit n'en avoir pas. */
+const consideration = (v: string | null | undefined) => {
+  const t = declare(v);
+  return /^pas de/i.test(t) ? '' : t;
+};
+
+function detailDe(l: LigneDecp, duree: number | undefined): DetailMarche {
+  const code = declare(l.lieuexecution_code);
+  const type = declare(l.lieuexecution_typecode).toLowerCase();
+  return [
+    declare(l.id).slice(0, 60),
+    duree ?? 0,
+    code ? `${type ? `${type} ` : ''}${code}` : '',
+    declare(l.formeprix),
+    declare(l.modalitesexecution),
+    ouiNon(l.soustraitancedeclaree),
+    consideration(l.considerationssociales),
+    consideration(l.considerationsenvironnementales),
+    ouiNon(l.marcheinnovant),
+    [],
+  ];
+}
+
+/** L'identifiant sans son numéro de lot, ou null s'il n'en porte pas : « 2025-01-TMA-L3 » → « 2025-01-TMA ». */
+export function consultationDe(id: string): string | null {
+  const m = /^(.*?\S)[\s._-]*(?:lot|l)[\s._-]*0*\d{1,3}$/i.exec(id.trim());
+  return m && m[1].length >= 3 ? m[1] : null;
+}
+
 export async function collecterMarches(
   json: <T>(url: string) => Promise<T>,
   sirensSuivis: Set<string>,
@@ -309,7 +372,9 @@ export async function collecterMarches(
 ): Promise<Marches | null> {
   const url =
     `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques,` +
-    'titulaire_id_1,titulaire_typeidentifiant_1,titulaire_id_2,titulaire_typeidentifiant_2,titulaire_id_3,titulaire_typeidentifiant_3' +
+    'titulaire_id_1,titulaire_typeidentifiant_1,titulaire_id_2,titulaire_typeidentifiant_2,titulaire_id_3,titulaire_typeidentifiant_3,' +
+    'id,lieuexecution_code,lieuexecution_typecode,formeprix,modalitesexecution,soustraitancedeclaree,' +
+    'considerationssociales,considerationsenvironnementales,marcheinnovant' +
     `&where=${encodeURIComponent(`datenotification>=date'${DEPUIS}'`)}`;
   const lignes = await json<LigneDecp[]>(url);
   if (lignes.length === 0) {
@@ -373,6 +438,7 @@ export async function collecterMarches(
         procedure: proc,
         lots: 1,
         ...(offres ? { offres } : {}),
+        x: detailDe(l, duree),
         ...(duree && serenouvelle(l.codecpv, l.techniques, duree) ? { fin: ajouterMois(date, duree) } : {}),
         ...cpv(l.codecpv),
       });
@@ -380,6 +446,31 @@ export async function collecterMarches(
     }
     totaux.set(siren, (totaux.get(siren) ?? 0) + 1);
   }
+
+  // Les autres lots de la même consultation : même acheteur, même jour, même
+  // identifiant au numéro de lot près.
+  let rapproches = 0;
+  for (const m of brut.values()) {
+    const groupes = new Map<string, (Attribution & { fin?: string })[]>();
+    for (const x of m.values()) {
+      const base = x.x ? consultationDe(x.x[0]) : null;
+      if (!base) continue;
+      const k = `${x.date}|${base}`;
+      if (!groupes.has(k)) groupes.set(k, []);
+      groupes.get(k)!.push(x);
+    }
+    for (const g of groupes.values()) {
+      if (g.length < 2) continue;
+      for (const x of g) {
+        x.x![9] = g
+          .filter((y) => y !== x)
+          .slice(0, 8)
+          .map((y) => [y.objet.length > 80 ? `${y.objet.slice(0, 79)}…` : y.objet, y.montant] as [string, number | null]);
+        rapproches++;
+      }
+    }
+  }
+  if (rapproches > 0) dire(`  ${rapproches.toLocaleString('fr-FR')} marchés rapprochés des autres lots de leur consultation.`);
 
   // Le nom de chaque titulaire, une fois pour tous les marchés.
   if (texte) {
