@@ -16,9 +16,10 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Ce que le navigateur lit à la racine de `/territoires`, et `echeances.json`,
- * `attributions.json` et `avis.json`, que personne ne lit sur le site : ils
- * sont publiés pour être téléchargés.
+ * Ce que le navigateur lit à la racine de `/territoires` — dont les listes
+ * complètes des marchés et des associations, chargées à la demande —, et
+ * `echeances.json`, `attributions.json` et `avis.json`, que personne ne lit
+ * sur le site : ils sont publiés pour être téléchargés.
  */
 const RACINE_GARDEE = new Set([
   'index.json',
@@ -26,6 +27,7 @@ const RACINE_GARDEE = new Set([
   'meta.json',
   'dep',
   'marches',
+  'associations',
   'echeances.json',
   'attributions.json',
   'avis.json',

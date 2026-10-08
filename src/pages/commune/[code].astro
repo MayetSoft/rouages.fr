@@ -52,6 +52,7 @@ import Entreprises from '../../composants/commune/Entreprises.astro';
 import EntreprisesPresentes from '../../composants/commune/EntreprisesPresentes.astro';
 import Essentiel from '../../composants/commune/Essentiel.astro';
 import Mairies from '../../composants/commune/Mairies.astro';
+import Europe from '../../composants/commune/Europe.astro';
 import DeclarationElu from '../../composants/DeclarationElu.astro';
 import Demarches from '../../composants/commune/Demarches.astro';
 import Fiscalite from '../../composants/commune/Fiscalite.astro';
@@ -300,7 +301,8 @@ const sommaire: [string, string, unknown][] = [
   ['marches', 'Les marchés', plus.marches.length > 0],
   ['deliberations', 'Les délibérations', plus.deliberations.length > 0],
   ['subventions', 'Les subventions', plus.subventions.length > 0],
-  ['associations', 'Les associations', (plus.associations && plus.associations.total > 0) || droitLocal],
+  ['europe', 'L’Europe', vie.europe],
+  ['associations', 'Les associations', (plus.associations && (plus.associations.total > 0 || plus.associations.existantes > 0)) || droitLocal],
   ['entreprises', 'Les entreprises', plus.presentes || plus.entreprises],
   ['representants', 'Les représentants d’intérêts', plus.representants],
   ['travail', 'Le travail', vie.travail],
@@ -343,7 +345,7 @@ const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   {
     id: 'argent',
     nom: 'L’argent',
-    blocs: ['comptes', 'dotations', 'investissement', 'ccas', 'caf', 'preleve', 'intercommunalite', 'marches', 'deliberations', 'subventions'],
+    blocs: ['comptes', 'dotations', 'investissement', 'ccas', 'caf', 'preleve', 'intercommunalite', 'marches', 'deliberations', 'subventions', 'europe'],
   },
   {
     id: 'habitants',
@@ -660,7 +662,11 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {vie.caf && (
       <section id="caf" class="p-finances">
         <h2 class="badge">Les allocataires de la CAF</h2>
-        <Caf c={vie.caf} />
+        <Caf
+          c={vie.caf}
+          population={plus.histoire ? { valeur: plus.histoire.actuelle, annee: plus.histoire.anneeActuelle } : null}
+          menages={vie.parc?.commune[0] ? { valeur: vie.parc.commune[0][1], annee: vie.parc.millesimes[0] } : null}
+        />
       </section>
     )}
 
@@ -903,10 +909,17 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
-    {plus.associations && plus.associations.total > 0 && (
+    {vie.europe && (
+      <section id="europe">
+        <h2 class="badge">Ce que l’Europe a cofinancé</h2>
+        <Europe e={vie.europe} />
+      </section>
+    )}
+
+    {plus.associations && (plus.associations.total > 0 || plus.associations.existantes > 0) && (
       <section id="associations" class="p-assos">
-        <h2 class="badge">Ce qui se crée en associations</h2>
-        <Associations a={plus.associations} />
+        <h2 class="badge">Les associations</h2>
+        <Associations a={plus.associations} code={commune.code} />
       </section>
     )}
     {droitLocal && (

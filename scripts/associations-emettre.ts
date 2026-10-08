@@ -46,7 +46,7 @@
  * commune, rien d'autre : ni la voie, ni le numéro, ni la civilité du
  * dirigeant, que le répertoire publie pourtant.
  */
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { nommeUnePersonne } from '../src/modele/civilites.ts';
 import { debutFenetre, GENRES, type Evenement } from '../src/modele/journal.ts';
@@ -139,6 +139,25 @@ const DOMAINES_RETENUS = 6;
  */
 export type Creation = [mois: string, titre: string, domaine: number];
 
+/**
+ * Une association existante : l'intitulé, le début de l'objet déclaré, le
+ * domaine, l'année de création, le site qu'elle déclare.
+ *
+ * « Existante » au sens du fichier : non dissoute (position A, sans date de
+ * dissolution), et ayant déclaré une création ou une modification depuis
+ * 2009. Une association en sommeil qui n'a jamais déclaré sa dissolution y
+ * reste ; une association qui n'a rien déclaré depuis 2009 n'y est pas, mais
+ * dans le fichier historique, sans code de commune.
+ */
+export type Existante = [titre: string, objet: string, domaine: number, annee: number, site: string];
+/**
+ * Les existantes écrites dans le fichier du département, de la plus
+ * récemment déclarée à la plus ancienne ; la suite a son propre fichier,
+ * `associations/<code>.json`, que le bouton « Voir les autres » va chercher.
+ */
+const EXISTANTES_LISTEES = 20;
+const MAX_OBJET = 70;
+
 export interface AssociationsCommune {
   /** Créations sur la fenêtre. */
   n: number;
@@ -148,6 +167,10 @@ export interface AssociationsCommune {
   d: [number, number][];
   /** Les plus récentes, chacune avec son mois. */
   r: Creation[];
+  /** Les associations existantes : leur nombre complet. */
+  e?: number;
+  /** Les plus récemment déclarées, plafonnées à `EXISTANTES_LISTEES`. */
+  x?: Existante[];
 }
 
 export interface Associations {
@@ -169,6 +192,8 @@ export interface Associations {
   effectif: number;
   /** Créations qu'aucune commune du découpage ne réclame. */
   horsDecoupage: number;
+  /** Les existantes au-delà des vingt du fichier du département, par commune. */
+  suites: Map<string, Existante[]>;
   total: number;
 }
 
@@ -223,7 +248,43 @@ export async function collecterAssociations(
   const evenements: Evenement[] = [];
   const GENRE = GENRES.indexOf('Association créée');
 
+  // Les existantes, avec la date de leur dernière déclaration le temps du tri.
+  const existantes = new Map<string, { n: number; l: [string, Existante][] }>();
+  const garder = (code: string, decla: string, x: Existante) => {
+    let e = existantes.get(code);
+    if (!e) {
+      e = { n: 0, l: [] };
+      existantes.set(code, e);
+    }
+    e.n++;
+    e.l.push([decla, x]);
+  };
+  const siteDe = (brut: string) => {
+    try {
+      const u = new URL(/^https?:\/\//i.test(brut) ? brut : `https://${brut}`);
+      return brut && u.hostname.includes('.') ? u.href : '';
+    } catch {
+      return '';
+    }
+  };
+
   for await (const l of lignes(fichier)) {
+    const disso = (l['date_disso'] ?? '').trim();
+    if (l['position'] === 'A' && (!disso || disso.startsWith('0001'))) {
+      const brutX = (l['adrs_codeinsee'] ?? '').trim();
+      const codeX = reports.get(brutX) ?? brutX;
+      const titreX = (l['titre'] ?? '').trim();
+      if (populations.has(codeX) && titreX && !nommeUnePersonne(titreX)) {
+        const objet = (l['objet'] ?? '').replace(/\s+/g, ' ').trim();
+        garder(codeX, (l['date_decla'] ?? '').slice(0, 10), [
+          titreX.length > MAX_TITRE ? `${titreX.slice(0, MAX_TITRE - 1)}…` : titreX,
+          objet.length > MAX_OBJET ? `${objet.slice(0, MAX_OBJET - 1)}…` : objet,
+          RANG_DOMAINE.get((l['objet_social1'] ?? '').slice(0, 3)) ?? -1,
+          Number.parseInt((l['date_creat'] ?? '').slice(0, 4), 10) || 0,
+          siteDe((l['siteweb'] ?? '').trim()),
+        ]);
+      }
+    }
     const jour = (l['date_creat'] ?? '').slice(0, 10);
     const annee = Number.parseInt(jour.slice(0, 4), 10);
     const pourCompte = Number.isFinite(annee) && annee >= premiere && annee <= derniere;
@@ -283,6 +344,21 @@ export async function collecterAssociations(
     return null;
   }
 
+  let nExistantes = 0;
+  const suites = new Map<string, Existante[]>();
+  for (const [code, e] of existantes) {
+    let c = communes.get(code);
+    if (!c) {
+      c = { n: 0, a: new Array<number>(ANNEES).fill(0), d: [], r: [] };
+      communes.set(code, c);
+    }
+    e.l.sort((a, b) => b[0].localeCompare(a[0]));
+    c.e = e.n;
+    c.x = e.l.slice(0, EXISTANTES_LISTEES).map(([, x]) => x);
+    if (e.l.length > EXISTANTES_LISTEES) suites.set(code, e.l.slice(EXISTANTES_LISTEES).map(([, x]) => x));
+    nExistantes += e.n;
+  }
+
   for (const c of communes.values()) {
     c.d.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
     c.d = c.d.slice(0, DOMAINES_RETENUS);
@@ -309,7 +385,8 @@ export async function collecterAssociations(
         : '') +
       (ecartees > 0 ? `, ${ecartees.toLocaleString('fr-FR')} écartées (intitulé nommant une personne)` : '') +
       `. Médiane ${mediane.toFixed(1)} pour mille habitants sur ${ANNEES} ans, ` +
-      `${evenements.length.toLocaleString('fr-FR')} créations pour le journal.`,
+      `${evenements.length.toLocaleString('fr-FR')} créations pour le journal, ` +
+      `${nExistantes.toLocaleString('fr-FR')} associations existantes dans ${existantes.size.toLocaleString('fr-FR')} communes.`,
   );
 
   return {
@@ -320,6 +397,7 @@ export async function collecterAssociations(
     mediane,
     effectif: taux.length,
     horsDecoupage,
+    suites,
     total,
   };
 }
@@ -341,7 +419,7 @@ export function ecrireAssociations(
   let n = 0;
   for (const code of [...codes].sort()) {
     const fiche = a.communes.get(code);
-    if (!fiche || fiche.n === 0) continue;
+    if (!fiche || (fiche.n === 0 && !fiche.e)) continue;
     c[code] = fiche;
     n++;
   }
@@ -358,4 +436,19 @@ export function ecrireAssociations(
     }),
   );
   return n;
+}
+
+/**
+ * La liste complète des associations existantes, à la demande : un fichier par
+ * commune qui en compte plus que le fichier du département n'en porte. Le
+ * dossier est refait à chaque fois, pour qu'une commune qui en a perdu ne
+ * garde pas l'ancienne liste.
+ */
+export function ecrireSuitesAssociations(sortie: string, a: Associations): number {
+  if (a.suites.size === 0) return 0;
+  const dossier = join(sortie, 'associations');
+  rmSync(dossier, { recursive: true, force: true });
+  mkdirSync(dossier, { recursive: true });
+  for (const [code, x] of a.suites) writeFileSync(join(dossier, `${code}.json`), JSON.stringify({ x }));
+  return a.suites.size;
 }

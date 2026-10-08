@@ -19,6 +19,9 @@ const deleguees = autres.length > 0 && autres.every((x) => /^Mairie déléguée/
 const nomCourt = (nom: string) => nom.replace(/^Mairie( déléguée)?\s*-\s*/i, '');
 const domaine = (url: string) => new URL(url).hostname.replace(/^www\./, '');
 const carte = (p: { lat: number; lon: number }) => `https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lon}#map=18/${p.lat}/${p.lon}`;
+// Le permalien de cartes.gouv.fr, l'IGN : `c` le centre et `p` le repère, longitude d'abord ; `z` le zoom.
+const geoportail = (p: { lat: number; lon: number }) =>
+  `https://cartes.gouv.fr/explorer-les-cartes/?c=${p.lon},${p.lat}&z=18&p=${p.lon},${p.lat}&permalink=yes`;
 const tel = (t: string) => `tel:${t.replace(/[^\d+]/g, '')}`;
 ---
 <div class="c-mairie">
@@ -26,7 +29,14 @@ const tel = (t: string) => `tel:${t.replace(/[^\d+]/g, '')}`;
   {mairie.adresse && (
     <p class="c-mairie-ligne">
       {mairie.adresse}
-      {mairie.position && <>{' · '}<a href={carte(mairie.position)} target="_blank" rel="noopener">la situer</a></>}
+      {mairie.position && (
+        <>
+          {' · la situer sur '}
+          <a href={geoportail(mairie.position)} target="_blank" rel="noopener">cartes.gouv.fr</a>
+          {' ou '}
+          <a href={carte(mairie.position)} target="_blank" rel="noopener">OpenStreetMap</a>
+        </>
+      )}
     </p>
   )}
   {(mairie.telephone || mairie.courriels.length > 0 || mairie.site) && (

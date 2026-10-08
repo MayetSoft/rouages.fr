@@ -428,12 +428,13 @@ export const Surveillance = z.object({
   /**
    * La licence sous laquelle le producteur publie le jeu, vérifiée sur sa fiche
    * et non supposée : la Licence Ouverte d'Etalab dans sa version 2.0 ou 1.0
-   * (« licence-ouverte » quand le producteur ne précise pas la version), l'ODbL,
+   * (« licence-ouverte » quand le producteur ne précise pas la version), la
+   * CC0 de la Commission européenne, qui verse le jeu au domaine public, l'ODbL,
    * qui impose de republier sous la même licence toute base qu'on en dérive,
    * « variable » quand chaque publieur choisit la sienne, « non-precisee »
    * quand la fiche n'en dit rien. /mentions l'affiche jeu par jeu.
    */
-  licence: z.enum(['licence-ouverte-2.0', 'licence-ouverte-1.0', 'licence-ouverte', 'odbl', 'variable', 'non-precisee']),
+  licence: z.enum(['licence-ouverte-2.0', 'licence-ouverte-1.0', 'licence-ouverte', 'cc0', 'odbl', 'variable', 'non-precisee']),
   /**
    * Pour un jeu sous ODbL : les fichiers de `public/territoires/` qui en
    * dérivent, et qui sont donc republiés sous ODbL eux aussi. Exigé par
@@ -502,6 +503,32 @@ export const Editeur = z.object({
 });
 
 /** Un fichier de contenu : toutes les entités d'un même rouage. */
+/**
+ * Une localisation de projet européen corrigée par Rouages.
+ *
+ * Kohesio place chaque projet où l'autorité de gestion l'a déclaré, et se
+ * trompe parfois : un espace naturel des Monts de la Madeleine posé sur la
+ * piscine d'un bourg voisin. La correction donne le bon point, la commune où
+ * il tombe — la collecte le vérifie par les contours et refuse une correction
+ * qui ne s'y accorde pas —, ce que Kohesio disait, et ses sources. La page
+ * affiche « localisation corrigée par Rouages, d'après … ».
+ */
+export const CorrectionKohesio = z.object({
+  /** L'identifiant Kohesio du projet : « Q3675797 ». */
+  id: z.string().regex(/^Q\d+$/, 'un identifiant Kohesio s’écrit Q suivi de chiffres'),
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180),
+  /** Le code INSEE de la commune où tombe le point corrigé. */
+  commune: z.string().regex(/^(\d{5}|2[AB]\d{3})$/),
+  /** Ce qui était faux, en une phrase : ce que désignait le point de Kohesio. */
+  constat: z.string().min(10).max(280),
+  /** D'où viennent le bon point et la bonne commune. */
+  liens: z.array(Id).min(1),
+  corrige_le: dateSimple,
+  /** Le jour où l'erreur a été signalée à Kohesio, quand elle l'a été. */
+  signale_le: dateSimple.optional(),
+});
+
 export const FichierContenu = z.object({
   acteurs: z.array(Acteur).default([]),
   competences: z.array(Competence).default([]),
@@ -512,6 +539,7 @@ export const FichierContenu = z.object({
   sigles: z.array(Sigle).default([]),
   reperes: z.array(Repere).default([]),
   surveillances: z.array(Surveillance).default([]),
+  corrections_kohesio: z.array(CorrectionKohesio).default([]),
   decouverte: Decouverte.optional(),
   editeur: Editeur.optional(),
 });
@@ -520,6 +548,7 @@ export type Decouverte = z.infer<typeof Decouverte>;
 export type Editeur = z.infer<typeof Editeur>;
 export type Repere = z.infer<typeof Repere>;
 export type Surveillance = z.infer<typeof Surveillance>;
+export type CorrectionKohesio = z.infer<typeof CorrectionKohesio>;
 export type Sigle = z.infer<typeof Sigle>;
 export type Source = z.infer<typeof Source>;
 export type Acteur = z.infer<typeof Acteur>;

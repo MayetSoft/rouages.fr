@@ -1,6 +1,6 @@
 ---
 /**
- * Ce qui se crée en associations.
+ * Ce qui se crée en associations, et celles qui existent.
  *
  * **Des créations, pas des associations vivantes**, et le bloc le dit : le
  * répertoire national n'enregistre pas la dissolution qu'on ne lui déclare pas.
@@ -12,11 +12,15 @@ import Repere from './Repere.astro';
 
 interface Props {
   a: Associations;
+  /** Le code de la commune : la liste complète est dans `associations/<code>.json`. */
+  code: string;
 }
-const { a } = Astro.props;
+const { a, code } = Astro.props;
 const debut = a.annees[0];
 const fin = a.annees[a.annees.length - 1];
 // La virgule, pas le point : tout le reste du site compte en français.
+// Une liste courte s'ouvre d'elle-même ; une longue reste repliée.
+const courte = a.liste.length < 13;
 const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 ---
 <p class="p-strate">
@@ -61,8 +65,99 @@ const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits
     </ul>
   </div>
 )}
+{a.existantes > 0 && (
+  <div class="p-risque-groupe">
+    <span class="p-service-famille">
+      {`Les ${a.existantes.toLocaleString('fr-FR')} associations non dissoutes du répertoire, de la plus récemment déclarée à la plus ancienne`}
+    </span>
+    <details open={courte}>
+      <summary>{courte ? 'La liste' : `Voir les ${a.liste.length}`}</summary>
+      <ul class="c-assos-liste">
+        {a.liste.map((x) => (
+          <li class="p-risque-plan">
+            <span class="p-risque-nom">{x.site ? <a href={x.site} target="_blank" rel="noopener nofollow">{x.titre}</a> : x.titre}</span>
+            <span class="p-risque-detail">
+              {[x.annee ? `créée en ${x.annee}` : '', x.domaine ? x.domaine.charAt(0).toLowerCase() + x.domaine.slice(1) : '', x.objet]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {a.existantes > a.liste.length && (
+        <button type="button" class="p-marche-suite" hidden data-assos={code} data-reste={a.existantes - a.liste.length}>
+          {`Voir les ${(a.existantes - a.liste.length).toLocaleString('fr-FR')} autres`}
+        </button>
+      )}
+    </details>
+    <p class="mesure">
+      Non dissoute ne veut pas dire active&nbsp;: une association en sommeil qui n’a jamais déclaré sa dissolution
+      reste au répertoire. Et celles qui n’ont rien déclaré depuis 2009 n’y sont pas&nbsp;: elles figurent au
+      fichier historique du répertoire, qui ne donne que le code postal — plusieurs communes à la fois — et marque
+      encore actives des associations de 1903. Il se consulte sur la même
+      <a href="https://www.data.gouv.fr/datasets/repertoire-national-des-associations" target="_blank" rel="noopener">page du répertoire</a>.
+    </p>
+  </div>
+)}
 <p class="p-source-territoire">
   D’après le répertoire national des associations ({a.maj}). Le site en retient la commune du
   siège, jamais l’adresse : celui d’une petite association est souvent un domicile. Une
   association déclarée ici peut agir ailleurs, et réciproquement.
 </p>
+<script is:inline type="application/json" id="assos-domaines" set:html={JSON.stringify(a.domainesTous).replace(/</g, '\\u003c')} />
+<script>
+  /**
+   * « Voir les autres » : la liste complète des associations existantes, dans
+   * `associations/<code>.json`, chargée au premier clic et ajoutée par paquets.
+   */
+  const PAS = 50;
+  const domaines: string[] = JSON.parse(document.getElementById('assos-domaines')?.textContent ?? '[]');
+  for (const bouton of document.querySelectorAll<HTMLButtonElement>('button[data-assos]')) {
+    const ul = bouton.previousElementSibling as HTMLUListElement;
+    let reste: [string, string, number, number, string][] | null = null;
+    let affiches = 0;
+    const dire = () => {
+      const n = (reste ? reste.length : Number(bouton.dataset.reste)) - affiches;
+      bouton.textContent = `Voir les ${n.toLocaleString('fr-FR')} autres`;
+    };
+    bouton.hidden = false;
+    bouton.addEventListener('click', async () => {
+      if (!reste) {
+        bouton.disabled = true;
+        bouton.textContent = 'Chargement…';
+        const f = await fetch(`/territoires/associations/${bouton.dataset.assos}.json`)
+          .then((r) => (r.ok ? (r.json() as Promise<{ x: [string, string, number, number, string][] }>) : null))
+          .catch(() => null);
+        bouton.disabled = false;
+        if (!f || f.x.length === 0) {
+          bouton.textContent = 'La suite ne s’est pas chargée. À réessayer.';
+          return;
+        }
+        reste = f.x;
+      }
+      for (const [titre, objet, dom, annee, site] of reste.slice(affiches, affiches + PAS)) {
+        const li = document.createElement('li');
+        li.className = 'p-risque-plan';
+        const nom = document.createElement('span');
+        nom.className = 'p-risque-nom';
+        if (site) {
+          const a = document.createElement('a');
+          a.href = site;
+          a.target = '_blank';
+          a.rel = 'noopener nofollow';
+          a.textContent = titre;
+          nom.append(a);
+        } else nom.textContent = titre;
+        const detail = document.createElement('span');
+        detail.className = 'p-risque-detail';
+        const d = dom >= 0 ? domaines[dom] : '';
+        detail.textContent = [annee ? `créée en ${annee}` : '', d ? d.charAt(0).toLowerCase() + d.slice(1) : '', objet].filter(Boolean).join(' · ');
+        li.append(nom, detail);
+        ul.append(li);
+      }
+      affiches = Math.min(affiches + PAS, reste.length);
+      if (affiches >= reste.length) bouton.remove();
+      else dire();
+    });
+  }
+</script>

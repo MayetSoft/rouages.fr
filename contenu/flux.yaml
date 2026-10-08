@@ -88,14 +88,69 @@ flux:
     verifie_le: 2026-09-23
     confiance: etabli
 
+  # Les fonds européens, un par un, d'après qui les gère en France sur
+  # 2021-2027 : ordonnance de décembre 2020 pour le FEDER, le FSE+ et le
+  # FEAMPA, ordonnance du 26 janvier 2022 pour le FEADER. Les projets
+  # localisés dans chaque commune sont sur sa page (Kohesio, 2014-2020).
   - id: fonds-europeens
-    nom: "Fonds européens"
+    nom: "FEDER — développement régional"
     nature: argent
     de: union-europeenne
     vers: [region]
-    resume: "Les fonds structurels européens sont pour l'essentiel gérés par les régions."
-    liens: [europa, wp-region, europe-en-france]
-    verifie_le: 2026-09-22
+    resume: "Le FEDER finance l'investissement dans les territoires — rénovation énergétique, numérique, entreprises, espaces naturels. Les conseils régionaux en sont les autorités de gestion : ce sont eux qui choisissent les projets."
+    liens: [europa, europe-en-france, cl-fonds-europeens, od-kohesio]
+    verifie_le: 2026-10-08
+    confiance: etabli
+
+  - id: fse-plus
+    nom: "FSE+ — emploi, formation, inclusion"
+    nature: argent
+    de: union-europeenne
+    vers: [region, etat, departement]
+    resume: "Le FSE+ finance l'emploi, la formation et l'inclusion. Il est partagé : les régions en gèrent une part, l'État un programme national, dont il délègue une partie aux départements pour l'insertion."
+    liens: [cl-fonds-europeens, fse-gouv, od-kohesio]
+    verifie_le: 2026-10-08
+    confiance: etabli
+
+  - id: ftj
+    nom: "FTJ — transition juste"
+    nature: argent
+    de: union-europeenne
+    vers: [region, etat]
+    resume: "Le FTJ accompagne les territoires les plus touchés par la sortie des énergies fossiles et de l'industrie lourde : reconversion des sites, des entreprises et des salariés. Il est partagé entre les régions concernées et l'État."
+    liens: [cl-fonds-europeens, fse-gouv]
+    verifie_le: 2026-10-08
+    confiance: etabli
+
+  - id: feader
+    nom: "FEADER — développement rural"
+    nature: argent
+    de: union-europeenne
+    vers: [region, etat]
+    resume: "Le second pilier de la PAC. Depuis 2023, les régions gèrent les aides qui ne dépendent pas des surfaces — installation des jeunes agriculteurs, investissements, LEADER — et l'État celles qui en dépendent, comme l'agriculture biologique."
+    liens: [psn-feader-regions]
+    verifie_le: 2026-10-08
+    confiance: etabli
+
+  - id: feampa
+    nom: "FEAMPA — pêche et aquaculture"
+    nature: argent
+    de: union-europeenne
+    vers: [etat, region]
+    resume: "Le fonds de la pêche, de l'aquaculture et des affaires maritimes. L'État en est l'autorité de gestion ; les régions littorales en gèrent les mesures régionales comme organismes intermédiaires."
+    liens: [cl-fonds-europeens, feampa-regions]
+    verifie_le: 2026-10-08
+    confiance: etabli
+
+  - id: fonds-interieur
+    nom: "FAMI, FSI, IGFV — asile, sécurité, frontières"
+    nature: argent
+    de: union-europeenne
+    vers: [etat]
+    resume: "Trois fonds gérés par le ministère de l'Intérieur : asile, migration et intégration (FAMI), sécurité intérieure (FSI), gestion des frontières et visas (IGFV). Associations et collectivités peuvent répondre à ses appels à projets."
+    ordre_de_grandeur: "840,85 millions d'euros pour le FAMI en France sur 2021-2027."
+    liens: [interieur-fonds-europeens, ue-fami-france]
+    verifie_le: 2026-10-08
     confiance: etabli
 
   - id: rsa-verse

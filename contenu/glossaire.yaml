@@ -172,6 +172,66 @@ sigles:
     definition: "L'argent européen des projets locaux ; en France, ce sont les conseils régionaux qui le distribuent."
     liens: [europe-en-france]
 
+  - id: sigle-fse
+    sigle: FSE
+    developpe: "Fonds social européen"
+    definition: "Le fonds européen de l'emploi, de la formation et de l'inclusion ; FSE+ sur 2021-2027, partagé entre les régions et l'État."
+    liens: [fse-gouv]
+
+  - id: sigle-ftj
+    sigle: FTJ
+    developpe: "Fonds pour une transition juste"
+    definition: "Le fonds européen des territoires les plus touchés par la sortie des énergies fossiles et de l'industrie lourde."
+    liens: [fse-gouv]
+
+  - id: sigle-feader
+    sigle: FEADER
+    developpe: "Fonds européen agricole pour le développement rural"
+    definition: "Le second pilier de la politique agricole commune : installation, investissements agricoles, LEADER."
+    liens: [psn-feader-regions]
+
+  - id: sigle-feampa
+    sigle: FEAMPA
+    developpe: "Fonds européen pour les affaires maritimes, la pêche et l'aquaculture"
+    liens: [feampa-regions]
+
+  - id: sigle-fami
+    sigle: FAMI
+    developpe: "Fonds asile, migration et intégration"
+    liens: [ue-fami-france]
+
+  - id: sigle-fsi
+    sigle: FSI
+    developpe: "Fonds pour la sécurité intérieure"
+    liens: [interieur-fonds-europeens]
+
+  - id: sigle-igfv
+    sigle: IGFV
+    developpe: "Instrument relatif à la gestion des frontières et aux visas"
+    liens: [interieur-fonds-europeens]
+
+  - id: sigle-pac
+    sigle: PAC
+    developpe: "Politique agricole commune"
+    definition: "La politique agricole de l'Union : aides aux revenus des agriculteurs (premier pilier) et développement rural, par le FEADER (second pilier)."
+    liens: [psn-feader-regions]
+
+  - id: sigle-leader
+    sigle: LEADER
+    developpe: "Liaison entre actions de développement de l'économie rurale"
+    definition: "La part du FEADER confiée à des groupes d'action locale, qui choisissent eux-mêmes les projets de leur territoire."
+    liens: [psn-feader-regions]
+
+  - id: sigle-iej
+    sigle: IEJ
+    developpe: "Initiative pour l'emploi des jeunes"
+    liens: [od-kohesio]
+
+  - id: sigle-api
+    sigle: API
+    developpe: "Interface de programmation : un service qu'un programme interroge, plutôt qu'une page qu'on lit"
+    liens: [geo-api-communes]
+
   - id: sigle-tva
     sigle: TVA
     developpe: "Taxe sur la valeur ajoutée"

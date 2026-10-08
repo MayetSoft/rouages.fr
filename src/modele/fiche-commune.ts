@@ -16,6 +16,7 @@
  * reste.
  */
 import { existsSync, readFileSync } from 'node:fs';
+import { detailDepuisBrut, type DetailAffiche, type DetailBrut } from '../vues/detail-marche.ts';
 import { join } from 'node:path';
 import { anneePlausible } from './annees.ts';
 
@@ -190,6 +191,8 @@ export interface Marche {
   titulaires: { siren: string; nom: string }[];
   /** Les titulaires que le site ne nomme pas. */
   autresTitulaires: number;
+  /** Ce que les données essentielles déclarent en plus, quand la collecte l'a écrit. */
+  detail: DetailAffiche | null;
 }
 
 /** Un marché dont l'échéance prévisible tombe dans la fenêtre du fichier. */
@@ -341,6 +344,11 @@ export interface Associations {
   parAnnee: number[];
   domaines: { nom: string; nombre: number }[];
   recentes: { mois: string; titre: string; domaine: string | null }[];
+  /** Les associations existantes au fichier Waldec : leur nombre, et les plus récemment déclarées. */
+  existantes: number;
+  liste: { titre: string; objet: string; domaine: string | null; annee: number | null; site: string | null }[];
+  /** La table des domaines, pour la suite chargée à la demande. */
+  domainesTous: string[];
   taux: number;
   medianeTaux: number;
   maj: string;
@@ -534,7 +542,7 @@ type AssoDep = {
   domaines: string[];
   mediane: number;
   effectif: number;
-  c: Record<string, { n: number; a: number[]; d: [number, number][]; r: [string, string, number][] }>;
+  c: Record<string, { n: number; a: number[]; d: [number, number][]; r: [string, string, number][]; e?: number; x?: [string, string, number, number, string][] }>;
 };
 type PopDep = { maj: string; annees: number[]; c: Record<string, [number[], number, number]> };
 type CcasDep = {
@@ -669,6 +677,7 @@ type MarcheBrut = {
   offres?: number;
   t?: [string, string][];
   tx?: number;
+  x?: DetailBrut;
 };
 type MarchesDep = {
   depuis: string;
@@ -1037,6 +1046,7 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
       offres: m.offres ?? null,
       titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom })),
       autresTitulaires: m.tx ?? 0,
+      detail: detailDepuisBrut(m.x),
     });
     out.push({
       siren,
@@ -1193,6 +1203,15 @@ function assemblerAssociations(commune: CommuneFiche, population: number): Assoc
       mois,
       titre,
       domaine: dom >= 0 ? (d.domaines[dom] ?? null) : null,
+    })),
+    existantes: f.e ?? 0,
+    domainesTous: d.domaines,
+    liste: (f.x ?? []).map(([titre, objet, dom, annee, site]) => ({
+      titre,
+      objet,
+      domaine: dom >= 0 ? (d.domaines[dom] ?? null) : null,
+      annee: annee || null,
+      site: site || null,
     })),
     taux: population > 0 ? (f.n / population) * 1000 : 0,
     medianeTaux: d.mediane,
