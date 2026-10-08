@@ -88,6 +88,11 @@ Rejected », connexions coupées. Ils répondent depuis l'hébergement français
 ses fichiers que lancé de là ; partout ailleurs il échoue et laisse les
 précédents en place.
 
+L'API de Kohesio (`kohesio.ec.europa.eu/api`) refuse la sortie directe de
+Node depuis ici (403 d'un répartiteur AWS) et répond par le mandataire :
+lancer `scripts/europe-emettre.ts` avec `NODE_USE_ENV_PROXY=1`. Depuis les
+machines de GitHub, la première réingestion le dira.
+
 **`npm run veille` ment depuis ici, et il écrit ce mensonge dans un fichier
 suivi.** Les sources lourdes décrochent à 6,5 secondes — trois essais sur le
 répertoire national des élus ont donné exactement 6,53 s, ce qui est le tunnel

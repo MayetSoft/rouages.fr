@@ -818,6 +818,9 @@ async function principal() {
   const { collecterEurope, ecrireEurope } = await import('./europe-emettre.ts');
   const europe = await tenter('Fonds européens (Kohesio)', () => collecterEurope(lireJson, SORTIE, grise));
   if (europe) grise(`${ecrireEurope(SORTIE, europe)} départements de projets européens écrits.`);
+  const { collecterEurope2127, ecrireEurope2127 } = await import('./europe-emettre.ts');
+  const europe21 = await tenter('Fonds européens 2021-2027 (Kohesio)', () => collecterEurope2127(lireJson, SORTIE, grise));
+  if (europe21) grise(`${ecrireEurope2127(SORTIE, europe21)} départements de projets européens 2021-2027 écrits.`);
 
   const { collecterMairies, ecrireMairies } = await import('./mairies-emettre.ts');
   const mairies = await tenter('Mairies', () => collecterMairies(lireJson, grise));

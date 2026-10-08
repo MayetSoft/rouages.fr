@@ -810,6 +810,14 @@ surveillances:
     url: "https://cohesiondata.ec.europa.eu/resource/557j-pmg8.json?$limit=1"
     lien: od-kohesio
 
+  - id: kohesio-2021-2027
+    nom: "Commission européenne — Kohesio, projets de la politique de cohésion 2021-2027 (API de la plateforme)"
+    alimente: "les projets européens 2021-2027 localisés dans la commune"
+    type: disponibilite
+    licence: cc-by-4.0
+    url: "https://kohesio.ec.europa.eu/api/projects?language=fr&country=https%3A%2F%2Flinkedopendata.eu%2Fentity%2FQ20&programmingPeriod=https%3A%2F%2Flinkedopendata.eu%2Fentity%2FQ7333082&limit=1&offset=0"
+    lien: od-kohesio-api
+
   - id: brgm-casias
     nom: "BRGM — sites et sols pollués et installations classées (Géorisques)"
     alimente: "les sites et sols pollués et les installations classées de la commune"

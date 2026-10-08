@@ -40,6 +40,7 @@ const LICENCES = [
   { code: 'licence-ouverte-2.0', nom: 'Licence Ouverte 2.0', url: 'https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf' },
   { code: 'licence-ouverte-1.0', nom: 'Licence Ouverte 1.0', url: 'https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf' },
   { code: 'licence-ouverte', nom: 'Licence Ouverte, sans version précisée', url: 'https://www.etalab.gouv.fr/licence-ouverte-open-licence' },
+  { code: 'cc-by-4.0', nom: 'Creative Commons Attribution 4.0 (CC BY 4.0)', url: 'https://creativecommons.org/licenses/by/4.0/deed.fr' },
   { code: 'cc0', nom: 'Creative Commons Zero (CC0 1.0), domaine public', url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.fr' },
   { code: 'variable', nom: 'Licence choisie par chaque publieur', url: null },
   { code: 'non-precisee', nom: 'Licence non précisée par le producteur', url: null },
@@ -229,6 +230,8 @@ const ouvertes = nb('licence-ouverte-2.0') + nb('licence-ouverte-1.0') + nb('lic
       chaque bloc de chiffres.
       {nb('cc0') > 0 &&
         ` ${nb('cc0')} ${nb('cc0') > 1 ? 'sont' : 'est'} versé${nb('cc0') > 1 ? 's' : ''} au domaine public par la Commission européenne (CC0) : rien n’y est imposé, et la source est citée quand même.`}
+      {nb('cc-by-4.0') > 0 &&
+        ` ${nb('cc-by-4.0')} ${nb('cc-by-4.0') > 1 ? 'sont' : 'est'} sous CC BY 4.0, la licence des contenus de la Commission européenne : citer la source et dire ce qui a été modifié — le site en retient une partie, rattachée aux communes, et le dit sous le bloc.`}
     </p>
     {nb('odbl') > 0 && (
       <p class="mesure">
