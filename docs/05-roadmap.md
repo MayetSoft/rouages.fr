@@ -3555,17 +3555,41 @@ Dans le réseau, le flux « Fonds européens » est détaillé fonds par fonds,
 d'après qui les gère en France sur 2021-2027 : FEDER, FSE+, FTJ, FEADER,
 FEAMPA, et les trois fonds du ministère de l'Intérieur (FAMI, FSI, IGFV).
 
+**La période 2021-2027** (8 octobre 2026). Elle n'est pas sur cohesiondata,
+mais Kohesio l'a déjà : 6 804 projets français, lus dans l'API publique de
+la plateforme (`/api/projects`), programme par programme puis fonds par
+fonds, sous CC BY 4.0 d'après la mention légale de la Commission. 6 639 sont
+localisés, dans 2 873 communes ; 1 132 ont des lieux dans plusieurs
+communes, et leurs montants restent hors des totaux, faute de répartition.
+Les bénéficiaires, que la base nomme désormais, ne sont pas repris : sans
+SIREN, on ne distingue pas un entrepreneur individuel d'une société. Au
+Mayet-de-Montagne, aucun projet 2021-2027 ; à Saint-Nicolas-des-Biefs, la
+suite du plan de gestion des hêtres tortueux, correctement localisée cette
+fois. Fichiers `dep/XX-europe21.json`, collecte isolée.
+
 Restent à faire :
-- les opérations 2021-2027, quand Kohesio ou les régions les publieront
-  en données ouvertes réutilisables — aujourd'hui, une liste par région, chacune
-  dans son format ;
-- le FEADER et le FEAMPA par commune : listes d'opérations publiées par les
-  régions et l'État, à rapprocher ;
-- les aides de la PAC, que l'Union oblige à publier par bénéficiaire : elles
-  nomment des agriculteurs, et demandent d'abord une justification dans
-  `docs/07-risques.md` et la décision du mainteneur ;
+- le FEADER par commune : il passe par la liste des bénéficiaires de la PAC
+  (FEAGA et FEADER ensemble), que le ministère publie chaque année. Le
+  fichier n'est pas joignable d'ici ; les options et la recommandation —
+  des totaux par commune, sans nom — sont dans `docs/07-risques.md`, en
+  attente de décision ;
+- le FEAMPA par commune : aucune liste nationale d'opérations trouvée en
+  données ouvertes le 8 octobre 2026 (programme national géré par la DGAMPA,
+  appels instruits par FranceAgriMer) ;
 - les institutions européennes elles-mêmes comme acteurs du réseau
   (Commission, Parlement, Conseil), avec leurs liens aux compétences.
+
+### Les délibérations de Haute-Garonne, et le renvoi depuis la mairie (8 octobre 2026)
+
+Le jeu agrégé de Haute-Garonne Open Data — 12 832 délibérations de 16
+communes et 5 intercommunalités, au schéma mais en-têtes en minuscules —
+rejoint Mégalis Bretagne dans la liste déclarée du collecteur, qui lit
+désormais les colonnes sans tenir compte de la casse et les dates écrites
+jj/mm/aaaa. Le bloc de la mairie renvoie aux délibérations ouvertes de la
+commune quand il y en a, et dit sinon qu'elle n'en verse pas dans un fichier
+que le site sait lire. Écartés après examen : Gironde numérique (le syndicat
+seul), Bordeaux Métropole (un SIRET fictif, et le nom du rapporteur), Grand
+Poitiers (une interface que la recherche ne joint pas).
 
 ### Le contact de chaque acheteur, et les avis ouverts du BOAMP (8 octobre 2026) ✔
 
