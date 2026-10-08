@@ -51,12 +51,22 @@
  * alors combien de titulaires il ne nomme pas. Les lots regroupés d'un
  * accord-cadre réunissent leurs titulaires.
  *
+ * **Le contact de chaque acheteur et les avis ouverts, depuis le 8 octobre
+ * 2026.** Les fichiers nationaux donnent, pour chaque acheteur, le téléphone,
+ * l'adresse et le site de sa fiche à l'annuaire de l'administration
+ * (`acheteurs-contacts.ts`) ; et `avis.json` les avis de marché du BOAMP
+ * encore ouverts, rattachés aux mêmes acheteurs (`boamp-avis.ts`). L'une et
+ * l'autre collecte sont isolées : si elle échoue, les fichiers s'écrivent
+ * sans contact, et `avis.json` garde sa version précédente.
+ *
  * Lancé seul — `npx tsx scripts/marches-emettre.ts` —, il réécrit les
  * fichiers des acheteurs que la dernière ingestion complète a retenus.
  */
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { collecterContacts, contactDe, prenomsConnus, type Contact, type FicheAnnuaire } from './acheteurs-contacts.ts';
+import { collecterAvis, lireAvisPrecedents, plierNom, rattacherAvis, type AvisCollectes } from './boamp-avis.ts';
 import { telechargerSiAbsent } from './par-departement.ts';
 import { retraits } from './retraits.ts';
 import { nomsSirene } from './sirene-noms.ts';
@@ -163,6 +173,14 @@ export interface Echeance extends Marche {
    * voyage qu'avec les échéances.
    */
   cpv?: string;
+  /**
+   * L'historique chez cet acheteur : la date du premier marché du même groupe
+   * CPV (trois chiffres) qu'un des titulaires a obtenu chez lui avant
+   * celui-ci, et combien il en a obtenu. Rapproché sur le SIREN de
+   * l'acheteur, le SIREN du titulaire et le groupe CPV, dans les marchés
+   * recensés depuis `DEPUIS` : un titulaire plus ancien n'y paraît pas.
+   */
+  h?: [string, number];
 }
 
 /** Un marché récemment notifié, avec son code CPV : c'est le filtre « mon métier » de qui suit les attributions. */
@@ -214,6 +232,10 @@ export interface Marches {
   sirets: Map<string, string>;
   depuis: string;
   maj: string;
+  /** SIREN -> la fiche de l'acheteur à l'annuaire de l'administration ; absent si la collecte a échoué. */
+  annuaire?: Map<string, FicheAnnuaire>;
+  /** Les avis de marché ouverts du BOAMP ; absent si la collecte a échoué. */
+  avis?: AvisCollectes;
 }
 
 /** AAAA-MM, `mois` mois après le mois de `iso`. Le jour ne compte pas. */
@@ -300,12 +322,34 @@ function nettoyer(objet: string): string {
     .trim();
 }
 
+/**
+ * Ce qu'un des titulaires d'une échéance a déjà obtenu chez le même acheteur,
+ * dans le même métier (groupe CPV), avant elle : la date du premier de ces
+ * marchés et leur nombre. Rien quand l'échéance n'a ni code CPV ni titulaire
+ * nommé, ou quand il n'y a pas d'antécédent.
+ */
+export function historique(
+  x: { date: string; cpv?: string; t?: [string, string][] },
+  marchesDeLAcheteur: { date: string; cpv?: string; t?: [string, string][] }[],
+): [string, number] | undefined {
+  if (!x.cpv || !x.t || x.t.length === 0) return undefined;
+  const groupe = x.cpv.slice(0, 3);
+  const siens = new Set(x.t.map(([s]) => s));
+  const avant = marchesDeLAcheteur.filter(
+    (y) => y !== x && y.date < x.date && y.cpv?.startsWith(groupe) && (y.t ?? []).some(([s]) => siens.has(s)),
+  );
+  if (avant.length === 0) return undefined;
+  return [avant.map((y) => y.date).sort()[0], avant.length];
+}
+
 export async function collecterMarches(
   json: <T>(url: string) => Promise<T>,
   sirensSuivis: Set<string>,
   dire: (m: string) => void,
   /** Pour lire SIRENE ; sans lui, les titulaires ne sont pas nommés. */
   texte?: (url: string) => Promise<string>,
+  /** Le dossier des fichiers : `avis.json` y dit depuis quand relire le BOAMP. */
+  sortie?: string,
 ): Promise<Marches | null> {
   const url =
     `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques,` +
@@ -435,6 +479,10 @@ export async function collecterMarches(
     if (liste.length > PAR_ACHETEUR) suites.set(siren, liste.slice(PAR_ACHETEUR));
     const proches = tout
       .filter((x): x is Echeance => x.fin !== undefined && x.fin >= fenetre[0] && x.fin <= fenetre[1])
+      .map((x) => {
+        const h = historique(x, tout);
+        return h ? { ...x, h } : x;
+      })
       .sort((a, b) => a.fin.localeCompare(b.fin) || (b.montant ?? 0) - (a.montant ?? 0));
     if (proches.length > 0) {
       echeances.set(siren, proches);
@@ -458,6 +506,20 @@ export async function collecterMarches(
   );
   const sirets = new Map<string, string>();
   for (const [siren, c] of parSiret) sirets.set(siren, [...c].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]);
+
+  // Deux collectes de plus, isolées : l'échec de l'une ne coûte que ce qu'elle apporte.
+  let annuaire: Map<string, FicheAnnuaire> | undefined;
+  try {
+    annuaire = await collecterContacts(json, new Set(parAcheteur.keys()), dire);
+  } catch (e) {
+    dire(`  annuaire de l'administration : ${(e as Error).message} — les fichiers s'écrivent sans contact.`);
+  }
+  let avis: AvisCollectes | undefined;
+  try {
+    avis = await collecterAvis(json, dire, sortie);
+  } catch (e) {
+    dire(`  BOAMP : ${(e as Error).message} — avis.json garde sa version précédente.`);
+  }
   return {
     parAcheteur,
     suites,
@@ -469,6 +531,8 @@ export async function collecterMarches(
     sirets,
     depuis: DEPUIS,
     maj,
+    ...(annuaire ? { annuaire } : {}),
+    ...(avis ? { avis } : {}),
   };
 }
 
@@ -567,6 +631,8 @@ interface Acheteur {
    * intercommunalité qui regarde ses membres.
    */
   epci?: string[];
+  /** Ses coordonnées à l'annuaire de l'administration, quand il y a une fiche. */
+  contact?: Contact;
 }
 
 /**
@@ -575,7 +641,11 @@ interface Acheteur {
  * nommées. Relus dans les fichiers déjà écrits : groupements et communes dans
  * `dep/XX.json`, SIREN des communes dans `dep/XX-marches.json`.
  */
-function acheteursNommes(sortie: string): {
+function acheteursNommes(
+  sortie: string,
+  /** Les fiches de l'annuaire : sans elles, les acheteurs n'ont pas de contact. */
+  annuaire?: Map<string, FicheAnnuaire>,
+): {
   acheteurs: Map<string, Acheteur>;
   epci: Map<string, { nom: string; deps: string[] }>;
 } {
@@ -643,6 +713,14 @@ function acheteursNommes(sortie: string): {
       acheteurs.set(siren, a);
     }
   }
+  if (annuaire) {
+    const prenoms = prenomsConnus(sortie);
+    for (const [siren, a] of acheteurs) {
+      const f = annuaire.get(siren);
+      const contact = f ? contactDe(f, prenoms) : undefined;
+      if (contact) a.contact = contact;
+    }
+  }
   return { acheteurs, epci };
 }
 
@@ -675,7 +753,7 @@ function cites(
  * figure pas, comme il ne figure sur aucune page.
  */
 export function ecrireEcheancesNationales(sortie: string, marches: Marches): number {
-  const lus = acheteursNommes(sortie);
+  const lus = acheteursNommes(sortie, marches.annuaire);
   const { acheteurs } = lus;
   const e: (Echeance & { a: string })[] = [];
   for (const [siren, liste] of marches.echeances) {
@@ -707,7 +785,7 @@ export function ecrireEcheancesNationales(sortie: string, marches: Marches): num
  * marchés, du plus récent au plus ancien.
  */
 export function ecrireAttributionsNationales(sortie: string, marches: Marches): number {
-  const lus = acheteursNommes(sortie);
+  const lus = acheteursNommes(sortie, marches.annuaire);
   const { acheteurs } = lus;
   const m: (Attribution & { a: string })[] = [];
   for (const [siren, liste] of marches.recents) {
@@ -726,6 +804,49 @@ export function ecrireAttributionsNationales(sortie: string, marches: Marches): 
     }),
   );
   return m.length;
+}
+
+/**
+ * Les avis de marché ouverts, pour tout le pays, dans `avis.json` : ce qu'un
+ * acheteur suivi demande en ce moment, et jusqu'à quand on peut répondre. Le
+ * troisième fichier national, après ce qui va se rejouer (`echeances.json`) et
+ * ce qui vient de se jouer (`attributions.json`), de même forme : les
+ * acheteurs une fois, nommés, puis les avis, du plus récent au plus ancien.
+ *
+ * Chaque avis dit comment il a été rattaché — par le SIRET que porte l'avis,
+ * ou par le nom de l'acheteur dans son département —, parce que le second est
+ * moins sûr que le premier et que qui lit doit pouvoir le savoir.
+ *
+ * Sans collecte du BOAMP, le fichier précédent reste en place : rien n'est
+ * écrit, et la fonction rend `null`.
+ */
+export function ecrireAvisNationaux(
+  sortie: string,
+  marches: Marches,
+): { avis: number; parSiret: number; parNom: number; ambigus: number } | null {
+  if (!marches.avis) return null;
+  const lus = acheteursNommes(sortie, marches.annuaire);
+  const precedents = lireAvisPrecedents(sortie)?.avis ?? [];
+  let departements = new Set<string>();
+  const chemin = join(sortie, 'deps.json');
+  if (existsSync(chemin)) {
+    departements = new Set(Object.values(JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, string>).map(plierNom));
+  }
+  const r = rattacherAvis(marches.avis, lus.acheteurs, precedents, departements);
+  const avis = r.avis.map((a) => {
+    const objet = nettoyer(a.objet);
+    return { ...a, objet: objet.length > MAX_OBJET ? `${objet.slice(0, MAX_OBJET - 1)}…` : objet };
+  });
+  writeFileSync(
+    join(sortie, 'avis.json'),
+    JSON.stringify({
+      maj: marches.avis.maj,
+      depuis: marches.avis.depuis,
+      ...cites(lus, new Set(avis.map((x) => x.a))),
+      avis,
+    }),
+  );
+  return { avis: avis.length, parSiret: r.parSiret, parNom: r.parNom, ambigus: r.ambigus };
 }
 
 // Lancé seul : les acheteurs que la dernière ingestion complète a retenus,
@@ -750,6 +871,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     suivis,
     console.log,
     async (url) => (await obstine(url)).text(),
+    sortie,
   );
   if (m) {
     let n = 0;
@@ -757,9 +879,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const suites = ecrireSuitesMarches(sortie, m);
     const nationales = ecrireEcheancesNationales(sortie, m);
     const attributions = ecrireAttributionsNationales(sortie, m);
+    const avis = ecrireAvisNationaux(sortie, m);
     console.log(
       `${n} acheteurs écrits, ${suites} listes complètes à la demande, ${nationales} échéances dans echeances.json, ` +
-        `${attributions} marchés dans attributions.json.`,
+        `${attributions} marchés dans attributions.json, ` +
+        (avis
+          ? `${avis.avis} avis ouverts dans avis.json (${avis.parSiret} par SIRET, ${avis.parNom} par nom, ${avis.ambigus} noms ambigus écartés).`
+          : 'avis.json inchangé.'),
     );
   }
 }

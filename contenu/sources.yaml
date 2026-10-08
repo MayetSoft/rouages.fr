@@ -411,6 +411,7 @@ sources:
   # est celui que l'ingestion lit, parce qu'il est servi par une interface
   # requêtable. Les deux sont cités : on lie ce qu'on lit.
   - { id: od-decp-bercy, type: donnees_ouvertes, titre: "Données essentielles de la commande publique — marchés valides", url: "https://data.economie.gouv.fr/explore/dataset/decp-2022-marches-valides/", consulte_le: 2026-09-18 }
+  - { id: od-boamp, type: donnees_ouvertes, titre: "DILA — BOAMP, les avis de marchés publics : avis de marché, rectificatifs, annulations, résultats", url: "https://www.data.gouv.fr/datasets/boamp", consulte_le: 2026-10-08 }
 
   # --- L'obligation de logements sociaux -------------------------------------
   - { id: od-sru, type: donnees_ouvertes, titre: "Communes soumises à l'article 55 de la loi SRU et leur inventaire", url: "https://www.data.gouv.fr/datasets/communes-et-inventaire-sru/", consulte_le: 2026-09-18 }
