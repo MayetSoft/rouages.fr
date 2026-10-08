@@ -27,7 +27,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
         <li>
           <span class="p-adjoint-fonction">{fonction(x.fonction)}</span>
           <span class="p-adjoint-nom">{` ${x.nom}`}</span>
-          {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+          {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
           {x.declaration && <DeclarationElu d={x.declaration} />}
         </li>
       ))}
@@ -47,7 +47,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
             {g.elus.map((x) => (
               <li>
                 <span class="p-adjoint-nom">{x.nom}</span>
-                {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+                {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
                 {x.declaration && <DeclarationElu d={x.declaration} />}
               </li>
             ))}
@@ -65,7 +65,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
         <li>
           <span class="p-adjoint-fonction">{x.libelle}</span>
           <span class="p-adjoint-nom">{` ${x.nom}`}</span>
-          {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+          {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
           {x.declaration && <DeclarationElu d={x.declaration} />}
         </li>
       ))}
@@ -79,7 +79,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
       {e.senateurs.map((x) => (
         <li>
           <span class="p-adjoint-nom">{x.nom}</span>
-          {x.naissance && <span class="p-adjoint-naissance">{` naissance ${x.naissance}`}</span>}
+          {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
           {x.declaration && <DeclarationElu d={x.declaration} />}
         </li>
       ))}

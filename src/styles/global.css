@@ -548,6 +548,7 @@ main section[id] { scroll-margin-top: 9rem; }
 .p-declaration-contenu li { display: grid; gap: 0; }
 .p-declaration-commentaire { font-style: italic; }
 .p-declaration-rubrique { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--encre-tres-douce); }
+.p-declaration-contenu .p-declaration-rubrique { margin: .5rem 0 0; }
 .p-declarations li { display: block; }
 .p-declarations .p-adjoint-naissance { display: block; }
 .p-adjoint-naissance { font-size: .72rem; color: var(--encre-tres-douce); }
