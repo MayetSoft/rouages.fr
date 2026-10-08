@@ -503,6 +503,32 @@ export const Editeur = z.object({
 });
 
 /** Un fichier de contenu : toutes les entités d'un même rouage. */
+/**
+ * Une localisation de projet européen corrigée par Rouages.
+ *
+ * Kohesio place chaque projet où l'autorité de gestion l'a déclaré, et se
+ * trompe parfois : un espace naturel des Monts de la Madeleine posé sur la
+ * piscine d'un bourg voisin. La correction donne le bon point, la commune où
+ * il tombe — la collecte le vérifie par les contours et refuse une correction
+ * qui ne s'y accorde pas —, ce que Kohesio disait, et ses sources. La page
+ * affiche « localisation corrigée par Rouages, d'après … ».
+ */
+export const CorrectionKohesio = z.object({
+  /** L'identifiant Kohesio du projet : « Q3675797 ». */
+  id: z.string().regex(/^Q\d+$/, 'un identifiant Kohesio s’écrit Q suivi de chiffres'),
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180),
+  /** Le code INSEE de la commune où tombe le point corrigé. */
+  commune: z.string().regex(/^(\d{5}|2[AB]\d{3})$/),
+  /** Ce qui était faux, en une phrase : ce que désignait le point de Kohesio. */
+  constat: z.string().min(10).max(280),
+  /** D'où viennent le bon point et la bonne commune. */
+  liens: z.array(Id).min(1),
+  corrige_le: dateSimple,
+  /** Le jour où l'erreur a été signalée à Kohesio, quand elle l'a été. */
+  signale_le: dateSimple.optional(),
+});
+
 export const FichierContenu = z.object({
   acteurs: z.array(Acteur).default([]),
   competences: z.array(Competence).default([]),
@@ -513,6 +539,7 @@ export const FichierContenu = z.object({
   sigles: z.array(Sigle).default([]),
   reperes: z.array(Repere).default([]),
   surveillances: z.array(Surveillance).default([]),
+  corrections_kohesio: z.array(CorrectionKohesio).default([]),
   decouverte: Decouverte.optional(),
   editeur: Editeur.optional(),
 });
@@ -521,6 +548,7 @@ export type Decouverte = z.infer<typeof Decouverte>;
 export type Editeur = z.infer<typeof Editeur>;
 export type Repere = z.infer<typeof Repere>;
 export type Surveillance = z.infer<typeof Surveillance>;
+export type CorrectionKohesio = z.infer<typeof CorrectionKohesio>;
 export type Sigle = z.infer<typeof Sigle>;
 export type Source = z.infer<typeof Source>;
 export type Acteur = z.infer<typeof Acteur>;

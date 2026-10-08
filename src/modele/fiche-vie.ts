@@ -130,8 +130,13 @@ const objetsDep = parDepartement<ObjetsDep>('objets');
 type EuropeDep = {
   maj: string;
   periode: string;
-  c: Record<string, { n: number; ue: number; total: number; f: [string, number, number][]; p: [string, string, number, number, number, string, string, string, string][] }>;
+  c: Record<string, { n: number; ue: number; total: number; f: [string, number, number][]; p: ProjetEurope[] }>;
 };
+/** Voir `Projet` dans `scripts/europe-emettre.ts`. */
+type ProjetEurope = [
+  string, string, number, number, number, string, string, string, string, number, number,
+  { s: [string, string][]; c: string; k: [number, number] | null } | 0,
+];
 const europeDep = parDepartement<EuropeDep>('europe');
 type MairiesDep = { maj: string; c: Record<string, [string, string, string, string, string, number | null, number | null, string, string, string][]> };
 const mairiesDep = parDepartement<MairiesDep>('mairies');
@@ -491,8 +496,39 @@ export interface Europe {
   ue: number;
   total: number;
   fonds: { nom: string; projets: number; ue: number }[];
-  liste: { nom: string; fonds: string; ue: number; total: number; taux: number; debut: string; fin: string; kohesio: string | null; autorite: string }[];
+  liste: {
+    nom: string;
+    fonds: string;
+    ue: number;
+    total: number;
+    taux: number;
+    debut: string;
+    fin: string;
+    kohesio: string | null;
+    autorite: string;
+    /** Le point retenu, celui de Kohesio ou celui de la correction. */
+    point: Point;
+    /** Rouages a corrigé la localisation : d'après quoi, pourquoi, et où Kohesio le plaçait. */
+    correction: { sources: { titre: string; url: string }[]; constat: string; kohesio: Point | null } | null;
+  }[];
   maj: string;
+}
+
+/** Un point, et ses liens vers deux cartes. */
+export interface Point {
+  lat: number;
+  lon: number;
+  cartes: string;
+  osm: string;
+}
+
+function point(lat: number, lon: number): Point {
+  return {
+    lat,
+    lon,
+    cartes: `https://cartes.gouv.fr/explorer-les-cartes/?c=${lon},${lat}&z=18&p=${lon},${lat}&permalink=yes`,
+    osm: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`,
+  };
 }
 
 /** Les mairies de la commune — la mairie, puis ses mairies déléguées —, d'après l'Annuaire de l'administration. */
@@ -994,7 +1030,7 @@ function europe(c: CommuneFiche): Europe | null {
     ue: x?.ue ?? 0,
     total: x?.total ?? 0,
     fonds: (x?.f ?? []).map(([nom, projets, ue]) => ({ nom, projets, ue })),
-    liste: (x?.p ?? []).map(([nom, fonds, ue, total, taux, debut, fin, id, autorite]) => ({
+    liste: (x?.p ?? []).map(([nom, fonds, ue, total, taux, debut, fin, id, autorite, lat, lon, corr]) => ({
       nom,
       fonds,
       ue,
@@ -1004,6 +1040,14 @@ function europe(c: CommuneFiche): Europe | null {
       fin,
       kohesio: id ? `https://kohesio.ec.europa.eu/fr/projets/${id}` : null,
       autorite,
+      point: point(lat, lon),
+      correction: corr
+        ? {
+            sources: corr.s.map(([titre, url]) => ({ titre, url })),
+            constat: corr.c,
+            kohesio: corr.k ? point(corr.k[0], corr.k[1]) : null,
+          }
+        : null,
     })),
     maj: d.maj,
   };

@@ -1,0 +1,26 @@
+# Les localisations de projets européens corrigées par Rouages.
+#
+# Kohesio place chaque projet au point que déclare l'autorité de gestion, et
+# ce point est parfois faux. Une correction n'entre ici qu'une fois le bon
+# point vérifié : la collecte (`scripts/europe-emettre.ts`) recalcule la
+# commune où il tombe par les contours de l'IGN et refuse la correction si
+# elle ne s'accorde pas avec `commune`. La page du projet affiche
+# « localisation corrigée par Rouages, d'après … ».
+#
+# Chaque correction se signale aussi à Kohesio, depuis la fiche du projet ;
+# `signale_le` dit quand. Une correction devenue inutile — Kohesio a corrigé
+# sa base — se retire.
+corrections_kohesio:
+  - id: Q3675797
+    # Le point relevé par le mainteneur tombe à Saint-Nicolas-des-Biefs, comme
+    # celui de l'office de tourisme (46.048659, 3.768681), à 511 m ; vérifié
+    # le 8 octobre 2026 par les contours de la carte et par l'API Découpage
+    # administratif. Le point de Kohesio (46.060385, 3.668739) est à 8,2 km,
+    # au Mayet-de-Montagne : au lac des Moines, à 36 m du stade municipal et à
+    # 113 m de la piscine, d'après le recensement des équipements sportifs.
+    lat: 46.050848
+    lon: 3.774504
+    commune: "03248"
+    constat: "Kohesio place l'espace naturel sensible des hêtres tortueux de la Bletterie au lac des Moines, au Mayet-de-Montagne, entre le stade et la piscine ; le site est à Saint-Nicolas-des-Biefs, à 8 km."
+    liens: [vichy-hetres-tortueux, geo-api-communes, od-equipements-sportifs]
+    corrige_le: 2026-10-08

@@ -45,6 +45,36 @@ const [debut, fin] = e.periode.split('-');
               .filter(Boolean)
               .join(' · ')}
           </span>
+          <span class="v-nature c-europe-lieu">
+            {p.correction ? (
+              <>
+                Localisation corrigée par Rouages, d’après{' '}
+                {p.correction.sources.map((s, i) => (
+                  <>
+                    {i > 0 && (i === p.correction!.sources.length - 1 ? ' et ' : ', ')}
+                    <a href={s.url} target="_blank" rel="noopener">{s.titre}</a>
+                  </>
+                ))}
+                {` : ${p.correction.constat} `}
+                <a href={p.point.cartes} target="_blank" rel="noopener">cartes.gouv.fr</a>
+                {' · '}
+                <a href={p.point.osm} target="_blank" rel="noopener">OpenStreetMap</a>
+                {p.correction.kohesio && (
+                  <>
+                    {' · '}
+                    <a href={p.correction.kohesio.osm} target="_blank" rel="noopener">le point de Kohesio</a>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                Localisé par Kohesio&nbsp;:{' '}
+                <a href={p.point.cartes} target="_blank" rel="noopener">cartes.gouv.fr</a>
+                {' · '}
+                <a href={p.point.osm} target="_blank" rel="noopener">OpenStreetMap</a>
+              </>
+            )}
+          </span>
         </li>
       ))}
     </ul>
@@ -55,6 +85,8 @@ const [debut, fin] = e.periode.split('-');
       Ce ne sont que les projets que la base localise, à l’endroit que déclare l’autorité de gestion&nbsp;: le lieu du
       projet, ou l’adresse de qui le porte. Une formation suivie dans tout le département peut tomber sur la commune de
       l’organisme, et une action sans lieu précis n’apparaît nulle part. La base ne nomme pas les porteurs français.
+      Chaque ligne mène au point retenu&nbsp;: quand celui de Kohesio est faux et que le bon est vérifié, Rouages le
+      corrige, dit d’après quoi, et signale l’erreur à Kohesio.
     </p>
   </>
 )}

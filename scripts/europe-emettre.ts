@@ -19,7 +19,12 @@
  *   Kohesio au fil des listes publiées par les régions.
  *
  * Le rattachement à la commune se fait par ses contours (ceux de la carte de
- * chaque page), point par point.
+ * chaque page), point par point. Un point que Rouages sait faux est remplacé
+ * par celui de `contenu/corrections-kohesio.yaml`, et seulement si ce nouveau
+ * point tombe bien dans la commune que la correction déclare : sinon la
+ * collecte échoue, et l'ingestion précédente reste en place. Chaque projet
+ * garde son point, pour que la page dise d'où vient la localisation et la
+ * montre sur une carte.
  *
  * Lancé seul — `npx tsx scripts/europe-emettre.ts` —, il réécrit
  * `public/territoires/dep/XX-europe.json`.
@@ -27,6 +32,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { chargerGraphe } from '../src/modele/graphe.ts';
 import { ecrireParDepartement, telechargerSiAbsent } from './par-departement.ts';
 
 export const JEU = 'https://cohesiondata.ec.europa.eu/resource/557j-pmg8.json';
@@ -72,8 +78,21 @@ type Ligne = {
   managingauthority?: string;
 };
 
-/** [nom, fonds, part de l'Union, coût total éligible, taux de cofinancement, début, fin, identifiant Kohesio, autorité de gestion] */
-export type Projet = [string, string, number, number, number, string, string, string, string];
+/**
+ * Une localisation corrigée par Rouages : les sources [titre court, adresse],
+ * le constat, et le point qu'avait donné Kohesio, s'il en avait un.
+ */
+export type Correction = { s: [string, string][]; c: string; k: [number, number] | null };
+
+/**
+ * [nom, fonds, part de l'Union, coût total éligible, taux de cofinancement,
+ * début, fin, identifiant Kohesio, autorité de gestion, latitude, longitude,
+ * correction ou 0 — le point est alors celui de Kohesio]
+ */
+export type Projet = [string, string, number, number, number, string, string, string, string, number, number, Correction | 0];
+
+/** Au mètre près : c'est assez pour une carte, et le fichier reste léger. */
+const arrondi = (v: number) => Math.round(v * 1e5) / 1e5;
 
 export interface EuropeCommune {
   /** Nombre de projets, part de l'Union, coût total éligible. */
@@ -156,6 +175,27 @@ export async function collecterEurope(
   sortie: string,
   dire: (m: string) => void,
 ): Promise<{ maj: string; communes: Map<string, EuropeCommune> } | null> {
+  const commune = indexerContours(sortie);
+
+  // Les corrections d'abord, avant tout téléchargement : chacune doit tomber dans la commune qu'elle déclare.
+  const graphe = chargerGraphe();
+  const corrections = new Map<string, { lat: number; lon: number; correction: Correction }>();
+  for (const c of graphe.correctionsKohesio.values()) {
+    const ou = commune(c.lon, c.lat);
+    if (ou !== c.commune) {
+      throw new Error(
+        `correction Kohesio ${c.id} : le point ${c.lat}, ${c.lon} tombe dans ${ou ?? 'aucune commune'}, ` +
+          `pas dans ${c.commune} comme le déclare contenu/corrections-kohesio.yaml`,
+      );
+    }
+    const s = c.liens.map((id): [string, string] => {
+      const src = graphe.sources.get(id)!;
+      return [src.titre.split(' — ')[0], src.url];
+    });
+    corrections.set(c.id, { lat: c.lat, lon: c.lon, correction: { s, c: c.constat, k: null } });
+  }
+  const appliquees = new Set<string>();
+
   const lignes: Ligne[] = [];
   for (let offset = 0; ; offset += PAR_PAGE) {
     const page = (await lireJson(
@@ -169,12 +209,24 @@ export async function collecterEurope(
     dire(`Fonds européens : ${lignes.length} opérations seulement, on garde l’ingestion précédente.`);
     return null;
   }
-  const commune = indexerContours(sortie);
+
   const brut = new Map<string, Projet[]>();
   let localisees = 0;
   let horsCommune = 0;
   for (const l of lignes) {
-    const [lat, lon] = (l.location_indicator_latitude_longitude ?? '').split(',').map(Number);
+    const id = /\/(Q\d+)$/.exec(l.operation_unique_identifier?.url ?? '')?.[1] ?? '';
+    const [latK, lonK] = (l.location_indicator_latitude_longitude ?? '').split(',').map(Number);
+    const kohesio: [number, number] | null = Number.isFinite(latK) && Number.isFinite(lonK) ? [arrondi(latK), arrondi(lonK)] : null;
+    const corrige = corrections.get(id);
+    if (corrige) {
+      appliquees.add(id);
+      // Kohesio a corrigé de son côté : la correction n'a plus d'objet, et elle se retire.
+      if (kohesio && commune(kohesio[1], kohesio[0]) === commune(corrige.lon, corrige.lat)) {
+        dire(`Fonds européens : Kohesio place désormais ${id} dans la bonne commune — retirer sa correction de contenu/corrections-kohesio.yaml.`);
+      }
+    }
+    const lat = corrige ? corrige.lat : latK;
+    const lon = corrige ? corrige.lon : lonK;
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
     localisees++;
     const code = commune(lon, lat);
@@ -183,7 +235,6 @@ export async function collecterEurope(
       continue;
     }
     const nom = (l.operation_name_programme_language ?? '').replace(/\s+/g, ' ').trim();
-    const id = /\/(Q\d+)$/.exec(l.operation_unique_identifier?.url ?? '')?.[1] ?? '';
     if (!brut.has(code)) brut.set(code, []);
     brut.get(code)!.push([
       nom.length > MAX_NOM ? `${nom.slice(0, MAX_NOM - 1)}…` : nom,
@@ -195,7 +246,13 @@ export async function collecterEurope(
       (l.operation_end_date ?? '').slice(0, 10),
       id,
       (l.managingauthority ?? '').trim(),
+      arrondi(lat),
+      arrondi(lon),
+      corrige ? { ...corrige.correction, k: kohesio } : 0,
     ]);
+  }
+  for (const id of corrections.keys()) {
+    if (!appliquees.has(id)) dire(`Fonds européens : la correction ${id} ne vise aucun projet de la base — à vérifier.`);
   }
   const communes = new Map<string, EuropeCommune>();
   for (const [code, l] of brut) {
@@ -217,7 +274,7 @@ export async function collecterEurope(
     `Fonds européens 2014-2020 (Kohesio) : ${lignes.length.toLocaleString('fr-FR')} opérations, ` +
       `${localisees.toLocaleString('fr-FR')} localisées, rattachées à ${communes.size.toLocaleString('fr-FR')} communes` +
       (horsCommune ? ` (${horsCommune.toLocaleString('fr-FR')} hors de tout contour)` : '') +
-      '.',
+      `, ${appliquees.size} localisation${appliquees.size > 1 ? 's' : ''} corrigée${appliquees.size > 1 ? 's' : ''}.`,
   );
   return { maj: new Date().toISOString().slice(0, 10), communes };
 }

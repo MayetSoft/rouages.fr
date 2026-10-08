@@ -22,6 +22,7 @@ import {
   type Sigle,
   type Surveillance,
   type Source,
+  type CorrectionKohesio,
 } from './schemas.ts';
 
 export const RACINE = new URL('../../', import.meta.url).pathname;
@@ -44,6 +45,8 @@ export interface Graphe {
   sigles: Map<string, Sigle>;
   reperes: Map<string, Repere>;
   surveillances: Map<string, Surveillance>;
+  /** Les localisations de projets européens corrigées par Rouages, par identifiant Kohesio. */
+  correctionsKohesio: Map<string, CorrectionKohesio>;
   decouverte?: Decouverte;
   /** Les mentions légales, déclarées dans `contenu/editeur.yaml`. */
   editeur?: Editeur;
@@ -77,6 +80,7 @@ export function chargerGraphe(): Graphe {
     sigles: new Map(),
     reperes: new Map(),
     surveillances: new Map(),
+    correctionsKohesio: new Map(),
     anomalies: [],
   };
 
@@ -147,6 +151,7 @@ export function chargerGraphe(): Graphe {
     ranger(contenu.sigles, g.sigles, 'sigles');
     ranger(contenu.reperes, g.reperes, 'reperes');
     ranger(contenu.surveillances, g.surveillances, 'surveillances');
+    ranger(contenu.corrections_kohesio, g.correctionsKohesio, 'corrections_kohesio');
     if (contenu.decouverte) g.decouverte = contenu.decouverte;
     if (contenu.editeur) g.editeur = contenu.editeur;
   }
@@ -200,6 +205,8 @@ function verifierReferences(g: Graphe): void {
   for (const s of g.surveillances.values()) {
     if (s.lien) exige(s.lien, g.sources, 'page de référence', `surveillance ${s.id}.lien`);
   }
+
+  for (const c of g.correctionsKohesio.values()) exigeLiens(c.liens, `correction Kohesio ${c.id}`);
 
   // L'ordre des repères est celui du tableau poste par poste : un parent vient
   // avant ses parts, et un repère calculé après ceux dont il se déduit.

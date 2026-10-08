@@ -227,6 +227,11 @@ sigles:
     developpe: "Initiative pour l'emploi des jeunes"
     liens: [od-kohesio]
 
+  - id: sigle-api
+    sigle: API
+    developpe: "Interface de programmation : un service qu'un programme interroge, plutôt qu'une page qu'on lit"
+    liens: [geo-api-communes]
+
   - id: sigle-tva
     sigle: TVA
     developpe: "Taxe sur la valeur ajoutée"

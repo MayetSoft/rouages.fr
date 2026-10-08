@@ -3538,9 +3538,18 @@ un article de loi, une page d'explication — reste sans date.
 Sur la page de chaque commune, dans l'onglet « L'argent » : les projets de la
 politique de cohésion 2014-2020 localisés dans la commune, d'après Kohesio
 (Commission européenne, CC0) — 23 950 opérations françaises localisées sur
-43 942, dans 3 976 communes. Au Mayet-de-Montagne, la chaufferie bois de
-l'école Yves Duteil et le plan de gestion de l'espace naturel des hêtres
-tortueux de la Bletterie.
+43 942, dans 3 977 communes. Au Mayet-de-Montagne, la chaufferie bois de
+l'école Yves Duteil.
+
+Chaque projet dit d'où vient sa localisation — « localisé par Kohesio », avec
+le point sur cartes.gouv.fr et OpenStreetMap — ou qu'elle a été corrigée par
+Rouages, d'après quelles sources. Les corrections sont dans
+`contenu/corrections-kohesio.yaml`, appliquées à chaque ingestion, et la
+collecte échoue si le point corrigé ne tombe pas dans la commune déclarée. La
+première : le plan de gestion des hêtres tortueux de la Bletterie, que Kohesio
+place au lac des Moines, au Mayet-de-Montagne, et qui est à
+Saint-Nicolas-des-Biefs, à 8 km. L'erreur est à signaler à Kohesio
+(REGIO-KOHESIO@ec.europa.eu) ; `signale_le` en garde la date.
 
 Dans le réseau, le flux « Fonds européens » est détaillé fonds par fonds,
 d'après qui les gère en France sur 2021-2027 : FEDER, FSE+, FTJ, FEADER,
