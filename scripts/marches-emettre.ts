@@ -173,6 +173,14 @@ export interface Echeance extends Marche {
    * voyage qu'avec les échéances.
    */
   cpv?: string;
+  /**
+   * L'historique chez cet acheteur : la date du premier marché du même groupe
+   * CPV (trois chiffres) qu'un des titulaires a obtenu chez lui avant
+   * celui-ci, et combien il en a obtenu. Rapproché sur le SIREN de
+   * l'acheteur, le SIREN du titulaire et le groupe CPV, dans les marchés
+   * recensés depuis `DEPUIS` : un titulaire plus ancien n'y paraît pas.
+   */
+  h?: [string, number];
 }
 
 /** Un marché récemment notifié, avec son code CPV : c'est le filtre « mon métier » de qui suit les attributions. */
@@ -314,6 +322,26 @@ function nettoyer(objet: string): string {
     .trim();
 }
 
+/**
+ * Ce qu'un des titulaires d'une échéance a déjà obtenu chez le même acheteur,
+ * dans le même métier (groupe CPV), avant elle : la date du premier de ces
+ * marchés et leur nombre. Rien quand l'échéance n'a ni code CPV ni titulaire
+ * nommé, ou quand il n'y a pas d'antécédent.
+ */
+export function historique(
+  x: { date: string; cpv?: string; t?: [string, string][] },
+  marchesDeLAcheteur: { date: string; cpv?: string; t?: [string, string][] }[],
+): [string, number] | undefined {
+  if (!x.cpv || !x.t || x.t.length === 0) return undefined;
+  const groupe = x.cpv.slice(0, 3);
+  const siens = new Set(x.t.map(([s]) => s));
+  const avant = marchesDeLAcheteur.filter(
+    (y) => y !== x && y.date < x.date && y.cpv?.startsWith(groupe) && (y.t ?? []).some(([s]) => siens.has(s)),
+  );
+  if (avant.length === 0) return undefined;
+  return [avant.map((y) => y.date).sort()[0], avant.length];
+}
+
 export async function collecterMarches(
   json: <T>(url: string) => Promise<T>,
   sirensSuivis: Set<string>,
@@ -451,6 +479,10 @@ export async function collecterMarches(
     if (liste.length > PAR_ACHETEUR) suites.set(siren, liste.slice(PAR_ACHETEUR));
     const proches = tout
       .filter((x): x is Echeance => x.fin !== undefined && x.fin >= fenetre[0] && x.fin <= fenetre[1])
+      .map((x) => {
+        const h = historique(x, tout);
+        return h ? { ...x, h } : x;
+      })
       .sort((a, b) => a.fin.localeCompare(b.fin) || (b.montant ?? 0) - (a.montant ?? 0));
     if (proches.length > 0) {
       echeances.set(siren, proches);
