@@ -260,6 +260,60 @@ lit ne donne ni le canton ni la circonscription, et une correspondance
 devinée nommerait le mauvais élu. La page de la commune renvoie à celle du
 département.
 
+### Les exploitants des sites pollués et des installations classées (8 octobre 2026)
+
+Écrit avant la première collecte, qui ne tourne que depuis l'hébergement
+français : Géorisques et le service du BRGM refusent les machines de GitHub.
+
+Deux registres de l'État, tenus pour l'information du public sur
+l'environnement :
+
+- **La carte des anciens sites industriels et activités de services
+  (CASIAS)**, avec les pollutions connues (ex-BASOL) et les secteurs
+  d'information sur les sols. Le BRGM la tient « pour conserver la mémoire
+  d'anciens sites industriels et activités de service » et fournir des
+  informations utiles à l'urbanisme et à la santé publique. Elle nomme
+  l'exploitant de chaque site, y compris d'activités fermées depuis des
+  décennies, souvent sans SIRET.
+- **Les installations classées pour la protection de l'environnement**, avec
+  leur régime, leur classement Seveso et la date de la dernière inspection.
+  Géorisques nomme l'exploitant ; c'est presque toujours une société, parfois
+  un éleveur ou un artisan en nom propre.
+
+Ce qu'une personne peut en attendre : qu'une activité soumise au contrôle de
+l'État, ou qui a pu polluer un terrain, soit connue de ceux qui y vivent ou
+y achètent. Pas que son nom soit repris par un tiers hors du registre quand
+rien ne dit qu'elle exerçait en société.
+
+Ce qui est retenu, pour chaque site ou installation : le code du registre et
+le lien vers sa fiche, l'inventaire ou le régime, l'état d'activité, le
+classement Seveso, les natures cochées (élevage, carrière, éolien,
+industrie), la priorité nationale d'inspection, l'année de la dernière
+inspection, l'activité. Ce qui ne l'est pas : l'adresse, les coordonnées,
+les rubriques de la nomenclature, la description des pollutions — la fiche
+d'origine les donne.
+
+Le nom de l'exploitant suit la règle des titulaires des marchés :
+
+- **avec un SIRET**, SIRENE décide : une société sous le nom que le registre
+  publie, un entrepreneur individuel sous le nom de SIRENE et seulement s'il
+  est diffusible ; un SIREN que SIRENE ne connaît pas n'est pas nommé, et
+  une opposition inscrite dans `retraits.yaml` s'applique ;
+- **sans SIRET**, le nom n'est repris que s'il porte une forme de société
+  (SARL, SA, SAS, SNC, EARL, GAEC, société, commune, syndicat…). « Garage
+  Martin » n'est pas repris : rien ne dit s'il s'agit d'une société ou d'un
+  artisan, et la fiche du BRGM, vers laquelle la ligne renvoie, le donne.
+
+Le site ne conclut rien : un site recensé à la CASIAS n'est pas un sol
+pollué, et la page le dit à chaque fois ; une installation classée n'est
+pas une infraction. Aucun rapprochement entre un exploitant et un élu ou un
+marché n'est fait.
+
+Ce qui reste au mainteneur : reprendre les noms des anciens exploitants
+sans SIRET. C'est la mémoire que la CASIAS est faite pour garder, mais ce
+sont souvent des artisans en nom propre, décédés ou retirés depuis
+longtemps, que SIRENE ne permet pas de vérifier.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans

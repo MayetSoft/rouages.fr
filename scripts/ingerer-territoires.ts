@@ -809,6 +809,20 @@ async function principal() {
   const radon = await tenter('Potentiel radon', () => collecterRadon(enCache('Zonage radon (1 Mo)'), CACHE, grise));
   if (radon) grise(`${ecrireRadon(SORTIE, radon)} départements de zonage radon écrits.`);
 
+  // Géorisques et le service du BRGM refusent les machines de GitHub : là,
+  // cette collecte échoue et laisse les fichiers produits depuis l'hébergement
+  // français (docs/08-runner-auto-heberge.md).
+  const { collecterGeorisques, ecrireGeorisques } = await import('./georisques-emettre.ts');
+  const georisques = await tenter('Sites et sols pollués, installations classées', () =>
+    collecterGeorisques(
+      enCache('Géorisques — sites et sols pollués, installations classées'),
+      async (url) => (await obstine(url)).text(),
+      CACHE,
+      grise,
+    ),
+  );
+  if (georisques) grise(`${ecrireGeorisques(SORTIE, georisques)} départements de sols pollués et d’installations classées écrits.`);
+
   // Les départements de l'ingestion précédente : l'index de celle-ci n'est
   // écrit que plus bas, et l'ADEME s'interroge département par département.
   const { collecterDpe, ecrireDpe } = await import('./dpe-emettre.ts');

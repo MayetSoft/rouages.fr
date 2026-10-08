@@ -81,6 +81,13 @@ Légifrance refuse les requêtes automatisées depuis cet environnement (403) : 
 vérifie un article par recherche web, jamais de mémoire. Un identifiant
 `LEGIARTI` écrit de tête a déjà été faux une fois.
 
+Géorisques et le service de téléchargement du BRGM (`mapsref.brgm.fr`)
+refusent cet environnement **et les machines de GitHub** : « Request
+Rejected », connexions coupées. Ils répondent depuis l'hébergement français
+(constaté le 8 octobre 2026). `scripts/georisques-emettre.ts` ne produit donc
+ses fichiers que lancé de là ; partout ailleurs il échoue et laisse les
+précédents en place.
+
 **`npm run veille` ment depuis ici, et il écrit ce mensonge dans un fichier
 suivi.** Les sources lourdes décrochent à 6,5 secondes — trois essais sur le
 répertoire national des élus ont donné exactement 6,53 s, ce qui est le tunnel
@@ -147,6 +154,11 @@ Ce qui est autorisé à ce jour :
   avec un lien vers la fiche de l'annuaire des entreprises. Mêmes exclusions
   de diffusion que pour les entrepreneurs individuels ; les oppositions vont dans
   `retraits.yaml` ;
+- **les exploitants des sites et sols pollués et des installations classées**,
+  d'après Géorisques et le BRGM, sous le site ou l'installation, avec le lien
+  vers sa fiche : avec un SIRET, la règle des titulaires des marchés ; sans
+  SIRET, seulement un nom qui porte une forme de société. Un site recensé à
+  la CASIAS n'est pas présenté comme un sol pollué ;
 - **les dirigeants déclarés au répertoire des représentants d'intérêts** de
   la HATVP : nom, prénom, fonction, l'organisation et le lien vers sa fiche.
   Le registre est publié pour dire qui cherche à influencer la décision

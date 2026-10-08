@@ -1,0 +1,72 @@
+---
+/**
+ * Les installations classées pour la protection de l'environnement : ce qui
+ * est exploité aujourd'hui sous le contrôle de l'inspection, son régime et son
+ * classement Seveso. Le site montre le registre, il ne juge pas l'exploitant.
+ */
+import type { Installations } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  i: Installations;
+}
+const { i } = Astro.props;
+const MONTRES = 20;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const SEVESO = ['', 'Seveso seuil bas', 'Seveso seuil haut'];
+const sv = i.seveso.bas + i.seveso.haut;
+const nonNommes = i.liste.filter((x) => !x.nom).length;
+---
+{i.total === 0 ? (
+  <p class="mesure">Aucune installation classée pour la protection de l’environnement n’est recensée dans la commune.</p>
+) : (
+  <>
+    <p class="mesure">
+      {`${nf(i.total)} installation${i.total > 1 ? 's' : ''} classée${i.total > 1 ? 's' : ''} pour la protection de l’environnement : ` +
+        i.parRegime.map((x) => `${nf(x.n)} sous le régime «\u00a0${x.regime.toLowerCase()}\u00a0»`).join(', ') +
+        '.'}
+      {sv > 0 &&
+        ` Dont ${[i.seveso.haut ? `${nf(i.seveso.haut)} Seveso seuil haut` : '', i.seveso.bas ? `${nf(i.seveso.bas)} Seveso seuil bas` : '']
+          .filter(Boolean)
+          .join(' et ')}.`}
+    </p>
+    <ul class="c-structures">
+      {i.liste.slice(0, MONTRES).map((x) => (
+        <li>
+          <a href={`https://www.georisques.gouv.fr/risques/installations/donnees/details/${x.code}`} target="_blank" rel="noopener">
+            {x.nom ?? x.activite ?? `Installation ${x.code}`}
+          </a>
+          <span class="v-nature">
+            {[
+              x.regime.toLowerCase(),
+              x.seveso ? SEVESO[x.seveso] : '',
+              x.natures.join(', '),
+              x.prioriteNationale ? 'priorité nationale d’inspection' : '',
+              x.inspection ? `dernière inspection ${x.inspection.slice(0, 4)}` : '',
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        </li>
+      ))}
+    </ul>
+    {i.total > Math.min(MONTRES, i.liste.length) && (
+      <p class="p-strate">{`Et ${nf(i.total - Math.min(MONTRES, i.liste.length))} autres, sur Géorisques.`}</p>
+    )}
+  </>
+)}
+<p class="p-strate">
+  Une installation qui peut présenter des dangers ou des nuisances — une usine, un élevage, une carrière, un parc
+  éolien — est soumise, selon leur gravité, à autorisation, à enregistrement ou à déclaration (code de
+  l’environnement, art. L511-2). L’inspection des installations classées, dans les services de l’État, les contrôle.
+  {sv > 0 &&
+    ' Le classement Seveso tient aux quantités de substances dangereuses présentes sur le site ; le seuil haut impose les obligations les plus fortes.'}
+</p>
+{nonNommes > 0 && (
+  <p class="p-strate">
+    Le nom de l’exploitant n’est repris que pour une société, ou pour un entrepreneur individuel diffusible au
+    répertoire SIRENE&nbsp;; les autres figurent sur la fiche de Géorisques.
+  </p>
+)}
+<p class="p-source-territoire">
+  {`D’après la base des installations classées publiée sur Géorisques par le ministère de la Transition écologique (téléchargée le ${i.maj}).`}
+</p>

@@ -1,0 +1,78 @@
+---
+/**
+ * Les sites et sols pollués : la mémoire des activités qui ont pu polluer, et
+ * les pollutions connues. Les deux ne se confondent pas, et la page le dit.
+ */
+import type { SolsPollues } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  s: SolsPollues;
+}
+const { s } = Astro.props;
+const MONTRES = 20;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+/** Ce que chaque inventaire désigne ; un code inconnu reste tel que la source l'écrit. */
+const SENS: Record<string, [string, string]> = {
+  BASIAS: ['ancienne activité industrielle ou de service', 'anciennes activités industrielles ou de service'],
+  BASOL: ['pollution connue appelant une action des pouvoirs publics (ex-BASOL)', 'pollutions connues appelant une action des pouvoirs publics (ex-BASOL)'],
+  SIS: ['secteur d’information sur les sols', 'secteurs d’information sur les sols'],
+};
+const sens = (inv: string, n: number) => (SENS[inv] ? SENS[inv][n > 1 ? 1 : 0] : `inventaire ${inv}`);
+const court: Record<string, string> = { BASIAS: 'CASIAS', BASOL: 'ex-BASOL', SIS: 'SIS' };
+const sis = s.parInventaire.find((x) => x.inventaire === 'SIS')?.n ?? 0;
+const nonNommes = s.liste.filter((x) => !x.nom).length;
+---
+{s.total === 0 ? (
+  <p class="mesure">
+    Aucun site de la commune n’est recensé à la carte des anciens sites industriels et activités de services, ni parmi
+    les pollutions connues des sols. L’inventaire ne dit que ce qui a été recensé&nbsp;: une activité ancienne peut lui
+    avoir échappé.
+  </p>
+) : (
+  <>
+    <p class="mesure">
+      {`${nf(s.total)} site${s.total > 1 ? 's' : ''} recensé${s.total > 1 ? 's' : ''} aux inventaires des sols : ` +
+        s.parInventaire.map((x) => `${nf(x.n)} ${sens(x.inventaire, x.n)}`).join(', ') +
+        '. Un même site peut figurer à plusieurs inventaires.'}
+    </p>
+    <ul class="c-structures">
+      {s.liste.slice(0, MONTRES).map((x) => {
+        const libelle = x.nom ?? x.activite ?? `Site ${x.code}`;
+        return (
+          <li>
+            {x.fiche ? <a href={x.fiche} target="_blank" rel="noopener">{libelle}</a> : <span>{libelle}</span>}
+            <span class="v-nature">
+              {[x.inventaires.map((i) => court[i] ?? i).join(', '), x.etat ? x.etat.toLowerCase() : ''].filter(Boolean).join(' · ')}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+    {s.total > Math.min(MONTRES, s.liste.length) && (
+      <p class="p-strate">{`Et ${nf(s.total - Math.min(MONTRES, s.liste.length))} autres, sur Géorisques.`}</p>
+    )}
+  </>
+)}
+{s.total > 0 && (
+  <p class="mesure">
+    Figurer à la carte des anciens sites industriels et activités de services (CASIAS) ne dit pas que le sol est
+    pollué&nbsp;: elle garde la mémoire des activités qui ont pu le polluer, un ancien garage comme une usine chimique.
+    Une pollution connue figure à l’ancien inventaire BASOL.
+  </p>
+)}
+<p class="p-strate">
+  La CASIAS a pris la suite de BASIAS&nbsp;; le BRGM la tient pour l’urbanisme et la santé publique. Une pollution
+  inscrite à l’ancien inventaire BASOL appelle une action des pouvoirs publics, à titre préventif ou curatif.
+  {sis > 0
+    ? ' Dans un secteur d’information sur les sols, un projet de construction ou de lotissement passe par une étude des sols, et le permis demande une attestation qu’elle a été faite et prise en compte (code de l’environnement, art. L556-2).'
+    : ''}
+</p>
+{nonNommes > 0 && (
+  <p class="p-strate">
+    Le nom de l’exploitant n’est repris que pour une société, ou pour un entrepreneur individuel diffusible au
+    répertoire SIRENE&nbsp;; les autres figurent sur la fiche du BRGM.
+  </p>
+)}
+<p class="p-source-territoire">
+  {`D’après la carte des anciens sites industriels et activités de services (CASIAS) et les inventaires des sites et sols pollués du BRGM, publiés sur Géorisques (téléchargés le ${s.maj}).`}
+</p>

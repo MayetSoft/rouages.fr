@@ -34,8 +34,9 @@ Ce que le runner change, ou non, selon la source :
   Rejected » de pare-feu applicatif, comme depuis l'environnement de
   développement. Les sites et sols pollués (CASIAS, ex-BASOL, SIS) et les
   installations classées ne s'ingèrent donc que depuis une machine que ces
-  services acceptent — un serveur en France est le premier essai à faire,
-  sans garantie tant qu'il n'est pas fait.
+  services acceptent. L'hébergement o2switch en est une : le service du BRGM
+  y a répondu le 8 octobre 2026, et `scripts/georisques-emettre.ts` ne
+  produit ses fichiers que lancé de là.
 
 ## Le cache, et ce qui l'empêche de mentir
 

@@ -411,6 +411,20 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /anciens sites industriels et activités de services/i,
+    liens: [
+      { titre: 'Carte des anciens sites industriels et activités de services (CASIAS)', url: dg('66602812d3819d98f09fc8f5') },
+      { titre: 'Le fichier, couche des points', url: 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0&request=getfeature&typename=etablissement_point&outputformat=csvtext' },
+    ],
+  },
+  {
+    motif: /installations classées publiée sur Géorisques/i,
+    liens: [
+      { titre: 'Les installations classées sur Géorisques', url: 'https://www.georisques.gouv.fr/risques/installations/donnees' },
+      { titre: 'Le fichier, couche nationale', url: 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0&request=getfeature&typename=InstallationsClassees&outputformat=csvtext' },
+    ],
+  },
+  {
     motif: /base Palissy/i,
     liens: [
       { titre: 'Objets mobiliers protégés (base Palissy)', url: dg('615bcdd729be9185b3b0681a') },

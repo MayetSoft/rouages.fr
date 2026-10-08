@@ -111,6 +111,21 @@ type RechargeDep = { maj: string; dates: { irve: string; bnlc: string }; c: Reco
 const rechargeDep = parDepartement<RechargeDep>('recharge');
 type ObjetsDep = { maj: string; c: Record<string, [number, number, [string, string, 0 | 1][]]> };
 const objetsDep = parDepartement<ObjetsDep>('objets');
+type SolsPolluesDep = {
+  maj: string;
+  inventaires: string[];
+  etats: string[];
+  activites: string[];
+  c: Record<string, { n: number; i: number[]; s: [string, string | null, number, number[], string, number][] }>;
+};
+const solsPolluesDep = parDepartement<SolsPolluesDep>('sols-pollues');
+type IcpeDep = {
+  maj: string;
+  regimes: string[];
+  activites: string[];
+  c: Record<string, { n: number; r: number[]; sv: [number, number]; l: [string, string | null, number, 0 | 1 | 2, number, string, number][] }>;
+};
+const icpeDep = parDepartement<IcpeDep>('icpe');
 type Couverture = [number, number, number, number, number];
 const petiteEnfanceFichier = national<{
   maj: string;
@@ -423,6 +438,38 @@ export interface Monuments {
 }
 
 /**
+ * Les sites et sols pollués (CASIAS, ex-BASOL, SIS) ; aucun est une réponse,
+ * sur ce que l'inventaire a recensé.
+ */
+export interface SolsPollues {
+  total: number;
+  /** Combien de sites par inventaire, un site pouvant figurer à plusieurs. */
+  parInventaire: { inventaire: string; n: number }[];
+  liste: { code: string; nom: string | null; etat: string; inventaires: string[]; fiche: string | null; activite: string | null }[];
+  maj: string;
+}
+
+/** Les installations classées ; aucune est une réponse. */
+export interface Installations {
+  total: number;
+  parRegime: { regime: string; n: number }[];
+  seveso: { bas: number; haut: number };
+  liste: {
+    code: string;
+    nom: string | null;
+    regime: string;
+    seveso: 0 | 1 | 2;
+    /** Ce que Géorisques coche : élevage, carrière, éolien, industrie, directive IED, priorité nationale. */
+    natures: string[];
+    ied: boolean;
+    prioriteNationale: boolean;
+    inspection: string | null;
+    activite: string | null;
+  }[];
+  maj: string;
+}
+
+/**
  * Ce qui mérite une visite, d'après les offices de tourisme (DATAtourisme) :
  * patrimoine, sites naturels, itinéraires. Rien n'est une réponse aussi — mais
  * une réponse sur ce qu'ils ont saisi, pas sur ce qui existe.
@@ -569,6 +616,8 @@ export interface ComplementsVie {
   antennes: Antennes | null;
   production: Production | null;
   monuments: Monuments | null;
+  solsPollues: SolsPollues | null;
+  installations: Installations | null;
   lieux: Lieux | null;
   zonages: Zonages | null;
   investissement: Investissement | null;
@@ -851,6 +900,57 @@ function monuments(c: CommuneFiche): Monuments | null {
   };
 }
 
+function solsPollues(c: CommuneFiche): SolsPollues | null {
+  const d = solsPolluesDep.get(c.dep);
+  if (!d) return null;
+  const x = d.c[c.code];
+  return {
+    total: x?.n ?? 0,
+    parInventaire: x ? d.inventaires.map((inventaire, k) => ({ inventaire, n: x.i[k] ?? 0 })).filter((v) => v.n > 0) : [],
+    liste: (x?.s ?? []).map(([code, nom, etat, inv, fiche, act]) => ({
+      code,
+      nom,
+      etat: d.etats[etat] ?? '',
+      inventaires: inv.map((k) => d.inventaires[k]),
+      fiche: fiche ? `https://fiches-risques.brgm.fr/georisques/${fiche}` : null,
+      activite: act >= 0 ? d.activites[act] : null,
+    })),
+    maj: d.maj,
+  };
+}
+
+const NATURES_ICPE: [number, string][] = [
+  [1, 'élevage de bovins'],
+  [2, 'élevage de porcs'],
+  [4, 'élevage de volailles'],
+  [8, 'carrière'],
+  [16, 'éoliennes'],
+  [32, 'industrie'],
+];
+
+function installations(c: CommuneFiche): Installations | null {
+  const d = icpeDep.get(c.dep);
+  if (!d) return null;
+  const x = d.c[c.code];
+  return {
+    total: x?.n ?? 0,
+    parRegime: x ? d.regimes.map((regime, k) => ({ regime, n: x.r[k] ?? 0 })).filter((v) => v.n > 0) : [],
+    seveso: { bas: x?.sv[0] ?? 0, haut: x?.sv[1] ?? 0 },
+    liste: (x?.l ?? []).map(([code, nom, regime, seveso, drapeaux, inspection, act]) => ({
+      code,
+      nom,
+      regime: d.regimes[regime] ?? '',
+      seveso,
+      natures: NATURES_ICPE.filter(([bit]) => drapeaux & bit).map(([, n]) => n),
+      ied: (drapeaux & 64) !== 0,
+      prioriteNationale: (drapeaux & 128) !== 0,
+      inspection: inspection || null,
+      activite: act >= 0 ? d.activites[act] : null,
+    })),
+    maj: d.maj,
+  };
+}
+
 function lieux(c: CommuneFiche): Lieux | null {
   const d = lieuxDep.get(c.dep);
   if (!d) return null;
@@ -1070,6 +1170,8 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     antennes: antennes(c),
     production: production(c),
     monuments: monuments(c),
+    solsPollues: solsPollues(c),
+    installations: installations(c),
     lieux: lieux(c),
     zonages: zonages(c),
     investissement: investissement(c),
