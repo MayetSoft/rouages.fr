@@ -414,6 +414,7 @@ const ENTREES: Entree[] = [
     motif: /Kohesio/i,
     liens: [
       { titre: 'Kohesio, projets 2014-2020 (Commission européenne)', url: 'https://cohesiondata.ec.europa.eu/dataset/2014-2020-Kohesio-projects/557j-pmg8' },
+      { titre: 'Mention légale de la Commission européenne (CC BY 4.0)', url: 'https://commission.europa.eu/legal-notice_fr' },
       { titre: 'Kohesio, la plateforme', url: 'https://kohesio.ec.europa.eu/fr/' },
     ],
   },

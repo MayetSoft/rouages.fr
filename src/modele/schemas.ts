@@ -434,7 +434,7 @@ export const Surveillance = z.object({
    * « variable » quand chaque publieur choisit la sienne, « non-precisee »
    * quand la fiche n'en dit rien. /mentions l'affiche jeu par jeu.
    */
-  licence: z.enum(['licence-ouverte-2.0', 'licence-ouverte-1.0', 'licence-ouverte', 'cc0', 'odbl', 'variable', 'non-precisee']),
+  licence: z.enum(['licence-ouverte-2.0', 'licence-ouverte-1.0', 'licence-ouverte', 'cc-by-4.0', 'cc0', 'odbl', 'variable', 'non-precisee']),
   /**
    * Pour un jeu sous ODbL : les fichiers de `public/territoires/` qui en
    * dérivent, et qui sont donc republiés sous ODbL eux aussi. Exigé par

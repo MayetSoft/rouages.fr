@@ -379,6 +379,73 @@ service qui suit les marchés publics doit être complet sur qui les tient.
 - **Le retrait.** Une opposition reçue par `/signaler` va dans `retraits.yaml`,
   par SIREN, et s'applique à l'ingestion suivante, comme pour les titulaires.
 
+### Les bénéficiaires des aides de la PAC — à décider (8 octobre 2026)
+
+Écrit avant toute collecte, pour que le mainteneur tranche. Rien n'est
+collecté tant que la décision n'est pas inscrite ici et dans `CLAUDE.md`.
+
+**Le registre.** Chaque année, le ministère de l'Agriculture publie, par
+le module de l'Agence de services et de paiement, la liste des
+bénéficiaires du FEAGA (premier pilier : aides directes, marchés) et du
+FEADER (second pilier : développement rural). C'est une obligation de
+l'article 98 du règlement (UE) 2021/2116 : publication *a posteriori*,
+chaque année, avec la commune où le bénéficiaire réside ou est enregistré
+et le code postal, et les montants par mesure. Sa finalité est la
+transparence de l'usage des fonds agricoles européens — la plus grosse
+dépense de l'Union, et souvent la première aide publique d'une commune
+rurale.
+
+**Ce que le registre lui-même retient.** Le même article fixe deux limites,
+vérifiées sur son texte le 8 octobre 2026 :
+
+- le nom n'est pas publié quand le bénéficiaire a reçu **1 250 € ou moins**
+  dans l'année ;
+- l'information reste accessible **deux ans** à compter de sa première
+  publication, et l'article 99 oblige à prévenir les bénéficiaires.
+
+Ces limites viennent de l'arrêt *Volker und Markus Schecke et Eifert* de la
+Cour de justice (grande chambre, 9 novembre 2010, affaires C-92/09 et
+C-93/09), qui a invalidé en partie l'ancienne publication nominative des
+personnes physiques, jugée disproportionnée.
+
+**Ce qu'une personne peut en attendre.** Un exploitant en nom propre sait
+que son nom, sa commune et ses aides sont publiés, pour deux ans. Il n'a
+pas choisi d'être public au sens d'un candidat ou d'un élu : il a demandé
+une aide. Republier au-delà de deux ans, ou rendre le nom trouvable depuis
+la page de sa commune pour des années, dépasserait ce que le registre
+annonce. Une société — GAEC, EARL, SCEA — porte souvent le nom de la
+famille qui l'exploite.
+
+**Trois options, de la plus prudente à la plus large.**
+
+1. **Des totaux par commune, sans aucun nom** : nombre de bénéficiaires,
+   montants FEAGA et FEADER, répartition par grandes mesures, sur la
+   dernière année publiée. C'est un agrégat : il ne nomme personne et ne
+   relève pas de la règle des noms. Une commune de moins de quelques
+   bénéficiaires ne serait pas détaillée par mesure, pour qu'on ne puisse
+   pas remonter à un exploitant.
+2. **Les totaux, plus les bénéficiaires qui ne sont pas des personnes
+   physiques** — collectivités, établissements publics, associations,
+   sociétés —, sous leur dénomination, avec le lien vers le module de
+   l'ASP, retirés après deux ans. À vérifier sur le fichier : qu'il
+   distingue les personnes physiques, sinon la forme juridique dans la
+   dénomination ne suffira pas à les écarter sans erreur.
+3. **Tout ce que le ministère publie**, personnes physiques comprises au-delà
+   de 1 250 €, retiré après deux ans, avec les oppositions de
+   `retraits.yaml`.
+
+**Recommandation.** L'option 1 d'abord : elle répond à la question qu'on
+se pose sur une commune rurale — combien l'Europe y verse par l'agriculture
+— sans exposer personne. L'option 2 se décide ensuite, fichier en main.
+L'option 3 n'est pas recommandée : le site la rendrait plus durable et plus
+trouvable que le registre ne l'annonce.
+
+**Ce qui bloque, en plus de la décision.** Le fichier n'est pas joignable
+depuis l'environnement de développement : la page du ministère coupe la
+connexion, et le module de l'ASP renvoie à l'identification. Il faut
+l'adresse du fichier national, relevée depuis une autre machine, pour écrire
+la collecte.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans

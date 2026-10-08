@@ -80,27 +80,31 @@ type Ligne = {
 
 /**
  * Une localisation corrigée par Rouages : les sources [titre court, adresse],
- * le constat, et le point qu'avait donné Kohesio, s'il en avait un.
+ * le constat, le point qu'avait donné Kohesio s'il en avait un, et la date à
+ * laquelle l'erreur lui a été signalée, s'il l'a été.
  */
-export type Correction = { s: [string, string][]; c: string; k: [number, number] | null };
+export type Correction = { s: [string, string][]; c: string; k: [number, number] | null; d?: string };
 
 /**
  * [nom, fonds, part de l'Union, coût total éligible, taux de cofinancement,
- * début, fin, identifiant Kohesio, autorité de gestion, latitude, longitude,
- * correction ou 0 — le point est alors celui de Kohesio]
+ * début, fin, identifiant Kohesio, autorité de gestion — ou programme, pour
+ * 2021-2027 —, latitude, longitude, correction ou 0 — le point est alors
+ * celui de Kohesio —, et le nombre de communes quand le projet en a plusieurs]
  */
-export type Projet = [string, string, number, number, number, string, string, string, string, number, number, Correction | 0];
+export type Projet = [string, string, number, number, number, string, string, string, string, number, number, Correction | 0, number?];
 
 /** Au mètre près : c'est assez pour une carte, et le fichier reste léger. */
 const arrondi = (v: number) => Math.round(v * 1e5) / 1e5;
 
 export interface EuropeCommune {
-  /** Nombre de projets, part de l'Union, coût total éligible. */
+  /** Nombre de projets propres à la commune, part de l'Union, coût total éligible. */
   n: number;
   ue: number;
   total: number;
   /** Par fonds : [libellé, projets, part de l'Union]. */
   f: [string, number, number][];
+  /** Les projets partagés avec d'autres communes : listés, mais hors des totaux. */
+  m?: number;
   /** Les plus gros. */
   p: Projet[];
 }
@@ -168,18 +172,18 @@ export function indexerContours(sortie: string): (lon: number, lat: number) => s
   };
 }
 
-/* --- la collecte -------------------------------------------------------- */
+/* --- les corrections et le regroupement --------------------------------- */
 
-export async function collecterEurope(
-  lireJson: (url: string) => Promise<unknown>,
-  sortie: string,
-  dire: (m: string) => void,
-): Promise<{ maj: string; communes: Map<string, EuropeCommune> } | null> {
-  const commune = indexerContours(sortie);
+type Corrections = Map<string, { lat: number; lon: number; correction: Correction }>;
 
-  // Les corrections d'abord, avant tout téléchargement : chacune doit tomber dans la commune qu'elle déclare.
+/**
+ * Les corrections de `contenu/corrections-kohesio.yaml`, chacune vérifiée :
+ * son point doit tomber dans la commune qu'elle déclare, sinon la collecte
+ * s'arrête — avant tout téléchargement.
+ */
+function chargerCorrections(commune: (lon: number, lat: number) => string | null): Corrections {
   const graphe = chargerGraphe();
-  const corrections = new Map<string, { lat: number; lon: number; correction: Correction }>();
+  const corrections: Corrections = new Map();
   for (const c of graphe.correctionsKohesio.values()) {
     const ou = commune(c.lon, c.lat);
     if (ou !== c.commune) {
@@ -192,8 +196,55 @@ export async function collecterEurope(
       const src = graphe.sources.get(id)!;
       return [src.titre.split(' — ')[0], src.url];
     });
-    corrections.set(c.id, { lat: c.lat, lon: c.lon, correction: { s, c: c.constat, k: null } });
+    corrections.set(c.id, {
+      lat: c.lat,
+      lon: c.lon,
+      correction: { s, c: c.constat, k: null, ...(c.signale_le ? { d: c.signale_le.toISOString().slice(0, 10) } : {}) },
+    });
   }
+  return corrections;
+}
+
+/**
+ * Les projets de chaque commune, rangés des plus gros aux plus petits, avec
+ * leurs totaux. Un projet réparti sur plusieurs communes y figure partout,
+ * mais ses montants ne s'ajoutent à aucun total : la base ne dit pas quelle
+ * part revient à chaque lieu.
+ */
+function agreger(brut: Map<string, Projet[]>): Map<string, EuropeCommune> {
+  const communes = new Map<string, EuropeCommune>();
+  for (const [code, l] of brut) {
+    l.sort((a, b) => b[2] - a[2]);
+    const comptes = l.filter((p) => !p[12]);
+    const f = new Map<string, [number, number]>();
+    for (const p of comptes) {
+      const v = f.get(p[1]) ?? [0, 0];
+      f.set(p[1], [v[0] + 1, v[1] + p[2]]);
+    }
+    const partages = l.length - comptes.length;
+    communes.set(code, {
+      n: comptes.length,
+      ue: comptes.reduce((s, p) => s + p[2], 0),
+      total: comptes.reduce((s, p) => s + p[3], 0),
+      f: [...f].sort((a, b) => b[1][1] - a[1][1]).map(([nom, [n, ue]]) => [nom, n, ue]),
+      ...(partages ? { m: partages } : {}),
+      p: l.slice(0, LISTES),
+    });
+  }
+  return communes;
+}
+
+/* --- la collecte -------------------------------------------------------- */
+
+export async function collecterEurope(
+  lireJson: (url: string) => Promise<unknown>,
+  sortie: string,
+  dire: (m: string) => void,
+): Promise<{ maj: string; communes: Map<string, EuropeCommune> } | null> {
+  const commune = indexerContours(sortie);
+
+  // Les corrections d'abord, avant tout téléchargement : chacune doit tomber dans la commune qu'elle déclare.
+  const corrections = chargerCorrections(commune);
   const appliquees = new Set<string>();
 
   const lignes: Ligne[] = [];
@@ -254,22 +305,7 @@ export async function collecterEurope(
   for (const id of corrections.keys()) {
     if (!appliquees.has(id)) dire(`Fonds européens : la correction ${id} ne vise aucun projet de la base — à vérifier.`);
   }
-  const communes = new Map<string, EuropeCommune>();
-  for (const [code, l] of brut) {
-    l.sort((a, b) => b[2] - a[2]);
-    const f = new Map<string, [number, number]>();
-    for (const p of l) {
-      const v = f.get(p[1]) ?? [0, 0];
-      f.set(p[1], [v[0] + 1, v[1] + p[2]]);
-    }
-    communes.set(code, {
-      n: l.length,
-      ue: l.reduce((s, p) => s + p[2], 0),
-      total: l.reduce((s, p) => s + p[3], 0),
-      f: [...f].sort((a, b) => b[1][1] - a[1][1]).map(([nom, [n, ue]]) => [nom, n, ue]),
-      p: l.slice(0, LISTES),
-    });
-  }
+  const communes = agreger(brut);
   dire(
     `Fonds européens 2014-2020 (Kohesio) : ${lignes.length.toLocaleString('fr-FR')} opérations, ` +
       `${localisees.toLocaleString('fr-FR')} localisées, rattachées à ${communes.size.toLocaleString('fr-FR')} communes` +
@@ -283,11 +319,169 @@ export function ecrireEurope(sortie: string, e: { maj: string; communes: Map<str
   return ecrireParDepartement(sortie, 'europe', e.communes, () => ({ maj: e.maj, periode: '2014-2020' }));
 }
 
+/* --- 2021-2027 : l'API de Kohesio ---------------------------------------- */
+
+/**
+ * La période 2021-2027 n'est pas encore sur cohesiondata : on la lit dans
+ * l'API publique dont se sert le site de Kohesio, programme par programme
+ * puis fonds par fonds. Son contenu relève de la mention légale de la
+ * Commission, à laquelle renvoie Kohesio : CC BY 4.0, source citée.
+ *
+ * La base donne désormais le nom du bénéficiaire — l'article 49 du
+ * règlement (UE) 2021/1060 l'impose — mais pas son numéro SIREN : on ne sait
+ * pas distinguer une entreprise d'un entrepreneur individuel, ni appliquer
+ * ses oppositions. Le site ne le reprend donc pas.
+ */
+export const API_KOHESIO = 'https://kohesio.ec.europa.eu/api';
+const ENTITE = 'https://linkedopendata.eu/entity/';
+const FRANCE = `${ENTITE}Q20`;
+const PERIODE_2127 = `${ENTITE}Q7333082`;
+const PAR_PAGE_API = 1000;
+
+type ProjetApi = {
+  item: string;
+  labels?: string[];
+  startTimes?: string[];
+  endTimes?: string[];
+  euBudgets?: string[];
+  totalBudgets?: string[];
+  /** « longitude,latitude », un par lieu. */
+  coordinates?: string[];
+};
+
+const FONDS_2127: Record<string, string> = {
+  ERDF: 'FEDER',
+  'ESF+': 'FSE+',
+  JTF: 'FTJ',
+  CF: 'Fonds de cohésion',
+};
+
+/** « 31500000,00 » → 31500000 */
+const montant = (v: string | undefined) => Math.round(Number(String(v ?? '').replace(/\s/g, '').replace(',', '.')) || 0);
+
+async function toutesLesPages(lireJson: (url: string) => Promise<unknown>, filtres: string): Promise<ProjetApi[]> {
+  const tout: ProjetApi[] = [];
+  for (let offset = 0; ; offset += PAR_PAGE_API) {
+    const page = (await lireJson(
+      `${API_KOHESIO}/projects?language=fr&country=${encodeURIComponent(FRANCE)}` +
+        `&programmingPeriod=${encodeURIComponent(PERIODE_2127)}${filtres}&limit=${PAR_PAGE_API}&offset=${offset}`,
+    )) as { list?: ProjetApi[]; numberResults?: number };
+    const l = page.list ?? [];
+    tout.push(...l);
+    if (l.length < PAR_PAGE_API || tout.length >= (page.numberResults ?? 0)) break;
+  }
+  return tout;
+}
+
+export async function collecterEurope2127(
+  lireJson: (url: string) => Promise<unknown>,
+  sortie: string,
+  dire: (m: string) => void,
+): Promise<{ maj: string; communes: Map<string, EuropeCommune> } | null> {
+  const commune = indexerContours(sortie);
+  const corrections = chargerCorrections(commune);
+  const q = (u: string) => encodeURIComponent(u);
+
+  // Le programme de chaque projet, puis son fonds : la liste de l'API ne donne ni l'un ni l'autre.
+  const programmes = (await lireJson(
+    `${API_KOHESIO}/queries/programs?language=fr&country=${q(FRANCE)}&programmingPeriod=${q(PERIODE_2127)}`,
+  )) as { instance: string; instanceLabel: string }[];
+  const projets = new Map<string, ProjetApi>();
+  const programmeDe = new Map<string, string>();
+  for (const p of programmes) {
+    const libelle = p.instanceLabel.replace(/^\S+\s+-\s+/, '').replace(/\s+\d{4}-\d{4}$/, '').trim();
+    for (const x of await toutesLesPages(lireJson, `&program=${q(p.instance)}`)) {
+      projets.set(x.item, x);
+      programmeDe.set(x.item, libelle);
+    }
+  }
+  const fonds = (await lireJson(`${API_KOHESIO}/queries/funds?language=fr&programmingPeriod=${q(PERIODE_2127)}`)) as {
+    instance: string;
+    instanceLabel: string;
+  }[];
+  const fondsDe = new Map<string, string>();
+  for (const f of fonds) {
+    const code = f.instanceLabel.split(' - ')[0].trim();
+    if (!FONDS_2127[code]) continue;
+    for (const x of await toutesLesPages(lireJson, `&fund=${q(f.instance)}`)) {
+      fondsDe.set(x.item, FONDS_2127[code]);
+      if (!projets.has(x.item)) projets.set(x.item, x);
+    }
+  }
+  if (projets.size < 1_000) {
+    dire(`Fonds européens 2021-2027 : ${projets.size} projets seulement, on garde l’ingestion précédente.`);
+    return null;
+  }
+
+  const brut = new Map<string, Projet[]>();
+  const appliquees = new Set<string>();
+  let localises = 0;
+  let partages = 0;
+  for (const x of projets.values()) {
+    const corrige = corrections.get(x.item);
+    const points: [number, number][] = corrige
+      ? [[corrige.lat, corrige.lon]]
+      : (x.coordinates ?? [])
+          .map((c) => c.split(',').map(Number))
+          .filter(([lon, lat]) => Number.isFinite(lat) && Number.isFinite(lon))
+          .map(([lon, lat]) => [lat, lon]);
+    if (corrige) appliquees.add(x.item);
+    // Un point par commune : le premier qui y tombe.
+    const parCommune = new Map<string, [number, number]>();
+    for (const [lat, lon] of points) {
+      const code = commune(lon, lat);
+      if (code && !parCommune.has(code)) parCommune.set(code, [lat, lon]);
+    }
+    if (parCommune.size === 0) continue;
+    localises++;
+    if (parCommune.size > 1) partages++;
+    const nom = (x.labels?.[0] ?? '').replace(/\s+/g, ' ').trim();
+    const ue = montant(x.euBudgets?.[0]);
+    const total = montant(x.totalBudgets?.[0]);
+    const premier = (x.coordinates ?? [])[0]?.split(',').map(Number);
+    for (const [code, [lat, lon]] of parCommune) {
+      if (!brut.has(code)) brut.set(code, []);
+      brut.get(code)!.push([
+        nom.length > MAX_NOM ? `${nom.slice(0, MAX_NOM - 1)}…` : nom,
+        fondsDe.get(x.item) ?? 'autre instrument',
+        ue,
+        total,
+        total > 0 ? Math.round((ue / total) * 1000) / 10 : 0,
+        (x.startTimes?.[0] ?? '').slice(0, 10),
+        (x.endTimes?.[0] ?? '').slice(0, 10),
+        x.item,
+        programmeDe.get(x.item) ?? '',
+        arrondi(lat),
+        arrondi(lon),
+        corrige
+          ? { ...corrige.correction, k: premier && Number.isFinite(premier[1]) ? [arrondi(premier[1]), arrondi(premier[0])] : null }
+          : 0,
+        ...(parCommune.size > 1 ? [parCommune.size] : []),
+      ] as Projet);
+    }
+  }
+  const communes = agreger(brut);
+  dire(
+    `Fonds européens 2021-2027 (Kohesio) : ${projets.size.toLocaleString('fr-FR')} projets, ` +
+      `${localises.toLocaleString('fr-FR')} localisés dans ${communes.size.toLocaleString('fr-FR')} communes, ` +
+      `${partages.toLocaleString('fr-FR')} sur plusieurs communes` +
+      (appliquees.size ? `, ${appliquees.size} localisation${appliquees.size > 1 ? 's' : ''} corrigée${appliquees.size > 1 ? 's' : ''}` : '') +
+      '.',
+  );
+  return { maj: new Date().toISOString().slice(0, 10), communes };
+}
+
+export function ecrireEurope2127(sortie: string, e: { maj: string; communes: Map<string, EuropeCommune> }): number {
+  return ecrireParDepartement(sortie, 'europe21', e.communes, () => ({ maj: e.maj, periode: '2021-2027' }));
+}
+
 // Lancé seul.
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const racine = join(fileURLToPath(new URL('.', import.meta.url)), '..');
   const { lireJson, sortie } = telechargerSiAbsent(racine);
   if (!existsSync(join(sortie, 'dep'))) throw new Error('public/territoires/dep absent');
   const e = await collecterEurope(lireJson, sortie, console.log);
-  if (e) console.log(`${ecrireEurope(sortie, e)} départements écrits.`);
+  if (e) console.log(`${ecrireEurope(sortie, e)} départements écrits (2014-2020).`);
+  const e21 = await collecterEurope2127(lireJson, sortie, console.log);
+  if (e21) console.log(`${ecrireEurope2127(sortie, e21)} départements écrits (2021-2027).`);
 }
