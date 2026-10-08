@@ -493,3 +493,8 @@ export function liensDesSources(texte: string): LienSource[] {
 export function toutesLesAdresses(): string[] {
   return [...new Set(ENTREES.flatMap((e) => e.liens.map((l) => l.url)))];
 }
+
+/** Les adresses de chaque source, groupées : la fiche d'un jeu et son fichier vont ensemble. */
+export function sourcesEtLiens(): string[][] {
+  return ENTREES.map((e) => e.liens.map((l) => l.url));
+}

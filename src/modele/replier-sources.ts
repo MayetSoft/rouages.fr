@@ -7,14 +7,31 @@
  * un mur de texte. Ces paragraphes portent tous l'une des deux classes
  * `p-strate` (la lecture, les réserves) ou `p-source-territoire` (la source).
  * Une suite de tels paragraphes, où qu'elle soit, devient un `<details>`
- * replié, fermé par défaut, qui ajoute les liens vers les fichiers.
+ * replié, fermé par défaut, qui ajoute les liens vers les fichiers — et,
+ * quand l'ingestion les a notées, la date où chacun a été récupéré et celle
+ * de la version lue.
  *
  * Fait sur le HTML produit plutôt que dans chacun des cinquante composants :
  * ces paragraphes y sont le plus souvent conditionnels, et un oubli laisserait
  * un bloc déplié parmi des blocs repliés. Un composant qui en ajoute un
  * nouveau est replié sans rien faire.
  */
+import { national } from './fiche-commune.ts';
 import { liensDesSources } from './sources-donnees.ts';
+
+/** Écrit par l'ingestion (`scripts/provenance.ts`) : récupéré le, version du. */
+const provenance = national<Record<string, { r: string; v?: string }>>('provenance.json');
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const jour = (iso: string) => {
+  const [a, m, j] = iso.split('-').map(Number);
+  return `${j === 1 ? '1er' : j}\u00a0${MOIS[m - 1]}\u00a0${a}`;
+};
+/** « récupéré le 7 octobre 2026, version du 12 septembre 2026 », ou rien quand on ne sait pas. */
+function dates(url: string): string {
+  const p = provenance()?.[url];
+  if (!p) return '';
+  return `<span class="sm-dates">récupéré le ${jour(p.r)}${p.v ? `, version du ${jour(p.v)}` : ''}</span>`;
+}
 
 const SUITE = /(?:<p class="p-(?:strate|source-territoire)"[^>]*>[\s\S]*?<\/p>\s*)+/g;
 const SOURCE = /<p class="p-source-territoire"[^>]*>([\s\S]*?)<\/p>/g;
@@ -37,7 +54,7 @@ export function replierSources(html: string): string {
     const liste = liens.length
       ? '<ul class="sm-liens">' +
         liens
-          .map((l) => `<li><a href="${echapper(l.url)}" rel="noopener" target="_blank">${echapper(l.titre)}</a></li>`)
+          .map((l) => `<li><a href="${echapper(l.url)}" rel="noopener" target="_blank">${echapper(l.titre)}</a>${dates(l.url)}</li>`)
           .join('') +
         '</ul>'
       : '';

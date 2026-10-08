@@ -1196,6 +1196,7 @@ a.p-sommaire-lien { text-decoration: none; }
 .sm-corps > p:last-of-type { margin-bottom: 0; }
 .sm-liens { margin: .6rem 0 0; padding: .55rem 0 0 1.1rem; border-top: 1px solid var(--trait); }
 .sm-liens li { margin-bottom: .2rem; }
+.sm-dates { display: block; font-size: .76rem; color: var(--encre-tres-douce); }
 /* Les listes des blocs (associations, entreprises, représentants) se mettent en
    grille ; celle des liens de source, qu'elles contiennent, reste une liste. */
 .p-assos .sm-liens { display: block; list-style: disc; margin: .6rem 0 0; padding: .55rem 0 0 1.1rem; }
