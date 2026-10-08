@@ -74,7 +74,20 @@ export interface NomSirene {
  * résultat ne doit pas être nommé.
  */
 export async function nomsSirene(texte: (url: string) => Promise<string>, sirens: Iterable<string>): Promise<Map<string, NomSirene>> {
+  return (await diffusionSirene(texte, sirens)).noms;
+}
+
+/**
+ * Les noms publiables, et à part les SIREN que le répertoire refuse de
+ * diffuser. Un registre qui publie lui-même le nom — une ancienne entreprise
+ * à la CASIAS — peut le garder pour un SIREN inconnu, jamais pour un refus.
+ */
+export async function diffusionSirene(
+  texte: (url: string) => Promise<string>,
+  sirens: Iterable<string>,
+): Promise<{ noms: Map<string, NomSirene>; refuses: Set<string> }> {
   const noms = new Map<string, NomSirene>();
+  const tousRefuses = new Set<string>();
   const uniques = [...new Set(sirens)].filter((s) => /^\d{9}$/.test(s));
   for (let i = 0; i < uniques.length; i += 100) {
     const lot = uniques.slice(i, i + 100);
@@ -100,6 +113,7 @@ export async function nomsSirene(texte: (url: string) => Promise<string>, sirens
       if (affiche) vus.set(siren, { nom: affiche, ei });
     }
     for (const [siren, n] of vus) if (!refuses.has(siren)) noms.set(siren, n);
+    for (const siren of refuses) tousRefuses.add(siren);
   }
-  return noms;
+  return { noms, refuses: tousRefuses };
 }

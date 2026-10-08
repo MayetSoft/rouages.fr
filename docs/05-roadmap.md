@@ -3517,9 +3517,21 @@ Le service refuse les machines de GitHub et l'environnement de
 développement : la collecte ne tourne que depuis l'hébergement français, et
 ses fichiers n'existent pas encore. Ni le nombre de sites ni celui des
 installations n'est donc écrit ici : il le sera d'après la première
-ingestion. Restent à faire : les instructions des pollutions ex-BASOL (leur
-état, « en cours » ou « terminée »), et la décision du mainteneur sur le nom
-des anciens exploitants sans SIRET (`docs/07-risques.md`).
+ingestion. Les exploitants sont nommés tels que le registre les publie,
+anciennes entreprises comprises (`docs/07-risques.md`). Reste à faire : les
+instructions des pollutions ex-BASOL (leur état, « en cours » ou
+« terminée »).
+
+### La date de chaque source — en attente de la prochaine ingestion
+
+Sous chaque lien de l'encadré « Sources et méthode » : le jour où l'ingestion
+a récupéré la source, et la date de la version lue quand la source la publie
+— l'en-tête `Last-Modified` du fichier, ou la date des données d'un portail
+Opendatasoft quand elle précède la lecture. `scripts/provenance.ts` note
+chaque lecture réussie et écrit `public/territoires/provenance.json` en fin
+de course ; une collecte lancée seule l'écrit en se terminant, et une
+collecte en échec garde ses dates. Un lien qu'aucune lecture ne rejoint —
+un article de loi, une page d'explication — reste sans date.
 
 ## Phase 3 — Élargir
 

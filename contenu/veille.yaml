@@ -782,12 +782,15 @@ surveillances:
   # quand le jeu est republié. Les installations classées viennent du même
   # service et n'ont pas de fiche nationale sur data.gouv : c'est l'ingestion,
   # lancée depuis l'hébergement français, qui dit si leur couche répond.
-  # La fiche ne précise pas de licence.
+  # La fiche data.gouv ne précise pas de licence ; les conditions générales
+  # de Géorisques, lues depuis l'hébergement français le 8 octobre 2026,
+  # placent ses contenus sous la Licence Ouverte d'Etalab, avec un lien vers
+  # sa version 2.0 (github.com/etalab/licence-ouverte, LO.md).
   - id: brgm-casias
     nom: "BRGM — sites et sols pollués et installations classées (Géorisques)"
     alimente: "les sites et sols pollués et les installations classées de la commune"
     type: datagouv-ressource
-    licence: non-precisee
+    licence: licence-ouverte-2.0
     url: "66602812d3819d98f09fc8f5"
     ressource: "fichier csv casias"
     lien: od-brgm-casias

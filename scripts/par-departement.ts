@@ -9,6 +9,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
+import { ecrireProvenanceEnSortant, garderVersion, journaliserLesLectures, noterDuCache } from './provenance.ts';
 
 export function departementDe(code: string): string {
   return code.startsWith('97') || code.startsWith('98') ? code.slice(0, 3) : code.slice(0, 2);
@@ -153,6 +154,10 @@ export async function* lignesCsv(
 export function telechargerSiAbsent(racine: string) {
   const cache = join(racine, '.cache');
   if (!existsSync(cache)) mkdirSync(cache, { recursive: true });
+  // Les lectures datent les sources de l'encadré « Sources et méthode » ;
+  // une collecte lancée seule les écrit en se terminant (voir `provenance.ts`).
+  journaliserLesLectures();
+  ecrireProvenanceEnSortant(join(racine, 'public', 'territoires'));
   const obstine = async (url: string): Promise<Response> => {
     let derniere: unknown;
     for (let i = 0; i < 8; i++) {
@@ -170,13 +175,17 @@ export function telechargerSiAbsent(racine: string) {
   // Le tunnel de l'environnement de développement coupe parfois une grosse
   // réponse sans erreur : on compare à la longueur annoncée.
   const telecharger = async (url: string, vers: string) => {
-    if (existsSync(vers)) return;
+    if (existsSync(vers)) {
+      noterDuCache(url, vers);
+      return;
+    }
     for (let i = 0; i < 6; i++) {
       const r = await obstine(url);
       const attendu = Number(r.headers.get('content-length') ?? 0);
       const corps = Buffer.from(await r.arrayBuffer().catch(() => new ArrayBuffer(0)));
       if (!attendu || corps.length === attendu) {
         writeFileSync(vers, corps);
+        garderVersion(url, vers);
         return;
       }
     }

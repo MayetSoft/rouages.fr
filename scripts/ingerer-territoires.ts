@@ -32,6 +32,7 @@ import {
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { chargerGraphe, RACINE } from '../src/modele/graphe.ts';
+import { ecrireProvenance, garderVersion, journaliserLesLectures, noter, noterDuCache } from './provenance.ts';
 
 // Le `fetch` intégré de Node ne lit la configuration de proxy qu'à son
 // démarrage : la poser depuis le script serait trop tard. Quand on tourne
@@ -138,6 +139,7 @@ async function telechargerEnCache(
   if (reutiliser && tropVieux) dire(`${GRIS}${annonce} : en cache depuis plus de ${joursMax} jours, on le refait${RAZ}`);
   if (reutiliser && !tropVieux && existsSync(vers) && sourceConnue === url) {
     dire(`${GRIS}${annonce} : déjà en cache (${(statSync(vers).size / 1e6).toFixed(0)} Mo)${RAZ}`);
+    noterDuCache(url, vers);
     return;
   }
   if (reutiliser && !tropVieux && existsSync(vers)) {
@@ -156,6 +158,7 @@ async function telechargerEnCache(
     await telecharger(url, partiel);
     renameSync(partiel, vers);
     writeFileSync(provenance, `${url}\n`);
+    garderVersion(url, vers);
   } catch (e) {
     rmSync(partiel, { force: true });
     throw e;
@@ -785,9 +788,14 @@ async function principal() {
   const agriculture = await tenter('Recensement agricole', () =>
     collecterAgriculture(
       async (url, vers) => {
-        if (reutiliser && existsSync(vers)) return;
+        if (reutiliser && existsSync(vers)) {
+          noterDuCache(url, vers);
+          return;
+        }
         grise('Recensement agricole 2020 — Agreste (1 Mo)…');
+        // Un processus à part : le journal des lectures ne le voit pas.
         await telechargerAvecIntermediaire(url, vers);
+        noter(url);
       },
       CACHE,
       grise,
@@ -1214,4 +1222,11 @@ async function ecrire(
   });
 }
 
+// Chaque lecture réussie est notée, pour dater les sources de l'encadré
+// « Sources et méthode » (voir `provenance.ts`).
+journaliserLesLectures();
 await principal();
+{
+  const n = await ecrireProvenance(SORTIE, async (url) => (await obstine(url, 2)).json());
+  dire(`${GRIS}${n} liens de sources datés (provenance.json).${RAZ}`);
+}
