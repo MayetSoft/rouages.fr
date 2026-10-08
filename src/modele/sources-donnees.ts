@@ -411,6 +411,13 @@ const ENTREES: Entree[] = [
     ],
   },
   {
+    motif: /Annuaire de l.administration/i,
+    liens: [
+      { titre: 'Annuaire de l’administration, base de données locales (DILA)', url: 'https://www.data.gouv.fr/datasets/service-public-gouv-fr-annuaire-de-ladministration-base-de-donnees-locales/' },
+      { titre: 'L’annuaire, interrogé par la collecte', url: 'https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration/' },
+    ],
+  },
+  {
     motif: /anciens sites industriels et activités de services/i,
     liens: [
       { titre: 'Carte des anciens sites industriels et activités de services (CASIAS)', url: dg('66602812d3819d98f09fc8f5') },

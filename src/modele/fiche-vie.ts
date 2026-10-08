@@ -111,6 +111,8 @@ type RechargeDep = { maj: string; dates: { irve: string; bnlc: string }; c: Reco
 const rechargeDep = parDepartement<RechargeDep>('recharge');
 type ObjetsDep = { maj: string; c: Record<string, [number, number, [string, string, 0 | 1][]]> };
 const objetsDep = parDepartement<ObjetsDep>('objets');
+type MairiesDep = { maj: string; c: Record<string, [string, string, string, string, string, number | null, number | null, string, string, string][]> };
+const mairiesDep = parDepartement<MairiesDep>('mairies');
 type SolsPolluesDep = {
   maj: string;
   inventaires: string[];
@@ -449,6 +451,22 @@ export interface SolsPollues {
   maj: string;
 }
 
+/** Les mairies de la commune — la mairie, puis ses mairies déléguées —, d'après l'Annuaire de l'administration. */
+export interface Mairies {
+  liste: {
+    nom: string;
+    site: string | null;
+    telephone: string | null;
+    courriels: string[];
+    adresse: string | null;
+    position: { lat: number; lon: number } | null;
+    horaires: string | null;
+    precision: string | null;
+    fiche: string | null;
+  }[];
+  maj: string;
+}
+
 /** Les installations classées ; aucune est une réponse. */
 export interface Installations {
   total: number;
@@ -617,6 +635,7 @@ export interface ComplementsVie {
   production: Production | null;
   monuments: Monuments | null;
   solsPollues: SolsPollues | null;
+  mairies: Mairies | null;
   installations: Installations | null;
   lieux: Lieux | null;
   zonages: Zonages | null;
@@ -900,6 +919,26 @@ function monuments(c: CommuneFiche): Monuments | null {
   };
 }
 
+function mairies(c: CommuneFiche): Mairies | null {
+  const d = mairiesDep.get(c.dep);
+  const l = d?.c[c.code];
+  if (!d || !l || l.length === 0) return null;
+  return {
+    liste: l.map(([nom, site, telephone, courriel, adresse, lat, lon, horaires, precision, fiche]) => ({
+      nom,
+      site: site || null,
+      telephone: telephone || null,
+      courriels: courriel.split(/[;,\s]+/).filter((x) => x.includes('@')),
+      adresse: adresse || null,
+      position: lat !== null && lon !== null ? { lat, lon } : null,
+      horaires: horaires || null,
+      precision: precision || null,
+      fiche: fiche || null,
+    })),
+    maj: d.maj,
+  };
+}
+
 function solsPollues(c: CommuneFiche): SolsPollues | null {
   const d = solsPolluesDep.get(c.dep);
   if (!d) return null;
@@ -1171,6 +1210,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     production: production(c),
     monuments: monuments(c),
     solsPollues: solsPollues(c),
+    mairies: mairies(c),
     installations: installations(c),
     lieux: lieux(c),
     zonages: zonages(c),

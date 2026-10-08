@@ -1014,6 +1014,10 @@ a.p-sommaire-lien { text-decoration: none; }
    texte, un sigle, un chiffre — une rangée à part. Seul le sous-titre passe
    à la ligne. */
 .c-structures li { font-size: .95rem; }
+/* La mairie : ses coordonnées, en tête de l'onglet « En bref ». */
+.c-mairie { margin: 1.2rem 0; }
+.c-mairie-ligne { margin: .15rem 0; max-width: var(--mesure); }
+.c-mairie-precision { margin: .35rem 0; max-width: var(--mesure); font-size: .85rem; color: var(--encre-douce); }
 .c-structures li > .v-nature { display: block; margin-top: .05rem; }
 .c-verdicts { margin: 0; display: grid; gap: .55rem; }
 .c-verdicts > div {
