@@ -24,6 +24,7 @@ const CHAMPS = [
   'nomusageunitelegale',
   'prenomusuelunitelegale',
   'prenom1unitelegale',
+  'etatadministratifunitelegale',
 ] as const;
 
 /** Un CSV à point-virgule et guillemets, en lignes de champs. */
@@ -67,6 +68,8 @@ export interface NomSirene {
   nom: string;
   /** Vrai pour un entrepreneur individuel (catégorie juridique 1000). */
   ei: boolean;
+  /** Vrai quand le répertoire dit l'unité légale cessée. */
+  cessee: boolean;
 }
 
 /**
@@ -102,7 +105,7 @@ export async function diffusionSirene(
     const refuses = new Set<string>();
     const vus = new Map<string, NomSirene>();
     for (const r of l.slice(1)) {
-      const [siren, statut, categorie, denomination, nom, usage, prenomUsuel, prenom] = j.map((k) => (r[k] ?? '').trim());
+      const [siren, statut, categorie, denomination, nom, usage, prenomUsuel, prenom, etat] = j.map((k) => (r[k] ?? '').trim());
       if (!siren) continue;
       if (statut !== 'O') {
         refuses.add(siren);
@@ -110,7 +113,9 @@ export async function diffusionSirene(
       }
       const ei = categorie === '1000';
       const affiche = ei ? nomPersonne(nom, usage, prenomUsuel, prenom) : denomination || nomPersonne(nom, usage, prenomUsuel, prenom);
-      if (affiche) vus.set(siren, { nom: affiche, ei });
+      // Un établissement par ligne : l'unité légale est cessée si une ligne le dit.
+      const cessee = /^c/i.test(etat) || vus.get(siren)?.cessee === true;
+      if (affiche) vus.set(siren, { nom: affiche, ei, cessee });
     }
     for (const [siren, n] of vus) if (!refuses.has(siren)) noms.set(siren, n);
     for (const siren of refuses) tousRefuses.add(siren);
