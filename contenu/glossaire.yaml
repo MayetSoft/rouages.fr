@@ -245,6 +245,30 @@ sigles:
     definition: "L'autorité indépendante qui reçoit les déclarations des responsables publics et tient le répertoire des représentants d'intérêts."
     liens: [od-hatvp-repertoire]
 
+  - id: sigle-brgm
+    sigle: BRGM
+    developpe: "Bureau de recherches géologiques et minières"
+    definition: "L'établissement public, service géologique national, qui tient pour l'État les inventaires des sites et sols pollués publiés sur Géorisques."
+    liens: [od-brgm-casias]
+
+  - id: sigle-casias
+    sigle: CASIAS
+    developpe: "Carte des anciens sites industriels et activités de services"
+    definition: "L'inventaire des activités passées qui ont pu polluer les sols, d'un garage à une usine chimique, qui a pris la suite de BASIAS. Y figurer ne dit pas que le sol est pollué."
+    liens: [od-brgm-casias]
+
+  - id: sigle-basias
+    sigle: BASIAS
+    developpe: "Base des anciens sites industriels et activités de service"
+    definition: "L'inventaire historique des activités qui ont pu polluer les sols, aujourd'hui repris dans la CASIAS."
+    liens: [od-brgm-casias]
+
+  - id: sigle-basol
+    sigle: BASOL
+    developpe: "Base des sites et sols pollués"
+    definition: "L'ancien inventaire des sites dont la pollution est connue et appelle une action des pouvoirs publics, à titre préventif ou curatif ; ses fiches sont reprises sur Géorisques."
+    liens: [od-brgm-casias]
+
   - id: sigle-dila
     sigle: DILA
     developpe: "Direction de l'information légale et administrative"

@@ -88,6 +88,8 @@ import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
+import SolsPollues from '../../composants/commune/SolsPollues.astro';
+import Installations from '../../composants/commune/Installations.astro';
 import Lieux from '../../composants/commune/Lieux.astro';
 import { complementsVie } from '../../modele/fiche-vie.ts';
 
@@ -290,6 +292,8 @@ const sommaire: [string, string, unknown][] = [
   ['construit', 'Ce qui s’y construit', fiche?.logements],
   ['sols', 'Les sols consommés', vie.artificialisation],
   ['risques', 'Les risques', risquesMontres],
+  ['installations', 'Les installations classées', vie.installations],
+  ['sols-pollues', 'Les sols pollués', vie.solsPollues],
   ['logement-social', 'Le logement social', plus.sru],
   ['marches', 'Les marchés', plus.marches.length > 0],
   ['deliberations', 'Les délibérations', plus.deliberations.length > 0],
@@ -353,7 +357,7 @@ const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   {
     id: 'environnement',
     nom: 'Environnement et patrimoine',
-    blocs: ['risques', 'secheresse', 'nature', 'production', 'monuments', 'a-voir'],
+    blocs: ['risques', 'installations', 'sols-pollues', 'secheresse', 'nature', 'production', 'monuments', 'a-voir'],
   },
   { id: 'suivre', nom: 'Suivre la commune', blocs: ['journal', 'ailleurs'] },
 ];
@@ -861,6 +865,20 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             : ' Aucun document d’information communal recensé.'}
         </p>
         )}
+      </section>
+    )}
+
+    {vie.installations && (
+      <section id="installations">
+        <h2 class="badge">Les installations classées</h2>
+        <Installations i={vie.installations} />
+      </section>
+    )}
+
+    {vie.solsPollues && (
+      <section id="sols-pollues">
+        <h2 class="badge">Les sites et sols pollués</h2>
+        <SolsPollues s={vie.solsPollues} />
       </section>
     )}
 

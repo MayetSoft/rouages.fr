@@ -3503,6 +3503,24 @@ donne ni le canton ni la circonscription, et une correspondance devinée
 nommerait le mauvais élu. La page de la commune renvoie à celle du
 département.
 
+### Les sites et sols pollués, les installations classées — en attente de la première collecte
+
+`scripts/georisques-emettre.ts` lit sur le service du BRGM la carte des
+anciens sites industriels et activités de services (CASIAS, ex-BASIAS), les
+pollutions connues (ex-BASOL), les secteurs d'information sur les sols et
+les installations classées, et la page de la commune les montre sous « Les
+risques », dans l'onglet Environnement. Chaque couche est comptée par le
+service avant d'être lue ; un fichier qui rend moins de lignes qu'annoncé
+arrête la collecte.
+
+Le service refuse les machines de GitHub et l'environnement de
+développement : la collecte ne tourne que depuis l'hébergement français, et
+ses fichiers n'existent pas encore. Ni le nombre de sites ni celui des
+installations n'est donc écrit ici : il le sera d'après la première
+ingestion. Restent à faire : les instructions des pollutions ex-BASOL (leur
+état, « en cours » ou « terminée »), et la décision du mainteneur sur le nom
+des anciens exploitants sans SIRET (`docs/07-risques.md`).
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
