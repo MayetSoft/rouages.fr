@@ -394,7 +394,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         {moisAnnee(fiche.maire.depuis) && (
           <span class="p-maire-depuis">mandat en cours depuis {moisAnnee(fiche.maire.depuis)}</span>
         )}
-        {fiche.maire.naissance && <span class="p-maire-depuis">{`année de naissance ${fiche.maire.naissance}`}</span>}
+        {fiche.maire.naissance && <span class="p-maire-depuis"><abbr title="année de naissance">n.</abbr>{`\u00a0${fiche.maire.naissance}`}</span>}
         {fiche.maireCc && <span class="p-maire-depuis">{siegeCc(fiche.maireCc)}</span>}
       </p>
     )}
