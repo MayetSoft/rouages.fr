@@ -8,6 +8,7 @@
  * inventaire complet.
  */
 import type { Europe } from '../../modele/fiche-vie.ts';
+import { formaterDate } from '../../modele/graphe.ts';
 
 interface Props {
   e: Europe;
@@ -65,6 +66,7 @@ const [debut, fin] = e.periode.split('-');
                     <a href={p.correction.kohesio.osm} target="_blank" rel="noopener">le point de Kohesio</a>
                   </>
                 )}
+                {p.correction.signale && ` · erreur signalée à Kohesio le ${formaterDate(new Date(p.correction.signale))}`}
               </>
             ) : (
               <>

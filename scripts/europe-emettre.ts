@@ -80,9 +80,10 @@ type Ligne = {
 
 /**
  * Une localisation corrigée par Rouages : les sources [titre court, adresse],
- * le constat, et le point qu'avait donné Kohesio, s'il en avait un.
+ * le constat, le point qu'avait donné Kohesio s'il en avait un, et la date à
+ * laquelle l'erreur lui a été signalée, s'il l'a été.
  */
-export type Correction = { s: [string, string][]; c: string; k: [number, number] | null };
+export type Correction = { s: [string, string][]; c: string; k: [number, number] | null; d?: string };
 
 /**
  * [nom, fonds, part de l'Union, coût total éligible, taux de cofinancement,
@@ -192,7 +193,7 @@ export async function collecterEurope(
       const src = graphe.sources.get(id)!;
       return [src.titre.split(' — ')[0], src.url];
     });
-    corrections.set(c.id, { lat: c.lat, lon: c.lon, correction: { s, c: c.constat, k: null } });
+    corrections.set(c.id, { lat: c.lat, lon: c.lon, correction: { s, c: c.constat, k: null, ...(c.signale_le ? { d: c.signale_le.toISOString().slice(0, 10) } : {}) } });
   }
   const appliquees = new Set<string>();
 

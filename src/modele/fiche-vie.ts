@@ -135,7 +135,7 @@ type EuropeDep = {
 /** Voir `Projet` dans `scripts/europe-emettre.ts`. */
 type ProjetEurope = [
   string, string, number, number, number, string, string, string, string, number, number,
-  { s: [string, string][]; c: string; k: [number, number] | null } | 0,
+  { s: [string, string][]; c: string; k: [number, number] | null; d?: string } | 0,
 ];
 const europeDep = parDepartement<EuropeDep>('europe');
 type MairiesDep = { maj: string; c: Record<string, [string, string, string, string, string, number | null, number | null, string, string, string][]> };
@@ -509,7 +509,7 @@ export interface Europe {
     /** Le point retenu, celui de Kohesio ou celui de la correction. */
     point: Point;
     /** Rouages a corrigé la localisation : d'après quoi, pourquoi, et où Kohesio le plaçait. */
-    correction: { sources: { titre: string; url: string }[]; constat: string; kohesio: Point | null } | null;
+    correction: { sources: { titre: string; url: string }[]; constat: string; kohesio: Point | null; signale: string | null } | null;
   }[];
   maj: string;
 }
@@ -1046,6 +1046,7 @@ function europe(c: CommuneFiche): Europe | null {
             sources: corr.s.map(([titre, url]) => ({ titre, url })),
             constat: corr.c,
             kohesio: corr.k ? point(corr.k[0], corr.k[1]) : null,
+            signale: corr.d ?? null,
           }
         : null,
     })),
