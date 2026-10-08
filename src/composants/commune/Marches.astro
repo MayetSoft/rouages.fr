@@ -16,6 +16,7 @@
 import type { AcheteurMarches } from '../../modele/fiche-commune.ts';
 import Glose from '../Glose.astro';
 import { moisAnnee, montantCourt } from '../../vues/graphiques.ts';
+import { procedureAffichee } from '../../vues/sigles-marches.ts';
 
 interface Props {
   liste: AcheteurMarches[];
@@ -32,8 +33,12 @@ const autres = (m: AcheteurMarches['liste'][number]) =>
     ? `${m.titulaires.length > 0 ? 'et ' : ''}${m.autresTitulaires} titulaire${m.autresTitulaires > 1 ? 's' : ''} non nommé${m.autresTitulaires > 1 ? 's' : ''}`
     : '';
 const offres = (n: number | null) => (n === null ? [] : [`${n} offre${n > 1 ? 's' : ''} reçue${n > 1 ? 's' : ''}`]);
-const detail = (m: AcheteurMarches['liste'][number]) =>
-  [moisAnnee(m.date) ?? m.date, ...(m.procedure ? [m.procedure.toLowerCase()] : []), ...(m.lots > 1 ? [`${m.lots} lots`] : []), ...offres(m.offres)].join(' · ');
+const detail = (m: AcheteurMarches['liste'][number]) => [
+  moisAnnee(m.date) ?? m.date,
+  ...(m.procedure ? [procedureAffichee(m.procedure)] : []),
+  ...(m.lots > 1 ? [`${m.lots} lots`] : []),
+  ...offres(m.offres),
+];
 
 // Le quinze du mois : `new Date('2027-03')` est minuit UTC le 1er mars, qui
 // s'affiche « février » partout à l'ouest de Greenwich.
@@ -48,9 +53,9 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
   [
     ...(plusieursAcheteurs ? [m.acheteur] : []),
     `notifié en ${moisAnnee(m.date) ?? m.date}`,
-    ...(m.procedure ? [m.procedure.toLowerCase()] : []),
+    ...(m.procedure ? [procedureAffichee(m.procedure)] : []),
     ...offres(m.offres),
-  ].join(' · ');
+  ];
 ---
 {fenetre && echeances.length > 0 && (
   <div class="p-marche-acheteur p-echeances">
@@ -80,10 +85,14 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
           <span class="p-echeance-mois">{mois(m.fin)}</span>
           <span>
             <span class="p-marche-objet">{m.objet}</span>
-            <span class="p-marche-detail">{`${montantCourt(m.montant)} · ${detailEcheance(m)}`}</span>
+            <span class="p-marche-detail">
+              {[montantCourt(m.montant), ...detailEcheance(m)].map((x, i) => (
+                <>{i > 0 && ' · '}{typeof x === 'string' ? x : <abbr title={x.titre}>{x.sigle}</abbr>}</>
+              ))}
+            </span>
             {m.titulaires.length > 0 && (
               <span class="p-marche-detail p-marche-titulaires">
-                {'titulaire : '}
+                <span class="visuellement-cache">titulaire : </span><span aria-hidden="true">→ </span>
                 {m.titulaires.map((t, i) => (
                   <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
                 ))}
@@ -121,10 +130,14 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
             <span class="p-marche-montant">{montantCourt(m.montant)}</span>
             <span>
               <span class="p-marche-objet">{m.objet}</span>
-              <span class="p-marche-detail">{detail(m)}</span>
+              <span class="p-marche-detail">
+                {detail(m).map((x, i) => (
+                  <>{i > 0 && ' · '}{typeof x === 'string' ? x : <abbr title={x.titre}>{x.sigle}</abbr>}</>
+                ))}
+              </span>
               {(m.titulaires.length > 0 || m.autresTitulaires > 0) && (
                 <span class="p-marche-detail p-marche-titulaires">
-                  {'titulaire : '}
+                  <span class="visuellement-cache">titulaire : </span><span aria-hidden="true">→ </span>
                   {m.titulaires.map((t, i) => (
                     <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
                   ))}
@@ -162,6 +175,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
 </p>
 <script is:inline type="application/json" id="marches-procedures" set:html={JSON.stringify(procedures).replace(/</g, "\\u003c")} />
 <script>
+  import { procedureAffichee } from '../../vues/sigles-marches.ts';
   /**
    * « Voir les 403 autres ». Le premier clic va chercher le fichier de
    * l'acheteur, une fois ; les suivants n'ajoutent que vingt-cinq lignes, parce
@@ -199,14 +213,29 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
   const ligne = (m: Brut) => {
     const li = document.createElement('li');
     const droite = document.createElement('span');
-    const sous = [moisAnnee(m.date) ?? m.date];
+    const sous: (string | { sigle: string; titre: string })[] = [moisAnnee(m.date) ?? m.date];
     const proc = procedures[m.procedure];
-    if (proc) sous.push(proc.toLowerCase());
+    if (proc) sous.push(procedureAffichee(proc));
     if (m.lots > 1) sous.push(`${m.lots} lots`);
     if (m.offres) sous.push(`${m.offres} offre${m.offres > 1 ? 's' : ''} reçue${m.offres > 1 ? 's' : ''}`);
-    droite.append(span('p-marche-objet', m.objet), span('p-marche-detail', sous.join(' · ')));
+    const detail = span('p-marche-detail', '');
+    sous.forEach((x, i) => {
+      if (i > 0) detail.append(' · ');
+      if (typeof x === 'string') detail.append(x);
+      else {
+        const abbr = document.createElement('abbr');
+        abbr.title = x.titre;
+        abbr.textContent = x.sigle;
+        detail.append(abbr);
+      }
+    });
+    droite.append(span('p-marche-objet', m.objet), detail);
     if ((m.t ?? []).length > 0 || m.tx) {
-      const t = span('p-marche-detail p-marche-titulaires', 'titulaire : ');
+      const t = span('p-marche-detail p-marche-titulaires', '');
+      t.append(span('visuellement-cache', 'titulaire : '));
+      const fleche = span('', '→ ');
+      fleche.setAttribute('aria-hidden', 'true');
+      t.append(fleche);
       (m.t ?? []).forEach(([siren, nom], i) => {
         if (i > 0) t.append(', ');
         const a = document.createElement('a');

@@ -1223,7 +1223,7 @@ async function ecrire(
 }
 
 // Chaque lecture réussie est notée, pour dater les sources de l'encadré
-// « Sources et méthode » (voir `provenance.ts`).
+// « Sources » (voir `provenance.ts`).
 journaliserLesLectures();
 await principal();
 {

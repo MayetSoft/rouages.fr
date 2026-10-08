@@ -1,7 +1,7 @@
 /**
  * Quand chaque source a été lue, et de quand date ce qu'on a lu.
  *
- * L'encadré « Sources et méthode » de chaque bloc renvoie aux jeux de données
+ * L'encadré « Sources » de chaque bloc renvoie aux jeux de données
  * et aux fichiers (`src/modele/sources-donnees.ts`). Ce module y ajoute deux
  * dates, quand elles existent :
  *
