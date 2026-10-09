@@ -149,10 +149,11 @@ export type Creation = [mois: string, titre: string, domaine: number];
  * reste ; une association qui n'a rien déclaré depuis 2009 n'y est pas, mais
  * dans le fichier historique, sans code de commune.
  */
-export type Existante = [titre: string, objet: string, domaine: number, annee: number, site: string];
+export type Existante = [titre: string, objet: string, domaine: number, annee: number, site: string, declaree: number];
 /**
- * Les existantes écrites dans le fichier du département, de la plus
- * récemment déclarée à la plus ancienne ; la suite a son propre fichier,
+ * Les existantes écrites dans le fichier du département, de la dernière
+ * déclaration en préfecture la plus récente à la plus ancienne — l'année en
+ * est gardée, pour que la page dise l'ordre ; la suite a son propre fichier,
  * `associations/<code>.json`, que le bouton « Voir les autres » va chercher.
  */
 const EXISTANTES_LISTEES = 20;
@@ -282,6 +283,7 @@ export async function collecterAssociations(
           RANG_DOMAINE.get((l['objet_social1'] ?? '').slice(0, 3)) ?? -1,
           Number.parseInt((l['date_creat'] ?? '').slice(0, 4), 10) || 0,
           siteDe((l['siteweb'] ?? '').trim()),
+          Number.parseInt((l['date_decla'] ?? '').slice(0, 4), 10) || 0,
         ]);
       }
     }

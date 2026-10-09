@@ -1301,3 +1301,7 @@ a.p-sommaire-lien { text-decoration: none; }
 /* Dans le bloc des marchés, la grille de `.p-marches li` ne doit pas s'y appliquer. */
 .c-ailleurs li { display: block; font-size: .92rem; }
 .c-ailleurs-editeur { display: block; font-size: .78rem; color: var(--encre-tres-douce); }
+
+/* Les représentants d'intérêts au-delà des trente décrits : leurs noms, en colonnes. */
+.c-representants-courts { list-style: none; margin: .4rem 0 0; padding: 0; columns: 16rem; column-gap: 1.2rem; font-size: .84rem; }
+.c-representants-courts li { break-inside: avoid; padding: .1rem 0; }

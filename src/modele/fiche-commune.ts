@@ -346,7 +346,7 @@ export interface Associations {
   recentes: { mois: string; titre: string; domaine: string | null }[];
   /** Les associations existantes au fichier Waldec : leur nombre, et les plus récemment déclarées. */
   existantes: number;
-  liste: { titre: string; objet: string; domaine: string | null; annee: number | null; site: string | null }[];
+  liste: { titre: string; objet: string; domaine: string | null; annee: number | null; site: string | null; declaree: number | null }[];
   /** La table des domaines, pour la suite chargée à la demande. */
   domainesTous: string[];
   taux: number;
@@ -542,7 +542,7 @@ type AssoDep = {
   domaines: string[];
   mediane: number;
   effectif: number;
-  c: Record<string, { n: number; a: number[]; d: [number, number][]; r: [string, string, number][]; e?: number; x?: [string, string, number, number, string][] }>;
+  c: Record<string, { n: number; a: number[]; d: [number, number][]; r: [string, string, number][]; e?: number; x?: [string, string, number, number, string, number?][] }>;
 };
 type PopDep = { maj: string; annees: number[]; c: Record<string, [number[], number, number]> };
 type CcasDep = {
@@ -1206,12 +1206,14 @@ function assemblerAssociations(commune: CommuneFiche, population: number): Assoc
     })),
     existantes: f.e ?? 0,
     domainesTous: d.domaines,
-    liste: (f.x ?? []).map(([titre, objet, dom, annee, site]) => ({
+    liste: (f.x ?? []).map(([titre, objet, dom, annee, site, declaree]) => ({
       titre,
       objet,
       domaine: dom >= 0 ? (d.domaines[dom] ?? null) : null,
       annee: annee || null,
       site: site || null,
+      // Absente des fichiers d'avant le 10 octobre 2026.
+      declaree: declaree || null,
     })),
     taux: population > 0 ? (f.n / population) * 1000 : 0,
     medianeTaux: d.mediane,
