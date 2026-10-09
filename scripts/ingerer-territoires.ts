@@ -411,11 +411,13 @@ async function principal() {
     ),
   );
 
-  // Les marchés publics du bloc communal. Le filtre est donné ici : le module
-  // ne retient que les acheteurs dont le site connaît le SIREN — communes du
-  // découpage et groupements de BANATIC.
+  // Les marchés publics du bloc communal, du département et de la région. Le
+  // filtre est donné ici : le module ne retient que les acheteurs dont le site
+  // connaît le SIREN — communes du découpage, groupements de BANATIC, et la
+  // table des départements et des régions tirée de SIRENE.
   const { collecterMarches } = await import('./marches-emettre.ts');
-  const sirensSuivis = new Set<string>();
+  const { COLLECTIVITES_SIRENS } = await import('../src/modele/collectivites-sirens.ts');
+  const sirensSuivis = new Set<string>(COLLECTIVITES_SIRENS.keys());
   for (const g of groupements.values()) sirensSuivis.add(g.siren);
   // Le même registre que l'émetteur, lu ici pour connaître les SIREN communaux :
   // un paquet npm épinglé, donc reproductible.
@@ -505,6 +507,8 @@ async function principal() {
       prefixesSuivis.push(...prefixesEchelon(d.code, d.region ? chefLieux.get(d.region) : undefined));
     }
   }
+  // `sirensSuivis` porte déjà la table des départements et des régions : elle
+  // reconnaît les sept régions de 2016, que le préfixe manque.
   const estSuivi = (siren: string) =>
     sirensSuivis.has(siren) || prefixesSuivis.some((p) => siren.startsWith(p));
 

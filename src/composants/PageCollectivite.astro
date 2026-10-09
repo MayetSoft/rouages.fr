@@ -13,6 +13,7 @@ import {
   COLLECTIVITES_UNIQUES,
   comptesCollectivite,
   lienCollectivite,
+  marchesCollectivite,
   type Collectivite,
 } from '../modele/fiche-commune.ts';
 import { communes, intercommunalites, lienIntercommunalite, metaTerritoires } from '../modele/territoires.ts';
@@ -23,6 +24,7 @@ import { carteDeCommunes } from '../modele/carte.ts';
 import Investissement from './commune/Investissement.astro';
 import PetiteEnfance from './commune/PetiteEnfance.astro';
 import ElusCollectivite from './ElusCollectivite.astro';
+import Marches from './commune/Marches.astro';
 import { elusDeCollectivite } from '../modele/elus-echelons.ts';
 
 interface Props {
@@ -87,6 +89,7 @@ const carte =
 // sous ces deux pages, plutôt qu'un chiffre attribué à la mauvaise.
 const partage = c.code === '69' || c.code === '691';
 const zonages = partage ? null : zonagesGroupe(communes().filter((x) => deps.includes(x.dep)));
+const marches = marchesCollectivite(c);
 const investissement = c.echelon === 'departement' ? investissementCollectivite('departement', c.code) : null;
 const petiteEnfance = partage || c.code === '67A' ? null : petiteEnfanceCollectivite(c.echelon, c.code);
 
@@ -167,6 +170,12 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
       <section id="investissement">
         <h2 class="badge">Les projets que l’État a subventionnés</h2>
         <Investissement i={investissement} echelon="departement" />
+      </section>
+    )}
+    {marches && (
+      <section id="marches" class="p-marches">
+        <h2 class="badge">Ses marchés publics</h2>
+        <Marches liste={marches.liste} depuis={marches.depuis} fenetre={marches.fenetre} procedures={marches.procedures} />
       </section>
     )}
     {zonages && (

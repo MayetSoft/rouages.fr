@@ -81,11 +81,15 @@ function imbrique<T>(brut: unknown): T[] {
   }
 }
 
-/** 0 : la mairie principale ou l'intercommunalité ; 1 : une autre mairie ; rien : une autre fiche. */
+/**
+ * 0 : la mairie principale, l'intercommunalité, le conseil départemental ou
+ * régional ; 1 : une autre mairie ; rien : une autre fiche — une maison des
+ * solidarités porte le SIRET du département, ce n'est pas son accueil.
+ */
 function rang(l: LigneAnnuaire): number | null {
   const types = imbrique<{ type_service_local?: string }>(l.pivot).map((p) => p.type_service_local);
   const nom = (l.nom ?? '').trim();
-  if (types.includes('epci')) return 0;
+  if (types.includes('epci') || types.includes('cg') || types.includes('cr')) return 0;
   if (types.includes('mairie')) {
     return /^Mairie - /.test(nom) && !/arrondissement/i.test(nom) ? 0 : 1;
   }
@@ -94,8 +98,9 @@ function rang(l: LigneAnnuaire): number | null {
 
 /**
  * Une fiche par acheteur suivi, lue une fois dans l'annuaire entier : 55 000
- * fiches portent un SIRET, 28 Mo, huit secondes. Seules les mairies et les
- * intercommunalités sont demandées.
+ * fiches portent un SIRET, 28 Mo, huit secondes. Seules les mairies, les
+ * intercommunalités et les conseils départementaux et régionaux (« cg »,
+ * « cr » : 116 fiches le 9 octobre 2026) sont demandés.
  */
 export async function collecterContacts(
   json: <T>(url: string) => Promise<T>,
@@ -104,7 +109,7 @@ export async function collecterContacts(
 ): Promise<Map<string, FicheAnnuaire>> {
   const lignes = await json<LigneAnnuaire[]>(
     `${ANNUAIRE}/exports/json?select=nom,siret,pivot,telephone,adresse_courriel,site_internet,url_service_public,statut_de_diffusion` +
-      `&where=${encodeURIComponent('siret is not null and (pivot like "mairie" or pivot like "epci")')}`,
+      `&where=${encodeURIComponent('siret is not null and (pivot like "mairie" or pivot like "epci" or pivot like "cg" or pivot like "cr")')}`,
   );
   const meilleures = new Map<string, { rang: number; siret: string; l: LigneAnnuaire }>();
   for (const l of lignes) {
@@ -141,7 +146,7 @@ export async function collecterContacts(
     });
   }
   dire(
-    `  annuaire de l'administration : ${lignes.length.toLocaleString('fr-FR')} fiches de mairie ou d'intercommunalité lues, ` +
+    `  annuaire de l'administration : ${lignes.length.toLocaleString('fr-FR')} fiches de mairie, d'intercommunalité, de département ou de région lues, ` +
       `${fiches.size.toLocaleString('fr-FR')} acheteurs sur ${sirens.size.toLocaleString('fr-FR')} en ont une.`,
   );
   return fiches;
