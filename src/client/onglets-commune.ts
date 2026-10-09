@@ -141,13 +141,8 @@ if (conteneur && carte) {
     resultats.textContent = '';
     for (const b of boutons) b.querySelector('[data-trouves]')!.textContent = '';
     const { plie: aiguille } = plier(q.trim());
-    if (aiguille.length < 2) {
-      for (const b of boutons) {
-        const n = liens.filter((l) => l.dataset.famille === b.dataset.famille).length;
-        b.querySelector('[data-trouves]')!.textContent = n ? String(n) : '';
-      }
-      return;
-    }
+    // Hors recherche, aucun nombre : il passait pour un compte d'informations.
+    if (aiguille.length < 2) return;
     const trouves: { noeud: Text; debut: number; fin: number; famille: string }[] = [];
     const parFamille = new Map<string, number>();
     for (const { section, famille } of blocs) {
@@ -165,9 +160,12 @@ if (conteneur && carte) {
         }
       }
     }
+    // Seulement là où la recherche trouve : un « 0 » laissait croire l'onglet vide.
     for (const b of boutons) {
       const n = parFamille.get(b.dataset.famille!) ?? 0;
-      b.querySelector('[data-trouves]')!.textContent = n ? String(n) : '0';
+      const pastille = b.querySelector<HTMLElement>('[data-trouves]')!;
+      pastille.textContent = n ? String(n) : '';
+      pastille.title = n ? `${n} résultat${n > 1 ? 's' : ''} pour cette recherche` : '';
     }
     const total = [...parFamille.values()].reduce((a, b) => a + b, 0);
     const resume = document.createElement('p');

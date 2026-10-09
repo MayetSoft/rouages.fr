@@ -401,7 +401,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
           {famillesPresentes.map((f) => (
             <button type="button" role="tab" class="c-onglet" id={`onglet-${f.id}`} data-famille={f.id} aria-selected="false" tabindex="-1">
               {f.nom}
-              <span class="c-onglet-nombre" data-trouves>{f.id === 'apercu' ? '' : f.n}</span>
+              <span class="c-onglet-nombre" data-trouves></span>
             </button>
           ))}
         </div>
