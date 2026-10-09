@@ -142,11 +142,20 @@ jobs:
             echo '| Jeu | Fichiers |'
             echo '|---|---:|'
             git diff --name-only HEAD~1 -- public/territoires \
-              | sed -E 's#^public/territoires/##; s#^dep/[0-9AB]+-##; s#\.json$##' \
+              | sed -E 's#^public/territoires/##; s#^dep/[0-9AB]+-##; s#^([a-z0-9_-]+)/.*$#\1/#; s#\.json$##' \
               | sort | uniq -c | sort -rn \
               | awk '{print "| " $2 " | " $1 " |"}'
           } > corps.md
           cat corps.md >> "$GITHUB_STEP_SUMMARY"
+          # GitHub refuse un corps de plus de 65 536 caractères : le 9 octobre
+          # 2026, la table listait un à un les fichiers `associations/<code>`,
+          # et la PR n'a pas été ouverte. Les dossiers sont désormais regroupés
+          # ci-dessus ; la coupe reste en garde-fou.
+          if [ "$(wc -c < corps.md)" -gt 60000 ]; then
+            head -c 60000 corps.md > corps-court.md
+            printf '\n\n… (coupé : voir le résumé du job)\n' >> corps-court.md
+            mv corps-court.md corps.md
+          fi
 
           if ! gh pr create --base "${GITHUB_REF_NAME}" --head "$branche" \
                --title "Territoires : réingestion du $jour" --body-file corps.md; then
