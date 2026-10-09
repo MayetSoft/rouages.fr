@@ -1,0 +1,267 @@
+{
+ "https://agreste.agriculture.gouv.fr/agreste-web/download/publication/publie/RA2020_1013/RA2020_1013_SAU_Communes.zip": {
+  "r": "2026-10-09"
+ },
+ "https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration/": {
+  "r": "2026-10-09",
+  "v": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_ETAT_CIVIL_DECES_COMMUNES/DS_ETAT_CIVIL_DECES_COMMUNES_2025_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_ETAT_CIVIL_NAIS_COMMUNES/DS_ETAT_CIVIL_NAIS_COMMUNES_2025_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_FILOSOFI_CC/DS_FILOSOFI_CC_2023_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_RP_DIPLOMES_PRINC/DS_RP_DIPLOMES_PRINC_2023_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_RP_EMPLOI_LR_PRINC/DS_RP_EMPLOI_LR_PRINC_2023_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_RP_LOGEMENT_PRINC/DS_RP_LOGEMENT_PRINC_2023_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_RP_NAVETTES_PRINC/DS_RP_NAVETTES_PRINC_2023_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://api.insee.fr/melodi/file/DS_RP_TD_POPULATION_AGESEX_PRINC/DS_RP_TD_POPULATION_AGESEX_PRINC_2023_CSV_FR": {
+  "r": "2026-10-09"
+ },
+ "https://bodacc-datadila.opendatasoft.com/explore/dataset/annonces-commerciales/": {
+  "r": "2026-10-09",
+  "v": "2026-10-08"
+ },
+ "https://data-pipeline-open.s3.sbg.io.cloud.ovh.net/rna/waldec.csv": {
+  "r": "2026-10-09",
+  "v": "2026-10-01"
+ },
+ "https://data.arcep.fr/mobile/sites/": {
+  "r": "2026-10-09",
+  "v": "2026-09-24"
+ },
+ "https://data.caf.fr/explore/dataset/s_ben_com_f/": {
+  "r": "2026-10-09",
+  "v": "2026-02-11"
+ },
+ "https://data.caf.fr/explore/dataset/txcouv_pe_com/": {
+  "r": "2026-10-09",
+  "v": "2026-01-22"
+ },
+ "https://data.caf.fr/explore/dataset/txcouv_pe_epci/": {
+  "r": "2026-10-09",
+  "v": "2026-01-22"
+ },
+ "https://data.drees.solidarites-sante.gouv.fr/explore/dataset/530_l-accessibilite-potentielle-localisee-apl/": {
+  "r": "2026-10-09",
+  "v": "2026-07-21"
+ },
+ "https://data.economie.gouv.fr/explore/dataset/decp-2022-marches-valides/": {
+  "r": "2026-10-09",
+  "v": "2026-10-04"
+ },
+ "https://data.economie.gouv.fr/explore/dataset/dmto_attrib/": {
+  "r": "2026-10-09",
+  "v": "2026-08-11"
+ },
+ "https://data.economie.gouv.fr/explore/dataset/impots-locaux-fichier-de-recensement-des-elements-dimposition-a-la-fiscalite-dir/": {
+  "r": "2026-10-09",
+  "v": "2026-08-21"
+ },
+ "https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/": {
+  "r": "2026-10-09",
+  "v": "2026-10-09"
+ },
+ "https://data.education.gouv.fr/explore/dataset/fr-en-ecoles-effectifs-nb_classes/": {
+  "r": "2026-10-09",
+  "v": "2026-06-24"
+ },
+ "https://data.education.gouv.fr/explore/dataset/fr-en-ips-colleges-ap2023/": {
+  "r": "2026-10-09",
+  "v": "2026-09-01"
+ },
+ "https://data.education.gouv.fr/explore/dataset/fr-en-ips-ecoles-ap2022/": {
+  "r": "2026-10-09",
+  "v": "2026-01-29"
+ },
+ "https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetCapabilities": {
+  "r": "2026-10-09"
+ },
+ "https://data.ofgl.fr/explore/dataset/dotations-communes/": {
+  "r": "2026-10-09",
+  "v": "2026-08-24"
+ },
+ "https://data.ofgl.fr/explore/dataset/ofgl-base-ccas-cias/": {
+  "r": "2026-10-09",
+  "v": "2026-07-20"
+ },
+ "https://data.ofgl.fr/explore/dataset/ofgl-base-communes-consolidee/": {
+  "r": "2026-10-09",
+  "v": "2026-09-05"
+ },
+ "https://data.ofgl.fr/explore/dataset/ofgl-base-departements/": {
+  "r": "2026-10-09",
+  "v": "2026-08-05"
+ },
+ "https://data.ofgl.fr/explore/dataset/ofgl-base-gfp/": {
+  "r": "2026-10-09",
+  "v": "2026-09-04"
+ },
+ "https://data.ofgl.fr/explore/dataset/ofgl-base-regions/": {
+  "r": "2026-10-09",
+  "v": "2026-07-16"
+ },
+ "https://ministere-culture.s3.sbg.io.cloud.ovh.net/POP/merimee.csv": {
+  "r": "2026-10-09",
+  "v": "2026-10-08"
+ },
+ "https://ministere-culture.s3.sbg.io.cloud.ovh.net/POP/palissy.csv": {
+  "r": "2026-10-09",
+  "v": "2026-10-09"
+ },
+ "https://odre.opendatasoft.com/explore/dataset/registre-national-installation-production-stockage-electricite-agrege/": {
+  "r": "2026-10-09",
+  "v": "2026-09-10"
+ },
+ "https://open.urssaf.fr/explore/dataset/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/": {
+  "r": "2026-10-09",
+  "v": "2026-05-29"
+ },
+ "https://public.opendatasoft.com/explore/dataset/economicref-france-sirene-v3/": {
+  "r": "2026-10-09",
+  "v": "2026-08-15"
+ },
+ "https://ressources.data.sncf.com/explore/dataset/frequentation-gares/": {
+  "r": "2026-10-09",
+  "v": "2025-07-03"
+ },
+ "https://ressources.data.sncf.com/explore/dataset/gares-de-voyageurs/": {
+  "r": "2026-10-09",
+  "v": "2026-10-08"
+ },
+ "https://static.data.gouv.fr/resources/connaitre-le-potentiel-radon-de-ma-commune/20190506-174309/radon.csv": {
+  "r": "2026-10-09",
+  "v": "2026-07-02"
+ },
+ "https://static.data.gouv.fr/resources/consommation-despaces-naturels-agricoles-et-forestiers-du-1er-janvier-2011-au-1er-janvier-2025/20260724-142909/conso-com.csv": {
+  "r": "2026-10-09",
+  "v": "2026-09-28"
+ },
+ "https://www.data.gouv.fr/datasets/53698ec7a3a729239d20356a/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/53698ecca3a729239d203579/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/53698f4ca3a729239d2036df/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/53834c53a3a72906c7ec5c4c/": {
+  "r": "2026-10-09",
+  "v": "2026-07-02"
+ },
+ "https://www.data.gouv.fr/datasets/5448d3e0c751df01f85d0572/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/5808de39c751df1e0679df72/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/5a561801c751df42d7fca9b6/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/5acc7eddc751df5e21efdf20/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/5af120e5b595087cfabcde81/": {
+  "r": "2026-10-09",
+  "v": "2026-10-08"
+ },
+ "https://www.data.gouv.fr/datasets/5b598be088ee387c0c353714/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/5d6eaffc8b4c417cdc452ac3/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/5fc1259b703620ed60a49d97/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/5fc1472f114718d419e42f8a/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/60799532757dbdef335c00c5/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/61556e1e9d6adb2df86eb0fc/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/615bcdd729be9185b3b0681a/": {
+  "r": "2026-10-09",
+  "v": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/617322c7c8e7b27041570e71/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/6176785207139a929a2776fe/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/620b924d90e837a5ce0ba819/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/656715871172d08f8f680063/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/657c88da2947e13be0597058/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/65a11234a86f08c56f0c47b0/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/662a5e2cd71b24df5e9a0827/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/66601a40716de0ce799fc8f4/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/66a215a463a9da4fb801b8cf/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/689c430033671e3d26466245/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/693aa2feed1bf4da603faa49/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/6a01b9280dd2d45907e5fc61/": {
+  "r": "2026-10-09",
+  "v": "2026-09-28"
+ },
+ "https://www.data.gouv.fr/datasets/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/indicateur-france-tres-haut-debit-etat-des-deploiements-de-la-fibre-optique-et-decommissionnement-du-cuivre/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/repertoire-national-des-associations/": {
+  "r": "2026-10-09",
+  "v": "2026-10-01"
+ },
+ "https://www.data.gouv.fr/datasets/repertoire-national-des-elus-1/": {
+  "r": "2026-10-09"
+ },
+ "https://www.data.gouv.fr/datasets/service-public-gouv-fr-annuaire-de-ladministration-base-de-donnees-locales/": {
+  "r": "2026-10-09",
+  "v": "2026-10-09"
+ },
+ "https://www.hatvp.fr/agora/opendata/agora_repertoire_opendata.json": {
+  "r": "2026-10-09",
+  "v": "2026-10-09"
+ },
+ "https://www.insee.fr/fr/statistiques/fichier/3698339/base-pop-historiques-1876-2023.xlsx": {
+  "r": "2026-10-09"
+ },
+ "https://www.insee.fr/fr/statistiques/fichier/8217527/DS_BPE_CSV_FR.zip": {
+  "r": "2026-10-09"
+ }
+}
