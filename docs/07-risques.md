@@ -342,6 +342,43 @@ nationaux des marchés, qu'aucune personne physique ne doit traverser :
   publié dans l'avis, ou le nom dans le même département), et un nom qui
   désigne plusieurs acheteurs ne rattache rien.
 
+### La situation des titulaires : procédures collectives et cessations (8 octobre 2026)
+
+Écrit avant la première collecte, sur décision du mainteneur du même jour :
+**les procédures collectives sont nommées, entrepreneurs individuels
+compris**, sous le titulaire d'un marché. La règle du 1er octobre les
+comptait sans les nommer ; elle est levée pour cet usage, parce qu'un
+service qui suit les marchés publics doit être complet sur qui les tient.
+
+- **Ce que le registre publie, et pourquoi.** Le BODACC publie les jugements
+  des procédures collectives — sauvegarde, redressement, liquidation, plan,
+  clôture — pour que les créanciers et les partenaires de l'entreprise le
+  sachent. L'acheteur public est un partenaire : un titulaire en liquidation
+  ne finira peut-être pas son marché, et le marché reviendra plus tôt. Ses
+  concurrents sont dans la même attente légitime. SIRENE publie de même
+  qu'une unité légale a cessé.
+- **Ce qu'une personne peut en attendre.** L'entrepreneur individuel sait que
+  le jugement est publié sous son nom, au BODACC, en accès libre ; il n'attend
+  pas qu'un service qui le nomme déjà comme titulaire d'un marché taise la
+  procédure. La DILA rappelle que la réutilisation reste soumise au RGPD :
+  la finalité, la durée et le retrait ci-dessous en sont la réponse.
+- **Ce qui est retenu.** Pour un SIREN déjà nommé comme titulaire d'un marché,
+  et seulement pour lui : le dernier jugement publié au BODACC dans les
+  **vingt-quatre derniers mois** (sa nature telle que le BODACC l'écrit, sa
+  date, le lien vers l'annonce), et le fait que SIRENE dise l'unité légale
+  cessée. Au-delà de vingt-quatre mois, plus rien. Les avis de dépôt (état des
+  créances, état de collocation), qui ne disent rien de la marche de
+  l'entreprise, ne sont pas retenus ; ni le complément du jugement, ni le
+  mandataire, ni l'adresse.
+- **Ce qui ne l'est pas.** Un entrepreneur en **diffusion partielle** au
+  répertoire SIRENE n'est toujours pas nommé : c'est un droit d'opposition
+  légal (article R123-232-1 du code de commerce), pas un choix du site. Les
+  avis de rétablissement personnel, que la DILA n'ouvre pas, non plus.
+- **Le site ne conclut rien.** Il écrit le jugement tel que publié, avec sa
+  date et son lien ; jamais « en difficulté » ni « à risque ».
+- **Le retrait.** Une opposition reçue par `/signaler` va dans `retraits.yaml`,
+  par SIREN, et s'applique à l'ingestion suivante, comme pour les titulaires.
+
 ### Les bénéficiaires des aides de la PAC (8 octobre 2026)
 
 Écrit avant toute collecte, pour que le mainteneur tranche. Il a tranché le

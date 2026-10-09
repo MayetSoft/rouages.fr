@@ -70,6 +70,7 @@ import { collecterAvis, lireAvisPrecedents, plierNom, rattacherAvis, type AvisCo
 import { telechargerSiAbsent } from './par-departement.ts';
 import { retraits } from './retraits.ts';
 import { nomsSirene } from './sirene-noms.ts';
+import { jugementsBodacc, MOIS_RETENUS, situations as situationsDe, type Situation } from './titulaires-situation.ts';
 
 const DECP =
   'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides';
@@ -261,6 +262,12 @@ export interface Marches {
   annuaire?: Map<string, FicheAnnuaire>;
   /** Les avis de marché ouverts du BOAMP ; absent si la collecte a échoué. */
   avis?: AvisCollectes;
+  /**
+   * SIREN d'un titulaire nommé -> sa situation : dernier jugement de
+   * procédure collective au BODACC, cessation à SIRENE. Absent si la collecte
+   * a échoué ; un titulaire sans rien à signaler n'y figure pas.
+   */
+  situations?: Map<string, Situation>;
 }
 
 /** AAAA-MM, `mois` mois après le mois de `iso`. Le jour ne compte pas. */
@@ -418,9 +425,17 @@ export async function collecterMarches(
     `${DECP}/exports/json?select=acheteur_id,objet,montant,datenotification,procedure,dureemois,offresrecues,codecpv,techniques,` +
     'titulaire_id_1,titulaire_typeidentifiant_1,titulaire_id_2,titulaire_typeidentifiant_2,titulaire_id_3,titulaire_typeidentifiant_3,' +
     'id,lieuexecution_code,lieuexecution_typecode,formeprix,modalitesexecution,soustraitancedeclaree,' +
-    'considerationssociales,considerationsenvironnementales,marcheinnovant' +
-    `&where=${encodeURIComponent(`datenotification>=date'${DEPUIS}'`)}`;
-  const lignes = await json<LigneDecp[]>(url);
+    'considerationssociales,considerationsenvironnementales,marcheinnovant';
+  // Une année de notification par requête : l'export entier dépasse la plus
+  // longue chaîne que Node sait décoder (512 Mo) depuis que chaque marché
+  // porte son détail.
+  const lignes: LigneDecp[] = [];
+  const premiere = Number(DEPUIS.slice(0, 4));
+  for (let annee = premiere; annee <= new Date().getUTCFullYear(); annee++) {
+    const debut = annee === premiere ? DEPUIS : `${annee}-01-01`;
+    const where = `datenotification>=date'${debut}' and datenotification<date'${annee + 1}-01-01'`;
+    for (const l of await json<LigneDecp[]>(`${url}&where=${encodeURIComponent(where)}`)) lignes.push(l);
+  }
   if (lignes.length === 0) {
     dire('Marchés publics : aucune ligne, le jeu a changé de forme.');
     return null;
@@ -517,10 +532,12 @@ export async function collecterMarches(
   if (rapproches > 0) dire(`  ${rapproches.toLocaleString('fr-FR')} marchés rapprochés des autres lots de leur consultation.`);
 
   // Le nom de chaque titulaire, une fois pour tous les marchés.
+  const cessees = new Set<string>();
   if (texte) {
     const tous = new Set<string>();
     for (const ids of titulaires.values()) for (const id of ids) if (!id.startsWith('?')) tous.add(id);
     const noms = await nomsSirene(texte, tous);
+    for (const [s, n] of noms) if (n.cessee) cessees.add(s);
     const retires = retraits().entreprises;
     let nommes = 0;
     let tus = 0;
@@ -611,6 +628,24 @@ export async function collecterMarches(
   } catch (e) {
     dire(`  BOAMP : ${(e as Error).message} — avis.json garde sa version précédente.`);
   }
+  // La situation des titulaires nommés des marchés publiés : échéances et attributions.
+  let situations: Map<string, Situation> | undefined;
+  try {
+    const publies = new Set<string>();
+    for (const liste of [...echeances.values(), ...recents.values()]) {
+      for (const x of liste) for (const [s] of x.t ?? []) publies.add(s);
+    }
+    const depuisJugements = `${ajouterMois(maj, -MOIS_RETENUS)}-01`;
+    const jugements = await jugementsBodacc(json, publies, depuisJugements);
+    situations = situationsDe(publies, jugements, cessees);
+    const nc = [...situations.values()].filter((x) => x.c).length;
+    dire(
+      `  situation des titulaires : ${publies.size.toLocaleString('fr-FR')} relus au BODACC depuis le ${depuisJugements} ; ` +
+        `${jugements.size.toLocaleString('fr-FR')} avec un jugement de procédure collective, ${nc.toLocaleString('fr-FR')} cessés au répertoire.`,
+    );
+  } catch (e) {
+    dire(`  BODACC : ${(e as Error).message} — les fichiers s'écrivent sans la situation des titulaires.`);
+  }
   return {
     parAcheteur,
     suites,
@@ -624,7 +659,21 @@ export async function collecterMarches(
     maj,
     ...(annuaire ? { annuaire } : {}),
     ...(avis ? { avis } : {}),
+    ...(situations ? { situations } : {}),
   };
+}
+
+/** Les situations des titulaires qu'une liste de marchés nomme, ou rien. */
+function situationsCitees(marches: Marches, liste: Marche[]): { situations?: Record<string, Situation> } {
+  if (!marches.situations) return {};
+  const out: Record<string, Situation> = {};
+  for (const x of liste) {
+    for (const [s] of x.t ?? []) {
+      const sit = marches.situations.get(s);
+      if (sit) out[s] = sit;
+    }
+  }
+  return { situations: Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b))) };
 }
 
 /**
@@ -859,6 +908,7 @@ export function ecrireEcheancesNationales(sortie: string, marches: Marches): num
       fenetre: marches.fenetre,
       procedures: PROCEDURES,
       ...cites(lus, new Set(e.map((x) => x.a))),
+      ...situationsCitees(marches, e),
       e,
     }),
   );
@@ -891,6 +941,7 @@ export function ecrireAttributionsNationales(sortie: string, marches: Marches): 
       depuis: marches.recentsDepuis,
       procedures: PROCEDURES,
       ...cites(lus, new Set(m.map((x) => x.a))),
+      ...situationsCitees(marches, m),
       m,
     }),
   );

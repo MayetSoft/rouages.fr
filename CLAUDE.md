@@ -199,9 +199,14 @@ Ce qui est autorisé à ce jour :
   Jamais un entrepreneur en **diffusion partielle** au répertoire SIRENE — il
   a exercé son droit d'opposition (article R123-232-1 du code de commerce) :
   le statut se relit à chaque ingestion, et un établissement non diffusible
-  est compté, pas nommé. Les **procédures collectives** d'un entrepreneur
-  individuel restent comptées, pas nommées : c'est la défaillance d'une
-  personne, et le BODACC sert déjà les créanciers qu'elle concerne.
+  est compté, pas nommé ;
+- **la situation des titulaires des marchés**, entrepreneurs individuels
+  compris (décision du 8 octobre 2026, justifiée dans `docs/07-risques.md`) :
+  le dernier jugement de procédure collective publié au BODACC dans les
+  vingt-quatre derniers mois — sa nature telle que publiée, sa date, le lien
+  vers l'annonce — et la cessation dite par SIRENE. Ni avis de dépôt, ni
+  complément du jugement, ni qualificatif. Sur la page de commune, les
+  annonces de procédures collectives restent pour l'instant comptées.
 
 Ce qui reste exclu : les particuliers cités dans les délibérations, les
 dirigeants d'associations hors du répertoire de la HATVP — aucun registre
