@@ -21,6 +21,9 @@
  * portent des noms de personnes. La catégorie générique « site culturel » ne
  * suffit pas : elle couvre aussi les médiathèques et les cinémas.
  *
+ * Chaque lieu garde l'adresse de sa fiche sur DATAtourisme (`URI_ID_du_POI`,
+ * une page lisible), sans le préfixe commun : la page en fait un lien.
+ *
  * Le fichier ne donne pas de code INSEE mais « 03250#Le Mayet-de-Montagne » :
  * la commune est retrouvée par son code postal et son nom.
  *
@@ -52,8 +55,11 @@ const ECARTES = new Set([
   'EntertainmentAndEvent', 'Event', 'Product', 'Rental', 'Transporter', 'TourOperatorOrTravelAgency',
 ]);
 
-/** Les noms par famille : patrimoine, nature, itinéraires. */
-export type Lieux = [string[], string[], string[]];
+/** Le préfixe commun des fiches DATAtourisme, retiré des fichiers et remis par la page. */
+export const FICHE = 'https://data.datatourisme.fr/';
+
+/** Par famille — patrimoine, nature, itinéraires — les lieux : [nom, fiche sans le préfixe, ou ''] */
+export type Lieux = [[string, string][], [string, string][], [string, string][]];
 
 export interface LieuxCommunes {
   maj: string;
@@ -122,7 +128,7 @@ export async function collecterLieux(
     return null;
   }
   const commune = correspondances();
-  const parCommune = new Map<string, [Set<string>, Set<string>, Set<string>]>();
+  const parCommune = new Map<string, [Map<string, string>, Map<string, string>, Map<string, string>]>();
   let retenus = 0;
   let orphelins = 0;
   for (const reg of regions) {
@@ -155,8 +161,10 @@ export async function collecterLieux(
         orphelins++;
         continue;
       }
-      const l = parCommune.get(code) ?? [new Set<string>(), new Set<string>(), new Set<string>()];
-      l[famille].add(nom);
+      const l = parCommune.get(code) ?? [new Map<string, string>(), new Map<string, string>(), new Map<string, string>()];
+      const uri = (col.URI_ID_du_POI !== undefined ? v[col.URI_ID_du_POI] ?? '' : '').trim();
+      // Deux fiches au même nom : la première garde le lien.
+      if (!l[famille].has(nom)) l[famille].set(nom, uri.startsWith(FICHE) ? uri.slice(FICHE.length) : '');
       parCommune.set(code, l);
       retenus++;
     }
@@ -166,7 +174,7 @@ export async function collecterLieux(
     return null;
   }
   const communes = new Map<string, Lieux>();
-  const trier = (s: Set<string>) => [...s].sort((a, b) => a.localeCompare(b, 'fr'));
+  const trier = (s: Map<string, string>) => [...s].sort((a, b) => a[0].localeCompare(b[0], 'fr'));
   for (const [code, [p, n, i]] of parCommune) communes.set(code, [trier(p), trier(n), trier(i)]);
   dire(
     `Lieux à voir : ${retenus.toLocaleString('fr-FR')} fiches dans ${communes.size.toLocaleString('fr-FR')} communes ; ` +

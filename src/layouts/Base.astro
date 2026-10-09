@@ -42,10 +42,7 @@ const sousCourant = (s: string) => (sousPage === s ? 'page' : undefined);
     {flux && (
       <link rel="alternate" type="application/atom+xml" title={titre} href={flux} />
     )}
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%231e5f74' stroke-width='2.5'%3E%3Ccircle cx='11' cy='12' r='6'/%3E%3Ccircle cx='22' cy='21' r='5'/%3E%3Cpath d='M15 16l3 2'/%3E%3C/g%3E%3C/svg%3E"
-    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class={section === 'fonctionnement' ? 'avec-sous-nav' : undefined}>
     <a class="evitement" href="#contenu">Aller au contenu</a>

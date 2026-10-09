@@ -468,19 +468,29 @@ span.reglette i {
   margin: 1.4rem 0 .8rem; padding: .5rem 0 .55rem;
 }
 .c-onglets[hidden] { display: none; }
+/* De vrais onglets, pas des pastilles : du texte posé sur un trait, l'onglet
+   ouvert souligné de l'accent — pour qu'on ne les confonde pas avec les
+   raccourcis du sommaire, en dessous. Chaque onglet porte son propre trait :
+   la barre peut passer sur deux lignes sans qu'un onglet flotte. */
 .c-onglets-barre {
-  display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: thin;
-  padding-bottom: .15rem;
+  display: flex; gap: 0 .2rem; overflow-x: auto; scrollbar-width: thin;
+  border-bottom: 1px solid var(--trait);
 }
 .c-onglet {
-  flex: 0 0 auto; font: inherit; font-size: .82rem; cursor: pointer;
-  background: var(--fond-doux); color: var(--encre-douce);
-  border: 1px solid var(--trait); border-radius: 999px; padding: .3rem .75rem;
+  flex: 0 0 auto; font: inherit; font-size: .88rem; font-weight: 500; cursor: pointer;
+  background: none; color: var(--encre-douce);
+  border: 0; border-bottom: 3px solid transparent; border-radius: 0;
+  padding: .5rem .7rem .4rem; margin-bottom: -1px;
   display: inline-flex; align-items: center; gap: .4rem;
 }
-.c-onglet:hover, .c-onglet:focus-visible { color: var(--accent); border-color: var(--accent); }
-.c-onglet[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--fond-carte); }
-.c-onglet-nombre { font-size: .7rem; opacity: .8; font-variant-numeric: tabular-nums; }
+.c-onglet:hover { color: var(--encre); border-bottom-color: var(--trait-fort); }
+.c-onglet:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.c-onglet[aria-selected="true"] { color: var(--accent); font-weight: 650; border-bottom-color: var(--accent); }
+/* Le nombre de résultats d'une recherche dans la page, et seulement lui. */
+.c-onglet-nombre {
+  font-size: .68rem; font-variant-numeric: tabular-nums; line-height: 1.4;
+  background: var(--accent); color: var(--sur-accent); border-radius: 999px; padding: 0 .4rem;
+}
 .c-onglet-nombre:empty { display: none; }
 .c-chercher { margin: .5rem 0 0; position: relative; }
 .c-chercher-etiquette {
