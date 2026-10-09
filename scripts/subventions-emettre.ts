@@ -56,6 +56,12 @@ export interface Subvention {
   objet: string;
   /** Le numéro au répertoire national des associations, quand il est déclaré. */
   rna: string;
+  /**
+   * Le SIREN du bénéficiaire — les neuf premiers chiffres du SIRET que le
+   * schéma déclare —, ou rien. Il sert au recoupement avec les titulaires des
+   * marchés de la même collectivité.
+   */
+  sb?: string;
 }
 
 export interface Subventions {
@@ -190,6 +196,7 @@ export async function collecterSubventions(
         annee,
         objet: tronque,
         rna: champ(l, 'rnabeneficiaire').trim(),
+        ...sirenBeneficiaire(champ(l, 'idbeneficiaire')),
       });
       // Après la déduplication, comme pour les délibérations.
       const jour = jourDe(date);
@@ -249,6 +256,12 @@ export async function collecterSubventions(
     ecartees,
     evenements,
   };
+}
+
+/** Le SIREN tiré du SIRET déclaré, quand il en a la forme. */
+function sirenBeneficiaire(id: string): { sb?: string } {
+  const chiffres = id.replace(/\s/g, '');
+  return /^\d{9}(\d{5})?$/.test(chiffres) ? { sb: chiffres.slice(0, 9) } : {};
 }
 
 /** Un fichier par département, indexé par SIREN — comme les marchés. */

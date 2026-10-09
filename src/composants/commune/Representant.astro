@@ -1,0 +1,20 @@
+---
+/**
+ * Un recoupement : le titulaire d'un marché figure aussi au répertoire des
+ * représentants d'intérêts de la HATVP, sous le même SIREN. La mention dit le
+ * fait et le champ qui le fonde ; elle ne dit pas que l'entreprise a cherché à
+ * influencer cet acheteur — le répertoire ne le dit pas non plus.
+ */
+interface Props {
+  siren: string;
+}
+const { siren } = Astro.props;
+---
+<span class="c-recoupement">
+  {' · '}<a
+    href={`https://www.hatvp.fr/fiche-organisation/?organisation=${siren}`}
+    target="_blank"
+    rel="noopener"
+    title="Inscrit au répertoire des représentants d’intérêts de la HATVP, sous le même numéro SIREN que le titulaire. L’inscription dit qu’il déclare chercher à influencer la décision publique, pas qu’il l’a fait auprès de cet acheteur."
+  >inscrit au répertoire des représentants d’intérêts</a>
+</span>

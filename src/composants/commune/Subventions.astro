@@ -46,7 +46,9 @@ const detail = (sv: CollectiviteSubventionne['liste'][number]) => {
         {c.liste.map((sv) => (
           <li>
             <span class="p-marche-montant">{montantCourt(sv.montant)}</span>
-            <span><span class="p-marche-objet">{sv.qui}</span><span class="p-marche-detail">{detail(sv)}</span></span>
+            <span><span class="p-marche-objet">{sv.qui}</span><span class="p-marche-detail">{detail(sv)}</span>{sv.titulaire && (
+              <span class="p-marche-detail c-recoupement" title="Le SIREN que la convention déclare pour le bénéficiaire est aussi celui d’un titulaire des marchés de cette collectivité. Une subvention et un marché sont deux actes distincts, chacun encadré ; le site montre la coïncidence, il n’en conclut rien.">aussi titulaire d’un de ses marchés publiés — même SIREN</span>
+            )}</span>
           </li>
         ))}
       </ul>

@@ -15,6 +15,7 @@
  */
 import type { AcheteurMarches } from '../../modele/fiche-commune.ts';
 import Glose from '../Glose.astro';
+import Representant from './Representant.astro';
 import { moisAnnee, montantCourt } from '../../vues/graphiques.ts';
 import { procedureAffichee } from '../../vues/sigles-marches.ts';
 import { detailMarcheHtml } from '../../vues/detail-marche.ts';
@@ -101,7 +102,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
               <span class="p-marche-detail p-marche-titulaires">
                 <span class="visuellement-cache">titulaire : </span><span aria-hidden="true">→ </span>
                 {m.titulaires.map((t, i) => (
-                  <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                  <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a>{t.representant && <Representant siren={t.siren} />}</>
                 ))}
                 {autres(m) && ` ${autres(m)}`}
               </span>
@@ -114,6 +115,14 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
       ))}
     </ul>
   </div>
+)}
+{liste.some((a) => a.liste.some((m) => m.titulaires.some((t) => t.representant))) && (
+  <p class="mesure">
+    Un titulaire marqué « inscrit au répertoire des représentants d’intérêts » y figure sous le même numéro SIREN&nbsp;:
+    le rapprochement repose sur ce seul champ, que les deux registres publient. L’inscription dit que l’organisation
+    déclare chercher à influencer la décision publique, quelque part, auprès de quelqu’un&nbsp;; elle ne dit pas
+    qu’elle l’a fait auprès de cet acheteur, et le site non plus. Seuls les marchés de cette page portent la mention.
+  </p>
 )}
 <p class="p-strate">
   {`Marchés notifiés depuis ${(depuis ?? '').slice(0, 4)}, du plus récent au plus ancien. Les ` +
@@ -149,7 +158,7 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
                 <span class="p-marche-detail p-marche-titulaires">
                   <span class="visuellement-cache">titulaire : </span><span aria-hidden="true">→ </span>
                   {m.titulaires.map((t, i) => (
-                    <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                    <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a>{t.representant && <Representant siren={t.siren} />}</>
                   ))}
                   {autres(m) && `${m.titulaires.length > 0 ? ' ' : ''}${autres(m)}`}
                 </span>

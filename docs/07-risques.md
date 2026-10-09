@@ -475,6 +475,52 @@ et le module de l'ASP renvoie à l'identification. Il faut l'adresse du
 fichier national, relevée depuis une autre machine, pour écrire la collecte ;
 la première ingestion dira si les machines de GitHub le joignent.
 
+### Les recoupements (9 octobre 2026)
+
+Le mainteneur veut le plus de recoupements possible, pour la transparence.
+Un recoupement rapproche deux registres publics ; le site montre la
+coïncidence, dit sur quel champ elle repose, et n'en conclut rien.
+
+**Ceux qui reposent sur un identifiant, en place :**
+
+- **Un titulaire de marché inscrit au répertoire des représentants
+  d'intérêts** de la HATVP. Champ : le SIREN, que les données essentielles
+  des marchés et le répertoire publient l'un et l'autre. Le titulaire porte
+  la mention « inscrit au répertoire des représentants d'intérêts », avec
+  le lien vers sa fiche ; une note sous les marchés dit que l'inscription
+  signifie qu'il déclare chercher à influencer la décision publique,
+  quelque part, et non qu'il l'a fait auprès de cet acheteur. Ce sont des
+  personnes morales, ou des indépendants qui se sont inscrits eux-mêmes.
+- **Un bénéficiaire de subvention qui est aussi titulaire d'un marché de
+  la même collectivité.** Champ : le SIREN tiré du SIRET que la convention
+  déclare (`idBeneficiaire`, schéma national des subventions), comparé aux
+  titulaires des marchés publiés de cette collectivité. Les bénéficiaires
+  nommés sont déjà des associations, jamais des personnes : la collecte
+  écarte un intitulé qui nomme quelqu'un.
+
+**Celui qui repose sur un nom, à valider avant tout code :**
+
+- **Un titulaire de marché qui figure dans la déclaration d'intérêts d'un
+  élu de la même collectivité** — participations financières, organes
+  dirigeants, activités. La HATVP publie le nom de la société, pas son
+  SIREN : le rapprochement se ferait par le nom, plié (casse, accents,
+  formes juridiques retirées), et seulement à l'identique. C'est un
+  recoupement fragile — deux sociétés peuvent porter le même nom, une
+  société change de nom, une filiale n'est pas sa maison mère — et il
+  touche une personne nommée, l'élu. Proposition :
+  1. ne rapprocher que les titulaires des marchés **de la collectivité où
+     l'élu siège**, pas de tout le pays ;
+  2. n'afficher que sur la page de l'élu et sous le marché, avec la phrase
+     « même nom que la société déclarée par … dans sa déclaration
+     d'intérêts du … — rapprochement par le nom seul, que la HATVP ne
+     double d'aucun numéro » et les deux liens ;
+  3. ne rien dire de plus — ni conflit d'intérêts, ni participation au
+     vote : le site ne sait pas si l'élu a pris part à la décision ;
+  4. un faux rapprochement signalé est retiré à l'ingestion suivante, par
+     le couple élu et SIREN dans `retraits.yaml`.
+
+  À trancher par le mainteneur avant la collecte.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans

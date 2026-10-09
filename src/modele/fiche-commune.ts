@@ -15,7 +15,7 @@
  * ne dit plus que qui exerce chaque compétence, et conduit à la page pour le
  * reste.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { detailDepuisBrut, type DetailAffiche, type DetailBrut } from '../vues/detail-marche.ts';
 import { join } from 'node:path';
 import { anneePlausible } from './annees.ts';
@@ -187,8 +187,12 @@ export interface Marche {
   lots: number;
   /** Nombre d'offres reçues, quand l'acheteur l'a déclaré. */
   offres: number | null;
-  /** Les titulaires nommés d'après SIRENE : sociétés, et entrepreneurs individuels diffusibles. */
-  titulaires: { siren: string; nom: string }[];
+  /**
+   * Les titulaires nommés d'après SIRENE : sociétés, et entrepreneurs
+   * individuels diffusibles. `representant` : le même SIREN figure au
+   * répertoire des représentants d'intérêts de la HATVP.
+   */
+  titulaires: { siren: string; nom: string; representant: boolean }[];
   /** Les titulaires que le site ne nomme pas. */
   autresTitulaires: number;
   /** Ce que les données essentielles déclarent en plus, quand la collecte l'a écrit. */
@@ -266,6 +270,8 @@ export interface Subvention {
   montant: number | null;
   annee: string;
   objet: string;
+  /** Le bénéficiaire, par son SIREN, est aussi titulaire d'un marché de la même collectivité. */
+  titulaire: boolean;
 }
 
 export interface CollectiviteSubventionne {
@@ -637,7 +643,7 @@ type SubvDep = {
     {
       n: number;
       e: [string, string];
-      s: { qui: string; montant: number | null; annee: string; objet: string; rna: string }[];
+      s: { qui: string; montant: number | null; annee: string; objet: string; rna: string; sb?: string }[];
     }
   >;
 };
@@ -1030,6 +1036,26 @@ function nomRegion(commune: CommuneFiche): string {
   return nom ? `La région — ${nom}` : 'La région';
 }
 
+/**
+ * Les SIREN inscrits au répertoire des représentants d'intérêts, dans tout le
+ * pays : un titulaire de marché peut être inscrit ailleurs que dans la
+ * commune. Les identifiants RNA, ceux des associations sans SIREN, ne s'y
+ * rapprochent pas.
+ */
+let sirenRepresentants: Set<string> | null = null;
+function estRepresentant(siren: string): boolean {
+  if (!sirenRepresentants) {
+    sirenRepresentants = new Set();
+    const dossier = join(BASE, 'dep');
+    const fichiers = existsSync(dossier) ? readdirSync(dossier).filter((f) => f.endsWith('-hatvp.json')) : [];
+    for (const f of fichiers) {
+      const d = lire<HatvpDep>(`dep/${f}`);
+      for (const liste of Object.values(d?.c ?? {})) for (const [, id] of liste) if (/^\d{9}$/.test(id)) sirenRepresentants.add(id);
+    }
+  }
+  return sirenRepresentants.has(siren);
+}
+
 function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): AcheteurMarches[] {
   const d = marchesDep.get(commune.dep);
   if (!d) return [];
@@ -1044,7 +1070,7 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
       procedure: d.procedures[m.procedure] ?? null,
       lots: m.lots,
       offres: m.offres ?? null,
-      titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom })),
+      titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom, representant: estRepresentant(siren) })),
       autresTitulaires: m.tx ?? 0,
       detail: detailDepuisBrut(m.x),
     });
@@ -1063,6 +1089,18 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
   if (sirenCommune) lireAcheteur(sirenCommune, commune.nom, 'la commune');
   for (const s of structures) lireAcheteur(s.siren, s.nom, s.natureLibelle);
   return out;
+}
+
+/**
+ * Les SIREN des titulaires des marchés d'un acheteur, tels que le fichier du
+ * département les porte : ses marchés les plus récents et ses échéances. Un
+ * recoupement fondé sur ce seul champ.
+ */
+function titulairesDe(dep: string, acheteur: string): Set<string> {
+  const e = marchesDep.get(dep)?.h[acheteur];
+  const s = new Set<string>();
+  for (const m of [...(e?.m ?? []), ...(e?.e ?? [])]) for (const [siren] of m.t ?? []) s.add(siren);
+  return s;
 }
 
 function assemblerSubventions(commune: CommuneFiche, structures: StructureFiche[]): CollectiviteSubventionne[] {
@@ -1087,6 +1125,7 @@ function assemblerSubventions(commune: CommuneFiche, structures: StructureFiche[
         montant: x.montant,
         annee: anneePlausible(x.annee) ? x.annee : '',
         objet: x.objet,
+        titulaire: !!x.sb && titulairesDe(commune.dep, siren).has(x.sb),
       })),
     });
   };

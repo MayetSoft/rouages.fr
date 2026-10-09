@@ -3664,3 +3664,30 @@ procédure applicable. Adossés au graphe, jamais construits isolément. Voir
 - Pas de commentaires : coût de modération sans rapport avec la valeur.
 - Pas de couverture nationale exhaustive : mieux vaut un réseau dense et juste
   qu'un annuaire creux.
+
+### Relecture sur les vraies données, qui finance la commune, les recoupements (9 octobre 2026)
+
+**Relecture**, après la réingestion du 9 octobre, sur l'Allier, Paris, le
+Finistère et la Haute-Garonne (1 181 pages de communes) : aucune erreur
+JavaScript, aucun « NaN » ni « undefined », aucun débordement. Deux
+défauts corrigés : l'ordre des associations existantes, rangées par leur
+dernière déclaration sans le dire ; et les 1 796 représentants d'intérêts
+de Paris décrits en entier (942 Ko), désormais trente décrits et les autres
+nommés. Reste un constat : une page de commune pèse 327 Ko de HTML en
+médiane, dont 19 % de marchés — ceux de l'intercommunalité, repris sur la
+page de chacune de ses communes — et 28 % de SVG. À traiter pour le poids
+du déploiement.
+
+**Qui finance la commune**, en tête de l'onglet de l'argent : les postes
+des comptes qui viennent d'autres que la commune, par habitant et face à la
+médiane, puis les subventions d'investissement de l'État et les fonds
+européens, projet par projet. Les deux niveaux ne s'additionnent pas, et le
+bloc le dit.
+
+**Recoupements** : titulaire de marché inscrit au répertoire des
+représentants d'intérêts (par le SIREN), bénéficiaire de subvention aussi
+titulaire d'un marché de la même collectivité (par le SIREN, à la prochaine
+réingestion). Le rapprochement par le nom avec les déclarations d'intérêts
+des élus attend la décision du mainteneur : méthode dans
+`docs/07-risques.md`.
+
