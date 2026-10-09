@@ -1305,3 +1305,11 @@ a.p-sommaire-lien { text-decoration: none; }
 /* Les représentants d'intérêts au-delà des trente décrits : leurs noms, en colonnes. */
 .c-representants-courts { list-style: none; margin: .4rem 0 0; padding: 0; columns: 16rem; column-gap: 1.2rem; font-size: .84rem; }
 .c-representants-courts li { break-inside: avoid; padding: .1rem 0; }
+
+/* Qui finance la commune : qui, combien, et pourquoi. */
+.c-financeurs { list-style: none; margin: .6rem 0 1rem; padding: 0; display: grid; gap: .55rem; }
+.c-financeurs li { display: grid; grid-template-columns: 1fr auto; column-gap: .8rem; align-items: baseline; border-bottom: 1px solid var(--trait); padding-bottom: .45rem; }
+.c-financeurs-qui { font-weight: 600; }
+.c-financeurs-montant { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.c-financeurs li > .v-nature { grid-column: 1 / -1; display: block; margin-top: .1rem; }
+

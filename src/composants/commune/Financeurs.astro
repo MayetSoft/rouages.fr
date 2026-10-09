@@ -1,0 +1,144 @@
+---
+/**
+ * Qui finance la commune : ce qu'elle reçoit d'autres qu'elle-même, réuni en
+ * un endroit. D'abord ce que disent ses comptes — des totaux comparables, par
+ * habitant, à la médiane de sa strate —, puis ce qui en est connu projet par
+ * projet : les subventions d'investissement de l'État et les fonds européens.
+ *
+ * Les deux niveaux ne s'additionnent pas et le bloc le dit : les comptes
+ * enregistrent l'argent encaissé, les listes de projets l'argent attribué,
+ * versé plus tard et en plusieurs fois. Chaque ligne mène au bloc qui la
+ * détaille.
+ */
+import type { Finances, LigneCompte } from '../../modele/fiche-commune.ts';
+import type { Europe, Investissement } from '../../modele/fiche-vie.ts';
+
+interface Props {
+  finances: Finances | null;
+  investissement: Investissement | null;
+  europe: Europe | null;
+  population: number;
+}
+const { finances, investissement, europe, population } = Astro.props;
+
+const euros = (v: number) => `${Math.round(v).toLocaleString('fr-FR')} €`;
+const parHab = (v: number | null) => (v === null ? null : `${Math.round(v).toLocaleString('fr-FR')} € par habitant`);
+const ligne = (id: string): LigneCompte | null => finances?.lignes.find((l) => l.id === id && l.montant !== null) ?? null;
+
+/** Les postes des comptes qui viennent d'autres que la commune, avec qui les verse. */
+const POSTES: { id: string; qui: string; pour: string }[] = [
+  { id: 'repere-concours-etat', qui: 'L’État', pour: 'pour le fonctionnement : la dotation globale, les autres dotations, les compensations d’exonérations' },
+  { id: 'repere-fiscalite-reversee', qui: 'L’intercommunalité, le plus souvent', pour: 'en fiscalité reversée, nette : les reversements reçus moins ceux versés, hors fonds nationaux' },
+  { id: 'repere-subventions-recues', qui: 'D’autres collectivités et organismes', pour: 'pour le fonctionnement : département, région, intercommunalité, caisse d’allocations familiales… — les comptes ne disent pas lesquels' },
+  { id: 'repere-fctva', qui: 'L’État', pour: 'en remboursement d’une partie de la TVA payée sur les investissements' },
+  { id: 'repere-subventions-investissement', qui: 'L’État, l’Europe, la région, le département…', pour: 'pour investir — les comptes ne disent pas qui' },
+];
+// Un poste négatif — la commune reverse plus qu'elle ne reçoit — est dit à part, hors du total.
+const tous = POSTES.map((p) => ({ ...p, l: ligne(p.id) })).filter((p) => p.l);
+const postes = tous.filter((p) => (p.l!.montant ?? 0) > 0);
+const reverse = tous.find((p) => p.id === 'repere-fiscalite-reversee' && (p.l!.montant ?? 0) < 0)?.l ?? null;
+const recettes = ligne('repere-recettes-totales');
+const dgf = ligne('repere-dgf');
+const externe = postes.reduce((s, p) => s + (p.l!.montant ?? 0), 0);
+
+// Projet par projet : les subventions d'investissement de l'État, sur les exercices connus.
+const projets = investissement?.projets ?? [];
+const exercices = investissement?.exercices ?? [];
+const parDispositif = new Map<string, number>();
+for (const p of projets) parDispositif.set(p.dispositif, (parDispositif.get(p.dispositif) ?? 0) + p.subvention);
+const totalEtat = projets.reduce((s, p) => s + p.subvention, 0);
+
+// Les fonds européens localisés dans la commune seule.
+const periodes = (europe?.periodes ?? []).filter((p) => p.projets > 0);
+
+const rien = postes.length === 0 && projets.length === 0 && periodes.length === 0;
+---
+{rien ? (
+  <p class="mesure">Ni les comptes ni les listes de projets ne disent encore ce que la commune reçoit.</p>
+) : (
+  <>
+    {finances && postes.length > 0 && (
+      <>
+        <p class="mesure">
+          {`D’après ses comptes de ${finances.annee}, la commune a reçu ${euros(externe)} d’autres qu’elle-même` +
+            (recettes?.montant ? `, soit ${Math.round((externe / recettes.montant) * 100)} % de ses recettes` : '') +
+            ' — le reste vient de ses impôts, de ce que paient les usagers de ses services, et de ses emprunts.'}
+        </p>
+        <ul class="c-financeurs">
+          {postes.map((p) => (
+            <li>
+              <span class="c-financeurs-qui">{p.qui}</span>
+              <span class="c-financeurs-montant">{euros(p.l!.montant!)}</span>
+              <span class="v-nature">
+                {[
+                  p.pour,
+                  parHab(p.l!.parHabitant),
+                  p.l!.mediane !== null && !finances.statutParticulier ? `médiane de la strate : ${Math.round(p.l!.mediane).toLocaleString('fr-FR')} €` : '',
+                  p.id === 'repere-concours-etat' && dgf ? `dont dotation globale ${euros(dgf.montant!)}` : '',
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {reverse && (
+          <p class="mesure">
+            {`À l’inverse, elle reverse ${euros(-reverse.montant!)} de fiscalité de plus qu’elle n’en reçoit — le plus souvent à son intercommunalité —, hors de ce total.`}
+          </p>
+        )}
+        <p class="mesure">
+          {(finances.statutParticulier ? '' : `Les médianes sont celles des communes ${finances.strate}. `) + 'Le détail poste par poste est dans '}<a href="#comptes">ses comptes</a>
+          {', et la dotation de l’État année par année dans '}<a href="#dotations">les dotations</a>.
+        </p>
+      </>
+    )}
+    {(projets.length > 0 || periodes.length > 0) && (
+      <>
+        <h3 class="p-titre-echelon">Ce qui est connu projet par projet</h3>
+        <ul class="c-financeurs">
+          {projets.length > 0 && (
+            <li>
+              <span class="c-financeurs-qui">L’État, par ses subventions d’investissement</span>
+              <span class="c-financeurs-montant">{euros(totalEtat)}</span>
+              <span class="v-nature">
+                {[
+                  `${projets.length} projet${projets.length > 1 ? 's' : ''} subventionné${projets.length > 1 ? 's' : ''}` +
+                    (exercices.length ? ` en ${[...exercices].sort().join(', ')}` : ''),
+                  population > 0 && exercices.length ? `${Math.round(totalEtat / population / exercices.length).toLocaleString('fr-FR')} € par habitant et par an` : '',
+                  [...parDispositif].sort((a, b) => b[1] - a[1]).map(([d, v]) => `${d} ${euros(v)}`).join(', '),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+                {' — '}<a href="#investissement">le détail</a>
+              </span>
+            </li>
+          )}
+          {periodes.map((p) => (
+            <li>
+              <span class="c-financeurs-qui">{`L’Union européenne, ${p.periode}`}</span>
+              <span class="c-financeurs-montant">{euros(p.ue)}</span>
+              <span class="v-nature">
+                {`${p.projets} projet${p.projets > 1 ? 's' : ''} localisé${p.projets > 1 ? 's' : ''} dans la commune seule, pour ${euros(p.total)} de dépenses éligibles` +
+                  (p.partages ? `, et ${p.partages} partagé${p.partages > 1 ? 's' : ''} avec d’autres communes, hors de ce total` : '')}
+                {' — '}<a href="#europe">le détail</a>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+    <p class="mesure">
+      Les deux parties ne s’additionnent pas. Les comptes enregistrent l’argent encaissé dans l’année&nbsp;; les listes de
+      projets, l’argent attribué, versé ensuite en plusieurs fois, parfois sur d’autres exercices, et parfois à
+      l’intercommunalité plutôt qu’à la commune. Une subvention de l’État ou de l’Europe se retrouve, le jour où elle est
+      versée, dans les « subventions d’investissement reçues » des comptes. Les aides versées aux habitants — allocations,
+      aides agricoles — n’y figurent pas&nbsp;: elles ne passent pas par la commune.
+    </p>
+  </>
+)}
+<p class="p-source-territoire">
+  D’après les comptes des communes publiés par l’OFGL, l’Observatoire des finances et de la gestion publique
+  locales ; les projets financés par les dotations de soutien à l’investissement de l’État ; et les projets de la
+  politique de cohésion de la Commission européenne (Kohesio). Chacun a ses sources sous son bloc.
+</p>

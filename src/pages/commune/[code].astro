@@ -53,6 +53,7 @@ import EntreprisesPresentes from '../../composants/commune/EntreprisesPresentes.
 import Essentiel from '../../composants/commune/Essentiel.astro';
 import Mairies from '../../composants/commune/Mairies.astro';
 import Europe from '../../composants/commune/Europe.astro';
+import Financeurs from '../../composants/commune/Financeurs.astro';
 import DeclarationElu from '../../composants/DeclarationElu.astro';
 import Demarches from '../../composants/commune/Demarches.astro';
 import Fiscalite from '../../composants/commune/Fiscalite.astro';
@@ -278,6 +279,7 @@ const sommaire: [string, string, unknown][] = [
   ['conseil', 'Le conseil', fiche?.conseil && fiche.conseil.elus > 0],
   ['votes', 'Les votes nationaux', vie.votes],
   ['qui-exerce', 'Qui exerce quoi', lignes.length > 0],
+  ['financeurs', 'Qui la finance', plus.finances || vie.investissement || vie.europe],
   ['comptes', 'Ses comptes', plus.finances],
   ['dotations', 'Les dotations de l’État', vie.dotations],
   ['investissement', 'Les projets subventionnés', vie.investissement],
@@ -345,7 +347,7 @@ const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   {
     id: 'argent',
     nom: 'L’argent',
-    blocs: ['comptes', 'dotations', 'investissement', 'ccas', 'caf', 'preleve', 'intercommunalite', 'marches', 'deliberations', 'subventions', 'europe'],
+    blocs: ['financeurs', 'comptes', 'dotations', 'investissement', 'ccas', 'caf', 'preleve', 'intercommunalite', 'marches', 'deliberations', 'subventions', 'europe'],
   },
   {
     id: 'habitants',
@@ -628,6 +630,12 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
+    {(plus.finances || vie.investissement || vie.europe) && (
+      <section id="financeurs">
+        <h2 class="badge">Qui finance la commune</h2>
+        <Financeurs finances={plus.finances} investissement={vie.investissement} europe={vie.europe} population={commune.population} />
+      </section>
+    )}
     {plus.finances && (
       <section id="comptes" class="p-finances">
         <h2 class="badge">{`Ses comptes, en ${plus.finances.annee}`}</h2>
