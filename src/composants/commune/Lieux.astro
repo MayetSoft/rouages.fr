@@ -4,7 +4,7 @@
  * promotion, pas un inventaire : la page le dit, et ne montre ni commerce ni
  * hébergement — voir `scripts/lieux-emettre.ts`.
  */
-import type { Lieux } from '../../modele/fiche-vie.ts';
+import type { Lieu, Lieux } from '../../modele/fiche-vie.ts';
 
 interface Props {
   l: Lieux;
@@ -14,31 +14,32 @@ const MONTRES = 15;
 
 /**
  * Plusieurs fiches pour un même lieu — « Aventure Nature : pour les 3-4 ans »,
- * « … pour les 5-6 ans » — se regroupent sous leur nom commun.
+ * « … pour les 5-6 ans » — se regroupent sous leur nom commun, avec le lien
+ * de la première.
  */
-function regrouper(noms: string[]): string[] {
+function regrouper(lieux: Lieu[]): Lieu[] {
   const prefixe = (n: string) => n.split(' : ')[0].trim();
   const compte = new Map<string, number>();
-  for (const n of noms) compte.set(prefixe(n), (compte.get(prefixe(n)) ?? 0) + 1);
+  for (const l of lieux) compte.set(prefixe(l.nom), (compte.get(prefixe(l.nom)) ?? 0) + 1);
   const vus = new Set<string>();
-  const out: string[] = [];
-  for (const n of noms) {
-    const p = prefixe(n);
+  const out: Lieu[] = [];
+  for (const l of lieux) {
+    const p = prefixe(l.nom);
     const k = compte.get(p) ?? 1;
-    if (k === 1) out.push(n);
+    if (k === 1) out.push(l);
     else if (!vus.has(p)) {
       vus.add(p);
-      out.push(`${p} (${k} fiches)`);
+      out.push({ nom: `${p} (${k} fiches)`, fiche: l.fiche });
     }
   }
   return out;
 }
 
 const familles = [
-  { titre: 'Patrimoine', noms: regrouper(l.patrimoine) },
-  { titre: 'Sites naturels', noms: regrouper(l.nature) },
-  { titre: 'Itinéraires', noms: regrouper(l.itineraires) },
-].filter((f) => f.noms.length > 0);
+  { titre: 'Patrimoine', lieux: regrouper(l.patrimoine) },
+  { titre: 'Sites naturels', lieux: regrouper(l.nature) },
+  { titre: 'Itinéraires', lieux: regrouper(l.itineraires) },
+].filter((f) => f.lieux.length > 0);
 ---
 {familles.length === 0 ? (
   <p class="mesure">
@@ -50,9 +51,11 @@ const familles = [
     <>
       <h3 class="p-titre-echelon">{f.titre}</h3>
       <ul class="c-structures">
-        {f.noms.slice(0, MONTRES).map((n) => <li>{n}</li>)}
+        {f.lieux.slice(0, MONTRES).map((x) => (
+          <li>{x.fiche ? <a href={x.fiche} target="_blank" rel="noopener">{x.nom}</a> : x.nom}</li>
+        ))}
       </ul>
-      {f.noms.length > MONTRES && <p class="p-strate">{`Et ${f.noms.length - MONTRES} autres.`}</p>}
+      {f.lieux.length > MONTRES && <p class="p-strate">{`Et ${f.lieux.length - MONTRES} autres.`}</p>}
     </>
   ))
 )}
@@ -62,5 +65,5 @@ const familles = [
   commune est celle qu’indique la fiche. Ni commerce, ni hébergement, ni événement.
 </p>
 <p class="p-source-territoire">
-  {`D’après DATAtourisme, la base nationale des données touristiques alimentée par les offices de tourisme (${l.maj}).`}
+  {`D’après DATAtourisme, la base nationale des données touristiques alimentée par les offices de tourisme (${l.maj}). Chaque nom mène à sa fiche sur la plateforme.`}
 </p>

@@ -188,7 +188,8 @@ type SecheresseDep = { maj: string; annee: number; du: string; au: string; debut
 const secheresseDep = parDepartement<SecheresseDep>('secheresse');
 type ZonagesDep = { maj: string; dates: Record<string, string>; c: Record<string, [string[], string, string, 0 | 1 | 2, string?, string[]?, (0 | 1 | 2)?]> };
 const zonagesDep = parDepartement<ZonagesDep>('zonages');
-type LieuxDep = { maj: string; c: Record<string, [string[], string[], string[]]> };
+type LieuDep = string | [string, string];
+type LieuxDep = { maj: string; c: Record<string, [LieuDep[], LieuDep[], LieuDep[]]> };
 const lieuxDep = parDepartement<LieuxDep>('lieux');
 
 /* ------------------------------------------------------------------ *
@@ -585,10 +586,16 @@ export interface Installations {
  * patrimoine, sites naturels, itinéraires. Rien n'est une réponse aussi — mais
  * une réponse sur ce qu'ils ont saisi, pas sur ce qui existe.
  */
+/** Un lieu, et sa fiche sur DATAtourisme quand le fichier la donne. */
+export interface Lieu {
+  nom: string;
+  fiche: string | null;
+}
+
 export interface Lieux {
-  patrimoine: string[];
-  nature: string[];
-  itineraires: string[];
+  patrimoine: Lieu[];
+  nature: Lieu[];
+  itineraires: Lieu[];
   maj: string;
 }
 
@@ -1148,8 +1155,11 @@ function installations(c: CommuneFiche): Installations | null {
 function lieux(c: CommuneFiche): Lieux | null {
   const d = lieuxDep.get(c.dep);
   if (!d) return null;
+  // Les fichiers d'avant le 9 octobre 2026 ne portent que le nom.
+  const lieu = (x: string | [string, string]): Lieu =>
+    typeof x === 'string' ? { nom: x, fiche: null } : { nom: x[0], fiche: x[1] ? `https://data.datatourisme.fr/${x[1]}` : null };
   const [patrimoine, nature, itineraires] = d.c[c.code] ?? [[], [], []];
-  return { patrimoine, nature, itineraires, maj: d.maj };
+  return { patrimoine: patrimoine.map(lieu), nature: nature.map(lieu), itineraires: itineraires.map(lieu), maj: d.maj };
 }
 
 function zonages(c: CommuneFiche): Zonages | null {
