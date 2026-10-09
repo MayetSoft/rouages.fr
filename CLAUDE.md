@@ -184,6 +184,16 @@ Ce qui est autorisé à ce jour :
   relations entre le public et l'administration). **Jamais une déclaration de
   patrimoine d'élu local** : la loi ne la rend pas publique, et sa divulgation
   est un délit (article 26 de la loi du 11 octobre 2013) ;
+- **les bénéficiaires des aides de la PAC** (FEAGA et FEADER), d'après la
+  liste que le ministère de l'Agriculture publie en application de l'article
+  98 du règlement (UE) 2021/2116 — décision du 8 octobre 2026 : la
+  dénomination telle que publiée, la commune, le code postal, les montants
+  par mesure et le total, avec l'exercice et le lien vers le module de
+  l'ASP. Un bénéficiaire que le registre anonymise (1 250 € ou moins) reste
+  anonyme. **Pas plus longtemps que le registre** : deux ans à compter de la
+  première publication, puis les totaux par commune seulement. Faute de
+  SIREN, les oppositions s'inscrivent dans `retraits.yaml` par la commune et
+  l'empreinte de la dénomination. Voir `docs/07-risques.md` ;
 - **les entrepreneurs individuels** d'après SIRENE et le BODACC : le nom tel
   que publié, l'activité, la commune, le lien vers la fiche ou l'annonce.
   Jamais un entrepreneur en **diffusion partielle** au répertoire SIRENE — il

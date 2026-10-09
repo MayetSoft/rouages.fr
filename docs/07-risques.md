@@ -379,10 +379,11 @@ service qui suit les marchés publics doit être complet sur qui les tient.
 - **Le retrait.** Une opposition reçue par `/signaler` va dans `retraits.yaml`,
   par SIREN, et s'applique à l'ingestion suivante, comme pour les titulaires.
 
-### Les bénéficiaires des aides de la PAC — à décider (8 octobre 2026)
+### Les bénéficiaires des aides de la PAC (8 octobre 2026)
 
-Écrit avant toute collecte, pour que le mainteneur tranche. Rien n'est
-collecté tant que la décision n'est pas inscrite ici et dans `CLAUDE.md`.
+Écrit avant toute collecte, pour que le mainteneur tranche. Il a tranché le
+8 octobre 2026 pour l'option 3 : voir « La décision », à la fin de cette
+section, et `CLAUDE.md`.
 
 **Le registre.** Chaque année, le ministère de l'Agriculture publie, par
 le module de l'Agence de services et de paiement, la liste des
@@ -440,11 +441,39 @@ se pose sur une commune rurale — combien l'Europe y verse par l'agriculture
 L'option 3 n'est pas recommandée : le site la rendrait plus durable et plus
 trouvable que le registre ne l'annonce.
 
-**Ce qui bloque, en plus de la décision.** Le fichier n'est pas joignable
-depuis l'environnement de développement : la page du ministère coupe la
-connexion, et le module de l'ASP renvoie à l'identification. Il faut
-l'adresse du fichier national, relevée depuis une autre machine, pour écrire
-la collecte.
+**La décision (8 octobre 2026) : l'option 3.** Le mainteneur retient tout ce
+que le ministère publie, pour croiser le plus d'informations possible. La
+recommandation ci-dessus reste écrite : c'est la trace de ce qui a été pesé.
+La collecte suit ces conditions, qui reprennent celles de `CLAUDE.md` et
+les limites du registre lui-même :
+
+- **Ce qui est repris** : la dénomination telle que le fichier la publie,
+  la commune, le code postal, le montant de chaque mesure FEAGA et FEADER,
+  le total de l'exercice. Un bénéficiaire que le registre anonymise
+  (1 250 € ou moins) reste anonyme : il est compté, jamais nommé.
+- **Pas plus longtemps que le registre** : le site ne garde que les
+  exercices encore en ligne au registre, deux ans à compter de leur
+  première publication. Un exercice sorti du registre sort du site à
+  l'ingestion suivante ; il ne reste que les totaux par commune.
+- **Avec sa source** : l'exercice, la date de publication, et le lien vers
+  le module de l'ASP, sous chaque bénéficiaire.
+- **Sans conclure** : un montant est un fait publié, pas un jugement. Un
+  recoupement avec d'autres données — un élu, un marché, une entreprise —
+  dit sur quels champs il repose ; un rapprochement par le nom et la commune
+  seuls n'est pas un constat (les homonymes sont fréquents dans une même
+  commune rurale), et la page le dit.
+- **Le retrait** : le fichier ne donne pas de SIREN, donc ni le statut de
+  diffusion SIRENE ni une opposition par SIREN ne s'appliquent. Une
+  opposition s'inscrit dans `retraits.yaml` par la commune et l'empreinte
+  (HMAC, avec `ROUAGES_RETRAITS_SECRET`) de la dénomination, comme pour un
+  conseiller sans fonction : le fichier public ne contient pas le nom.
+  `/mentions` dit ce qui est collecté.
+
+**Ce qui bloque encore.** Le fichier n'est pas joignable depuis
+l'environnement de développement : la page du ministère coupe la connexion,
+et le module de l'ASP renvoie à l'identification. Il faut l'adresse du
+fichier national, relevée depuis une autre machine, pour écrire la collecte ;
+la première ingestion dira si les machines de GitHub le joignent.
 
 ## 4. Risques juridiques directs
 
