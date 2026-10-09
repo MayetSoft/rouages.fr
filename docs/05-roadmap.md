@@ -3570,9 +3570,10 @@ fois. Fichiers `dep/XX-europe21.json`, collecte isolée.
 Restent à faire :
 - le FEADER par commune : il passe par la liste des bénéficiaires de la PAC
   (FEAGA et FEADER ensemble), que le ministère publie chaque année. Le
-  fichier n'est pas joignable d'ici ; les options et la recommandation —
-  des totaux par commune, sans nom — sont dans `docs/07-risques.md`, en
-  attente de décision ;
+  fichier n'est pas joignable d'ici. Décision du 8 octobre 2026 : tout ce
+  que le ministère publie, pas plus longtemps que le registre (deux ans),
+  conditions dans `docs/07-risques.md`. Il manque l'adresse du fichier
+  national ;
 - le FEAMPA par commune : aucune liste nationale d'opérations trouvée en
   données ouvertes le 8 octobre 2026 (programme national géré par la DGAMPA,
   appels instruits par FranceAgriMer) ;
