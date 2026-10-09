@@ -58,9 +58,10 @@ le dire. Les collectes qui téléchargent toujours (HATVP, répertoire des
   processus peut tourner en permanence, ce que l'hébergement mutualisé
   d'o2switch ne permet pas. L'hébergement lui-même peut porter l'ingestion
   par une autre voie, sans runner : voir plus bas.
-- **De quoi tenir l'ingestion** : elle demande 6 Go de mémoire à Node
-  (`--max-old-space-size=6144`) et lit en flux des fichiers de plusieurs
-  gigaoctets. Prévoir 8 Go de mémoire au moins, et un disque qui garde le
+- **De quoi tenir l'ingestion** : elle demande 12 Go de mémoire à Node
+  (`--max-old-space-size=12288` ; à 6 Go, elle n'a plus tenu le 9 octobre
+  2026) et lit en flux des fichiers de plusieurs gigaoctets. Prévoir 16 Go de
+  mémoire au moins, et un disque qui garde le
   cache — une soixantaine de gigaoctets laisse de la marge.
 - **Un système Linux à jour**, avec `git`, `curl`, `unzip`, et un utilisateur
   dédié sans droits d'administration pour le runner. Node n'a pas à être

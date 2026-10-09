@@ -68,8 +68,11 @@ jobs:
         # Une collecte facultative qui échoue laisse ses fichiers d'avant en
         # place et le script continue ; seuls BANATIC et le découpage sont
         # fatals. On garde le journal pour dire dans la PR ce qui a échoué.
+        # 12 Go : les machines de GitHub en ont 16 pour un dépôt public. À 6 Go,
+        # l'ingestion du 9 octobre 2026 a manqué de mémoire au BODACC, après
+        # une heure vingt.
         env:
-          NODE_OPTIONS: --max-old-space-size=6144
+          NODE_OPTIONS: --max-old-space-size=12288
           ROUAGES_CACHE_JOURS: 6
         run: |
           set -o pipefail

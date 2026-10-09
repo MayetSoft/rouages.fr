@@ -88,10 +88,13 @@ Rejected », connexions coupées. Ils répondent depuis l'hébergement français
 ses fichiers que lancé de là ; partout ailleurs il échoue et laisse les
 précédents en place.
 
-L'API de Kohesio (`kohesio.ec.europa.eu/api`) refuse la sortie directe de
-Node depuis ici (403 d'un répartiteur AWS) et répond par le mandataire :
-lancer `scripts/europe-emettre.ts` avec `NODE_USE_ENV_PROXY=1`. Depuis les
-machines de GitHub, la première réingestion le dira.
+L'API de Kohesio (`kohesio.ec.europa.eu/api`) refuse les adresses des
+hébergeurs : la sortie directe d'ici (curl comme Node, 403 d'un répartiteur
+AWS) **et les machines de GitHub** (réingestion du 9 octobre 2026). Elle
+répond par le mandataire de l'environnement : lancer
+`scripts/europe-emettre.ts` avec `NODE_USE_ENV_PROXY=1`, puis committer les
+`dep/XX-europe21.json`. La période 2014-2020, lue sur cohesiondata, passe
+partout.
 
 **`npm run veille` ment depuis ici, et il écrit ce mensonge dans un fichier
 suivi.** Les sources lourdes décrochent à 6,5 secondes — trois essais sur le
