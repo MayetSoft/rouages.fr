@@ -498,28 +498,43 @@ coïncidence, dit sur quel champ elle repose, et n'en conclut rien.
   nommés sont déjà des associations, jamais des personnes : la collecte
   écarte un intitulé qui nomme quelqu'un.
 
-**Celui qui repose sur un nom, à valider avant tout code :**
+**Celui qui repose sur un nom — décision du 10 octobre 2026 :** le
+mainteneur a validé la méthode proposée le 9 octobre ; elle est en place
+(`src/modele/recoupements.ts`).
 
-- **Un titulaire de marché qui figure dans la déclaration d'intérêts d'un
-  élu de la même collectivité** — participations financières, organes
-  dirigeants, activités. La HATVP publie le nom de la société, pas son
-  SIREN : le rapprochement se ferait par le nom, plié (casse, accents,
-  formes juridiques retirées), et seulement à l'identique. C'est un
-  recoupement fragile — deux sociétés peuvent porter le même nom, une
-  société change de nom, une filiale n'est pas sa maison mère — et il
-  touche une personne nommée, l'élu. Proposition :
-  1. ne rapprocher que les titulaires des marchés **de la collectivité où
-     l'élu siège**, pas de tout le pays ;
-  2. n'afficher que sur la page de l'élu et sous le marché, avec la phrase
-     « même nom que la société déclarée par … dans sa déclaration
-     d'intérêts du … — rapprochement par le nom seul, que la HATVP ne
-     double d'aucun numéro » et les deux liens ;
-  3. ne rien dire de plus — ni conflit d'intérêts, ni participation au
-     vote : le site ne sait pas si l'élu a pris part à la décision ;
-  4. un faux rapprochement signalé est retiré à l'ingestion suivante, par
-     le couple élu et SIREN dans `retraits.yaml`.
+- **Un titulaire de marché qui porte le même nom qu'une société ou un
+  organisme de la déclaration d'intérêts d'un élu** de la collectivité qui a
+  passé le marché. La HATVP publie le nom, pas le SIREN : le rapprochement
+  se fait par le nom plié (casse, accents, ponctuation, formes juridiques
+  retirées), et seulement à l'identique. C'est un recoupement fragile —
+  deux sociétés peuvent porter le même nom, une société change de nom, une
+  filiale n'est pas sa maison mère, une déclaration peut dater d'avant ou
+  d'après le marché — et il touche une personne nommée, l'élu. D'où :
+  1. **seulement les marchés des collectivités où l'élu siège** : sa
+     commune ; son intercommunalité quand le répertoire des élus lui donne
+     un siège au conseil communautaire ; le département ou la région dont il
+     est conseiller. Pas les parlementaires, qui ne siègent dans aucune ;
+  2. **seulement les rubriques qui parlent de lui** : activités
+     professionnelles et de conseil, organes dirigeants, participations
+     financières. Ni l'employeur du conjoint, ni celui d'un collaborateur —
+     ce sont d'autres personnes —, ni les fonctions bénévoles ;
+  3. **affiché sous l'élu et sous le marché**, avec la phrase « même nom
+     que l'organisme déclaré par … dans sa déclaration d'intérêts du … —
+     rapprochement par le nom seul, que la HATVP ne double d'aucun numéro »,
+     le lien vers la déclaration et celui vers la fiche du titulaire ;
+  4. **rien de plus** — ni conflit d'intérêts, ni participation au vote : le
+     site ne sait pas si l'élu a pris part à la décision, et le dit ;
+  5. **un faux rapprochement signalé est retiré** au build suivant : la page
+     nominative de l'élu et le SIREN du titulaire, sous `rapprochements`
+     dans `retraits.yaml`. Un acheteur déclaré titulaire de son propre
+     marché, erreur de saisie, n'est jamais rapproché.
 
-  À trancher par le mainteneur avant la collecte.
+  Au 10 octobre 2026, sur les données de la réingestion du 9 : 3
+  rapprochements sur des marchés de communes, 7 d'intercommunalités, une
+  trentaine de départements. La plupart sont des sociétés publiques locales,
+  des syndicats ou des associations où l'élu siège au titre de sa
+  collectivité, et des participations dans de grands groupes (ENGIE,
+  Orange) : la mention le dit tel quel, sans les trier.
 
 ## 4. Risques juridiques directs
 

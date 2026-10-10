@@ -24,7 +24,12 @@
 #   sites       : le code d'un site des sols pollués (« SSP… ») ou d'une
 #                 installation classée (code AIOT, dix chiffres), pour un
 #                 exploitant sans SIRET qui demande à ne plus être nommé.
+#   rapprochements: la page nominative de l'élu à la HATVP et le SIREN du
+#                 titulaire, pour un rapprochement par le nom signalé comme
+#                 faux (deux sociétés de même nom) — lu au build, pas à
+#                 l'ingestion : il disparaît dès la publication suivante.
 entreprises: []
 elus: []
 declarations: []
 sites: []
+rapprochements: []

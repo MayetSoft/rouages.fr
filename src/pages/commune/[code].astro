@@ -28,6 +28,7 @@ import {
 } from '../../modele/territoires.ts';
 import type { Verdict } from '../../modele/verdict.ts';
 import { urlSignaler } from '../../modele/signalement.ts';
+import { parTitulaire, rapprocher, type Rapprochement } from '../../modele/recoupements.ts';
 import Glose from '../../composants/Glose.astro';
 import { ARTICLE_DOCUMENT, enFrancais, NOM_DOCUMENT } from '../../modele/urbanisme.ts';
 import { complementsFiche } from '../../modele/fiche-commune.ts';
@@ -117,6 +118,33 @@ const resolubles = reseau.noeuds
   .map((n) => ({ id: n.id, banatic: n.banatic! }));
 const fiche = ficheCommune(commune, resolubles);
 const plus = complementsFiche(commune, commune.population, fiche?.structures ?? []);
+
+// Le rapprochement par le nom (`src/modele/recoupements.ts`) : les marchés de
+// la commune, où siège chaque déclarant, et ceux de l'intercommunalité pour qui
+// a un siège au conseil communautaire, d'après le répertoire des élus.
+const personne = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]+/g, ' ').trim();
+const siegesCc = new Set(
+  fiche
+    ? [
+        ...(fiche.maire && fiche.maireCc ? [`${fiche.maire.prenom} ${fiche.maire.nom}`] : []),
+        ...fiche.adjoints.filter((x) => x.cc).map((x) => `${x.prenom} ${x.nom}`),
+        ...fiche.conseillers.filter((x) => x.cc).map((x) => `${x.prenom} ${x.nom}`),
+      ].map(personne)
+    : [],
+);
+const acheteurCommune = plus.marches.find((a) => a.natureLibelle === 'la commune');
+const epciFp = fiche?.structures.find((x) => intercommunalite(x.siren));
+const acheteurEpci = epciFp ? plus.marches.find((a) => a.siren === epciFp.siren) : undefined;
+const rapprochementsParElu = new Map<string, Rapprochement[]>();
+for (const d of fiche?.declarations ?? []) {
+  const acheteurs = [
+    ...(acheteurCommune ? [acheteurCommune] : []),
+    ...(acheteurEpci && siegesCc.has(personne(d.nom)) ? [acheteurEpci] : []),
+  ].map((a) => ({ siren: a.siren, nom: a.nom, dep: commune.dep }));
+  const r = rapprocher({ elu: d.nom, page: d.page, contenu: d.contenu }, acheteurs);
+  if (r.length) rapprochementsParElu.set(d.page, r);
+}
+const rapprochementsMarches = parTitulaire([...rapprochementsParElu.values()].flat());
 const vie = complementsVie(commune);
 const carte = carteDeSituation(commune);
 const espaces = espacesNaturels(commune);
@@ -477,7 +505,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
           {fiche.declarations.map((d) => (
             <li>
               <span class="p-adjoint-nom">{d.nom}</span>
-              <DeclarationElu d={d} qualite />
+              <DeclarationElu d={d} qualite rapprochements={rapprochementsParElu.get(d.page)} />
             </li>
           ))}
         </ul>
@@ -897,7 +925,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {plus.marches.length > 0 && (
       <section id="marches" class="p-marches">
         <h2 class="badge">Ce qui est commandé</h2>
-        <Marches liste={plus.marches} depuis={plus.marchesDepuis} fenetre={plus.marchesFenetre} procedures={plus.marchesProcedures} />
+        <Marches liste={plus.marches} depuis={plus.marchesDepuis} fenetre={plus.marchesFenetre} procedures={plus.marchesProcedures} rapprochements={rapprochementsMarches} />
         <Ailleurs sites={SITES_COMMANDE_PUBLIQUE} titre="Pour qui achète ou répond" />
       </section>
     )}

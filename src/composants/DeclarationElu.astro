@@ -5,13 +5,18 @@
  * `scripts/declarations-emettre.ts`. Jamais une déclaration de patrimoine.
  */
 import type { DeclarationElu } from '../modele/elus-echelons.ts';
+import type { Rapprochement } from '../modele/recoupements.ts';
 
 interface Props {
   d: DeclarationElu;
   /** Dire à quel titre chaque déclaration a été déposée (maire, président…) : utile sur la page d'une commune. */
   qualite?: boolean;
+  /** Les titulaires de marchés de ses collectivités qui portent un nom de sa déclaration (`src/modele/recoupements.ts`). */
+  rapprochements?: Rapprochement[];
 }
-const { d, qualite = false } = Astro.props;
+const { d, qualite = false, rapprochements = [] } = Astro.props;
+const FICHE = 'https://annuaire-entreprises.data.gouv.fr/entreprise/';
+const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`;
 const jour = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 /** Les sigles que la HATVP donne elle-même à ses types de document (`di`, `dim`, `dia`, `diam`). */
 const SIGLES: Record<string, string> = {
@@ -73,4 +78,17 @@ for (const l of d.contenu?.lignes ?? []) {
       </>
     ))}
   </details>
+)}
+{rapprochements.length > 0 && (
+  <ul class="p-rapprochements">
+    {rapprochements.map((r) => (
+      <li>
+        {`« ${r.declare} », déclaré en ${r.rubrique}${r.periode ? ` (${r.periode})` : ''} : même nom qu’un titulaire des marchés de ${r.acheteur}, `}
+        <a href={FICHE + r.siren} target="_blank" rel="noopener">{r.titulaire}</a>
+        {` — ${pluriel(r.marches.length, 'marché')} publié${r.marches.length > 1 ? 's' : ''}` +
+          (r.marches[0] ? `, le plus récent « ${r.marches[0].objet} » (${new Date(r.marches[0].date).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })})` : '') +
+          '. Rapprochement par le nom seul, que la HATVP ne double d’aucun numéro : il ne dit pas si l’élu a pris part au choix du titulaire.'}
+      </li>
+    ))}
+  </ul>
 )}

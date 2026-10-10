@@ -1059,12 +1059,16 @@ function estRepresentant(siren: string): boolean {
   return sirenRepresentants.has(siren);
 }
 
+/** Certains objets arrivent avec des entités HTML (« d&#8217;électricité ») : on les rend en clair. */
+export const enClair = (t: string) =>
+  t.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+
 /** Les marchés d'un acheteur, lus dans le fichier d'un département. */
 function acheteurMarches(d: MarchesDep, siren: string, nom: string, natureLibelle: string | null): AcheteurMarches | null {
   const e = d.h[siren];
   if (!e || e.m.length === 0) return null;
   const lire = (m: MarcheBrut): Marche => ({
-    objet: m.objet,
+    objet: enClair(m.objet),
     montant: m.montant,
     date: m.date,
     procedure: d.procedures[m.procedure] ?? null,
@@ -1115,6 +1119,19 @@ function titulairesDe(dep: string, acheteur: string): Set<string> {
   const s = new Set<string>();
   for (const m of [...(e?.m ?? []), ...(e?.e ?? [])]) for (const [siren] of m.t ?? []) s.add(siren);
   return s;
+}
+
+/**
+ * Tous les marchés publiés d'un acheteur, réduits à leurs titulaires : le
+ * fichier complet que la page charge à la demande, sinon les plus récents et
+ * les échéances que porte le fichier du département. Pour les recoupements,
+ * qui doivent voir tout ce que le lecteur peut voir.
+ */
+export function marchesCompletsDe(dep: string, acheteur: string): { objet: string; date: string; t: [string, string][] }[] {
+  const complet = lire<{ m: MarcheBrut[] }>(`marches/${acheteur}.json`);
+  const e = marchesDep.get(dep)?.h[acheteur];
+  const liste = complet?.m?.length ? complet.m : [...(e?.m ?? []), ...(e?.e ?? [])];
+  return liste.map((m) => ({ objet: m.objet, date: m.date, t: m.t ?? [] }));
 }
 
 /**

@@ -1,0 +1,26 @@
+---
+/**
+ * Sous un titulaire de marché : le même nom figure dans la déclaration
+ * d'intérêts d'un élu de la collectivité qui a passé le marché. La mention dit
+ * le fait, sur quoi il repose — le nom seul —, et rien d'autre. Voir
+ * `src/modele/recoupements.ts`.
+ */
+import type { Rapprochement } from '../../modele/recoupements.ts';
+
+interface Props {
+  r: Rapprochement[];
+}
+const { r } = Astro.props;
+const jour = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<span class="c-recoupement">
+  {' · même nom que l’organisme déclaré par '}
+  {r.map((x, i) => (
+    <>
+      {i > 0 && (i === r.length - 1 ? ' et par ' : ', par ')}
+      {`${x.elu} (${x.rubrique}) dans `}
+      <a href={x.page} target="_blank" rel="noopener">{`sa déclaration d’intérêts du ${jour(x.depot)}`}</a>
+    </>
+  ))}
+  {' — rapprochement par le nom seul, que la HATVP ne double d’aucun numéro'}
+</span>

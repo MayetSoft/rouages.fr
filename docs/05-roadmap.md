@@ -3763,8 +3763,13 @@ bloc le dit.
 représentants d'intérêts (par le SIREN), bénéficiaire de subvention aussi
 titulaire d'un marché de la même collectivité (par le SIREN, à la prochaine
 réingestion). Le rapprochement par le nom avec les déclarations d'intérêts
-des élus attend la décision du mainteneur : méthode dans
-`docs/07-risques.md`.
+des élus attendait la décision du mainteneur : validé le 10 octobre (voir
+plus bas).
+
+**Validé par le mainteneur le 10 octobre** : l'ordre des associations, les
+représentants d'intérêts de Paris, « Qui finance la commune ». Le poids des
+pages lui paraît raisonnable tant qu'il sert la compréhension : pas de
+réduction prévue.
 
 
 ### L'argent public : le budget de l'État, première phase (10 octobre 2026)
@@ -3812,3 +3817,15 @@ recettes.
   la veille surveille celui de 2026, qui ne doit plus bouger ;
 - **les totaux de la Sécurité sociale et des collectivités**, pour que la
   dépense publique entière ait sa place, chacune avec sa nature.
+
+### Le rapprochement par le nom, élus et titulaires (10 octobre 2026)
+
+La méthode proposée le 9 octobre, validée le 10 : un titulaire de marché qui
+porte le même nom qu'une société ou un organisme de la déclaration
+d'intérêts d'un élu, sur les seuls marchés des collectivités où il siège
+(`src/modele/recoupements.ts`, détail dans `docs/07-risques.md`). Affiché
+sous l'élu — sur la page de la commune et sur celle du département ou de la
+région — et sous le marché, y compris dans les lignes que « Voir les autres »
+fait apparaître. Calculé au build sur les données déjà collectées : rien à
+réingérer. Au passage, les objets de marchés qui arrivaient avec des
+entités HTML (« d&#8217;électricité ») sont rendus en clair.

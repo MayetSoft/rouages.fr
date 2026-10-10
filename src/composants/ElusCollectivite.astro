@@ -6,13 +6,16 @@
  */
 import type { ElusCollectivite, EluEchelon } from '../modele/elus-echelons.ts';
 import DeclarationElu from './DeclarationElu.astro';
+import type { Rapprochement } from '../modele/recoupements.ts';
 
 interface Props {
   e: ElusCollectivite;
   /** Le nom de chaque département, pour titrer les sections d'un conseil régional. */
   nomsDeps?: Record<string, string>;
+  /** Les rapprochements par le nom avec les titulaires des marchés de la collectivité, par page nominative. */
+  rapprochements?: Map<string, Rapprochement[]>;
 }
-const { e, nomsDeps = {} } = Astro.props;
+const { e, nomsDeps = {}, rapprochements = new Map<string, Rapprochement[]>() } = Astro.props;
 /** « 4ème Vice-président du conseil régional » → « 4e vice-président ». */
 const fonction = (f: string) =>
   f.replace(/\s+du conseil (?:départemental|régional)$/i, '').replace(/(\d+)\s*(?:ème|eme)\b/i, '$1e').replace(/^(\d+e |\d+er |)V/, '$1v');
@@ -28,7 +31,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
           <span class="p-adjoint-fonction">{fonction(x.fonction)}</span>
           <span class="p-adjoint-nom">{` ${x.nom}`}</span>
           {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
-          {x.declaration && <DeclarationElu d={x.declaration} />}
+          {x.declaration && <DeclarationElu d={x.declaration} rapprochements={rapprochements.get(x.declaration.page)} />}
         </li>
       ))}
     </ul>
@@ -48,7 +51,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
               <li>
                 <span class="p-adjoint-nom">{x.nom}</span>
                 {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
-                {x.declaration && <DeclarationElu d={x.declaration} />}
+                {x.declaration && <DeclarationElu d={x.declaration} rapprochements={rapprochements.get(x.declaration.page)} />}
               </li>
             ))}
           </ul>
@@ -66,7 +69,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
           <span class="p-adjoint-fonction">{x.libelle}</span>
           <span class="p-adjoint-nom">{` ${x.nom}`}</span>
           {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
-          {x.declaration && <DeclarationElu d={x.declaration} />}
+          {x.declaration && <DeclarationElu d={x.declaration} rapprochements={rapprochements.get(x.declaration.page)} />}
         </li>
       ))}
     </ul>
@@ -80,7 +83,7 @@ const nbDecl = (l: EluEchelon[]) => l.filter((x) => x.declaration).length;
         <li>
           <span class="p-adjoint-nom">{x.nom}</span>
           {x.naissance && <span class="p-adjoint-naissance">{' '}<abbr title="année de naissance">n.</abbr>{`\u00a0${x.naissance}`}</span>}
-          {x.declaration && <DeclarationElu d={x.declaration} />}
+          {x.declaration && <DeclarationElu d={x.declaration} rapprochements={rapprochements.get(x.declaration.page)} />}
         </li>
       ))}
     </ul>
