@@ -86,6 +86,55 @@ export function tirer(communes: Record<string, CommuneJeu>, codes: string[], ale
   return manches;
 }
 
+/** Les couleurs des cases, celles des carrés emoji qu'on partage en texte. */
+const COULEUR_CASE = (p: number) => (p >= 80 ? '#2e9e5b' : p >= 50 ? '#e6b422' : p > 0 ? '#e8762c' : '#cf3b2f');
+
+/**
+ * L'image du résultat, pour Instagram qui ne prend pas de lien à partager :
+ * le même contenu que le texte — lieu, date, cases, score, adresse —, sans
+ * aucune vente. Au format portrait 4:5, celui du fil.
+ */
+async function imageDuResultat(lieu: string, date: string, pts: number[], adresse: string): Promise<Blob> {
+  const L = 1080;
+  const H = 1350;
+  const toile = document.createElement('canvas');
+  toile.width = L;
+  toile.height = H;
+  const g = toile.getContext('2d')!;
+  await document.fonts?.ready;
+  const police = getComputedStyle(document.body).fontFamily || 'sans-serif';
+  g.fillStyle = '#fbfaf8';
+  g.fillRect(0, 0, L, H);
+  g.fillStyle = '#1e5f74';
+  g.fillRect(0, 0, L, 18);
+  const ligne = (texte: string, y: number, taille: number, couleur: string, graisse = 400) => {
+    g.font = `${graisse} ${taille}px ${police}`;
+    g.fillStyle = couleur;
+    // Un nom long se réduit plutôt que de sortir du cadre.
+    let t = taille;
+    while (g.measureText(texte).width > L - 160 && t > 24) g.font = `${graisse} ${(t -= 2)}px ${police}`;
+    g.fillText(texte, 80, y);
+  };
+  ligne('Rouages · Jeux', 130, 36, '#5f5c55', 500);
+  ligne('À combien s’est-elle vendue ?', 230, 64, '#17171a', 700);
+  ligne(lieu, 420, 56, '#17171a', 600);
+  ligne(`Défi du ${date}`, 490, 40, '#5f5c55');
+  const cote = 150;
+  const ecart = (L - 160 - cote * pts.length) / Math.max(1, pts.length - 1);
+  for (const [i, p] of pts.entries()) {
+    g.fillStyle = COULEUR_CASE(p);
+    g.beginPath();
+    g.roundRect(80 + i * (cote + ecart), 600, cote, cote, 22);
+    g.fill();
+  }
+  const total = pts.reduce((a, b) => a + b, 0);
+  ligne(`${total} / ${pts.length * 100}`, 960, 120, '#17171a', 700);
+  ligne('points', 1030, 40, '#5f5c55');
+  ligne('Saurez-vous faire mieux ?', 1170, 44, '#1e5f74', 600);
+  ligne(adresse.replace(/^https?:\/\//, ''), 1240, 34, '#5f5c55');
+  return new Promise((ok, ko) => toile.toBlob((b) => (b ? ok(b) : ko(new Error('image'))), 'image/png'));
+}
+
 function decrire(v: VenteJeu): string {
   const [, type, , surface, pieces, terrain] = v;
   const morceaux = [`${m2(surface)} habitables`];
@@ -209,6 +258,8 @@ export function brancherJeuPrix(): void {
       $<HTMLAnchorElement>('jp-bluesky')!.href = `https://bsky.app/intent/compose?text=${complet}`;
       $<HTMLAnchorElement>('jp-facebook')!.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(adresse)}`;
       $<HTMLAnchorElement>('jp-whatsapp')!.href = `https://wa.me/?text=${complet}`;
+      // LinkedIn ne reprend plus de texte : l'adresse seule, l'aperçu vient de la page.
+      $<HTMLAnchorElement>('jp-linkedin')!.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(adresse)}`;
       $('jp-natif')!.hidden = typeof navigator.share !== 'function';
     }
     $('jp-libre')!.textContent = duJour ? 'Une partie libre, avec d’autres ventes' : 'Une autre partie libre';
@@ -315,6 +366,33 @@ export function brancherJeuPrix(): void {
     const total = partie.reduce((s, m) => s + (m.points ?? 0), 0);
     navigator.share({ text: texteAPartager(total), url: adresseAPartager() }).catch(() => {});
   });
+  // Instagram n'a pas d'adresse de partage : une image, par le partage du
+  // téléphone quand il accepte les fichiers, sinon enregistrée pour être
+  // publiée depuis l'application.
+  $('jp-instagram')!.addEventListener('click', async () => {
+    const note = $('jp-note-image')!;
+    const total = partie.reduce((s, m) => s + (m.points ?? 0), 0);
+    const date = new Date(`${jour}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    try {
+      const blob = await imageDuResultat(lieu!.nom, date, partie.map((m) => m.points ?? 0), adresseAPartager());
+      const fichier = new File([blob], `rouages-defi-${jour}.png`, { type: 'image/png' });
+      if (navigator.canShare?.({ files: [fichier] })) {
+        await navigator.share({ files: [fichier], text: texteAPartager(total) });
+        note.hidden = true;
+        return;
+      }
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: fichier.name });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+      note.textContent = 'Image enregistrée : publiez-la depuis l’application Instagram, en story ou dans le fil.';
+      note.hidden = false;
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return;
+      note.textContent = 'L’image n’a pas pu être préparée sur cet appareil.';
+      note.hidden = false;
+    }
+  });
+
   $('jp-copier')!.addEventListener('click', async () => {
     const bouton = $('jp-copier')!;
     try {

@@ -3921,8 +3921,12 @@ intercommunalité et à son département.
 
 **Le partage** : un texte — lieu, date, une case par vente (🟩 80 points et
 plus, 🟨 50, 🟧 moins, 🟥 aucun), score, adresse du défi —, par le partage
-natif du téléphone, la copie, ou X, Bluesky, Facebook et WhatsApp. Aucune
-vente dans le texte (`docs/07-risques.md`).
+natif du téléphone, la copie, ou X, Bluesky, Facebook, WhatsApp et LinkedIn
+(qui ne reprend plus de texte : l'adresse seule). Instagram n'a pas
+d'adresse de partage : une image du résultat (1 080 × 1 350, le même
+contenu), partagée comme fichier quand le téléphone le permet, sinon
+enregistrée pour être publiée depuis l'application. Aucune vente dans le
+texte ni dans l'image (`docs/07-risques.md`).
 
 **La suite possible** : partir de la page d'une commune (« jouer avec les
 ventes de la commune ») ; un mode appartements seuls dans les grandes villes ;

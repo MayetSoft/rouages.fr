@@ -107,7 +107,10 @@ const entete = parDefaut
               <a class="plat" id="jp-bluesky" target="_blank" rel="noopener">Bluesky</a>
               <a class="plat" id="jp-facebook" target="_blank" rel="noopener">Facebook</a>
               <a class="plat" id="jp-whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+              <a class="plat" id="jp-linkedin" target="_blank" rel="noopener">LinkedIn</a>
+              <button class="plat" type="button" id="jp-instagram">Instagram (image)</button>
             </div>
+            <p id="jp-note-image" class="jp-compteur jp-note" hidden aria-live="polite"></p>
           </div>
           <button class="plat" type="button" id="jp-libre">Une partie libre, avec d’autres ventes</button>
         </section>
@@ -119,7 +122,7 @@ const entete = parDefaut
     <ul class="accueil-themes">
       <li>Chaque jour, pour chaque lieu, un défi de cinq ventes, le même pour tout le monde&nbsp;: c’est ce qui permet de comparer les scores. Il se joue une fois&nbsp;; ensuite, les parties libres tirent d’autres ventes.</li>
       <li>100 points pour le prix exact, 2 de moins par point d’écart&nbsp;: 10&nbsp;% d’écart donnent 80 points, 50&nbsp;% et plus n’en donnent aucun. 🟩 80 points et plus, 🟨 50 et plus, 🟧 moins de 50, 🟥 aucun.</li>
-      <li>Votre score du jour et le dernier lieu joué restent dans votre navigateur, nulle part ailleurs. Le partage n’envoie rien de lui-même&nbsp;: il prépare un texte — le lieu, les cases et le score, aucune vente — que vous publiez où vous voulez.</li>
+      <li>Votre score du jour et le dernier lieu joué restent dans votre navigateur, nulle part ailleurs. Le partage n’envoie rien de lui-même&nbsp;: il prépare un texte, ou pour Instagram une image — le lieu, les cases et le score, aucune vente — que vous publiez où vous voulez.</li>
       <li>Chaque vente est réelle, mais le jeu en dit moins que la source&nbsp;: la commune et l’année, jamais l’adresse ni la date&nbsp;; le prix arrondi au millier d’euros, la surface à 5&nbsp;m², le terrain à 100&nbsp;m².</li>
       <li>Ne sont tirées que les communes d’au moins dix ventes en trois ans, et dans chacune les ventes ordinaires&nbsp;: ni les 10&nbsp;% les moins chères au mètre carré, ni les 10&nbsp;% les plus chères.</li>
     </ul>
@@ -180,5 +183,12 @@ const entete = parDefaut
     background: var(--fond-doux); border-radius: var(--rayon); padding: .6rem .8rem; margin: 0 0 .7rem;
   }
   .jp-boutons { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-  a.plat { text-decoration: none; display: inline-block; }
+  /* `button.plat` du site, repris pour les liens de partage. */
+  a.plat {
+    display: inline-block; text-decoration: none; font: inherit; color: var(--encre);
+    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: 999px; padding: .26rem .8rem;
+    transition: background var(--transition);
+  }
+  a.plat:hover { background: var(--accent-doux); }
+  .jp-note { margin: .6rem 0 0; }
 </style>

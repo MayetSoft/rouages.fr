@@ -578,7 +578,8 @@ Le RGPD s'applique : DVF contient des données personnelles, même sans nom.
    vente à la main ; `/mentions` dit ce que le jeu montre et d'où il vient.
 
 7. **Le partage ne transporte aucune vente.** Le défi du jour (mêmes cinq
-   ventes pour tout le monde sur un lieu donné) se partage par un texte : le
+   ventes pour tout le monde sur un lieu donné) se partage par un texte, ou
+   pour Instagram par une image qui dit la même chose : le
    lieu, une case de couleur par vente, le score, l'adresse du défi. Ni
    prix, ni surface, ni année : publié sur un réseau social, il ne fait
    pas sortir DVF de la page non indexée. Le score et le dernier lieu joué
