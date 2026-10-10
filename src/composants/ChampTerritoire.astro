@@ -3,6 +3,7 @@
  * Le grand champ de recherche des « Données de chez moi » : une commune, un
  * code postal, une intercommunalité, un département ou une région. Sans
  * JavaScript, la liste des territoires de la page `/chez-moi` prend le relais.
+ * « Là où je suis » mène à la commune où l'on se tient (`client/la-ou-je-suis.ts`).
  */
 interface Props {
   id: string;
@@ -23,8 +24,18 @@ const { id, etiquette = 'Votre commune, son code postal, votre intercommunalité
     aria-controls={`${id}-liste`}
   />
   <ul id={`${id}-liste`} class="cm-liste" role="listbox" aria-label="Territoires trouvés"></ul>
+  <p class="cm-ici">
+    <button type="button" class="cm-ici-bouton" hidden>
+      <span aria-hidden="true">⌖</span> Là où je suis
+    </button>
+    <span class="cm-ici-message" role="status" hidden></span>
+  </p>
 </div>
 <script>
   import { brancherChezMoi } from '../client/chez-moi.ts';
+  import { brancherLaOuJeSuis } from '../client/la-ou-je-suis.ts';
   for (const champ of document.querySelectorAll<HTMLInputElement>('.cm-champ input')) brancherChezMoi(champ.id);
+  for (const bloc of document.querySelectorAll<HTMLElement>('.cm-ici')) {
+    brancherLaOuJeSuis(bloc.querySelector('button')!, bloc.querySelector<HTMLElement>('.cm-ici-message')!);
+  }
 </script>

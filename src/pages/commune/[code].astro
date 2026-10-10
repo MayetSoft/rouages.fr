@@ -87,7 +87,7 @@ import Travail from '../../composants/commune/Travail.astro';
 import Appellations from '../../composants/commune/Appellations.astro';
 import Secheresse from '../../composants/commune/Secheresse.astro';
 import Ailleurs from '../../composants/commune/Ailleurs.astro';
-import { SITES_COMMANDE_PUBLIQUE, sitesDeCommune } from '../../modele/sites-complementaires.ts';
+import { SITES_COMMANDE_PUBLIQUE, SITES_VERIFIER_ENTREPRISE, sitesDeCommune } from '../../modele/sites-complementaires.ts';
 import CarteSituation from '../../composants/commune/CarteSituation.astro';
 import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
@@ -416,7 +416,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     <p class="resume">
       {commune.population.toLocaleString('fr-FR')} habitants · code postal {commune.cp} ·
       code INSEE {commune.code} ·{' '}
-      <a href={`/comparer?a=${commune.code}`}>la comparer à une autre</a>
+      <a href={`/comparer?c=${commune.code}`}>la comparer à d’autres</a>
     </p>
     {!fiche && (
       <p class="c-vide">
@@ -927,6 +927,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <h2 class="badge">Ce qui est commandé</h2>
         <Marches liste={plus.marches} depuis={plus.marchesDepuis} fenetre={plus.marchesFenetre} procedures={plus.marchesProcedures} rapprochements={rapprochementsMarches} />
         <Ailleurs sites={SITES_COMMANDE_PUBLIQUE} titre="Pour qui achète ou répond" />
+        <Ailleurs sites={SITES_VERIFIER_ENTREPRISE} titre="Vérifier un titulaire ou un candidat" />
       </section>
     )}
 
@@ -980,6 +981,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             <Entreprises e={plus.entreprises} nom={commune.nom} cp={commune.cp} />
           </>
         )}
+        <Ailleurs sites={SITES_VERIFIER_ENTREPRISE} titre="Vérifier une entreprise aux registres publics" />
       </section>
     )}
 
