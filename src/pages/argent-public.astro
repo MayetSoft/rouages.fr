@@ -1,0 +1,368 @@
+---
+/**
+ * L'argent public : ce que l'État dépense, mission par mission, programme par
+ * programme, action par action, d'après le budget qu'il publie
+ * (`scripts/budget-etat-emettre.ts`).
+ *
+ * Trois chiffres par ligne, qui ne disent pas la même chose — ce qui a été
+ * dépensé en 2024, ce qui a été voté pour 2025, ce qui était proposé pour
+ * 2026 —, et un seul affiché à la fois : le lecteur choisit lequel, la page
+ * dit toujours lequel elle montre. Les taxes affectées et les dépenses
+ * fiscales restent à part : les secondes sont des recettes auxquelles l'État
+ * renonce, estimées, qui ne s'ajoutent pas aux crédits.
+ *
+ * Toutes les barres de la page sont à la même échelle, des missions aux
+ * actions : une action de 2 Md€ fait la même longueur qu'une mission de 2 Md€.
+ */
+import Base from '../layouts/Base.astro';
+import { budgetEtat, DANS_LE_RESEAU, montantBudget, type Montants } from '../modele/budget-etat.ts';
+import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
+
+const b = budgetEtat();
+const g = chargerGraphe();
+
+/** Les trois exercices, dans l'ordre du fichier. */
+const EXERCICES = [
+  { court: 'dépensé en 2024', long: 'Dépensé en 2024', nature: 'exécution' },
+  { court: 'voté pour 2025', long: 'Voté pour 2025', nature: 'loi de finances initiale' },
+  { court: 'proposé pour 2026', long: 'Proposé pour 2026', nature: 'projet de loi de finances, avant le vote' },
+] as const;
+// Le dernier budget voté que donne le fichier : c'est lui qu'on montre d'abord.
+const PAR_DEFAUT = 1;
+
+const montant = montantBudget;
+/** Les trois chiffres, et l'écart entre le projet 2026 et la loi votée pour 2025, retraités au même format. */
+function trois(v: Montants): string {
+  const texte = EXERCICES.map((e, i) => `${e.long} : ${montant(v[i])}`).join(' · ');
+  const [, vote, projet] = v;
+  if (vote === null || projet === null || vote <= 0 || projet < 0) return texte;
+  const e = Math.round((projet / vote - 1) * 100);
+  return `${texte} (${e === 0 ? 'stable' : `${e > 0 ? '+' : '−'}${Math.abs(e)} %`} par rapport au voté 2025)`;
+}
+
+// Une seule échelle : la plus grosse ligne de la page, tous exercices confondus.
+const toutes: Montants[] = b
+  ? [
+      ...b.credits.flatMap((m) => [m.v, ...m.programmes.map((p) => p.v)]),
+      ...b.taxes.map((t) => t.v),
+      ...b.fiscales.map((f) => f.v),
+    ]
+  : [];
+const max = Math.max(1, ...toutes.flatMap((v) => v.map((x) => x ?? 0)));
+const largeur = (x: number | null) => (x === null || x <= 0 ? 0 : Math.max(0.4, (x / max) * 100));
+const barre = (v: Montants) => v.map((x, i) => `--l${i}:${+largeur(x).toFixed(1)}%`).join(';');
+
+const total = (i: number) =>
+  b ? b.credits.reduce((s, m) => s + (m.v[i] ?? 0), 0) + b.retraitements.reduce((s, r) => s + (r.v[i] ?? 0), 0) : 0;
+const totalTaxes = (i: number) => (b ? b.taxes.reduce((s, t) => s + (t.v[i] ?? 0), 0) : 0);
+const totalFiscales = (i: number) => (b ? b.fiscales.reduce((s, f) => s + (f.v[i] ?? 0), 0) : 0);
+
+const acteursDe = (cle: string) =>
+  (DANS_LE_RESEAU[cle] ?? []).map((id) => g.acteurs.get(id)).filter((a): a is NonNullable<typeof a> => !!a);
+
+const slug = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+const idMission = (nom: string, psr: string | null) => (psr ? `psr-${psr}` : `mission-${slug(nom)}`);
+// Un programme peut apparaître sous deux missions (une mesure de transfert) : l'ancre va à la première.
+const ancresProgrammes = new Set<number>();
+const idProgramme = (n: number) => {
+  if (ancresProgrammes.has(n)) return undefined;
+  ancresProgrammes.add(n);
+  return `programme-${n}`;
+};
+
+/**
+ * Le rang de chaque ligne dans sa liste, pour chacun des trois exercices : la
+ * feuille de style range la liste selon l'exercice choisi. Une ligne sans
+ * montant pour cet exercice va en fin de liste.
+ */
+function rangs<T extends { v: Montants }>(liste: T[]): Map<T, string> {
+  const styles = new Map<T, string[]>(liste.map((x) => [x, []]));
+  for (let i = 0; i < 3; i++) {
+    [...liste]
+      .sort((a, b) => (b.v[i] ?? -Infinity) - (a.v[i] ?? -Infinity))
+      .forEach((x, rang) => styles.get(x)!.push(`--o${i}:${rang}`));
+  }
+  return new Map([...styles].map(([x, st]) => [x, st.join(';')]));
+}
+const dejaRanges = new WeakMap<object[], Map<object, string>>();
+const ordre = <T extends { v: Montants }>(liste: T[]) => {
+  if (!dejaRanges.has(liste)) dejaRanges.set(liste, rangs(liste));
+  return (x: T) => dejaRanges.get(liste)!.get(x);
+};
+
+const MONTREES = 15;
+const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chiffrée pour 2026' };
+---
+
+<Base
+  titre="L’argent public"
+  description="Ce que l'État dépense, mission par mission et programme par programme : ce qui a été dépensé en 2024, voté pour 2025 et proposé pour 2026, d'après le budget publié par la direction du Budget."
+  section="argent-public"
+>
+  <div class="page page--argent">
+    <h1>L’argent public</h1>
+    <p class="resume">
+      Ce que l’État dépense, et pour quoi&nbsp;: ses missions, les programmes qui les composent, les actions qui
+      composent les programmes. Chaque ligne a trois chiffres qui ne disent pas la même chose — ce qui a été
+      dépensé, ce qui a été voté, ce qui était proposé — et la page n’en montre qu’un à la fois, en disant lequel.
+    </p>
+
+    {!b ? (
+      <p class="mesure">Le budget de l’État n’a pas encore été collecté : lancer <code>npx tsx scripts/budget-etat-emettre.ts</code>.</p>
+    ) : (
+      <div class="b-vue">
+        <ul class="b-tuiles">
+          {EXERCICES.map((e, i) => (
+            <li class={`b-tuile b-tuile-${i}`}>
+              <span class="b-tuile-titre">{e.long}</span>
+              <span class="b-tuile-nombre">{montant(total(i) + totalTaxes(i))}</span>
+              <span class="v-nature">{`${e.nature} · dont ${montant(total(i))} de crédits et ${montant(totalTaxes(i))} de taxes affectées`}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="mesure">
+          C’est le «&nbsp;périmètre des dépenses de l’État&nbsp;» que retient la direction du Budget&nbsp;: tout ce que
+          l’État dépense, hors charge de la dette et hors remboursements et dégrèvements d’impôts, plus les taxes
+          qu’il affecte à des organismes. La Sécurité sociale et les collectivités ont leurs propres budgets&nbsp;; ils
+          n’y sont pas, sauf ce que l’État leur verse.
+        </p>
+
+        <fieldset class="b-choix">
+          <legend>Montrer</legend>
+          {EXERCICES.map((e, i) => (
+            <label>
+              <input type="radio" name="b-exercice" id={`b-col-${i}`} value={String(i)} checked={i === PAR_DEFAUT} />
+              {` ${e.court}`}
+            </label>
+          ))}
+        </fieldset>
+
+        <h2 class="badge" id="credits">Les crédits, mission par mission</h2>
+        <p class="mesure">
+          {`${b.credits.length} missions, rangées de la plus grosse à la plus petite pour l’exercice choisi. Ouvrir une mission montre ses programmes, et un programme ses actions. Le ministère d’un programme est celui que nomment les comptes de l’État de ${b.anneeMinisteres ?? 'l’exercice le plus récent'}.`}
+        </p>
+        <ul class="b-liste">
+          {b.credits.map((m, _i, liste) => (
+            <li style={ordre(liste)(m)}>
+              <details class="b-ligne b-mission" id={idMission(m.nom, m.psr)}>
+                <summary>
+                  <span class="b-nom">{m.nom}</span>
+                  <span class="b-montant"><span class="b-c0">{montant(m.v[0])}</span><span class="b-c1">{montant(m.v[1])}</span><span class="b-c2">{montant(m.v[2])}</span></span>
+                  <span class="b-barre" style={barre(m.v)} title={trois(m.v)}><i></i></span>
+                </summary>
+                <div class="b-detail">
+                  <p class="v-nature">{trois(m.v)}</p>
+                  {m.psr === 'collectivites' && (
+                    <p class="b-texte">
+                      Pas une mission&nbsp;: une part des recettes de l’État reversée directement aux collectivités,
+                      votée chaque année avec le budget. La dotation globale de fonctionnement en fait partie, d’après
+                      la direction générale des collectivités locales. Le fichier n’en donne pas le détail. Sur la page
+                      de chaque commune, «&nbsp;Qui la finance&nbsp;» dit ce qu’elle en a reçu.
+                    </p>
+                  )}
+                  {m.psr === 'ue' && (
+                    <p class="b-texte">
+                      Pas une mission&nbsp;: la contribution de la France au budget de l’Union européenne, prélevée
+                      directement sur les recettes de l’État. Le fichier n’en donne pas le détail.
+                    </p>
+                  )}
+                  {acteursDe(m.psr ? `psr-${m.psr}` : '').length > 0 && (
+                    <p class="v-nature">
+                      {'Dans le réseau : '}
+                      {acteursDe(`psr-${m.psr}`).map((a, i) => (
+                        <>{i > 0 && ', '}<a href={`/n/${a.id}`}>{a.nom}</a></>
+                      ))}
+                    </p>
+                  )}
+                  {m.programmes.length > 0 && (
+                    <ul class="b-liste">
+                      {m.programmes.map((p, _i, liste) => (
+                        <li style={ordre(liste)(p)}>
+                          <details class="b-ligne b-programme" id={idProgramme(p.numero)}>
+                            <summary>
+                              <span class="b-nom">{p.nom}<span class="b-numero">{` programme ${p.numero}`}</span></span>
+                              <span class="b-montant"><span class="b-c0">{montant(p.v[0])}</span><span class="b-c1">{montant(p.v[1])}</span><span class="b-c2">{montant(p.v[2])}</span></span>
+                              <span class="b-barre" style={barre(p.v)} title={trois(p.v)}><i></i></span>
+                            </summary>
+                            <div class="b-detail">
+                              <p class="v-nature">
+                                {[p.ministere ? `Ministère : ${p.ministere}` : '', trois(p.v)].filter(Boolean).join(' · ')}
+                              </p>
+                              {acteursDe(String(p.numero)).length > 0 && (
+                                <p class="v-nature">
+                                  {'Dans le réseau : '}
+                                  {acteursDe(String(p.numero)).map((a, i) => (
+                                    <>{i > 0 && ', '}<a href={`/n/${a.id}`}>{a.nom}</a></>
+                                  ))}
+                                </p>
+                              )}
+                              <ul class="b-liste b-actions">
+                                {p.actions.map((a, _i, liste) => (
+                                  <li class="b-ligne b-action" style={ordre(liste)(a)}>
+                                    <span class="b-nom">{a.nom}</span>
+                                    <span class="b-montant"><span class="b-c0">{montant(a.v[0])}</span><span class="b-c1">{montant(a.v[1])}</span><span class="b-c2">{montant(a.v[2])}</span></span>
+                                    <span class="b-barre" style={barre(a.v)}><i></i></span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </details>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
+        {b.retraitements.map((r) => (
+          <p class="mesure">
+            {`Le fichier retranche aussi du total une ligne négative qu’il nomme « ${r.nom} », sans la détailler : ${trois(r.v).toLowerCase()}. Les totaux en tête de page en tiennent compte.`}
+          </p>
+        ))}
+
+        <h2 class="badge" id="taxes-affectees">Les taxes affectées</h2>
+        <p class="mesure">
+          {`Des impôts dont le produit va directement à un organisme — une agence, un établissement public —, sans passer par les missions, dans la limite d’un plafond fixé par la loi de finances. ${b.taxes.length} organismes en reçoivent.`}
+        </p>
+        <ul class="b-liste">
+          {b.taxes.map((t, _i, liste) => (
+            <li style={ordre(liste)(t)}>
+              <details class="b-ligne b-mission">
+                <summary>
+                  <span class="b-nom">{t.nom}</span>
+                  <span class="b-montant"><span class="b-c0">{montant(t.v[0])}</span><span class="b-c1">{montant(t.v[1])}</span><span class="b-c2">{montant(t.v[2])}</span></span>
+                  <span class="b-barre" style={barre(t.v)} title={trois(t.v)}><i></i></span>
+                </summary>
+                <div class="b-detail">
+                  <p class="v-nature">{[`Mission : ${t.mission}`, trois(t.v)].join(' · ')}</p>
+                  <ul class="b-liste b-actions">
+                    {t.taxes.map((x, _i, liste) => (
+                      <li class="b-ligne b-action" style={ordre(liste)(x)}>
+                        <span class="b-nom">{x.libelle}</span>
+                        <span class="b-montant"><span class="b-c0">{montant(x.v[0])}</span><span class="b-c1">{montant(x.v[1])}</span><span class="b-c2">{montant(x.v[2])}</span></span>
+                        <span class="b-barre" style={barre(x.v)}><i></i></span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
+
+        <h2 class="badge" id="depenses-fiscales">Les dépenses fiscales</h2>
+        <p class="mesure">
+          {`Les exonérations, réductions et crédits d’impôt : de l’argent que l’État ne perçoit pas plutôt que de l’argent qu’il verse. Leur coût est une estimation — chiffré pour 2024, prévu pour 2025 et 2026 —, à comportements inchangés, et il ne s’ajoute pas aux crédits : supprimer une mesure ne rapporterait pas forcément ce montant. La direction du Budget en analyse ${b.fiscales.reduce((s, f) => s + f.mesures.length, 0)}, pour ${montant(totalFiscales(2))} prévus en 2026. Ici, par impôt.`}
+        </p>
+        <ul class="b-liste">
+          {b.fiscales.map((f, _i, liste) => (
+            <li style={ordre(liste)(f)}>
+              <details class="b-ligne b-mission">
+                <summary>
+                  <span class="b-nom">{f.impot}<span class="b-numero">{` ${f.mesures.length} mesure${f.mesures.length > 1 ? 's' : ''}`}</span></span>
+                  <span class="b-montant"><span class="b-c0">{montant(f.v[0])}</span><span class="b-c1">{montant(f.v[1])}</span><span class="b-c2">{montant(f.v[2])}</span></span>
+                  <span class="b-barre" style={barre(f.v)} title={trois(f.v)}><i></i></span>
+                </summary>
+                <div class="b-detail">
+                  <ul class="b-liste b-actions">
+                    {f.mesures.slice(0, MONTREES).map((d, _i, liste) => (
+                      <li class="b-ligne b-action" style={ordre(liste)(d)}>
+                        <span class="b-nom">{d.libelle}<span class="b-numero">{[` n° ${d.code}`, d.mission, d.note ? NOTES[d.note] ?? d.note : ''].filter(Boolean).join(' · ')}</span></span>
+                        <span class="b-montant"><span class="b-c0">{montant(d.v[0])}</span><span class="b-c1">{montant(d.v[1])}</span><span class="b-c2">{montant(d.v[2])}</span></span>
+                        <span class="b-barre" style={barre(d.v)}><i></i></span>
+                      </li>
+                    ))}
+                  </ul>
+                  {f.mesures.length > MONTREES && (
+                    <details class="equivalent">
+                      <summary>{`Les ${f.mesures.length - MONTREES} autres, plus petites d’après la prévision 2026`}</summary>
+                      <ul class="b-liste b-actions">
+                        {f.mesures.slice(MONTREES).map((d, _i, liste) => (
+                          <li class="b-ligne b-action" style={ordre(liste)(d)}>
+                            <span class="b-nom">{d.libelle}<span class="b-numero">{[` n° ${d.code}`, d.mission, d.note ? NOTES[d.note] ?? d.note : ''].filter(Boolean).join(' · ')}</span></span>
+                            <span class="b-montant"><span class="b-c0">{montant(d.v[0])}</span><span class="b-c1">{montant(d.v[1])}</span><span class="b-c2">{montant(d.v[2])}</span></span>
+                            <span class="b-barre" style={barre(d.v)}><i></i></span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
+
+        <h2 class="badge" id="lire">Lire ces chiffres</h2>
+        <ul class="mesure">
+          <li>
+            <strong>Trois natures de chiffres.</strong> «&nbsp;Dépensé en 2024&nbsp;» est l’exécution&nbsp;: ce qui
+            a été payé. «&nbsp;Voté pour 2025&nbsp;» est la loi de finances initiale&nbsp;: ce que le Parlement a
+            autorisé en début d’année, avant les lois de finances rectificatives et les mouvements de crédits en cours d’année. «&nbsp;Proposé pour
+            2026&nbsp;» est le projet du Gouvernement à l’automne 2025, avant le vote&nbsp;: la loi votée a pu le
+            modifier, et ce fichier ne la donne pas.
+          </li>
+          <li>
+            <strong>Au même format.</strong> La direction du Budget a retraité 2024 et 2025 au format du projet
+            2026 — changements de périmètre, transferts entre programmes, fonds de concours —, pour que les trois
+            colonnes se comparent. Ils diffèrent donc un peu des comptes publiés l’année même.
+          </li>
+          <li>
+            <strong>Des crédits de paiement.</strong> L’argent qui peut être décaissé dans l’année, pas les
+            engagements pris pour plusieurs années.
+          </li>
+          <li>
+            <strong>Ce qui n’y est pas.</strong> La charge de la dette, les remboursements et dégrèvements
+            d’impôts, les budgets de la Sécurité sociale et des collectivités. L’écart entre ce qui a été voté et
+            ce qui a été dépensé pour une même année viendra ensuite, avec les comptes de l’État.
+          </li>
+          <li>
+            <strong>Une seule échelle.</strong> Toutes les barres de la page se mesurent à la même règle, des
+            missions aux actions. Le survol de la barre d’une mission ou d’un programme donne ses trois chiffres.
+          </li>
+        </ul>
+
+        <h2 class="badge" id="sources">Sources</h2>
+        <ul class="mesure b-sources">
+          <li>
+            <a href="https://data.economie.gouv.fr/explore/dataset/plf-2026-budget-vert/" target="_blank" rel="noopener">Direction du Budget — PLF 2026, budget vert</a>
+            {`, Licence Ouverte 2.0${b.version ? `, mis à jour le ${formaterDate(new Date(b.version))}` : ''}, lu le ${formaterDate(new Date(b.maj))} : les montants, au « périmètre des dépenses de l’État ». Le jeu sert au rapport sur l’impact environnemental du budget ; ses cotations ne sont pas reprises ici.`}
+          </li>
+          <li>
+            <a href="https://data.economie.gouv.fr/explore/dataset/balances_des_comptes_etat/" target="_blank" rel="noopener">Direction générale des Finances publiques — données de comptabilité générale de l’État sur dix ans</a>
+            {`, Licence Ouverte 2.0 : le ministère de chaque programme${b.anneeMinisteres ? `, exercice ${b.anneeMinisteres}` : ''}.`}
+          </li>
+          <li>
+            <a href="https://www.senat.fr/rap/l23-023/l23-0234.html" target="_blank" rel="noopener">Sénat — rapport sur le projet de loi de programmation des finances publiques 2023-2027</a>
+            {' : la définition du périmètre des dépenses de l’État.'}
+          </li>
+          <li>
+            <a href="https://www.collectivites-locales.gouv.fr/files/Accueil/DESL/2024/Collectivit%C3%A9s%20locales%20en%20chiffres%202024/Chapitre%206%20transferts%20financiers%20Texte%202024.pdf" target="_blank" rel="noopener">Direction générale des collectivités locales — Les collectivités locales en chiffres 2024, les transferts financiers de l’État</a>
+            {' : la dotation globale de fonctionnement parmi les prélèvements sur recettes.'}
+          </li>
+        </ul>
+      </div>
+    )}
+  </div>
+</Base>
+
+<script>
+  // Une ancre (#programme-152, #psr-collectivites) ouvre la ligne qu'elle vise, et celles qui la contiennent.
+  function ouvrir() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const cible = id ? document.getElementById(id) : null;
+    if (!cible) return;
+    for (let e: HTMLElement | null = cible; e; e = e.parentElement) if (e instanceof HTMLDetailsElement) e.open = true;
+    cible.scrollIntoView();
+  }
+  addEventListener('hashchange', ouvrir);
+  ouvrir();
+</script>

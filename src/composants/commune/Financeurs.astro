@@ -90,6 +90,13 @@ const rien = postes.length === 0 && projets.length === 0 && periodes.length === 
         <p class="mesure">
           {(finances.statutParticulier ? '' : `Les médianes sont celles des communes ${finances.strate}. `) + 'Le détail poste par poste est dans '}<a href="#comptes">ses comptes</a>
           {', et la dotation de l’État année par année dans '}<a href="#dotations">les dotations</a>.
+          {dgf && (
+            <>
+              {' Dans le budget de l’État, la dotation globale est un prélèvement sur ses recettes : '}
+              <a href="/argent-public#psr-collectivites">l’argent public</a>
+              {' le situe parmi ses autres dépenses.'}
+            </>
+          )}
         </p>
       </>
     )}
