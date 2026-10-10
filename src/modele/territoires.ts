@@ -503,7 +503,15 @@ export interface Fiche {
  * réseau, pas des données : c'est le contenu qui décide de ce qu'on cherche à
  * savoir, pas le référentiel.
  */
-export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic: string[] }[]): Fiche | null {
+/**
+ * Qui exerce quoi dans une commune : ses groupements, et le verdict de chaque
+ * compétence. La page de la commune et le jeu « Qui décide ? » le lisent tous
+ * deux ici — une même question, une même réponse.
+ */
+export function verdictsCommune(
+  c: CommuneIndex,
+  competences: { id: string; banatic: string[] }[],
+): { structures: Fiche['structures']; verdicts: Map<string, Verdict> } | null {
   const m = metaTerritoires();
   const dep = enCache(cacheDep, c.dep, `dep/${c.dep}.json`);
   if (!m || !dep) return null;
@@ -538,6 +546,15 @@ export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic
       }),
     );
   }
+  return { structures, verdicts };
+}
+
+export function ficheCommune(c: CommuneIndex, competences: { id: string; banatic: string[] }[]): Fiche | null {
+  const m = metaTerritoires();
+  const dep = enCache(cacheDep, c.dep, `dep/${c.dep}.json`);
+  const qui = verdictsCommune(c, competences);
+  if (!m || !dep || !qui) return null;
+  const { structures, verdicts } = qui;
 
   const elus = enCache(cacheElus, c.dep, `dep/${c.dep}-elus.json`);
   const brutMaire = elus?.c[c.code];

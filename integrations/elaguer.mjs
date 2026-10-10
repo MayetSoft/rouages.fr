@@ -19,7 +19,8 @@ import { fileURLToPath } from 'node:url';
  * Ce que le navigateur lit à la racine de `/territoires` — dont les listes
  * complètes des marchés et des associations, chargées à la demande —, et
  * `echeances.json`, `attributions.json` et `avis.json`, que personne ne lit
- * sur le site : ils sont publiés pour être téléchargés.
+ * sur le site : ils sont publiés pour être téléchargés. Et `jeux`, les ventes
+ * que le jeu des prix lit au clic.
  */
 const RACINE_GARDEE = new Set([
   'index.json',
@@ -31,6 +32,7 @@ const RACINE_GARDEE = new Set([
   'echeances.json',
   'attributions.json',
   'avis.json',
+  'jeux',
 ]);
 
 /** Par département : les groupements (`03.json`) et le prix de l'eau (`03-eau.json`). */

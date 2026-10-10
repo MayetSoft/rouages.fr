@@ -1,0 +1,87 @@
+---
+/**
+ * Qui décide ? Pour une commune, retrouver qui exerce une compétence : la
+ * commune, son intercommunalité, un syndicat, le département, la région ou
+ * l'État. Les réponses sont celles de la page de la commune, lues dans
+ * `/jeux/qui-decide/XX.json` — le même calcul (`verdictsCommune`).
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Qui décide ?"
+  description="Dans votre commune, qui s’occupe de l’eau, des déchets, de la mobilité, des écoles ? La commune, l’intercommunalité, un syndicat, le département, la région ?"
+  section="jeux"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a></p>
+    <h1>Qui décide&nbsp;?</h1>
+    <p class="resume">
+      L’eau, les déchets, la mobilité, les écoles&nbsp;: dans votre commune, qui s’en occupe&nbsp;? Cinq questions,
+      et à chaque fois la réponse que donne la page de la commune.
+    </p>
+
+    <div id="jq" class="jeu">
+      <ChampLieuJeu
+        id="jq-lieu"
+        etiquette="Votre commune"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+      <p id="jq-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <div id="jq-choix" class="jeu-choix" hidden>
+        <p><strong id="jq-lieu-nom"></strong> — les mêmes cinq questions pour tout le monde aujourd’hui.</p>
+        <button class="bouton jeu-bouton" type="button" id="jq-jouer">Jouer le défi du jour</button>
+      </div>
+
+      <section id="jq-manche" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-compteur" id="jq-compteur"></p>
+        <p class="jeu-question" id="jq-question"></p>
+        <p class="jeu-details" id="jq-sous"></p>
+        <ul class="jeu-options" id="jq-options"></ul>
+        <div id="jq-reponse" hidden>
+          <p class="jeu-verdict" id="jq-verdict"></p>
+          <p class="jeu-contexte" id="jq-contexte"></p>
+          <button class="bouton jeu-bouton" type="button" id="jq-suivante">Question suivante</button>
+        </div>
+      </section>
+
+      <section id="jq-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="jq-score"></span> <span id="jq-cases" class="jeu-cases"></span></p>
+        <ol class="jeu-recap" id="jq-recap"></ol>
+        <PartageJeu id="jq" />
+        <button class="plat" type="button" id="jq-libre">Cinq autres questions</button>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Chaque jour, pour chaque commune, cinq compétences, les mêmes pour tout le monde. Un choix par question&nbsp;: 🟩 juste, 🟥 faux.</li>
+      <li>La réponse est celle de la page de la commune&nbsp;: le groupement auquel le registre national BANATIC dit qu’elle a transféré la compétence, celui que la loi désigne, ou la commune elle-même faute de transfert.</li>
+      <li>Une compétence que le registre ne permet pas de trancher dans votre département n’est pas posée.</li>
+      <li>Votre résultat du jour et votre commune restent dans votre navigateur. Le partage prépare un texte — la commune, les cases et le score — que vous publiez où vous voulez.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <ul class="mesure b-sources">
+      <li>
+        <a href="https://www.banatic.interieur.gouv.fr/" target="_blank" rel="noopener">BANATIC — la base nationale sur l’intercommunalité</a>{' : les compétences transférées à chaque groupement, d’après les préfectures.'}
+      </li>
+      <li>
+        <a href="/methode">La méthode de Rouages</a>{' : quand la loi transfère de plein droit, quand elle désigne un échelon à défaut, quand le silence du registre veut dire « la commune ».'}
+      </li>
+    </ul>
+  </div>
+</Base>
+
+<script>
+  import { brancherJeuQui } from '../../client/jeu-qui.ts';
+  brancherJeuQui();
+</script>

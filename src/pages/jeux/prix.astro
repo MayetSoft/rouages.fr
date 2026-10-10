@@ -1,0 +1,156 @@
+---
+/**
+ * Le jeu des prix : cinq vraies ventes de logements, d'après DVF, dont il faut
+ * deviner le prix.
+ *
+ * Les ventes ne sont pas dans la page : le script les lit au clic sur
+ * « Commencer », dans `/territoires/jeux/dvf/XX.json`. C'est la « démarche
+ * volontaire » que demandent les conditions d'utilisation de DVF, et la page
+ * comme les fichiers restent hors des moteurs de recherche. Ce que le jeu
+ * montre d'une vente, et pourquoi pas davantage : `docs/07-risques.md` et
+ * `ventesDuJeu` dans `scripts/dvf-emettre.ts`.
+ */
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import { RACINE, formaterDate } from '../../modele/graphe.ts';
+import { collectivitesPour } from '../../modele/fiche-commune.ts';
+
+const dossier = join(RACINE, 'public', 'territoires', 'jeux', 'dvf');
+const disponibles = new Set(
+  existsSync(dossier) ? readdirSync(dossier).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)) : [],
+);
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const departements = collectivitesPour(filtre)
+  .filter((c) => c.echelon === 'departement' && disponibles.has(c.code))
+  .sort((a, b) => a.code.localeCompare(b.code, 'fr', { numeric: true }));
+const parDefaut = departements.some((d) => d.code === '03') ? '03' : departements[0]?.code;
+// Le Mayet-de-Montagne en exemple, quand l'Allier est construit.
+const mayet = parDefaut === '03';
+
+// La date et les années, lues dans un fichier : elles valent pour tous.
+const entete = parDefaut
+  ? (JSON.parse(readFileSync(join(dossier, `${parDefaut}.json`), 'utf8')) as { maj: string; annees: number[] })
+  : null;
+---
+<Base
+  titre="À combien s’est-elle vendue ?"
+  description="Cinq vraies ventes de maisons et d’appartements, d’après les données des notaires publiées par la DGFiP : devinez le prix."
+  section="jeux"
+  indexer={false}
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a></p>
+    <h1>À combien s’est-elle vendue&nbsp;?</h1>
+    <p class="resume">
+      Cinq vraies ventes de maisons et d’appartements, telles que les notaires les ont déclarées. Devinez le
+      prix&nbsp;: plus vous êtes près, plus vous marquez de points.
+    </p>
+
+    {departements.length === 0 ? (
+      <p class="mesure">Les ventes du jeu ne sont pas encore collectées.</p>
+    ) : (
+      <div id="jp" class="jp">
+        <ChampLieuJeu
+          id="jp-lieu"
+          etiquette="Où jouer ? Une commune, un code postal, une intercommunalité, un département"
+          placeholder="Le Mayet-de-Montagne, 03250, Vichy Communauté, Allier…"
+          exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }, { cle: 'e-200071363', nom: 'Vichy Communauté' }] : []}
+        />
+        <p id="jp-message" class="jp-message" hidden aria-live="polite"></p>
+
+        <div id="jp-choix" class="jp-choix" hidden>
+          <p><strong id="jp-lieu-nom"></strong> — les mêmes cinq ventes pour tout le monde aujourd’hui.</p>
+          <button class="bouton jp-bouton" type="button" id="jp-jouer">Jouer le défi du jour</button>
+        </div>
+
+        <section id="jp-manche" class="jp-carte" hidden aria-live="polite">
+          <p class="jp-compteur" id="jp-compteur"></p>
+          <p class="jp-bien" id="jp-bien"></p>
+          <p class="jp-details" id="jp-details"></p>
+          <form id="jp-essai" class="jp-essai">
+            <label for="jp-prix">Votre estimation</label>
+            <span class="jp-saisie">
+              <input id="jp-prix" type="text" inputmode="numeric" autocomplete="off" required placeholder="120 000" />
+              <span aria-hidden="true">€</span>
+            </span>
+            <button class="bouton jp-bouton" type="submit">Valider</button>
+          </form>
+          <div id="jp-reponse" hidden>
+            <p class="jp-verdict" id="jp-verdict"></p>
+            <p class="jp-contexte" id="jp-contexte"></p>
+            <button class="bouton jp-bouton" type="button" id="jp-suivante">Vente suivante</button>
+          </div>
+        </section>
+
+        <section id="jp-fin" class="jp-carte" hidden aria-live="polite">
+          <p class="jp-score"><span id="jp-score"></span> <span id="jp-cases" class="jp-cases"></span></p>
+          <ol class="jp-recap" id="jp-recap"></ol>
+          <PartageJeu id="jp" />
+          <button class="plat" type="button" id="jp-libre">Une partie libre, avec d’autres ventes</button>
+        </section>
+        <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+      </div>
+    )}
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Chaque jour, pour chaque lieu, un défi de cinq ventes, le même pour tout le monde&nbsp;: c’est ce qui permet de comparer les scores. Il se joue une fois&nbsp;; ensuite, les parties libres tirent d’autres ventes.</li>
+      <li>100 points pour le prix exact, 2 de moins par point d’écart&nbsp;: 10&nbsp;% d’écart donnent 80 points, 50&nbsp;% et plus n’en donnent aucun. 🟩 80 points et plus, 🟨 50 et plus, 🟧 moins de 50, 🟥 aucun.</li>
+      <li>Votre score du jour et le dernier lieu joué restent dans votre navigateur, nulle part ailleurs. Le partage n’envoie rien de lui-même&nbsp;: il prépare un texte, ou pour Instagram une image — le lieu, les cases et le score, aucune vente — que vous publiez où vous voulez.</li>
+      <li>Chaque vente est réelle, mais le jeu en dit moins que la source&nbsp;: la commune et l’année, jamais l’adresse ni la date&nbsp;; le prix arrondi au millier d’euros, la surface à 5&nbsp;m², le terrain à 100&nbsp;m².</li>
+      <li>Ne sont tirées que les communes d’au moins dix ventes en trois ans, et dans chacune les ventes ordinaires&nbsp;: ni les 10&nbsp;% les moins chères au mètre carré, ni les 10&nbsp;% les plus chères.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <ul class="mesure b-sources">
+      <li>
+        <a href="https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres-geolocalisees" target="_blank" rel="noopener">Etalab — Demandes de valeurs foncières géolocalisées</a>{entete
+          ? `, d’après les demandes de valeurs foncières de la DGFiP, Licence Ouverte, lu le ${formaterDate(new Date(entete.maj))} : les ventes de ${entete.annees[0]} à ${entete.annees[entete.annees.length - 1]}, d’un seul logement, maison ou appartement, avec ses seules dépendances.`
+          : ', d’après les demandes de valeurs foncières de la DGFiP, Licence Ouverte.'}
+      </li>
+      <li>
+        <a href="https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres" target="_blank" rel="noopener">DGFiP — Demandes de valeurs foncières et leurs conditions générales d’utilisation</a>{' : la réutilisation ne peut viser à réidentifier les personnes, et les ventes ne sont pas indexées par les moteurs de recherche. Cette page ne l’est pas.'}
+      </li>
+    </ul>
+    <p class="mesure">
+      Une vente vous concerne et vous souhaitez qu’elle sorte du jeu&nbsp;? <a href="/signaler">Signalez-le</a>.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import { brancherJeuPrix } from '../../client/jeu-prix.ts';
+  brancherJeuPrix();
+</script>
+
+<style>
+  .jp [hidden] { display: none; }
+  .jp-saisie input {
+    font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait);
+    border-radius: var(--rayon); padding: .45rem .6rem; max-width: 100%;
+  }
+  .jp-bouton { border: 0; cursor: pointer; font: inherit; }
+  .jp-carte {
+    background: var(--fond-carte); border: 1px solid var(--trait); border-radius: var(--rayon);
+    padding: 1.1rem 1.2rem; margin: 0 0 1.6rem; max-width: var(--mesure);
+  }
+  .jp-compteur { color: var(--encre-douce); font-size: .85rem; margin: 0 0 .4rem; }
+  .jp-bien { font-size: 1.15rem; font-weight: 600; margin: 0 0 .3rem; }
+  .jp-details { margin: 0 0 1rem; }
+  .jp-essai { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: center; margin: 0 0 .6rem; }
+  .jp-essai label { flex-basis: 100%; font-size: .88rem; color: var(--encre-douce); }
+  .jp-saisie { display: inline-flex; align-items: center; gap: .4rem; }
+  .jp-saisie input { width: 9rem; font-variant-numeric: tabular-nums; }
+  .jp-verdict { font-size: 1.05rem; margin: .6rem 0 .3rem; }
+  .jp-contexte { color: var(--encre-douce); font-size: .92rem; margin: 0 0 1rem; }
+  .jp-score { font-size: 1.3rem; font-weight: 600; margin: 0 0 .6rem; }
+  .jp-recap { padding-left: 1.2rem; margin: 0 0 1rem; }
+  .jp-recap li { margin-bottom: .35rem; }
+  .jp-message { color: var(--alerte); margin: 0 0 1rem; max-width: var(--mesure); }
+  .jp-choix { margin: 0 0 1.6rem; max-width: var(--mesure); }
+  .jp-choix p { margin: 0 0 .6rem; }
+  .jp-cases { display: block; letter-spacing: .1em; font-weight: 400; margin-top: .2rem; }
+</style>

@@ -23,6 +23,7 @@ import {
   type Surveillance,
   type Source,
   type CorrectionKohesio,
+  type Jeu,
 } from './schemas.ts';
 
 export const RACINE = new URL('../../', import.meta.url).pathname;
@@ -47,6 +48,8 @@ export interface Graphe {
   surveillances: Map<string, Surveillance>;
   /** Les localisations de projets européens corrigées par Rouages, par identifiant Kohesio. */
   correctionsKohesio: Map<string, CorrectionKohesio>;
+  /** Les jeux sur données ouvertes tenus ailleurs, que la section « Jeux » recense. */
+  jeux: Map<string, Jeu>;
   decouverte?: Decouverte;
   /** Les mentions légales, déclarées dans `contenu/editeur.yaml`. */
   editeur?: Editeur;
@@ -81,6 +84,7 @@ export function chargerGraphe(): Graphe {
     reperes: new Map(),
     surveillances: new Map(),
     correctionsKohesio: new Map(),
+    jeux: new Map(),
     anomalies: [],
   };
 
@@ -152,6 +156,7 @@ export function chargerGraphe(): Graphe {
     ranger(contenu.reperes, g.reperes, 'reperes');
     ranger(contenu.surveillances, g.surveillances, 'surveillances');
     ranger(contenu.corrections_kohesio, g.correctionsKohesio, 'corrections_kohesio');
+    ranger(contenu.jeux, g.jeux, 'jeux');
     if (contenu.decouverte) g.decouverte = contenu.decouverte;
     if (contenu.editeur) g.editeur = contenu.editeur;
   }

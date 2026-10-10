@@ -1,0 +1,55 @@
+---
+/**
+ * Le plateau des jeux de classement (`src/client/jeux-classement.ts`) : la
+ * liste à remettre dans l'ordre, le bouton de validation, puis le score et
+ * le partage.
+ */
+import PartageJeu from './PartageJeu.astro';
+
+interface Props {
+  id: string;
+  consigne: string;
+  autre: string;
+}
+const { id, consigne, autre } = Astro.props;
+---
+<div id={id} class="jeu">
+  <section class="jeu-carte">
+    <p class="jeu-compteur" id={`${id}-compteur`}>Défi du jour</p>
+    <p class="jeu-question" id={`${id}-nom`}></p>
+    <p class="jeu-details">{consigne}</p>
+    <ol class="cl-liste" id={`${id}-liste`}></ol>
+    <button class="bouton jeu-bouton" type="button" id={`${id}-valider`}>Valider cet ordre</button>
+    <p class="jeu-verdict" id={`${id}-verdict`} hidden aria-live="polite"></p>
+    <p class="jeu-contexte" id={`${id}-contexte`} hidden></p>
+  </section>
+
+  <section id={`${id}-fin`} class="jeu-carte" hidden aria-live="polite">
+    <p class="jeu-score"><span id={`${id}-score`}></span> <span id={`${id}-cases`} class="jeu-cases"></span></p>
+    <PartageJeu id={id} />
+    <button class="plat" type="button" id={`${id}-libre`}>{autre}</button>
+  </section>
+  <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+</div>
+
+<style is:global>
+  .cl-liste { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .45rem; counter-reset: rang; }
+  .cl-liste li {
+    display: grid; grid-template-columns: 1.6rem 1fr auto; gap: .5rem; align-items: center;
+    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .5rem .6rem;
+  }
+  .cl-liste li::before { counter-increment: rang; content: counter(rang); font-weight: 600; color: var(--encre-douce); text-align: center; }
+  .cl-liste li.juste { background: #e3f3e9; border-color: #2e9e5b; }
+  .cl-liste li.faux { border-color: #cf3b2f; }
+  .cl-texte small { display: block; color: var(--encre-douce); font-size: .82rem; margin-top: .15rem; }
+  .cl-fleches { display: flex; flex-direction: column; gap: .2rem; }
+  .cl-fleches button {
+    font: inherit; line-height: 1; padding: .2rem .45rem; cursor: pointer; color: var(--encre);
+    background: var(--fond-carte); border: 1px solid var(--trait); border-radius: 6px;
+  }
+  .cl-fleches button:disabled { opacity: .35; cursor: default; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .cl-liste li.juste { background: #183a26; }
+  }
+  :root[data-theme="dark"] .cl-liste li.juste { background: #183a26; }
+</style>

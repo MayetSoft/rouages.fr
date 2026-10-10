@@ -1,0 +1,47 @@
+# Les jeux tenus ailleurs.
+#
+# La section « Jeux » recense ceux qui existent déjà : un jeu qui marche n'a
+# pas à être refait, Rouages y renvoie, avec un lien.
+# La liste est ouverte — une proposition passe par /signaler ou par une PR.
+#
+# Pour entrer : le jeu part de données (publiques, ouvertes ou collaboratives)
+# et il est jouable aujourd'hui, ce que dit `consulte_le`. `principe` décrit ce
+# qu'on fait en jouant, pas ce qu'on en pense : le site n'a pas d'opinion,
+# ici non plus. Pas de nom de personne, comme dans tout `contenu/` : le jeu
+# est nommé, pas son auteur.
+#
+# `genre` : `devinette` (retrouver un lieu d'après une donnée), `contribution`
+# (chaque réponse améliore la base elle-même), `simulation` (prendre une
+# décision publique et en voir les effets).
+jeux:
+  - id: worldle
+    nom: "Worldle"
+    url: "https://worldle.teuteuf.fr/"
+    genre: devinette
+    principe: "Chaque jour, retrouver un pays d'après sa silhouette, en six essais ; chaque essai donne la distance et la direction qui le séparent de la bonne réponse."
+    donnees: "Les contours des pays et territoires du monde"
+    consulte_le: 2026-10-10
+
+  - id: tradle
+    nom: "Tradle"
+    url: "https://oec.world/en/games/tradle"
+    genre: devinette
+    principe: "Retrouver un pays d'après la répartition de ses exportations, en six essais ; une variante fait deviner une région ou une province. D'autres jeux du même site partent des mêmes chiffres."
+    donnees: "Les statistiques du commerce international de l'Observatoire de la complexité économique"
+    consulte_le: 2026-10-10
+
+  - id: hunger-games-open-food-facts
+    nom: "Hunger Games d'Open Food Facts"
+    url: "https://hunger.openfoodfacts.org/"
+    genre: contribution
+    principe: "Un produit à la fois : confirmer ou rejeter l'étiquette, la catégorie, la marque ou le poids que propose l'apprentissage automatique. Chaque réponse complète la base."
+    donnees: "Open Food Facts, la base collaborative des produits alimentaires"
+    consulte_le: 2026-10-10
+
+  - id: wikidata-game
+    nom: "Wikidata Game"
+    url: "https://wikidata-game.toolforge.org/distributed/"
+    genre: contribution
+    principe: "Des questions courtes — ces deux fiches décrivent-elles la même chose, quelle est la nature de cet élément ? — dont chaque réponse modifie Wikidata."
+    donnees: "Wikidata, la base de connaissances libre de Wikimédia"
+    consulte_le: 2026-10-10

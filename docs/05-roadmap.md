@@ -3830,6 +3830,149 @@ fait apparaître. Calculé au build sur les données déjà collectées : rien �
 réingérer. Au passage, les objets de marchés qui arrivaient avec des
 entités HTML (« d&#8217;électricité ») sont rendus en clair.
 
+### Les jeux : une quatrième section (10 octobre 2026)
+
+Une section `/jeux`, à côté du fonctionnement, des données de chez soi et
+de l'argent public, sur l'idée du mainteneur : apprendre qui décide quoi en
+jouant, dans un esprit collaboratif et complémentaire.
+
+**D'abord ce qui existe** : `contenu/jeux.yaml` recense les jeux tenus
+ailleurs, rangés en trois genres — deviner un lieu d'après une donnée
+(Worldle, Tradle), contribuer à une base en jouant (Hunger Games d'Open Food
+Facts, Wikidata Game), simuler une décision publique. Chaque entrée dit son
+principe en une phrase, les données d'où il part et le jour où on l'a vu en
+ligne ; la validation y applique les règles de tout `contenu/` (pas de nom de
+personne, sigles au glossaire). Écartés après vérification : le
+« cyber-budget » du ministère (2006), qui ne répond plus, et le jeu de table
+de Citéco sur l'équilibre budgétaire, qui ne part d'aucune donnée. Aucun jeu
+trouvé, à ce jour, sur les communes françaises, sur les ventes de DVF ou sur
+la répartition des compétences : c'est la place de ceux de Rouages.
+
+**Ce que Rouages prépare** — rien n'en paraît sur le site : décision du
+mainteneur, on n'annonce pas un jeu avant qu'il soit jouable. La page ne
+montre que les jeux tenus ailleurs.
+
+- **Qui décide ?** — pour une commune tirée au sort (ou la sienne), retrouver
+  qui exerce une compétence. Données : la résolution territoriale déjà
+  calculée (BANATIC et le graphe). Le cas `variable_selon_territoire` se
+  joue comme les autres, puisque la réponse locale est connue ; une
+  compétence `a_confirmer` n'entre pas dans les questions.
+- **La commune mystère** — des indices successifs tirés de la page de
+  commune (département, intercommunalité, tranche de population, écoles,
+  gare), la distance et la direction après chaque essai, comme Worldle.
+  Données : `public/territoires/`, les contours d'Admin Express.
+- **Plus ou moins** — deux communes, laquelle a le plus de… Seulement des
+  indicateurs déjà affichés, avec leur millésime, et jamais deux millésimes
+  différents face à face.
+- **Le bon ordre** — remettre les étapes d'un processus dans l'ordre. Données :
+  `contenu/processus/`. Seuls les processus `etabli` entrent.
+- **Où va l'argent** — classer des missions du budget de l'État. Données :
+  `budget-etat.json`, un seul exercice par partie, dit à l'écran.
+- **À combien s'est-elle vendue ?** — fait le 10 octobre, voir plus bas.
+
+**Les règles**, celles du site : aucune personne à deviner — ni élu, ni
+nuance politique, ni titulaire de marché — ; aucun palmarès de communes
+présenté comme un jugement ; chaque réponse renvoie à la page qui la source ;
+un chiffre n'entre dans une question que s'il est affiché ailleurs sur le
+site. Pour DVF, si un « juste prix » vient un jour : la commune et le type de
+bien, jamais l'adresse ni la parcelle.
+
+**Techniquement** : des pages statiques, les questions tirées au build ou
+dans le navigateur depuis les fichiers déjà publiés, aucun compte, aucun
+classement entre joueurs (pas de comptes avant la phase 4).
+
+### Le premier jeu : « À combien s'est-elle vendue ? » (10 octobre 2026)
+
+Choisi par le mainteneur : deviner le prix d'une vraie vente de DVF, située à
+la commune et à l'année. `/jeux/prix`, annoncé sur `/jeux` maintenant qu'il
+est jouable.
+
+**Les données** : `scripts/dvf-emettre.ts` garde, en plus des médianes, les
+ventes d'un seul logement de chaque commune d'au moins dix ventes sur trois
+ans, sans les 10 % extrêmes du prix au m² de son type, quarante au plus dans
+un ordre fixe, arrondies (prix au millier, surface à 5 m², terrain à
+100 m²), sans adresse, parcelle ni date (`ventesDuJeu`). Un fichier par
+département, `public/territoires/jeux/dvf/XX.json` : 14 Mo pour 97
+départements, 445 Ko pour le plus lourd (le Nord). Lu au 10 octobre : 247
+communes de l'Allier, dont Le Mayet-de-Montagne (40 maisons, aucun
+appartement).
+
+**Les garde-fous** de `docs/07-risques.md` : pas d'indexation (`robots.txt`,
+`X-Robots-Tag` par `public/territoires/jeux/.htaccess`, `noindex` sur la
+page), lecture des ventes au clic seulement, retrait sur signalement,
+mention dans `/mentions`.
+
+**La partie** : un département, une commune si l'on veut ; cinq ventes,
+tirées commune d'abord pour que les villages sortent autant que la
+préfecture ; 100 points pour le prix exact, 2 de moins par point d'écart.
+Après chaque réponse, le prix médian de la commune — déjà publié sur sa
+page — et le lien vers elle.
+
+**Le lieu et le défi du jour** (demande du mainteneur, même jour) : un seul
+champ pour une commune, un code postal — souvent plusieurs villages —, une
+intercommunalité ou un département (`src/client/jeu-prix-lieu.ts`, les
+territoires jouables dans `/jeux/prix-territoires.json`). Chaque lieu a son
+adresse, `?t=c-03165`, `?t=cp-03250`, `?t=e-200071363`, `?t=d-03`. Pour un
+lieu et un jour (heure de Paris), les cinq mêmes ventes pour tous, tirées
+d'une graine : le score se compare, il se partage. Le défi se joue une fois
+— le navigateur garde les essais et rend le résultat au retour —, puis des
+parties libres. Une commune de moins de dix ventes renvoie à son
+intercommunalité et à son département.
+
+**Le partage** : un texte — lieu, date, une case par vente (🟩 80 points et
+plus, 🟨 50, 🟧 moins, 🟥 aucun), score, adresse du défi —, par le partage
+natif du téléphone, la copie, ou X, Bluesky, Facebook, WhatsApp et LinkedIn
+(qui ne reprend plus de texte : l'adresse seule). Instagram n'a pas
+d'adresse de partage : une image du résultat (1 080 × 1 350, le même
+contenu), partagée comme fichier quand le téléphone le permet, sinon
+enregistrée pour être publiée depuis l'application. Aucune vente dans le
+texte ni dans l'image (`docs/07-risques.md`).
+
+**La suite possible** : partir de la page d'une commune (« jouer avec les
+ventes de la commune ») ; un mode appartements seuls dans les grandes villes ;
+une image de partage par défi, si les aperçus de liens le demandent.
+
+### Cinq jeux de plus (10 octobre 2026)
+
+Demandés par le mainteneur le même jour. Tous ont le défi du jour du jeu
+des prix — la même partie pour tout le monde, un lieu et un jour donnant la
+même graine —, la mémoire du navigateur et le partage (texte, et image pour
+Instagram), sortis du jeu des prix dans un socle commun :
+`src/client/jeux-commun.ts`, `jeux-lieu.ts` (le champ de lieu, réglé par
+jeu : quels genres de lieu, quelle liste de territoires), `jeux-communes.ts`,
+`jeux-classement.ts`, et les composants `src/composants/jeux/`. Le jeu des
+prix y est rebranché à l'identique : mêmes tirages, même mémoire.
+
+- **Qui décide ?** (`/jeux/qui-decide`) — sur une commune, cinq compétences
+  et pour chacune la commune, son intercommunalité, un syndicat (toujours
+  un, pour que sa présence ne trahisse pas la réponse), le département, la
+  région. Les réponses sont les verdicts de la page de la commune : le
+  calcul sort de `ficheCommune` dans `verdictsCommune`, que lisent la page
+  et `/jeux/qui-decide/XX.json`. Ni « non renseigné », ni compétence à
+  confirmer. Au Mayet-de-Montagne, la mobilité : CA Vichy Communauté.
+- **La commune mystère** (`/jeux/commune-mystere`) — sur un code postal,
+  une intercommunalité ou un département ; moins de huit communes, et le
+  périmètre s'élargit aux voisines, anneau par anneau. Six essais, deux
+  indices au départ et un de plus par erreur, la distance et la direction
+  entre les centres des contours d'Admin Express. Taper son village propose
+  son code postal et son intercommunalité.
+- **Plus ou moins** (`/jeux/plus-ou-moins`) — huit duels sur les chiffres
+  des pages de commune : habitants (et en 1901), niveau de vie médian, prix
+  médian d'une maison, distance à la gare, écoles ; jamais moins de 5 %
+  d'écart, jamais la même commune deux duels de suite. Les communes, leurs
+  voisines et leurs chiffres : `/jeux/communes/XX.json`, partagé avec la
+  commune mystère.
+- **Le bon ordre** (`/jeux/ordre`) — une des démarches du réseau (toutes
+  « établies »), étapes mélangées, trois essais ; une étape bien placée se
+  fige. Les éléments se déplacent par boutons : clavier, lecteur d'écran,
+  doigt.
+- **Où va l'argent ?** (`/jeux/argent`) — cinq missions du budget de l'État
+  à ranger, crédits votés pour 2025, jamais deux à moins de 10 % l'une de
+  l'autre, sans les prélèvements sur recettes. Même moteur que le bon ordre.
+
+Aucun de ces jeux ne montre de donnée personnelle ni de chiffre absent des
+pages du site. Ils sont indexables, au contraire du jeu des prix.
+
 ### Comparer jusqu'à cinq, « Là où je suis », vérifier une entreprise (10 octobre 2026)
 
 - **Comparer jusqu'à cinq communes** : une colonne par commune, cinq sur un

@@ -1,0 +1,46 @@
+---
+/**
+ * Le bloc de partage d'un défi du jour : l'aperçu du texte et les boutons.
+ * `brancherPartage` (`src/client/jeux-commun.ts`) le remplit et le branche ;
+ * les identifiants sont préfixés pour que chaque jeu garde les siens.
+ */
+interface Props {
+  id: string;
+}
+const { id } = Astro.props;
+---
+<div id={`${id}-partage`} class="pj" hidden>
+  <p class="pj-titre">Partager le défi du jour — le résultat seulement</p>
+  <pre id={`${id}-apercu`} class="pj-apercu"></pre>
+  <div class="pj-boutons">
+    <button class="bouton pj-bouton" type="button" id={`${id}-natif`} hidden>Partager</button>
+    <button class="plat" type="button" id={`${id}-copier`}>Copier</button>
+    <a class="plat" id={`${id}-x`} target="_blank" rel="noopener">X</a>
+    <a class="plat" id={`${id}-bluesky`} target="_blank" rel="noopener">Bluesky</a>
+    <a class="plat" id={`${id}-facebook`} target="_blank" rel="noopener">Facebook</a>
+    <a class="plat" id={`${id}-whatsapp`} target="_blank" rel="noopener">WhatsApp</a>
+    <a class="plat" id={`${id}-linkedin`} target="_blank" rel="noopener">LinkedIn</a>
+    <button class="plat" type="button" id={`${id}-instagram`}>Instagram (image)</button>
+  </div>
+  <p id={`${id}-note-image`} class="pj-titre pj-note" hidden aria-live="polite"></p>
+</div>
+
+<style>
+  .pj { border-top: 1px solid var(--trait); margin: 1rem 0; padding-top: .8rem; }
+  .pj [hidden], .pj[hidden] { display: none; }
+  .pj-titre { color: var(--encre-douce); font-size: .85rem; margin: 0 0 .4rem; }
+  .pj-note { margin: .6rem 0 0; }
+  .pj-apercu {
+    white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .92rem;
+    background: var(--fond-doux); border-radius: var(--rayon); padding: .6rem .8rem; margin: 0 0 .7rem;
+  }
+  .pj-boutons { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .pj-bouton { border: 0; cursor: pointer; font: inherit; }
+  /* `button.plat` du site, repris pour les liens de partage. */
+  a.plat {
+    display: inline-block; text-decoration: none; font: inherit; color: var(--encre);
+    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: 999px; padding: .26rem .8rem;
+    transition: background var(--transition);
+  }
+  a.plat:hover { background: var(--accent-doux); }
+</style>

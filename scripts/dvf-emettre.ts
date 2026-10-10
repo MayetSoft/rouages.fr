@@ -33,9 +33,11 @@
  * réunis sous leur commune.
  *
  * Lancé seul — `tsx scripts/dvf-emettre.ts` —, il réécrit les fichiers
- * `public/territoires/dep/XX-dvf.json`.
+ * `public/territoires/dep/XX-dvf.json`, et ceux du jeu des prix,
+ * `public/territoires/jeux/dvf/XX.json`.
  */
-import { createReadStream } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
@@ -59,6 +61,8 @@ export interface Dvf {
   departements: Map<string, Prix>;
   details: Map<string, Detail>;
   detailsDep: Map<string, Detail>;
+  /** Les ventes d'un seul logement, par commune, pour le jeu des prix. */
+  ventes: Map<string, Vente[]>;
 }
 
 type Vente = {
@@ -325,7 +329,7 @@ export async function collecterDvf(
   for (const dep of new Set([...parDep.keys(), ...terrainsParDep.keys()])) {
     detailsDep.set(dep, detailler(parDep.get(dep) ?? [], terrainsParDep.get(dep) ?? []));
   }
-  return { maj: new Date().toISOString().slice(0, 10), annees, communes, departements, details, detailsDep };
+  return { maj: new Date().toISOString().slice(0, 10), annees, communes, departements, details, detailsDep, ventes: parCommune };
 }
 
 /** Les trois dernières années complètes : la base est publiée au printemps et en automne. */
@@ -355,9 +359,108 @@ export function ecrireDvf(sortie: string, d: Dvf): number {
   }));
 }
 
+/**
+ * Le jeu des prix : de vraies ventes, à deviner, dans les limites que les
+ * conditions d'utilisation de DVF imposent (détail dans `docs/07-risques.md`).
+ *
+ * - **Ni adresse, ni parcelle, ni date** : la commune et l'année seulement.
+ * - **Des communes d'au moins dix ventes** de logement sur les trois ans, pour
+ *   qu'aucune vente ne soit la seule de son année et de son genre.
+ * - **Des valeurs arrondies** : le prix au millier d'euros, la surface
+ *   habitable à 5 m², le terrain à 100 m² (au millier au-delà d'un hectare).
+ * - **Pas de vente extrême** : une vente entre le 1er et le 9e décile du prix
+ *   au m² de sa commune pour son type — une maison cédée 5 000 € entre parents
+ *   n'apprend rien sur le marché, et c'est la transparence du marché que la
+ *   loi donne pour objet à la réutilisation.
+ * - **Au plus quarante par commune**, tirées d'un ordre fixe : le fichier d'une
+ *   grande ville resterait sinon trop lourd pour une partie de cinq ventes.
+ *
+ * Les fichiers vont dans `jeux/dvf/`, que `robots.txt` ferme et que le serveur
+ * marque `noindex` : les informations de DVF ne s'indexent pas.
+ */
+export const JEU_MINIMUM = 10;
+export const JEU_PAR_COMMUNE = 40;
+
+/** Une vente du jeu : [année, 0 maison ou 1 appartement, prix, surface, pièces, terrain]. */
+export type VenteJeu = [number, 0 | 1, number, number, number, number];
+
+/** Un ordre fixe d'une ingestion à l'autre, qui ne suit ni le prix ni la date. */
+function empreinte(v: Vente): number {
+  let h = 2166136261;
+  for (const c of `${v.commune}|${v.annee}|${v.type}|${v.prix}|${v.surface}|${v.pieces}|${v.terrain}`) {
+    h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  }
+  return h;
+}
+
+export function ventesDuJeu(ventes: Vente[]): VenteJeu[] {
+  if (ventes.length < JEU_MINIMUM) return [];
+  const gardees: Vente[] = [];
+  for (const type of ['Maison', 'Appartement'] as const) {
+    const l = ventes.filter((v) => v.type === type);
+    if (l.length < MINIMUM) continue;
+    const m2 = l.map((v) => v.prix / v.surface);
+    const bas = quantile(m2, 0.1)!;
+    const haut = quantile(m2, 0.9)!;
+    gardees.push(...l.filter((v) => v.prix / v.surface >= bas && v.prix / v.surface <= haut));
+  }
+  const arrondi = (x: number, pas: number) => Math.round(x / pas) * pas;
+  return gardees
+    .sort((a, b) => empreinte(a) - empreinte(b))
+    .slice(0, JEU_PAR_COMMUNE)
+    .map((v): VenteJeu => [
+      v.annee,
+      v.type === 'Maison' ? 0 : 1,
+      Math.max(1000, arrondi(v.prix, 1000)),
+      Math.max(10, arrondi(v.surface, 5)),
+      v.pieces,
+      v.terrain >= 10_000 ? arrondi(v.terrain, 1000) : arrondi(v.terrain, 100),
+    ])
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+}
+
+/** Les noms des communes actuelles, pour que le jeu n'ait qu'un fichier à lire. */
+function nomsDesCommunes(): Map<string, string> {
+  const chemin = createRequire(import.meta.url).resolve('@etalab/decoupage-administratif/data/communes.json');
+  const toutes = JSON.parse(readFileSync(chemin, 'utf8')) as { code: string; nom: string; type: string }[];
+  return new Map(toutes.filter((c) => c.type === 'commune-actuelle').map((c) => [c.code, c.nom]));
+}
+
+/**
+ * Par commune : son nom, ses ventes, et les médianes que sa page publie déjà —
+ * le prix d'une maison, le prix au m² d'un appartement —, que le jeu donne en
+ * repère après chaque réponse. Elles sont ici parce que `dep/XX-dvf.json` ne
+ * part pas sur le site : seul le build le lit.
+ */
+export function ecrireVentesJeu(sortie: string, d: Dvf): number {
+  const noms = nomsDesCommunes();
+  const parDep = new Map<string, Record<string, { n: string; m: [number | null, number | null]; v: VenteJeu[] }>>();
+  for (const code of [...d.ventes.keys()].sort()) {
+    const nom = noms.get(code);
+    const v = ventesDuJeu(d.ventes.get(code)!);
+    if (!nom || v.length === 0) continue;
+    const dep = departementDe(code);
+    if (!parDep.has(dep)) parDep.set(dep, {});
+    const p = d.communes.get(code);
+    parDep.get(dep)![code] = { n: nom, m: [p?.[2] ?? null, p?.[4] ?? null], v };
+  }
+  const dossier = join(sortie, 'jeux', 'dvf');
+  mkdirSync(dossier, { recursive: true });
+  let ecrits = 0;
+  for (const [dep, c] of parDep) {
+    if (!existsSync(join(sortie, 'dep', `${dep}.json`))) continue;
+    writeFileSync(join(dossier, `${dep}.json`), JSON.stringify({ maj: d.maj, annees: d.annees, c }));
+    ecrits++;
+  }
+  return ecrits;
+}
+
 // Lancé seul : télécharge dans `.cache/` s'il n'y est pas, et réécrit les fichiers.
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const { cache, telecharger, sortie } = telechargerSiAbsent(join(fileURLToPath(new URL('.', import.meta.url)), '..'));
   const d = await collecterDvf(anneesDvf(), telecharger, cache, console.log);
-  if (d) console.log(`${ecrireDvf(sortie, d)} départements écrits.`);
+  if (d) {
+    console.log(`${ecrireDvf(sortie, d)} départements écrits.`);
+    console.log(`${ecrireVentesJeu(sortie, d)} départements écrits pour le jeu des prix.`);
+  }
 }
