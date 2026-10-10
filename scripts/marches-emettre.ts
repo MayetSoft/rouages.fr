@@ -1,5 +1,6 @@
 /**
- * Les marchés publics d'une commune et de ses groupements.
+ * Les marchés publics d'une commune et de ses groupements, de son département
+ * et de sa région.
  *
  * Les données essentielles de la commande publique disent à quoi une
  * collectivité passe commande : voirie, restauration scolaire, collecte des
@@ -51,6 +52,15 @@
  * alors combien de titulaires il ne nomme pas. Les lots regroupés d'un
  * accord-cadre réunissent leurs titulaires.
  *
+ * **Le département et la région, depuis le 9 octobre 2026.** Ils achètent
+ * autant que le bloc communal — collèges, lycées, routes, transports —, et qui
+ * répond aux marchés publics les a pour clients. Leur SIREN vient d'une table
+ * tirée du répertoire SIRENE (`src/modele/collectivites-sirens.ts`), pas du
+ * préfixe : les sept régions nées de la fusion de 2016 ont un SIREN en
+ * `200…`. Ils figurent dans le fichier de chacun des départements qu'ils
+ * couvrent, sous `echelons`, et dans les fichiers nationaux ; la page de
+ * commune ne les montre pas, celle du département et de la région si.
+ *
  * **Le contact de chaque acheteur et les avis ouverts, depuis le 8 octobre
  * 2026.** Les fichiers nationaux donnent, pour chaque acheteur, le téléphone,
  * l'adresse et le site de sa fiche à l'annuaire de l'administration
@@ -71,6 +81,7 @@ import { telechargerSiAbsent } from './par-departement.ts';
 import { retraits } from './retraits.ts';
 import { nomsSirene } from './sirene-noms.ts';
 import { jugementsBodacc, MOIS_RETENUS, situations as situationsDe, type Situation } from './titulaires-situation.ts';
+import { COLLECTIVITES_SIRENS, echelonsDuDepartement } from '../src/modele/collectivites-sirens.ts';
 
 const DECP =
   'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides';
@@ -609,7 +620,7 @@ export async function collecterMarches(
   dire(
     `Marchés publics : ${lignes.length.toLocaleString('fr-FR')} notifiés depuis ${DEPUIS.slice(0, 4)}, ` +
       `dont ${retenus.toLocaleString('fr-FR')} pour ${parAcheteur.size.toLocaleString('fr-FR')} ` +
-      `acheteurs du bloc communal ; ${nEcheances.toLocaleString('fr-FR')} à échéance prévisible ` +
+      `acheteurs suivis — bloc communal, départements, régions ; ${nEcheances.toLocaleString('fr-FR')} à échéance prévisible ` +
       `de ${fenetre[0]} à ${fenetre[1]} ; ${nRecents.toLocaleString('fr-FR')} notifiés depuis le ${recentsDepuis}.`,
   );
   const sirets = new Map<string, string>();
@@ -678,7 +689,9 @@ function situationsCitees(marches: Marches, liste: Marche[]): { situations?: Rec
 
 /**
  * Un fichier par département, indexé par SIREN d'acheteur — commune ou
- * groupement, indifféremment : c'est le client qui sait de qui il dépend.
+ * groupement, indifféremment : c'est le client qui sait de qui il dépend. Le
+ * département et la région y figurent aussi, et `echelons` les nomme dans cet
+ * ordre — ceux qui ont des marchés.
  */
 export function ecrireMarches(
   sortie: string,
@@ -691,10 +704,12 @@ export function ecrireMarches(
    */
   sirenDeCommune: Map<string, string>,
   marches: Marches,
+  /** Le département puis la région : `echelonsDuDepartement(dep)`. */
+  echelons: string[] = [],
 ): number {
   const h: Record<string, { n: number; m: Marche[]; s?: string; ne?: number; e?: Echeance[] }> = {};
   let n = 0;
-  for (const siren of [...new Set(sirens)].sort()) {
+  for (const siren of [...new Set([...sirens, ...echelons])].sort()) {
     const liste = marches.parAcheteur.get(siren);
     if (!liste || liste.length === 0) continue;
     const ech = marches.echeances.get(siren) ?? [];
@@ -721,6 +736,7 @@ export function ecrireMarches(
       fenetre: marches.fenetre,
       procedures: PROCEDURES,
       com,
+      ...(echelons.some((x) => h[x]) ? { echelons: echelons.filter((x) => h[x]) } : {}),
       h,
     }),
   );
@@ -841,7 +857,7 @@ function acheteursNommes(
     }
     for (const siren of Object.keys(d.h)) {
       const a = acheteurs.get(siren) ?? { nom: null, deps: [] };
-      a.nom ??= noms.get(siren) ?? null;
+      a.nom ??= noms.get(siren) ?? COLLECTIVITES_SIRENS.get(siren)?.nom ?? null;
       ajouter(a.deps, dep);
       const code = codeDeSiren.get(siren);
       if (code) a.commune = code;
@@ -1007,7 +1023,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     };
     parDep.set(dep, { sirens: Object.keys(d.h), com: new Map(Object.entries(d.com)) });
   }
-  const suivis = new Set([...parDep.values()].flatMap((d) => d.sirens));
+  const suivis = new Set([...[...parDep.values()].flatMap((d) => d.sirens), ...COLLECTIVITES_SIRENS.keys()]);
   const m = await collecterMarches(
     async (url) => (await obstine(url)).json(),
     suivis,
@@ -1017,7 +1033,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   );
   if (m) {
     let n = 0;
-    for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m);
+    for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m, echelonsDuDepartement(dep));
     const suites = ecrireSuitesMarches(sortie, m);
     const nationales = ecrireEcheancesNationales(sortie, m);
     const attributions = ecrireAttributionsNationales(sortie, m);

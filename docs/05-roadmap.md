@@ -3643,6 +3643,43 @@ forme lisible, et donner l'ancienne date serait pire que n'en donner aucune.
 Un avis dont l'acheteur s'écrit autrement que sur BANATIC (« Communauté
 communes Coutances mer et bocage ») et sans SIRET n'est pas rattaché.
 
+### Les marchés des départements et des régions (9 octobre 2026) ✔
+
+**Le département et la région achètent autant que le bloc communal**, et qui
+répond aux marchés publics les a pour clients : collèges, lycées, routes,
+transports. Ils entrent dans la collecte des marchés. 109 d'entre eux ont une
+échéance d'ici septembre 2027 : **3 867 échéances de plus** (24 940 au lieu
+de 21 073), 2 659 marchés attribués de plus en quatre-vingt-dix jours,
+98 avis ouverts de plus, et **1 837 entreprises titulaires** qu'aucune
+commune ni intercommunalité ne nommait. Le Département de l'Allier a notifié
+388 marchés depuis 2023, dont 16 arrivent à échéance.
+
+**Leur SIREN vient d'une table, plus du seul préfixe.** La règle « `22` puis
+le département, `23` puis le chef-lieu de la région » ne vaut que pour les
+régions d'avant 2016 : les sept régions nées de la fusion —
+Auvergne-Rhône-Alpes, Grand Est, Hauts-de-France, Normandie,
+Nouvelle-Aquitaine, Occitanie, Bourgogne-Franche-Comté — ont un SIREN en
+`200…`, comme la Collectivité européenne d'Alsace, la Collectivité de Corse,
+celles de Guyane et de Martinique. Le préfixe ne les reconnaissait pas. La
+table `src/modele/collectivites-sirens.ts` est tirée du répertoire SIRENE
+(catégories juridiques 7220 et 7230, et ces quatre collectivités) par
+`npx tsx scripts/collectivites-sirens.ts` : 95 collectivités au rang du
+département, 17 au rang de la région, chacune avec les départements qu'elle
+couvre. Les délibérations et les subventions s'en servent aussi : celles des
+régions fusionnées entreront à la prochaine réingestion complète.
+
+**Où ils apparaissent.** Dans les trois fichiers nationaux, nommés
+(« Département de l'Allier », « Région Auvergne-Rhône-Alpes ») et rattachés
+à tous les départements qu'ils couvrent ; avec le contact de leur conseil,
+d'après l'annuaire de service-public.fr (108 sur 109) ; et sur la page du
+département ou de la région, sous « Ses marchés publics ». Pas sur la page de
+commune : leurs marchés noieraient ceux de la commune.
+
+**Ce que la source ne dit pas.** La Région Auvergne-Rhône-Alpes n'a publié
+que 26 marchés aux données essentielles depuis 2023 ; la Creuse et le
+Pas-de-Calais n'ont aucune échéance dans la fenêtre. La page montre ce qui
+est publié, pas ce qui est acheté.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,
