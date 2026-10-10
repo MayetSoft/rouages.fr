@@ -3848,8 +3848,9 @@ de Citéco sur l'équilibre budgétaire, qui ne part d'aucune donnée. Aucun jeu
 trouvé, à ce jour, sur les communes françaises, sur les ventes de DVF ou sur
 la répartition des compétences : c'est la place de ceux de Rouages.
 
-**Ce que Rouages prépare**, annoncé comme tel sur la page — rien n'est
-encore jouable :
+**Ce que Rouages prépare** — rien n'en paraît sur le site : décision du
+mainteneur, on n'annonce pas un jeu avant qu'il soit jouable. La page ne
+montre que les jeux tenus ailleurs.
 
 - **Qui décide ?** — pour une commune tirée au sort (ou la sienne), retrouver
   qui exerce une compétence. Données : la résolution territoriale déjà
