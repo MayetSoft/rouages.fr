@@ -3680,6 +3680,44 @@ que 26 marchés aux données essentielles depuis 2023 ; la Creuse et le
 Pas-de-Calais n'ont aucune échéance dans la fenêtre. La page montre ce qui
 est publié, pas ce qui est acheté.
 
+### Tous les acheteurs publics, dans les fichiers nationaux (10 octobre 2026) ✔
+
+**Les fichiers nationaux des marchés couvrent désormais tous les acheteurs
+des données essentielles**, et plus seulement les collectivités : hôpitaux,
+lycées et collèges, offices HLM, sociétés d'économie mixte, SDIS, chambres de
+commerce, établissements de recherche, services de l'État. Le site décrit
+les collectivités et ne leur fait pas de page ; mais ce qu'ils renouvellent
+est un fait public, et qui répond aux marchés publics les a pour clients.
+
+| | Collectivités seules | Tous les acheteurs |
+|---|---|---|
+| Échéances d'ici septembre 2027 (`echeances.json`) | 24 940 | **37 308** |
+| Marchés attribués en quatre-vingt-dix jours (`attributions.json`) | 14 487 | 23 106 |
+| Avis ouverts du BOAMP (`avis.json`) | 3 198 | 3 388 |
+| Titulaires nommés dans `echeances.json` | 12 503 | 17 175 |
+
+1 679 acheteurs de plus ont une échéance ; 4 672 entreprises ne tiennent un
+marché à renouveler que chez eux. Dans l'Allier : Allier Habitat, Montluçon
+Habitat, le SDIS, Evolea, Assemblia.
+
+**Où ils sont.** Le jeu donne le SIRET de l'acheteur : le répertoire SIRENE
+donne la commune de chaque établissement qui a passé un marché, donc son
+département (`scripts/acheteurs-nationaux.ts`). Un centre hospitalier est
+dans le sien ; le CNRS dans les seize départements où ses délégations
+achètent ; une administration centrale à Paris — 151 acheteurs n'y sont que
+là —, ce qui dit d'où vient la commande, pas où elle s'exécute.
+
+**Comment ils s'appellent.** Leur dénomination au répertoire, telle que
+publiée, en capitales. Le champ `hors: 1` les distingue des collectivités :
+ils n'ont ni fichier par département, ni liste à la demande, ni page, ni
+contact (l'annuaire de service-public.fr n'est lu que pour les mairies, les
+intercommunalités, les départements et les régions). Un avis du BOAMP ne
+leur est rattaché que par son SIRET, jamais par le nom.
+
+**Ce que ça coûte.** `echeances.json` passe de 9,8 à 14,3 Mo,
+`attributions.json` de 5,6 à 8,6 Mo ; la collecte relit au répertoire
+98 637 titulaires au lieu de 75 030, et 2 490 SIRET d'acheteurs de plus.
+
 ## Phase 3 — Élargir
 
 - **Rouages économiques** : métiers, filières, chaînes de valeur. Même modèle,

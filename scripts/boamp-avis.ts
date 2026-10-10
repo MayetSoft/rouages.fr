@@ -505,10 +505,12 @@ export function rattacherAvis(
   precedents: Avis[],
   /** Les noms des départements pliés : « Mayenne » est aussi une commune de la Mayenne. */
   departements: Set<string>,
+  /** Les acheteurs qui ne se rattachent que par leur SIRET : leur nom n'est pas celui d'une collectivité. */
+  parSiretSeulement: Set<string> = new Set(),
 ): { avis: Avis[]; parSiret: number; parNom: number; ambigus: number } {
   const index = new Map<string, Map<string, Set<string>>>();
   for (const [siren, a] of acheteurs) {
-    if (!a.nom) continue;
+    if (!a.nom || parSiretSeulement.has(siren)) continue;
     for (const dep of a.deps) {
       const d = index.get(dep) ?? new Map<string, Set<string>>();
       for (const cle of clesAcheteur(a.nom)) d.set(cle, (d.get(cle) ?? new Set()).add(siren));
