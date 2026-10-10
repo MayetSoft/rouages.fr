@@ -1,13 +1,13 @@
 ---
 /**
- * Les jeux : des jeux bâtis sur les données ouvertes, tenus par d'autres.
+ * Les jeux : ceux de Rouages, puis ceux bâtis ailleurs sur les données ouvertes.
  *
  * La page commence par ceux qui existent ailleurs (`contenu/jeux.yaml`) :
  * Rouages ne refait pas un jeu qui marche, il y renvoie, dans le même esprit
  * que pour Wikipédia ou Légifrance.
  *
- * Les jeux propres à Rouages ne s'y annoncent pas avant d'être jouables : leur
- * préparation est dans `docs/05-roadmap.md`, pas sur le site.
+ * Un jeu de Rouages n'y entre qu'une fois jouable : ceux qui se préparent
+ * restent dans `docs/05-roadmap.md`, pas sur le site.
  */
 import Base from '../layouts/Base.astro';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
@@ -27,7 +27,7 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
 ---
 <Base
   titre="Jeux"
-  description="Des jeux bâtis sur les données ouvertes : ceux qui existent déjà, pour deviner un lieu d’après ses données ou améliorer une base en jouant."
+  description="Des jeux bâtis sur les données ouvertes : deviner le prix d’une vraie vente immobilière, et les jeux qui existent ailleurs."
   section="jeux"
 >
   <div class="page page--etroite">
@@ -35,10 +35,19 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
     <h1>Jouer avec les données publiques</h1>
     <p class="resume">
       Deviner un lieu d’après ses données, ou améliorer les données en jouant. D’autres ont déjà fait de
-      très bons jeux à partir de données ouvertes&nbsp;: Rouages les recense et y renvoie.
+      très bons jeux à partir de données ouvertes&nbsp;: Rouages les recense et y renvoie, à côté des siens.
     </p>
 
-    <h2 class="badge">Jouer dès maintenant, ailleurs</h2>
+    <h2 class="badge">Sur Rouages</h2>
+    <ul class="jeux-liste">
+      <li>
+        <a href="/jeux/prix">À combien s’est-elle vendue&nbsp;?</a>
+        <p>Cinq vraies ventes de maisons et d’appartements, dans votre département ou votre commune&nbsp;: devinez le prix.</p>
+        <p class="jeux-meta">Données&nbsp;: les demandes de valeurs foncières de la DGFiP, les trois dernières années publiées.</p>
+      </li>
+    </ul>
+
+    <h2 class="badge">Ailleurs</h2>
     {groupes.map((x) => (
       <section class="jeux-groupe">
         <h3>{x.titre}</h3>

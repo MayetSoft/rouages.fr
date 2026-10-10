@@ -4,5 +4,8 @@
 # tombe dessus en cherchant le nom de sa commune.
 User-agent: *
 Allow: /
+# Les ventes du jeu des prix viennent de DVF, dont les conditions d'utilisation
+# interdisent l'indexation (docs/07-risques.md).
+Disallow: /territoires/jeux/
 
 Sitemap: https://rouages.fr/sitemap.xml

@@ -3868,6 +3868,7 @@ montre que les jeux tenus ailleurs.
   `contenu/processus/`. Seuls les processus `etabli` entrent.
 - **Où va l'argent** — classer des missions du budget de l'État. Données :
   `budget-etat.json`, un seul exercice par partie, dit à l'écran.
+- **À combien s'est-elle vendue ?** — fait le 10 octobre, voir plus bas.
 
 **Les règles**, celles du site : aucune personne à deviner — ni élu, ni
 nuance politique, ni titulaire de marché — ; aucun palmarès de communes
@@ -3879,3 +3880,33 @@ bien, jamais l'adresse ni la parcelle.
 **Techniquement** : des pages statiques, les questions tirées au build ou
 dans le navigateur depuis les fichiers déjà publiés, aucun compte, aucun
 classement entre joueurs (pas de comptes avant la phase 4).
+
+### Le premier jeu : « À combien s'est-elle vendue ? » (10 octobre 2026)
+
+Choisi par le mainteneur : deviner le prix d'une vraie vente de DVF, située à
+la commune et à l'année. `/jeux/prix`, annoncé sur `/jeux` maintenant qu'il
+est jouable.
+
+**Les données** : `scripts/dvf-emettre.ts` garde, en plus des médianes, les
+ventes d'un seul logement de chaque commune d'au moins dix ventes sur trois
+ans, sans les 10 % extrêmes du prix au m² de son type, quarante au plus dans
+un ordre fixe, arrondies (prix au millier, surface à 5 m², terrain à
+100 m²), sans adresse, parcelle ni date (`ventesDuJeu`). Un fichier par
+département, `public/territoires/jeux/dvf/XX.json` : 14 Mo pour 97
+départements, 445 Ko pour le plus lourd (le Nord). Lu au 10 octobre : 247
+communes de l'Allier, dont Le Mayet-de-Montagne (40 maisons, aucun
+appartement).
+
+**Les garde-fous** de `docs/07-risques.md` : pas d'indexation (`robots.txt`,
+`X-Robots-Tag` par `public/territoires/jeux/.htaccess`, `noindex` sur la
+page), lecture des ventes au clic seulement, retrait sur signalement,
+mention dans `/mentions`.
+
+**La partie** : un département, une commune si l'on veut ; cinq ventes,
+tirées commune d'abord pour que les villages sortent autant que la
+préfecture ; 100 points pour le prix exact, 2 de moins par point d'écart.
+Après chaque réponse, le prix médian de la commune — déjà publié sur sa
+page — et le lien vers elle.
+
+**La suite possible** : partir de la page d'une commune (« jouer avec les
+ventes de la commune ») ; un mode appartements seuls dans les grandes villes.
