@@ -103,6 +103,7 @@ for (const f of g.flux.values()) noter(`flux ${f.id}`, f.nom, f.resume, f.ordre_
 for (const s of g.sources.values()) noter(`source ${s.id}`, s.titre);
 for (const s of g.sigles.values()) noter(`sigle ${s.sigle}`, s.definition);
 for (const r of g.reperes.values()) noter(`repère ${r.id}`, r.nom, r.explication);
+for (const j of g.jeux.values()) noter(`jeu ${j.id}`, j.nom, j.principe, j.donnees);
 for (const p of g.processus.values()) {
   noter(`processus ${p.id}`, p.nom, p.resume, p.declencheur, p.sortie);
   for (const e of p.etapes) noter(`processus ${p.id}, étape ${e.ordre}`, e.action, e.note);

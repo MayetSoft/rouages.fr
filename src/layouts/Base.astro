@@ -19,9 +19,10 @@ interface Props {
    * La section du site : l'accueil, qui explique ; le fonctionnement — la
    * carte, les pouvoirs, le glossaire, la méthode et les fiches de nœud — ;
    * les données d'un territoire, de la commune à la région ; l'argent public,
-   * ce que l'État dépense et d'où il le tient.
+   * ce que l'État dépense et d'où il le tient ; les jeux, ceux qui existent
+   * ailleurs et ceux que le site prépare.
    */
-  section?: 'accueil' | 'fonctionnement' | 'chez-moi' | 'argent-public';
+  section?: 'accueil' | 'fonctionnement' | 'chez-moi' | 'argent-public' | 'jeux';
   /** Dans la section fonctionnement, la page courante du sous-menu. */
   sousPage?: 'carte' | 'pouvoirs' | 'glossaire' | 'methode';
 }
@@ -57,6 +58,7 @@ const sousCourant = (s: string) => (sousPage === s ? 'page' : undefined);
           <a href="/fonctionnement" aria-current={courant('fonctionnement')}>Fonctionnement</a>
           <a href="/chez-moi" aria-current={courant('chez-moi')}>Données de chez moi</a>
           <a href="/argent-public" aria-current={courant('argent-public')}>L’argent public</a>
+          <a href="/jeux" aria-current={courant('jeux')}>Jeux</a>
         </nav>
       </div>
       {section === 'fonctionnement' && (

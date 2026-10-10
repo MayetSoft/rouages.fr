@@ -1,0 +1,109 @@
+---
+/**
+ * Les jeux : apprendre qui décide quoi en jouant, à partir des mêmes données
+ * que le reste du site.
+ *
+ * La page commence par ceux qui existent ailleurs (`contenu/jeux.yaml`) :
+ * Rouages ne refait pas un jeu qui marche, il y renvoie, dans le même esprit
+ * que pour Wikipédia ou Légifrance. Viennent ensuite ceux que le site prépare,
+ * annoncés comme tels — aucun n'est encore jouable, et la page le dit.
+ */
+import Base from '../layouts/Base.astro';
+import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
+import type { Jeu } from '../modele/schemas.ts';
+
+const g = chargerGraphe();
+const jeux = [...g.jeux.values()];
+
+const GENRES: { genre: Jeu['genre']; titre: string; chapo: string }[] = [
+  { genre: 'devinette', titre: 'Deviner', chapo: 'Retrouver un lieu d’après ce que disent ses données.' },
+  { genre: 'contribution', titre: 'Contribuer en jouant', chapo: 'Chaque réponse améliore la base de données elle-même.' },
+  { genre: 'simulation', titre: 'Décider', chapo: 'Prendre une décision publique et en voir les effets.' },
+];
+const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === x.genre) })).filter(
+  (x) => x.jeux.length > 0,
+);
+
+const nProcessus = g.processus.size;
+---
+<Base
+  titre="Jeux"
+  description="Des jeux bâtis sur les données ouvertes : ceux qui existent déjà, et ceux que Rouages prépare pour apprendre qui décide quoi, près de chez soi."
+  section="jeux"
+>
+  <div class="page page--etroite">
+    <p class="badge">Jeux</p>
+    <h1>Jouer avec les données publiques</h1>
+    <p class="resume">
+      Pour apprendre qui décide quoi, ou pour améliorer les données en jouant. D’autres ont déjà fait de
+      très bons jeux à partir de données ouvertes&nbsp;: Rouages les recense d’abord, et prépare les siens
+      à côté, pas à leur place.
+    </p>
+
+    <h2 class="badge">Jouer dès maintenant, ailleurs</h2>
+    {groupes.map((x) => (
+      <section class="jeux-groupe">
+        <h3>{x.titre}</h3>
+        <p class="mesure">{x.chapo}</p>
+        <ul class="jeux-liste">
+          {x.jeux.map((j) => (
+            <li>
+              <a href={j.url} rel="noopener">{j.nom}</a>
+              {j.support === 'sur_table' && <span class="jeux-support"> · sur table</span>}
+              <p>{j.principe}</p>
+              <p class="jeux-meta">
+                {`Données : ${j.donnees}. En ligne le ${formaterDate(j.consulte_le)}.`}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+    <p class="mesure">
+      Un jeu manque&nbsp;? <a href="/signaler">Proposez-le</a>. Il entre dans la liste s’il part de données
+      publiques, ouvertes ou collaboratives, et s’il est jouable aujourd’hui.
+    </p>
+
+    <h2 class="badge">Ce que Rouages prépare</h2>
+    <p class="mesure">
+      Aucun n’est encore jouable. Chacun part des données déjà affichées sur le site, et chaque réponse
+      renvoie à la page qui la source.
+    </p>
+    <ul class="accueil-themes">
+      <li>
+        <strong>Qui décide&nbsp;?</strong> — pour une commune, retrouver qui exerce une compétence&nbsp;: la
+        commune, l’intercommunalité, le département, la région ou l’État. Au Mayet-de-Montagne, la
+        mobilité&nbsp;: Vichy Communauté.
+      </li>
+      <li>
+        <strong>La commune mystère</strong> — retrouver une commune à partir d’indices tirés de sa page&nbsp;:
+        son intercommunalité, sa population, ses écoles, sa gare.
+      </li>
+      <li>
+        <strong>Plus ou moins</strong> — deux communes côte à côte&nbsp;: laquelle a le plus d’habitants, de
+        logements vacants, de médecins&nbsp;?
+      </li>
+      <li>
+        <strong>Le bon ordre</strong> — {`remettre dans l’ordre les étapes d’une procédure, parmi les ${nProcessus} que décrit le réseau, du permis de construire au budget communal.`}
+      </li>
+      <li>
+        <strong>Où va l’argent</strong> — classer les missions du budget de l’État, de la plus grosse à la plus
+        petite, d’après <a href="/argent-public">l’argent public</a>.
+      </li>
+    </ul>
+    <p class="mesure">
+      Les règles du site valent pour ses jeux&nbsp;: des fonctions et des territoires, jamais de personne à
+      deviner&nbsp;; un chiffre n’entre dans une question que s’il est vérifié et sourcé.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .jeux-groupe h3 { margin: 1.2rem 0 .2rem; font-size: 1.05rem; }
+  .jeux-groupe .mesure { margin-top: 0; }
+  .jeux-liste { list-style: none; padding: 0; margin: 0 0 1.4rem; max-width: var(--mesure); }
+  .jeux-liste li { padding: .6rem 0; border-top: 1px solid var(--trait); }
+  .jeux-liste a { font-weight: 600; }
+  .jeux-liste p { margin: .25rem 0 0; }
+  .jeux-support, .jeux-meta { color: var(--encre-douce); font-size: .88rem; }
+</style>

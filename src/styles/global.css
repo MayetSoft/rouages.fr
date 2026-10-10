@@ -125,7 +125,7 @@ h1, h2, h3 { letter-spacing: -0.014em; }
 .bandeau-int { display: flex; align-items: center; gap: 1rem; padding: .7rem 1.1rem; flex-wrap: wrap; }
 .marque { font-weight: 680; text-decoration: none; color: var(--encre); letter-spacing: -0.02em; }
 .baseline { color: var(--encre-douce); font-size: .82rem; }
-.bandeau nav { margin-left: auto; display: flex; gap: 1rem; font-size: .85rem; }
+.bandeau nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .85rem; }
 .bandeau nav a[aria-current="page"] { color: var(--encre); font-weight: 600; text-decoration: none; }
 /* Le sous-menu du fonctionnement : une ligne fine sous l'en-tête. Sa hauteur
    est fixe, parce que la carte occupe ce que l'en-tête laisse de l'écran. */

@@ -3829,3 +3829,52 @@ région — et sous le marché, y compris dans les lignes que « Voir les autres
 fait apparaître. Calculé au build sur les données déjà collectées : rien à
 réingérer. Au passage, les objets de marchés qui arrivaient avec des
 entités HTML (« d&#8217;électricité ») sont rendus en clair.
+
+### Les jeux : une quatrième section (10 octobre 2026)
+
+Une section `/jeux`, à côté du fonctionnement, des données de chez soi et
+de l'argent public, sur l'idée du mainteneur : apprendre qui décide quoi en
+jouant, dans un esprit collaboratif et complémentaire.
+
+**D'abord ce qui existe** : `contenu/jeux.yaml` recense les jeux tenus
+ailleurs, rangés en trois genres — deviner un lieu d'après une donnée
+(Worldle, Tradle), contribuer à une base en jouant (Hunger Games d'Open Food
+Facts, Wikidata Game), simuler une décision publique. Chaque entrée dit son
+principe en une phrase, les données d'où il part et le jour où on l'a vu en
+ligne ; la validation y applique les règles de tout `contenu/` (pas de nom de
+personne, sigles au glossaire). Écartés après vérification : le
+« cyber-budget » du ministère (2006), qui ne répond plus, et le jeu de table
+de Citéco sur l'équilibre budgétaire, qui ne part d'aucune donnée. Aucun jeu
+trouvé, à ce jour, sur les communes françaises, sur les ventes de DVF ou sur
+la répartition des compétences : c'est la place de ceux de Rouages.
+
+**Ce que Rouages prépare**, annoncé comme tel sur la page — rien n'est
+encore jouable :
+
+- **Qui décide ?** — pour une commune tirée au sort (ou la sienne), retrouver
+  qui exerce une compétence. Données : la résolution territoriale déjà
+  calculée (BANATIC et le graphe). Le cas `variable_selon_territoire` se
+  joue comme les autres, puisque la réponse locale est connue ; une
+  compétence `a_confirmer` n'entre pas dans les questions.
+- **La commune mystère** — des indices successifs tirés de la page de
+  commune (département, intercommunalité, tranche de population, écoles,
+  gare), la distance et la direction après chaque essai, comme Worldle.
+  Données : `public/territoires/`, les contours d'Admin Express.
+- **Plus ou moins** — deux communes, laquelle a le plus de… Seulement des
+  indicateurs déjà affichés, avec leur millésime, et jamais deux millésimes
+  différents face à face.
+- **Le bon ordre** — remettre les étapes d'un processus dans l'ordre. Données :
+  `contenu/processus/`. Seuls les processus `etabli` entrent.
+- **Où va l'argent** — classer des missions du budget de l'État. Données :
+  `budget-etat.json`, un seul exercice par partie, dit à l'écran.
+
+**Les règles**, celles du site : aucune personne à deviner — ni élu, ni
+nuance politique, ni titulaire de marché — ; aucun palmarès de communes
+présenté comme un jugement ; chaque réponse renvoie à la page qui la source ;
+un chiffre n'entre dans une question que s'il est affiché ailleurs sur le
+site. Pour DVF, si un « juste prix » vient un jour : la commune et le type de
+bien, jamais l'adresse ni la parcelle.
+
+**Techniquement** : des pages statiques, les questions tirées au build ou
+dans le navigateur depuis les fichiers déjà publiés, aucun compte, aucun
+classement entre joueurs (pas de comptes avant la phase 4).
