@@ -1,22 +1,32 @@
 /**
  * Où jouer : une commune, un code postal — qui en réunit souvent plusieurs —,
- * une intercommunalité ou un département, dans un seul champ.
+ * une intercommunalité ou un département, dans un seul champ. Chaque jeu dit
+ * quels genres de lieu il accepte : « Qui décide ? » se joue sur une commune,
+ * la commune mystère sur un ensemble de communes.
  *
  * Les communes et les codes postaux viennent de l'index national, comme dans
  * la recherche des « Données de chez moi » ; les départements et les
- * intercommunalités jouables de `/jeux/prix-territoires.json`. Chaque
- * proposition est un lien vers `?t=<clé>` : l'adresse d'une partie se partage
- * telle quelle, et celui qui la reçoit joue le même défi du jour.
+ * intercommunalités de `/jeux/territoires.json`, ou pour le jeu des prix de
+ * `/jeux/prix-territoires.json`, qui marque les communes sans assez de ventes.
+ * Chaque proposition est un lien vers `?t=<clé>` : l'adresse d'une partie se
+ * partage telle quelle, et celui qui la reçoit joue le même défi du jour.
  *
  * Rien ici ne lit de vente : seulement des noms et des codes.
  */
 import { chargerIndex, chercher, normaliser, type CommuneBreve } from './recherche-commune.ts';
 import type { TerritoiresJeu } from '../pages/jeux/prix-territoires.json.ts';
 
+export type GenreLieu = 'commune' | 'cp' | 'interco' | 'departement';
+export interface OptionsLieu {
+  /** `/jeux/territoires.json`, ou `/jeux/prix-territoires.json` pour le jeu des prix. */
+  source: string;
+  genres: GenreLieu[];
+}
+
 export interface Lieu {
   /** « c-03165 », « cp-03250 », « e-200071363 », « d-03 » : ce qui va dans l'adresse. */
   cle: string;
-  genre: 'commune' | 'cp' | 'interco' | 'departement';
+  genre: GenreLieu;
   nom: string;
   /** Les communes du lieu, ou null pour tout le département. */
   communes: string[] | null;
@@ -39,10 +49,16 @@ export function departementDe(code: string): string {
 }
 
 type Interco = { siren: string; nom: string; nature: string; deps: string[]; communes: string[]; jouables: Set<string> };
-let territoires: Promise<{ d: Map<string, string>; e: Interco[]; jouables: Set<string>; parCommune: Map<string, Interco> }> | null = null;
+type Territoires = { d: Map<string, string>; e: Interco[]; jouables: Set<string>; parCommune: Map<string, Interco> };
+const territoires = new Map<string, Promise<Territoires>>();
 
-function chargerTerritoires() {
-  territoires ??= fetch('/jeux/prix-territoires.json')
+function chargerTerritoires(source: string): Promise<Territoires> {
+  if (!territoires.has(source)) territoires.set(source, lireTerritoires(source));
+  return territoires.get(source)!;
+}
+
+function lireTerritoires(source: string): Promise<Territoires> {
+  const lecture = fetch(source)
     .then((r) => {
       if (!r.ok) throw new Error(String(r.status));
       return r.json() as Promise<TerritoiresJeu>;
@@ -67,41 +83,45 @@ function chargerTerritoires() {
       });
       return { d: new Map(t.d), e, jouables, parCommune };
     });
-  territoires.catch(() => (territoires = null));
-  return territoires;
+  lecture.catch(() => territoires.delete(source));
+  return lecture;
 }
 
+/** « du Mayet-de-Montagne », « des Ancizes », « de Vichy ». */
+const deNom = (nom: string) => (nom.startsWith('Le ') ? `du ${nom.slice(3)}` : nom.startsWith('Les ') ? `des ${nom.slice(4)}` : `de ${nom}`);
 const pluriel = (n: number, mot: string) => `${n.toLocaleString('fr-FR')} ${mot}${n > 1 ? 's' : ''}`;
 
-async function proposer(requete: string): Promise<Proposition[]> {
+async function proposer(requete: string, o: OptionsLieu): Promise<Proposition[]> {
   const q = normaliser(requete);
   if (q.length < 2) return [];
-  const [t, communes, index] = await Promise.all([chargerTerritoires(), chercher(requete, 6), chargerIndex()]);
+  const [t, communes, index] = await Promise.all([chargerTerritoires(o.source), chercher(requete, 6), chargerIndex()]);
   const exacts: Proposition[] = [];
   const ensuite: Proposition[] = [];
 
   // Un code postal partagé : le proposer comme un lieu à part entière.
-  if (/^\d{2,5}$/.test(q)) {
+  if (o.genres.includes('cp') && /^\d{2,5}$/.test(q)) {
     const parCp = new Map<string, CommuneBreve[]>();
     for (const c of index) for (const cp of c.cps) if (cp.startsWith(q)) (parCp.get(cp) ?? parCp.set(cp, []).get(cp)!).push(c);
     for (const [cp, liste] of [...parCp].sort((a, b) => a[0].localeCompare(b[0])).slice(0, 3)) {
-      if (liste.length < 2) continue;
+      // Un code postal d'une seule commune n'ajoute rien à la commune, sauf
+      // pour un jeu qui ne se joue pas sur une commune seule.
+      if (liste.length < 2 && o.genres.includes('commune')) continue;
       const n = liste.filter((c) => t.jouables.has(c.code)).length;
       (cp === q ? exacts : ensuite).push({
         cle: `cp-${cp}`,
         genre: 'Code postal',
         nom: cp,
-        detail: `${pluriel(liste.length, 'commune')}, dont ${n.toLocaleString('fr-FR')} avec assez de ventes`,
+        detail: n === liste.length ? pluriel(liste.length, 'commune') : `${pluriel(liste.length, 'commune')}, dont ${n.toLocaleString('fr-FR')} avec assez de ventes`,
       });
     }
   }
-  for (const [code, nom] of t.d) {
+  if (o.genres.includes('departement')) for (const [code, nom] of t.d) {
     const n = normaliser(nom);
     const p = { cle: `d-${code}`, genre: 'Département', nom, detail: code };
     if (n === q || code.toLowerCase() === q) exacts.push(p);
     else if (n.startsWith(q) || n.includes(` ${q}`)) ensuite.push(p);
   }
-  const intercos = t.e
+  const intercos = (o.genres.includes('interco') ? t.e : [])
     .map((e) => ({ e, n: normaliser(e.nom) }))
     .filter(({ n }) => n === q || n.startsWith(q) || n.includes(q))
     .sort((a, b) => Number(b.n === q) - Number(a.n === q) || b.e.communes.length - a.e.communes.length)
@@ -110,11 +130,28 @@ async function proposer(requete: string): Promise<Proposition[]> {
       cle: `e-${e.siren}`,
       genre: 'Intercommunalité',
       nom: e.nom,
-      detail: `${pluriel(e.communes.length, 'commune')}, dont ${e.jouables.size.toLocaleString('fr-FR')} avec assez de ventes`,
+      detail:
+        e.jouables.size === e.communes.length
+          ? pluriel(e.communes.length, 'commune')
+          : `${pluriel(e.communes.length, 'commune')}, dont ${e.jouables.size.toLocaleString('fr-FR')} avec assez de ventes`,
     }));
+  // Un jeu qui ne se joue pas sur une commune seule : taper son village
+  // propose son code postal et son intercommunalité.
+  const autour: Proposition[] = [];
+  if (!o.genres.includes('commune')) {
+    const vus = new Set([...exacts, ...ensuite, ...intercos].map((p) => p.cle));
+    for (const c of communes.slice(0, 3)) {
+      const e = t.parCommune.get(c.code);
+      const props: Proposition[] = [];
+      if (o.genres.includes('cp') && c.cp) props.push({ cle: `cp-${c.cp}`, genre: 'Code postal', nom: c.cp, detail: `celui ${deNom(c.nom)}` });
+      if (o.genres.includes('interco') && e) props.push({ cle: `e-${e.siren}`, genre: 'Intercommunalité', nom: e.nom, detail: `celle ${deNom(c.nom)}` });
+      for (const p of props) if (!vus.has(p.cle)) (vus.add(p.cle), autour.push(p));
+    }
+  }
   return [
     ...exacts,
-    ...communes.map((c) => ({
+    ...autour,
+    ...(o.genres.includes('commune') ? communes : []).map((c) => ({
       cle: `c-${c.code}`,
       genre: 'Commune',
       nom: c.nom,
@@ -126,9 +163,11 @@ async function proposer(requete: string): Promise<Proposition[]> {
 }
 
 /** D'une clé d'adresse au lieu qu'elle désigne, ou null si elle ne désigne rien de jouable. */
-export async function resoudre(cle: string): Promise<Lieu | null> {
+export async function resoudre(cle: string, o: OptionsLieu): Promise<Lieu | null> {
   const [genre, id] = [cle.slice(0, cle.indexOf('-')), cle.slice(cle.indexOf('-') + 1)];
-  const t = await chargerTerritoires();
+  const voulu = ({ d: 'departement', e: 'interco', c: 'commune', cp: 'cp' } as Record<string, GenreLieu>)[genre];
+  if (!voulu || !o.genres.includes(voulu)) return null;
+  const t = await chargerTerritoires(o.source);
   if (genre === 'd' && t.d.has(id)) {
     return { cle, genre: 'departement', nom: t.d.get(id)!, communes: null, deps: [id], replis: [] };
   }
@@ -158,7 +197,7 @@ export async function resoudre(cle: string): Promise<Lieu | null> {
 }
 
 /** Le champ, au clavier comme à la souris : un combobox dont chaque proposition est un lien. */
-export function brancherChampLieu(id: string): void {
+export function brancherChampLieu(id: string, o: OptionsLieu): void {
   const champ = document.getElementById(id) as HTMLInputElement | null;
   const liste = document.getElementById(`${id}-liste`);
   if (!champ || !liste) return;
@@ -207,7 +246,7 @@ export function brancherChampLieu(id: string): void {
   champ.addEventListener('input', () => {
     const mien = ++enCours;
     if (champ.value.trim().length < 2) return fermer();
-    proposer(champ.value)
+    proposer(champ.value, o)
       .then((p) => mien === enCours && afficher(p))
       .catch(() => mien === enCours && fermer());
   });

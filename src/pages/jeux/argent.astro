@@ -1,0 +1,109 @@
+---
+/**
+ * Où va l'argent : classer des missions du budget de l'État, de la plus
+ * grosse à la plus petite, d'après les crédits votés pour 2025 — les chiffres
+ * de la page « L'argent public », au même exercice.
+ *
+ * Les prélèvements sur recettes n'entrent pas : ce ne sont pas des missions,
+ * et la page qui les montre le dit. Cinq missions par partie, tirées pour
+ * qu'aucune ne soit à moins de 10 % d'une autre : départager deux montants
+ * presque égaux serait une loterie, pas un jeu.
+ */
+import Base from '../../layouts/Base.astro';
+import ClassementJeu from '../../composants/jeux/ClassementJeu.astro';
+import { budgetEtat, montantBudget } from '../../modele/budget-etat.ts';
+import { formaterDate } from '../../modele/graphe.ts';
+import '../../styles/jeux.css';
+
+const b = budgetEtat();
+/** L'exercice joué : le dernier budget voté que donne le fichier, celui qu'affiche d'abord « L'argent public ». */
+const EXERCICE = 1;
+const slug = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+/** [nom, montant, montant écrit, ancre sur « L'argent public »], du plus gros au plus petit. */
+const missions = (b?.credits ?? [])
+  .filter((m) => !m.psr && (m.v[EXERCICE] ?? 0) > 0)
+  .map((m) => [m.nom, m.v[EXERCICE]!, montantBudget(m.v[EXERCICE]), `mission-${slug(m.nom)}`] as const)
+  .sort((x, y) => y[1] - x[1]);
+---
+<Base
+  titre="Où va l’argent"
+  description="Classez les missions du budget de l’État, de la plus grosse à la plus petite, d’après les crédits votés pour 2025."
+  section="jeux"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a></p>
+    <h1>Où va l’argent&nbsp;?</h1>
+    <p class="resume">
+      Cinq missions du budget de l’État&nbsp;: rangez-les de la plus grosse à la plus petite. Les montants sont les
+      crédits votés pour 2025, ceux de <a href="/argent-public">l’argent public</a>.
+    </p>
+
+    {missions.length < 5 ? (
+      <p class="mesure">Le budget de l’État n’est pas encore collecté.</p>
+    ) : (
+      <ClassementJeu
+        id="ja"
+        consigne="De la plus grosse à la plus petite : montez ou descendez chaque mission, puis validez. Trois essais ; les missions bien placées restent en place."
+        autre="Cinq autres missions, au hasard"
+      />
+    )}
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Chaque jour, les cinq mêmes missions pour tout le monde. Trois essais&nbsp;; après chacun, les missions à leur place passent au vert et ne bougent plus.</li>
+      <li>Une case par mission&nbsp;: 🟩 trouvée au premier essai, 🟨 au deuxième, 🟧 au troisième, 🟥 jamais.</li>
+      <li>Jamais deux missions à moins de 10&nbsp;% l’une de l’autre. Les prélèvements sur recettes — pour les collectivités, pour l’Union européenne — n’entrent pas&nbsp;: ce ne sont pas des missions.</li>
+      <li>Votre résultat du jour reste dans votre navigateur. Le partage prépare un texte — les cases et le score — que vous publiez où vous voulez.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <ul class="mesure b-sources">
+      <li>
+        <a href="https://data.economie.gouv.fr/explore/dataset/plf-2026-budget-vert/" target="_blank" rel="noopener">Direction du Budget — PLF 2026, budget vert</a>{b ? `, Licence Ouverte 2.0, lu le ${formaterDate(new Date(b.maj))} : les crédits votés pour 2025 en loi de finances initiale, au périmètre des dépenses de l’État.` : ''}
+      </li>
+    </ul>
+  </div>
+</Base>
+
+<script type="application/json" is:inline id="ja-donnees" set:html={JSON.stringify(missions)} />
+<script>
+  import { brancherClassement } from '../../client/jeux-classement.ts';
+
+  /** [nom, montant, montant écrit, ancre] */
+  type Mission = [string, number, string, string];
+  const missions = JSON.parse(document.getElementById('ja-donnees')?.textContent ?? '[]') as Mission[];
+  if (missions.length >= 5) {
+    brancherClassement({
+      prefixe: 'ja',
+      jeu: 'Où va l’argent ?',
+      embleme: '💶',
+      memoire: 'rouages-jeu-argent',
+      mot: 'mission',
+      tirer: (alea) => {
+        // Cinq missions, aucune à moins de 10 % d'une autre.
+        const choisies: Mission[] = [];
+        for (let essais = 0; choisies.length < 5 && essais < 500; essais++) {
+          const m = missions[Math.floor(alea() * missions.length)];
+          if (choisies.some((c) => c === m || Math.max(c[1], m[1]) / Math.min(c[1], m[1]) < 1.1)) continue;
+          choisies.push(m);
+        }
+        choisies.sort((x, y) => y[1] - x[1]);
+        return {
+          titre: 'Crédits votés pour 2025',
+          elements: choisies.map(([nom, , ecrit]) => ({ texte: nom, reponse: ecrit })),
+          apres: (contexte) => {
+            contexte.append('Chaque mission, programme par programme, dans ');
+            const [nom, , , ancre] = choisies[0];
+            contexte.append(Object.assign(document.createElement('a'), { href: `/argent-public#${ancre}`, textContent: 'l’argent public' }), ` — à commencer par « ${nom} ».`);
+          },
+        };
+      },
+    });
+  }
+</script>

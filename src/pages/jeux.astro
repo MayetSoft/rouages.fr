@@ -41,11 +41,40 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
     <h2 class="badge">Sur Rouages</h2>
     <ul class="jeux-liste">
       <li>
+        <a href="/jeux/qui-decide">Qui décide&nbsp;?</a>
+        <p>L’eau, les déchets, la mobilité&nbsp;: dans votre commune, qui s’en occupe&nbsp;? Cinq questions, et la réponse de sa page.</p>
+        <p class="jeux-meta">Données&nbsp;: le registre national BANATIC et la loi, comme sur chaque page de commune.</p>
+      </li>
+      <li>
+        <a href="/jeux/commune-mystere">La commune mystère</a>
+        <p>Une commune se cache dans votre code postal, votre intercommunalité ou votre département&nbsp;: retrouvez-la, indice après indice, avec la distance et la direction à chaque essai.</p>
+        <p class="jeux-meta">Données&nbsp;: les contours d’Admin Express, et les chiffres des pages de commune.</p>
+      </li>
+      <li>
+        <a href="/jeux/plus-ou-moins">Plus ou moins</a>
+        <p>Deux communes face à face&nbsp;: laquelle a le plus d’habitants, la maison la plus chère, la gare la plus proche&nbsp;?</p>
+        <p class="jeux-meta">Données&nbsp;: INSEE, DGFiP, SNCF, Éducation nationale, avec leur année.</p>
+      </li>
+      <li>
         <a href="/jeux/prix">À combien s’est-elle vendue&nbsp;?</a>
-        <p>Cinq vraies ventes de maisons et d’appartements, dans votre département ou votre commune&nbsp;: devinez le prix.</p>
+        <p>Cinq vraies ventes de maisons et d’appartements, autour de chez vous&nbsp;: devinez le prix.</p>
         <p class="jeux-meta">Données&nbsp;: les demandes de valeurs foncières de la DGFiP, les trois dernières années publiées.</p>
       </li>
+      <li>
+        <a href="/jeux/ordre">Le bon ordre</a>
+        <p>Les étapes d’une démarche publique, mélangées&nbsp;: le permis de construire, le budget communal, l’inscription électorale…</p>
+        <p class="jeux-meta">Données&nbsp;: les fiches de démarche de Rouages.</p>
+      </li>
+      <li>
+        <a href="/jeux/argent">Où va l’argent&nbsp;?</a>
+        <p>Cinq missions du budget de l’État, à ranger de la plus grosse à la plus petite.</p>
+        <p class="jeux-meta">Données&nbsp;: les crédits votés pour 2025, d’après la direction du Budget.</p>
+      </li>
     </ul>
+    <p class="mesure">
+      Chaque jeu a son défi du jour, le même pour tout le monde, et se partage — le score, jamais les
+      données d’une personne.
+    </p>
 
     <h2 class="badge">Ailleurs</h2>
     {groupes.map((x) => (

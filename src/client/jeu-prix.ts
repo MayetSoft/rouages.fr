@@ -1,13 +1,11 @@
 /**
  * Le jeu des prix, côté navigateur.
  *
- * **Le défi du jour** : pour un lieu donné, les cinq mêmes ventes pour tout le
- * monde, tirées d'une graine faite de la date (à l'heure de Paris) et de la
- * clé du lieu. C'est ce qui rend un score comparable, donc partageable :
- * l'adresse partagée mène au même défi. Le résultat est gardé dans le
- * navigateur, et seulement là, pour qu'on retrouve son score en revenant —
- * ce qui empêche aussi de rejouer le défi jusqu'au sans-faute. Après, une
- * partie libre tire d'autres ventes, sans score à partager.
+ * **Le défi du jour** (voir `jeux-commun.ts`) : pour un lieu, les cinq mêmes
+ * ventes pour tout le monde. Le résultat est gardé dans le navigateur, et
+ * seulement là, pour qu'on retrouve son score en revenant — ce qui empêche
+ * aussi de rejouer le défi jusqu'au sans-faute. Après, une partie libre tire
+ * d'autres ventes, sans score à partager.
  *
  * Le tirage choisit d'abord une commune, puis une vente dans la commune : un
  * tirage parmi toutes les ventes ne montrerait presque que la préfecture.
@@ -16,7 +14,8 @@
  * volontaire que demandent les conditions d'utilisation de DVF.
  */
 import { aLieu } from '../modele/signalement.ts';
-import { brancherChampLieu, resoudre, type Lieu } from './jeu-prix-lieu.ts';
+import { brancherChampLieu, resoudre, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
+import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 /** [année, 0 maison ou 1 appartement, prix, surface, pièces, terrain] — voir `ventesDuJeu`. */
 type VenteJeu = [number, 0 | 1, number, number, number, number];
@@ -29,7 +28,7 @@ type Manche = { code: string; vente: VenteJeu; essai?: number; points?: number }
 type Garde = { essais: number[] };
 
 const MANCHES = 5;
-const MEMOIRE = 'rouages-jeu-prix';
+const LIEUX: OptionsLieu = { source: '/jeux/prix-territoires.json', genres: ['commune', 'cp', 'interco', 'departement'] };
 const euros = (x: number) => `${Math.round(x).toLocaleString('fr-FR')} €`;
 const m2 = (x: number) => `${x.toLocaleString('fr-FR')} m²`;
 
@@ -38,9 +37,8 @@ export function points(essai: number, prix: number): number {
   return Math.max(0, Math.round(100 - 200 * (Math.abs(essai - prix) / prix)));
 }
 
-/** Une case par vente, comme on en partage après un jeu du jour. */
-export function carre(p: number): string {
-  return p >= 80 ? '🟩' : p >= 50 ? '🟨' : p > 0 ? '🟧' : '🟥';
+export function caseDe(p: number): Case {
+  return p >= 80 ? 'vert' : p >= 50 ? 'jaune' : p > 0 ? 'orange' : 'rouge';
 }
 
 /** Les écritures qu'on tape : « 120 000 », « 120000 € », « 120k », « 1,2 M ». */
@@ -50,24 +48,6 @@ export function lireMontant(texte: string): number | null {
   if (!m) return null;
   const x = Number(m[1]) * (m[2] === 'k' ? 1_000 : m[2] === 'm' ? 1_000_000 : 1);
   return x > 0 ? x : null;
-}
-
-/** Le jour à Paris, AAAA-MM-JJ : le défi change à minuit pour tout le monde. */
-export function jourDeParis(d = new Date()): string {
-  return new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-}
-
-/** Un générateur pseudo-aléatoire à graine (mulberry32), le même dans tous les navigateurs. */
-function hasard(graine: string): () => number {
-  let h = 2166136261;
-  for (const c of graine) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
-  return () => {
-    h = (h + 0x6d2b79f5) >>> 0;
-    let t = h;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }
 
 export function tirer(communes: Record<string, CommuneJeu>, codes: string[], alea: () => number): Manche[] {
@@ -86,55 +66,6 @@ export function tirer(communes: Record<string, CommuneJeu>, codes: string[], ale
   return manches;
 }
 
-/** Les couleurs des cases, celles des carrés emoji qu'on partage en texte. */
-const COULEUR_CASE = (p: number) => (p >= 80 ? '#2e9e5b' : p >= 50 ? '#e6b422' : p > 0 ? '#e8762c' : '#cf3b2f');
-
-/**
- * L'image du résultat, pour Instagram qui ne prend pas de lien à partager :
- * le même contenu que le texte — lieu, date, cases, score, adresse —, sans
- * aucune vente. Au format portrait 4:5, celui du fil.
- */
-async function imageDuResultat(lieu: string, date: string, pts: number[], adresse: string): Promise<Blob> {
-  const L = 1080;
-  const H = 1350;
-  const toile = document.createElement('canvas');
-  toile.width = L;
-  toile.height = H;
-  const g = toile.getContext('2d')!;
-  await document.fonts?.ready;
-  const police = getComputedStyle(document.body).fontFamily || 'sans-serif';
-  g.fillStyle = '#fbfaf8';
-  g.fillRect(0, 0, L, H);
-  g.fillStyle = '#1e5f74';
-  g.fillRect(0, 0, L, 18);
-  const ligne = (texte: string, y: number, taille: number, couleur: string, graisse = 400) => {
-    g.font = `${graisse} ${taille}px ${police}`;
-    g.fillStyle = couleur;
-    // Un nom long se réduit plutôt que de sortir du cadre.
-    let t = taille;
-    while (g.measureText(texte).width > L - 160 && t > 24) g.font = `${graisse} ${(t -= 2)}px ${police}`;
-    g.fillText(texte, 80, y);
-  };
-  ligne('Rouages · Jeux', 130, 36, '#5f5c55', 500);
-  ligne('À combien s’est-elle vendue ?', 230, 64, '#17171a', 700);
-  ligne(lieu, 420, 56, '#17171a', 600);
-  ligne(`Défi du ${date}`, 490, 40, '#5f5c55');
-  const cote = 150;
-  const ecart = (L - 160 - cote * pts.length) / Math.max(1, pts.length - 1);
-  for (const [i, p] of pts.entries()) {
-    g.fillStyle = COULEUR_CASE(p);
-    g.beginPath();
-    g.roundRect(80 + i * (cote + ecart), 600, cote, cote, 22);
-    g.fill();
-  }
-  const total = pts.reduce((a, b) => a + b, 0);
-  ligne(`${total} / ${pts.length * 100}`, 960, 120, '#17171a', 700);
-  ligne('points', 1030, 40, '#5f5c55');
-  ligne('Saurez-vous faire mieux ?', 1170, 44, '#1e5f74', 600);
-  ligne(adresse.replace(/^https?:\/\//, ''), 1240, 34, '#5f5c55');
-  return new Promise((ok, ko) => toile.toBlob((b) => (b ? ok(b) : ko(new Error('image'))), 'image/png'));
-}
-
 function decrire(v: VenteJeu): string {
   const [, type, , surface, pieces, terrain] = v;
   const morceaux = [`${m2(surface)} habitables`];
@@ -151,27 +82,12 @@ function decrire(v: VenteJeu): string {
   return morceaux.join(' · ');
 }
 
-const lire = <T,>(cle: string): T | null => {
-  try {
-    const brut = localStorage.getItem(`${MEMOIRE}:${cle}`);
-    return brut ? (JSON.parse(brut) as T) : null;
-  } catch {
-    return null;
-  }
-};
-const ecrire = (cle: string, valeur: unknown) => {
-  try {
-    localStorage.setItem(`${MEMOIRE}:${cle}`, JSON.stringify(valeur));
-  } catch {
-    /* navigation privée : le défi se rejouera, voilà tout */
-  }
-};
-
 export function brancherJeuPrix(): void {
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
   const racine = $('jp');
   if (!racine) return;
-  brancherChampLieu('jp-lieu');
+  brancherChampLieu('jp-lieu', LIEUX);
+  const garde = memoire('rouages-jeu-prix');
   const choix = $('jp-choix')!;
   const manche = $('jp-manche')!;
   const essai = $<HTMLFormElement>('jp-essai')!;
@@ -203,6 +119,20 @@ export function brancherJeuPrix(): void {
   const jour = jourDeParis();
   const cleDuJour = () => `${jour}:${lieu!.cle}`;
 
+  const resultat = (): Resultat | null =>
+    lieu && partie.length
+      ? {
+          jeu: 'À combien s’est-elle vendue ?',
+          embleme: '🏠',
+          lieu: lieu.nom,
+          jour,
+          cases: partie.map((m) => caseDe(m.points ?? 0)),
+          score: `${partie.reduce((s, m) => s + (m.points ?? 0), 0)}/${partie.length * 100}`,
+          adresse: `${location.origin}${location.pathname}?t=${encodeURIComponent(lieu.cle)}`,
+        }
+      : null;
+  const remplirPartage = brancherPartage('jp', resultat);
+
   const message = (texte: string, liens: { cle: string; nom: string }[] = []) => {
     const p = $('jp-message')!;
     p.textContent = texte;
@@ -228,57 +158,35 @@ export function brancherJeuPrix(): void {
     saisie.focus();
   };
 
-  const texteAPartager = (total: number) =>
-    [
-      'À combien s’est-elle vendue ? 🏠',
-      `${lieu!.nom} · défi du ${new Date(`${jour}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`,
-      `${partie.map((m) => carre(m.points ?? 0)).join('')} ${total}/${partie.length * 100}`,
-    ].join('\n');
-  const adresseAPartager = () => `${location.origin}${location.pathname}?t=${encodeURIComponent(lieu!.cle)}`;
-
   const afficherFin = () => {
-    const total = partie.reduce((s, m) => s + (m.points ?? 0), 0);
-    $('jp-score')!.textContent = `${total} points sur ${partie.length * 100}`;
-    $('jp-cases')!.textContent = partie.map((m) => carre(m.points ?? 0)).join('');
+    const r = resultat()!;
+    $('jp-score')!.textContent = r.score.replace('/', ' points sur ');
+    $('jp-cases')!.textContent = r.cases.map((c) => EMOJI[c]).join('');
     const recap = $('jp-recap')!;
     recap.innerHTML = '';
     for (const m of partie) {
       const li = document.createElement('li');
-      li.textContent = `${carre(m.points ?? 0)} ${m.vente[1] === 0 ? 'Maison' : 'Appartement'} ${aLieu(communes[m.code].n)} (${m.vente[0]}) : ${euros(m.vente[2])}, vous disiez ${euros(m.essai ?? 0)} — ${m.points} pt${(m.points ?? 0) > 1 ? 's' : ''}`;
+      li.textContent = `${EMOJI[caseDe(m.points ?? 0)]} ${m.vente[1] === 0 ? 'Maison' : 'Appartement'} ${aLieu(communes[m.code].n)} (${m.vente[0]}) : ${euros(m.vente[2])}, vous disiez ${euros(m.essai ?? 0)} — ${m.points} pt${(m.points ?? 0) > 1 ? 's' : ''}`;
       recap.append(li);
     }
-    const partage = $('jp-partage')!;
-    partage.hidden = !duJour;
-    if (duJour) {
-      const texte = texteAPartager(total);
-      const adresse = adresseAPartager();
-      $('jp-apercu')!.textContent = `${texte}\n${adresse}`;
-      const complet = encodeURIComponent(`${texte}\n${adresse}`);
-      $<HTMLAnchorElement>('jp-x')!.href = `https://twitter.com/intent/tweet?text=${complet}`;
-      $<HTMLAnchorElement>('jp-bluesky')!.href = `https://bsky.app/intent/compose?text=${complet}`;
-      $<HTMLAnchorElement>('jp-facebook')!.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(adresse)}`;
-      $<HTMLAnchorElement>('jp-whatsapp')!.href = `https://wa.me/?text=${complet}`;
-      // LinkedIn ne reprend plus de texte : l'adresse seule, l'aperçu vient de la page.
-      $<HTMLAnchorElement>('jp-linkedin')!.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(adresse)}`;
-      $('jp-natif')!.hidden = typeof navigator.share !== 'function';
-    }
+    $('jp-partage')!.hidden = !duJour;
+    if (duJour) remplirPartage(r);
     $('jp-libre')!.textContent = duJour ? 'Une partie libre, avec d’autres ventes' : 'Une autre partie libre';
     manche.hidden = true;
     fin.hidden = false;
   };
 
   // Le lieu choisi : celui de l'adresse, ou le dernier joué.
-  const demande = new URLSearchParams(location.search).get('t') ?? lire<string>('lieu');
+  const demande = new URLSearchParams(location.search).get('t') ?? garde.lire<string>('lieu');
   const preparer = async (cle: string) => {
-    lieu = await resoudre(cle).catch(() => null);
+    lieu = await resoudre(cle, LIEUX).catch(() => null);
     if (!lieu) {
       message('Ce lieu n’est pas reconnu. Cherchez une commune, un code postal, une intercommunalité ou un département.');
       return;
     }
-    ecrire('lieu', lieu.cle);
+    garde.ecrire('lieu', lieu.cle);
     $('jp-lieu-nom')!.textContent = lieu.nom;
-    const deja = lire<Garde>(cleDuJour());
-    jouer.textContent = deja ? 'Revoir mon résultat du jour' : 'Jouer le défi du jour';
+    jouer.textContent = garde.lire<Garde>(cleDuJour()) ? 'Revoir mon résultat du jour' : 'Jouer le défi du jour';
     choix.hidden = false;
     message('');
   };
@@ -300,7 +208,7 @@ export function brancherJeuPrix(): void {
       duJour = modeDuJour;
       partie = tirer(communes, codes, duJour ? hasard(cleDuJour()) : Math.random);
       courante = 0;
-      const deja = duJour ? lire<Garde>(cleDuJour()) : null;
+      const deja = duJour ? garde.lire<Garde>(cleDuJour()) : null;
       if (deja && deja.essais.length === partie.length) {
         // Déjà joué aujourd'hui : on rend le résultat, on ne rejoue pas.
         for (const [i, m] of partie.entries()) {
@@ -351,7 +259,7 @@ export function brancherJeuPrix(): void {
     contexte.append(Object.assign(document.createElement('a'), { href: `/commune/${m.code}`, textContent: 'La page de la commune' }), '.');
     essai.hidden = true;
     reponse.hidden = false;
-    if (duJour && courante + 1 === partie.length) ecrire(cleDuJour(), { essais: partie.map((p) => p.essai ?? 0) } satisfies Garde);
+    if (duJour && courante + 1 === partie.length) garde.ecrire(cleDuJour(), { essais: partie.map((p) => p.essai ?? 0) } satisfies Garde);
     $('jp-suivante')!.textContent = courante + 1 < partie.length ? 'Vente suivante' : 'Voir le score';
     $<HTMLButtonElement>('jp-suivante')!.focus();
   });
@@ -360,47 +268,5 @@ export function brancherJeuPrix(): void {
     courante++;
     if (courante < partie.length) afficherManche();
     else afficherFin();
-  });
-
-  $('jp-natif')!.addEventListener('click', () => {
-    const total = partie.reduce((s, m) => s + (m.points ?? 0), 0);
-    navigator.share({ text: texteAPartager(total), url: adresseAPartager() }).catch(() => {});
-  });
-  // Instagram n'a pas d'adresse de partage : une image, par le partage du
-  // téléphone quand il accepte les fichiers, sinon enregistrée pour être
-  // publiée depuis l'application.
-  $('jp-instagram')!.addEventListener('click', async () => {
-    const note = $('jp-note-image')!;
-    const total = partie.reduce((s, m) => s + (m.points ?? 0), 0);
-    const date = new Date(`${jour}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    try {
-      const blob = await imageDuResultat(lieu!.nom, date, partie.map((m) => m.points ?? 0), adresseAPartager());
-      const fichier = new File([blob], `rouages-defi-${jour}.png`, { type: 'image/png' });
-      if (navigator.canShare?.({ files: [fichier] })) {
-        await navigator.share({ files: [fichier], text: texteAPartager(total) });
-        note.hidden = true;
-        return;
-      }
-      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: fichier.name });
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
-      note.textContent = 'Image enregistrée : publiez-la depuis l’application Instagram, en story ou dans le fil.';
-      note.hidden = false;
-    } catch (e) {
-      if ((e as Error).name === 'AbortError') return;
-      note.textContent = 'L’image n’a pas pu être préparée sur cet appareil.';
-      note.hidden = false;
-    }
-  });
-
-  $('jp-copier')!.addEventListener('click', async () => {
-    const bouton = $('jp-copier')!;
-    try {
-      await navigator.clipboard.writeText($('jp-apercu')!.textContent ?? '');
-      bouton.textContent = 'Copié';
-    } catch {
-      bouton.textContent = 'Copie impossible : sélectionnez le texte';
-    }
-    setTimeout(() => (bouton.textContent = 'Copier'), 2500);
   });
 }
