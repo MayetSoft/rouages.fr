@@ -577,6 +577,13 @@ Le RGPD s'applique : DVF contient des données personnelles, même sans nom.
 6. **Le retrait est possible.** Une demande reçue par `/signaler` retire la
    vente à la main ; `/mentions` dit ce que le jeu montre et d'où il vient.
 
+7. **Le partage ne transporte aucune vente.** Le défi du jour (mêmes cinq
+   ventes pour tout le monde sur un lieu donné) se partage par un texte : le
+   lieu, une case de couleur par vente, le score, l'adresse du défi. Ni
+   prix, ni surface, ni année : publié sur un réseau social, il ne fait
+   pas sortir DVF de la page non indexée. Le score et le dernier lieu joué
+   restent dans le navigateur (`localStorage`), jamais sur un serveur.
+
 **Ce qui reste exclu** : l'adresse, la rue, la parcelle, le mois ou le jour,
 les coordonnées, et toute vente d'un local professionnel, d'un terrain seul ou
 de plusieurs logements à la fois.
