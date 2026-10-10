@@ -3908,5 +3908,26 @@ préfecture ; 100 points pour le prix exact, 2 de moins par point d'écart.
 Après chaque réponse, le prix médian de la commune — déjà publié sur sa
 page — et le lien vers elle.
 
+**Le lieu et le défi du jour** (demande du mainteneur, même jour) : un seul
+champ pour une commune, un code postal — souvent plusieurs villages —, une
+intercommunalité ou un département (`src/client/jeu-prix-lieu.ts`, les
+territoires jouables dans `/jeux/prix-territoires.json`). Chaque lieu a son
+adresse, `?t=c-03165`, `?t=cp-03250`, `?t=e-200071363`, `?t=d-03`. Pour un
+lieu et un jour (heure de Paris), les cinq mêmes ventes pour tous, tirées
+d'une graine : le score se compare, il se partage. Le défi se joue une fois
+— le navigateur garde les essais et rend le résultat au retour —, puis des
+parties libres. Une commune de moins de dix ventes renvoie à son
+intercommunalité et à son département.
+
+**Le partage** : un texte — lieu, date, une case par vente (🟩 80 points et
+plus, 🟨 50, 🟧 moins, 🟥 aucun), score, adresse du défi —, par le partage
+natif du téléphone, la copie, ou X, Bluesky, Facebook, WhatsApp et LinkedIn
+(qui ne reprend plus de texte : l'adresse seule). Instagram n'a pas
+d'adresse de partage : une image du résultat (1 080 × 1 350, le même
+contenu), partagée comme fichier quand le téléphone le permet, sinon
+enregistrée pour être publiée depuis l'application. Aucune vente dans le
+texte ni dans l'image (`docs/07-risques.md`).
+
 **La suite possible** : partir de la page d'une commune (« jouer avec les
-ventes de la commune ») ; un mode appartements seuls dans les grandes villes.
+ventes de la commune ») ; un mode appartements seuls dans les grandes villes ;
+une image de partage par défi, si les aperçus de liens le demandent.

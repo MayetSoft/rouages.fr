@@ -25,6 +25,8 @@ const departements = collectivitesPour(filtre)
   .filter((c) => c.echelon === 'departement' && disponibles.has(c.code))
   .sort((a, b) => a.code.localeCompare(b.code, 'fr', { numeric: true }));
 const parDefaut = departements.some((d) => d.code === '03') ? '03' : departements[0]?.code;
+// Le Mayet-de-Montagne en exemple, quand l'Allier est construit.
+const mayet = parDefaut === '03';
 
 // La date et les années, lues dans un fichier : elles valent pour tous.
 const entete = parDefaut
@@ -49,23 +51,29 @@ const entete = parDefaut
       <p class="mesure">Les ventes du jeu ne sont pas encore collectées.</p>
     ) : (
       <div id="jp" class="jp">
-        <form id="jp-depart" class="jp-depart">
-          <label>
-            Le département
-            <select id="jp-dep">
-              {departements.map((d) => (
-                <option value={d.code} selected={d.code === parDefaut}>{`${d.code} · ${d.nom}`}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            La commune
-            <select id="jp-commune">
-              <option value="">Toutes celles du département</option>
-            </select>
-          </label>
-          <button class="bouton jp-bouton" type="submit">Commencer</button>
-        </form>
+        <div class="cm-champ jp-champ">
+          <label for="jp-lieu">Où jouer&nbsp;? Une commune, un code postal, une intercommunalité, un département</label>
+          <input
+            id="jp-lieu"
+            type="search"
+            placeholder="Le Mayet-de-Montagne, 03250, Vichy Communauté, Allier…"
+            autocomplete="off"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded="false"
+            aria-controls="jp-lieu-liste"
+          />
+          <ul id="jp-lieu-liste" class="cm-liste" role="listbox" aria-label="Lieux trouvés"></ul>
+        </div>
+        {mayet && (
+          <p class="cm-exemple">Par exemple&nbsp;: <a href="?t=c-03165">Le Mayet-de-Montagne</a>, ou <a href="?t=e-200071363">Vichy Communauté</a>.</p>
+        )}
+        <p id="jp-message" class="jp-message" hidden aria-live="polite"></p>
+
+        <div id="jp-choix" class="jp-choix" hidden>
+          <p><strong id="jp-lieu-nom"></strong> — les mêmes cinq ventes pour tout le monde aujourd’hui.</p>
+          <button class="bouton jp-bouton" type="button" id="jp-jouer">Jouer le défi du jour</button>
+        </div>
 
         <section id="jp-manche" class="jp-carte" hidden aria-live="polite">
           <p class="jp-compteur" id="jp-compteur"></p>
@@ -87,9 +95,24 @@ const entete = parDefaut
         </section>
 
         <section id="jp-fin" class="jp-carte" hidden aria-live="polite">
-          <p class="jp-score" id="jp-score"></p>
+          <p class="jp-score"><span id="jp-score"></span> <span id="jp-cases" class="jp-cases"></span></p>
           <ol class="jp-recap" id="jp-recap"></ol>
-          <button class="bouton jp-bouton" type="button" id="jp-rejouer">Rejouer</button>
+          <div id="jp-partage" class="jp-partage" hidden>
+            <p class="jp-compteur">Partager le défi du jour — le score et le lieu, aucune vente</p>
+            <pre id="jp-apercu" class="jp-apercu"></pre>
+            <div class="jp-boutons">
+              <button class="bouton jp-bouton" type="button" id="jp-natif" hidden>Partager</button>
+              <button class="plat" type="button" id="jp-copier">Copier</button>
+              <a class="plat" id="jp-x" target="_blank" rel="noopener">X</a>
+              <a class="plat" id="jp-bluesky" target="_blank" rel="noopener">Bluesky</a>
+              <a class="plat" id="jp-facebook" target="_blank" rel="noopener">Facebook</a>
+              <a class="plat" id="jp-whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+              <a class="plat" id="jp-linkedin" target="_blank" rel="noopener">LinkedIn</a>
+              <button class="plat" type="button" id="jp-instagram">Instagram (image)</button>
+            </div>
+            <p id="jp-note-image" class="jp-compteur jp-note" hidden aria-live="polite"></p>
+          </div>
+          <button class="plat" type="button" id="jp-libre">Une partie libre, avec d’autres ventes</button>
         </section>
         <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
       </div>
@@ -97,7 +120,9 @@ const entete = parDefaut
 
     <h2 class="badge">La règle</h2>
     <ul class="accueil-themes">
-      <li>100 points pour le prix exact, 2 de moins par point d’écart&nbsp;: 10&nbsp;% d’écart donnent 80 points, 50&nbsp;% et plus n’en donnent aucun.</li>
+      <li>Chaque jour, pour chaque lieu, un défi de cinq ventes, le même pour tout le monde&nbsp;: c’est ce qui permet de comparer les scores. Il se joue une fois&nbsp;; ensuite, les parties libres tirent d’autres ventes.</li>
+      <li>100 points pour le prix exact, 2 de moins par point d’écart&nbsp;: 10&nbsp;% d’écart donnent 80 points, 50&nbsp;% et plus n’en donnent aucun. 🟩 80 points et plus, 🟨 50 et plus, 🟧 moins de 50, 🟥 aucun.</li>
+      <li>Votre score du jour et le dernier lieu joué restent dans votre navigateur, nulle part ailleurs. Le partage n’envoie rien de lui-même&nbsp;: il prépare un texte, ou pour Instagram une image — le lieu, les cases et le score, aucune vente — que vous publiez où vous voulez.</li>
       <li>Chaque vente est réelle, mais le jeu en dit moins que la source&nbsp;: la commune et l’année, jamais l’adresse ni la date&nbsp;; le prix arrondi au millier d’euros, la surface à 5&nbsp;m², le terrain à 100&nbsp;m².</li>
       <li>Ne sont tirées que les communes d’au moins dix ventes en trois ans, et dans chacune les ventes ordinaires&nbsp;: ni les 10&nbsp;% les moins chères au mètre carré, ni les 10&nbsp;% les plus chères.</li>
     </ul>
@@ -126,9 +151,7 @@ const entete = parDefaut
 
 <style>
   .jp [hidden] { display: none; }
-  .jp-depart { display: flex; flex-wrap: wrap; gap: .8rem 1.2rem; align-items: end; margin: 0 0 1.6rem; }
-  .jp-depart label { display: flex; flex-direction: column; gap: .25rem; font-size: .88rem; color: var(--encre-douce); min-width: 0; flex: 1 1 12rem; }
-  .jp select, .jp input {
+  .jp-saisie input {
     font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait);
     border-radius: var(--rayon); padding: .45rem .6rem; max-width: 100%;
   }
@@ -149,4 +172,23 @@ const entete = parDefaut
   .jp-score { font-size: 1.3rem; font-weight: 600; margin: 0 0 .6rem; }
   .jp-recap { padding-left: 1.2rem; margin: 0 0 1rem; }
   .jp-recap li { margin-bottom: .35rem; }
+  .jp-champ { margin-bottom: .6rem; }
+  .jp-message { color: var(--alerte); margin: 0 0 1rem; max-width: var(--mesure); }
+  .jp-choix { margin: 0 0 1.6rem; max-width: var(--mesure); }
+  .jp-choix p { margin: 0 0 .6rem; }
+  .jp-cases { display: block; letter-spacing: .1em; font-weight: 400; margin-top: .2rem; }
+  .jp-partage { border-top: 1px solid var(--trait); margin: 1rem 0; padding-top: .8rem; }
+  .jp-apercu {
+    white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .92rem;
+    background: var(--fond-doux); border-radius: var(--rayon); padding: .6rem .8rem; margin: 0 0 .7rem;
+  }
+  .jp-boutons { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  /* `button.plat` du site, repris pour les liens de partage. */
+  a.plat {
+    display: inline-block; text-decoration: none; font: inherit; color: var(--encre);
+    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: 999px; padding: .26rem .8rem;
+    transition: background var(--transition);
+  }
+  a.plat:hover { background: var(--accent-doux); }
+  .jp-note { margin: .6rem 0 0; }
 </style>
