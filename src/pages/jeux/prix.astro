@@ -13,6 +13,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
 import { RACINE, formaterDate } from '../../modele/graphe.ts';
 import { collectivitesPour } from '../../modele/fiche-commune.ts';
 
@@ -51,23 +53,12 @@ const entete = parDefaut
       <p class="mesure">Les ventes du jeu ne sont pas encore collectées.</p>
     ) : (
       <div id="jp" class="jp">
-        <div class="cm-champ jp-champ">
-          <label for="jp-lieu">Où jouer&nbsp;? Une commune, un code postal, une intercommunalité, un département</label>
-          <input
-            id="jp-lieu"
-            type="search"
-            placeholder="Le Mayet-de-Montagne, 03250, Vichy Communauté, Allier…"
-            autocomplete="off"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded="false"
-            aria-controls="jp-lieu-liste"
-          />
-          <ul id="jp-lieu-liste" class="cm-liste" role="listbox" aria-label="Lieux trouvés"></ul>
-        </div>
-        {mayet && (
-          <p class="cm-exemple">Par exemple&nbsp;: <a href="?t=c-03165">Le Mayet-de-Montagne</a>, ou <a href="?t=e-200071363">Vichy Communauté</a>.</p>
-        )}
+        <ChampLieuJeu
+          id="jp-lieu"
+          etiquette="Où jouer ? Une commune, un code postal, une intercommunalité, un département"
+          placeholder="Le Mayet-de-Montagne, 03250, Vichy Communauté, Allier…"
+          exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }, { cle: 'e-200071363', nom: 'Vichy Communauté' }] : []}
+        />
         <p id="jp-message" class="jp-message" hidden aria-live="polite"></p>
 
         <div id="jp-choix" class="jp-choix" hidden>
@@ -97,21 +88,7 @@ const entete = parDefaut
         <section id="jp-fin" class="jp-carte" hidden aria-live="polite">
           <p class="jp-score"><span id="jp-score"></span> <span id="jp-cases" class="jp-cases"></span></p>
           <ol class="jp-recap" id="jp-recap"></ol>
-          <div id="jp-partage" class="jp-partage" hidden>
-            <p class="jp-compteur">Partager le défi du jour — le score et le lieu, aucune vente</p>
-            <pre id="jp-apercu" class="jp-apercu"></pre>
-            <div class="jp-boutons">
-              <button class="bouton jp-bouton" type="button" id="jp-natif" hidden>Partager</button>
-              <button class="plat" type="button" id="jp-copier">Copier</button>
-              <a class="plat" id="jp-x" target="_blank" rel="noopener">X</a>
-              <a class="plat" id="jp-bluesky" target="_blank" rel="noopener">Bluesky</a>
-              <a class="plat" id="jp-facebook" target="_blank" rel="noopener">Facebook</a>
-              <a class="plat" id="jp-whatsapp" target="_blank" rel="noopener">WhatsApp</a>
-              <a class="plat" id="jp-linkedin" target="_blank" rel="noopener">LinkedIn</a>
-              <button class="plat" type="button" id="jp-instagram">Instagram (image)</button>
-            </div>
-            <p id="jp-note-image" class="jp-compteur jp-note" hidden aria-live="polite"></p>
-          </div>
+          <PartageJeu id="jp" />
           <button class="plat" type="button" id="jp-libre">Une partie libre, avec d’autres ventes</button>
         </section>
         <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
@@ -172,23 +149,8 @@ const entete = parDefaut
   .jp-score { font-size: 1.3rem; font-weight: 600; margin: 0 0 .6rem; }
   .jp-recap { padding-left: 1.2rem; margin: 0 0 1rem; }
   .jp-recap li { margin-bottom: .35rem; }
-  .jp-champ { margin-bottom: .6rem; }
   .jp-message { color: var(--alerte); margin: 0 0 1rem; max-width: var(--mesure); }
   .jp-choix { margin: 0 0 1.6rem; max-width: var(--mesure); }
   .jp-choix p { margin: 0 0 .6rem; }
   .jp-cases { display: block; letter-spacing: .1em; font-weight: 400; margin-top: .2rem; }
-  .jp-partage { border-top: 1px solid var(--trait); margin: 1rem 0; padding-top: .8rem; }
-  .jp-apercu {
-    white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .92rem;
-    background: var(--fond-doux); border-radius: var(--rayon); padding: .6rem .8rem; margin: 0 0 .7rem;
-  }
-  .jp-boutons { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-  /* `button.plat` du site, repris pour les liens de partage. */
-  a.plat {
-    display: inline-block; text-decoration: none; font: inherit; color: var(--encre);
-    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: 999px; padding: .26rem .8rem;
-    transition: background var(--transition);
-  }
-  a.plat:hover { background: var(--accent-doux); }
-  .jp-note { margin: .6rem 0 0; }
 </style>

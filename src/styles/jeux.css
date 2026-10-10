@@ -1,0 +1,43 @@
+/*
+ * Les jeux de Rouages : la carte d'une manche, les réponses à choisir, le
+ * score. Importé par chaque page de jeu ; le jeu des prix garde les siens.
+ */
+.jeu [hidden] { display: none !important; }
+.jeu-bouton { border: 0; cursor: pointer; font: inherit; }
+.jeu-bouton:disabled { opacity: .55; cursor: default; }
+.jeu-message { color: var(--alerte); margin: 0 0 1rem; max-width: var(--mesure); }
+.jeu-choix { margin: 0 0 1.6rem; max-width: var(--mesure); }
+.jeu-choix p { margin: 0 0 .6rem; }
+.jeu-carte {
+  background: var(--fond-carte); border: 1px solid var(--trait); border-radius: var(--rayon);
+  padding: 1.1rem 1.2rem; margin: 0 0 1.6rem; max-width: var(--mesure);
+}
+.jeu-compteur { color: var(--encre-douce); font-size: .85rem; margin: 0 0 .4rem; }
+.jeu-question { font-size: 1.15rem; font-weight: 600; margin: 0 0 .3rem; }
+.jeu-details { margin: 0 0 1rem; }
+.jeu-options { display: grid; gap: .5rem; margin: 0 0 1rem; padding: 0; list-style: none; }
+.jeu-option {
+  font: inherit; text-align: left; width: 100%; cursor: pointer; color: var(--encre);
+  background: var(--fond-doux); border: 1px solid var(--trait); border-radius: var(--rayon);
+  padding: .55rem .8rem; transition: background var(--transition);
+}
+.jeu-option:hover:not(:disabled) { background: var(--accent-doux); }
+.jeu-option:disabled { cursor: default; }
+.jeu-option.juste { background: #e3f3e9; border-color: #2e9e5b; color: #17171a; }
+.jeu-option.faux { background: #fbe6e3; border-color: #cf3b2f; color: #17171a; }
+.jeu-verdict { font-size: 1.05rem; margin: .6rem 0 .3rem; }
+.jeu-contexte { color: var(--encre-douce); font-size: .92rem; margin: 0 0 1rem; }
+.jeu-score { font-size: 1.3rem; font-weight: 600; margin: 0 0 .6rem; }
+.jeu-cases { display: block; letter-spacing: .1em; font-weight: 400; margin-top: .2rem; }
+.jeu-recap { padding-left: 1.2rem; margin: 0 0 1rem; }
+.jeu-recap li { margin-bottom: .35rem; }
+.jeu-saisie {
+  font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait);
+  border-radius: var(--rayon); padding: .45rem .6rem; max-width: 100%;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .jeu-option.juste { background: #183a26; color: var(--encre); }
+  :root:not([data-theme="light"]) .jeu-option.faux { background: #3d1c18; color: var(--encre); }
+}
+:root[data-theme="dark"] .jeu-option.juste { background: #183a26; color: var(--encre); }
+:root[data-theme="dark"] .jeu-option.faux { background: #3d1c18; color: var(--encre); }

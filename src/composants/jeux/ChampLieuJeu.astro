@@ -1,0 +1,41 @@
+---
+/**
+ * Le champ « où jouer » des jeux : un combobox dont chaque proposition est un
+ * lien vers `?t=<clé>`. `brancherChampLieu` (`src/client/jeux-lieu.ts`) le
+ * fait vivre ; le jeu dit quels genres de lieu il accepte.
+ */
+interface Props {
+  id: string;
+  etiquette: string;
+  placeholder: string;
+  /** Des lieux d'exemple, proposés en lien sous le champ. */
+  exemples?: { cle: string; nom: string }[];
+}
+const { id, etiquette, placeholder, exemples = [] } = Astro.props;
+---
+<div class="cm-champ cl-champ">
+  <label for={id}>{etiquette}</label>
+  <input
+    id={id}
+    type="search"
+    placeholder={placeholder}
+    autocomplete="off"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-expanded="false"
+    aria-controls={`${id}-liste`}
+  />
+  <ul id={`${id}-liste`} class="cm-liste" role="listbox" aria-label="Lieux trouvés"></ul>
+</div>
+{exemples.length > 0 && (
+  <p class="cm-exemple">
+    Par exemple&nbsp;:{' '}
+    {exemples.map((e, i) => (
+      <>{i > 0 && (i === exemples.length - 1 ? ', ou ' : ', ')}<a href={`?t=${e.cle}`}>{e.nom}</a></>
+    ))}.
+  </p>
+)}
+
+<style>
+  .cl-champ { margin-bottom: .6rem; }
+</style>
