@@ -3931,3 +3931,44 @@ texte ni dans l'image (`docs/07-risques.md`).
 **La suite possible** : partir de la page d'une commune (« jouer avec les
 ventes de la commune ») ; un mode appartements seuls dans les grandes villes ;
 une image de partage par défi, si les aperçus de liens le demandent.
+
+### Cinq jeux de plus (10 octobre 2026)
+
+Demandés par le mainteneur le même jour. Tous ont le défi du jour du jeu
+des prix — la même partie pour tout le monde, un lieu et un jour donnant la
+même graine —, la mémoire du navigateur et le partage (texte, et image pour
+Instagram), sortis du jeu des prix dans un socle commun :
+`src/client/jeux-commun.ts`, `jeux-lieu.ts` (le champ de lieu, réglé par
+jeu : quels genres de lieu, quelle liste de territoires), `jeux-communes.ts`,
+`jeux-classement.ts`, et les composants `src/composants/jeux/`. Le jeu des
+prix y est rebranché à l'identique : mêmes tirages, même mémoire.
+
+- **Qui décide ?** (`/jeux/qui-decide`) — sur une commune, cinq compétences
+  et pour chacune la commune, son intercommunalité, un syndicat (toujours
+  un, pour que sa présence ne trahisse pas la réponse), le département, la
+  région. Les réponses sont les verdicts de la page de la commune : le
+  calcul sort de `ficheCommune` dans `verdictsCommune`, que lisent la page
+  et `/jeux/qui-decide/XX.json`. Ni « non renseigné », ni compétence à
+  confirmer. Au Mayet-de-Montagne, la mobilité : CA Vichy Communauté.
+- **La commune mystère** (`/jeux/commune-mystere`) — sur un code postal,
+  une intercommunalité ou un département ; moins de huit communes, et le
+  périmètre s'élargit aux voisines, anneau par anneau. Six essais, deux
+  indices au départ et un de plus par erreur, la distance et la direction
+  entre les centres des contours d'Admin Express. Taper son village propose
+  son code postal et son intercommunalité.
+- **Plus ou moins** (`/jeux/plus-ou-moins`) — huit duels sur les chiffres
+  des pages de commune : habitants (et en 1901), niveau de vie médian, prix
+  médian d'une maison, distance à la gare, écoles ; jamais moins de 5 %
+  d'écart, jamais la même commune deux duels de suite. Les communes, leurs
+  voisines et leurs chiffres : `/jeux/communes/XX.json`, partagé avec la
+  commune mystère.
+- **Le bon ordre** (`/jeux/ordre`) — une des démarches du réseau (toutes
+  « établies »), étapes mélangées, trois essais ; une étape bien placée se
+  fige. Les éléments se déplacent par boutons : clavier, lecteur d'écran,
+  doigt.
+- **Où va l'argent ?** (`/jeux/argent`) — cinq missions du budget de l'État
+  à ranger, crédits votés pour 2025, jamais deux à moins de 10 % l'une de
+  l'autre, sans les prélèvements sur recettes. Même moteur que le bon ordre.
+
+Aucun de ces jeux ne montre de donnée personnelle ni de chiffre absent des
+pages du site. Ils sont indexables, au contraire du jeu des prix.

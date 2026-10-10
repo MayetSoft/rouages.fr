@@ -1,0 +1,96 @@
+---
+/**
+ * Plus ou moins : deux communes face à face sur un même indicateur — les
+ * habitants, le prix d'une maison, la distance à la gare… —, toutes deux
+ * dans un périmètre qu'on choisit. Les chiffres sont ceux des pages de
+ * commune (`/jeux/communes/XX.json`).
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Plus ou moins"
+  description="Deux communes face à face : laquelle a le plus d’habitants, la maison la plus chère, la gare la plus proche ? Dans votre code postal, votre intercommunalité ou votre département."
+  section="jeux"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a></p>
+    <h1>Plus ou moins</h1>
+    <p class="resume">
+      Deux communes face à face sur un même chiffre&nbsp;: la seconde en a-t-elle plus ou moins&nbsp;? Huit duels,
+      autour de chez vous.
+    </p>
+
+    <div id="jm" class="jeu">
+      <ChampLieuJeu
+        id="jm-lieu"
+        etiquette="Où jouer ? Un code postal, une intercommunalité, un département — ou tapez votre commune"
+        placeholder="03250, Vichy Communauté, Allier, Le Mayet-de-Montagne…"
+        exemples={mayet ? [{ cle: 'cp-03250', nom: '03250' }, { cle: 'e-200071363', nom: 'Vichy Communauté' }, { cle: 'd-03', nom: 'l’Allier' }] : []}
+      />
+      <p id="jm-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <div id="jm-choix" class="jeu-choix" hidden>
+        <p><strong id="jm-lieu-nom"></strong> <span id="jm-lieu-detail"></span> — les mêmes huit duels pour tout le monde aujourd’hui.</p>
+        <button class="bouton jeu-bouton" type="button" id="jm-jouer">Jouer le défi du jour</button>
+      </div>
+
+      <section id="jm-manche" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-compteur" id="jm-compteur"></p>
+        <p class="jeu-question" id="jm-indicateur"></p>
+        <p class="jeu-details jm-source" id="jm-source"></p>
+        <div class="jm-duel">
+          <div class="jm-commune"><span id="jm-a-nom"></span><strong id="jm-a-valeur"></strong></div>
+          <div class="jm-commune"><span id="jm-b-nom"></span><strong id="jm-b-valeur">?</strong></div>
+        </div>
+        <div class="jm-boutons" id="jm-boutons">
+          <button class="jeu-option" type="button" data-sens="1">Plus</button>
+          <button class="jeu-option" type="button" data-sens="-1">Moins</button>
+        </div>
+        <div id="jm-reponse" hidden>
+          <p class="jeu-verdict" id="jm-verdict"></p>
+          <button class="bouton jeu-bouton" type="button" id="jm-suivante">Duel suivant</button>
+        </div>
+      </section>
+
+      <section id="jm-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="jm-score"></span> <span id="jm-cases" class="jeu-cases"></span></p>
+        <ol class="jeu-recap" id="jm-recap"></ol>
+        <PartageJeu id="jm" />
+        <button class="plat" type="button" id="jm-libre">Huit autres duels</button>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Chaque jour, pour chaque lieu, huit duels, les mêmes pour tout le monde. 🟩 juste, 🟥 faux.</li>
+      <li>Les chiffres sont ceux des pages de commune, avec leur source et leur année&nbsp;: les habitants et ceux de 1901, le niveau de vie médian, le prix médian d’une maison, la distance à la gare SNCF la plus proche, le nombre d’écoles.</li>
+      <li>Jamais deux chiffres égaux, ni presque&nbsp;: au moins 5&nbsp;% d’écart entre les deux communes.</li>
+      <li>Un code postal de quelques villages s’élargit à leurs voisines, pour qu’il y ait de quoi jouer.</li>
+      <li>Votre résultat du jour reste dans votre navigateur. Le partage prépare un texte — le lieu, les cases et le score — que vous publiez où vous voulez.</li>
+    </ul>
+  </div>
+</Base>
+
+<script>
+  import { brancherJeuPlus } from '../../client/jeu-plus.ts';
+  brancherJeuPlus();
+</script>
+
+<style>
+  .jm-source { color: var(--encre-douce); font-size: .85rem; }
+  .jm-duel { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: 0 0 1rem; }
+  .jm-commune {
+    display: flex; flex-direction: column; gap: .25rem; padding: .7rem .8rem;
+    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: var(--rayon);
+  }
+  .jm-commune strong { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+  .jm-boutons { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: 0 0 1rem; }
+  .jm-boutons .jeu-option { text-align: center; font-weight: 600; }
+</style>

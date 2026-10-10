@@ -1,0 +1,105 @@
+---
+/**
+ * La commune mystère : retrouver une commune d'un périmètre à partir
+ * d'indices tirés de sa page, avec la distance et la direction à chaque
+ * essai, comme dans Worldle. Le périmètre — un code postal, une
+ * intercommunalité, un département — s'élargit aux voisines quand il compte
+ * trop peu de communes pour jouer.
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="La commune mystère"
+  description="Retrouvez la commune du jour à partir d’indices tirés de sa page, avec la distance et la direction à chaque essai : dans votre code postal, votre intercommunalité ou votre département."
+  section="jeux"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a></p>
+    <h1>La commune mystère</h1>
+    <p class="resume">
+      Une commune se cache près de chez vous. Six essais pour la trouver&nbsp;: à chaque erreur, la distance, la
+      direction, et un indice de plus tiré de sa page.
+    </p>
+
+    <div id="jx" class="jeu">
+      <ChampLieuJeu
+        id="jx-lieu"
+        etiquette="Où jouer ? Un code postal, une intercommunalité, un département — ou tapez votre commune"
+        placeholder="03250, Vichy Communauté, Allier, Le Mayet-de-Montagne…"
+        exemples={mayet ? [{ cle: 'cp-03250', nom: '03250' }, { cle: 'e-200071363', nom: 'Vichy Communauté' }] : []}
+      />
+      <p id="jx-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <div id="jx-choix" class="jeu-choix" hidden>
+        <p><strong id="jx-lieu-nom"></strong> <span id="jx-lieu-detail"></span> — la même commune mystère pour tout le monde aujourd’hui.</p>
+        <button class="bouton jeu-bouton" type="button" id="jx-jouer">Jouer le défi du jour</button>
+      </div>
+
+      <section id="jx-manche" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-compteur" id="jx-compteur"></p>
+        <p class="jeu-question">Les indices</p>
+        <ul class="jx-indices" id="jx-indices"></ul>
+        <form id="jx-essai" class="jx-essai">
+          <label for="jx-saisie">Votre réponse</label>
+          <input id="jx-saisie" class="jeu-saisie" list="jx-noms" autocomplete="off" required placeholder="Le nom d’une commune du périmètre" />
+          <datalist id="jx-noms"></datalist>
+          <button class="bouton jeu-bouton" type="submit">Proposer</button>
+        </form>
+        <ol class="jx-essais" id="jx-essais"></ol>
+        <p class="jeu-verdict" id="jx-verdict" hidden></p>
+        <p class="jeu-contexte" id="jx-contexte" hidden></p>
+      </section>
+
+      <section id="jx-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="jx-score"></span> <span id="jx-cases" class="jeu-cases"></span></p>
+        <PartageJeu id="jx" />
+        <button class="plat" type="button" id="jx-libre">Une autre commune mystère</button>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Chaque jour, pour chaque lieu, la même commune mystère pour tout le monde. Deux indices au départ, un de plus à chaque erreur&nbsp;; six essais.</li>
+      <li>Après chaque essai&nbsp;: la distance à vol d’oiseau entre le centre de la commune proposée et celui de la commune mystère, et la direction à prendre.</li>
+      <li>Une case par essai&nbsp;: 🟩 trouvée, 🟨 à moins de 5&nbsp;km, 🟧 à moins de 15&nbsp;km, 🟥 plus loin.</li>
+      <li>Les indices viennent de la page de la commune&nbsp;: son intercommunalité, ses habitants, sa gare, ses écoles, le prix de ses maisons, son niveau de vie, ses voisines.</li>
+      <li>Un périmètre de moins de huit communes s’élargit à leurs voisines. Votre résultat du jour reste dans votre navigateur&nbsp;; le partage ne dit pas la réponse.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <p class="mesure">
+      Les contours des communes d’Admin Express (IGN) pour les distances&nbsp;; pour les indices, les sources de
+      chaque page de commune&nbsp;: INSEE, DGFiP, SNCF, Éducation nationale.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import { brancherJeuMystere } from '../../client/jeu-mystere.ts';
+  brancherJeuMystere();
+</script>
+
+<style is:global>
+  .jx-indices { padding-left: 1.2rem; margin: 0 0 1rem; }
+  .jx-indices li { margin-bottom: .3rem; }
+  .jx-essai { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: center; margin: 0 0 1rem; }
+  .jx-essai label { flex-basis: 100%; font-size: .88rem; color: var(--encre-douce); }
+  .jx-essai input { flex: 1 1 12rem; min-width: 0; }
+  .jx-essais { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .35rem; }
+  .jx-essais li {
+    display: grid; grid-template-columns: 1fr auto auto; gap: .6rem; align-items: center;
+    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .4rem .7rem;
+  }
+  .jx-essais li.juste { background: #e3f3e9; border-color: #2e9e5b; }
+  .jx-essais span:nth-child(2) { font-variant-numeric: tabular-nums; color: var(--encre-douce); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .jx-essais li.juste { background: #183a26; }
+  }
+</style>

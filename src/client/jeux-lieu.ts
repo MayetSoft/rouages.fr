@@ -87,6 +87,8 @@ function lireTerritoires(source: string): Promise<Territoires> {
   return lecture;
 }
 
+/** « du Mayet-de-Montagne », « des Ancizes », « de Vichy ». */
+const deNom = (nom: string) => (nom.startsWith('Le ') ? `du ${nom.slice(3)}` : nom.startsWith('Les ') ? `des ${nom.slice(4)}` : `de ${nom}`);
 const pluriel = (n: number, mot: string) => `${n.toLocaleString('fr-FR')} ${mot}${n > 1 ? 's' : ''}`;
 
 async function proposer(requete: string, o: OptionsLieu): Promise<Proposition[]> {
@@ -141,8 +143,8 @@ async function proposer(requete: string, o: OptionsLieu): Promise<Proposition[]>
     for (const c of communes.slice(0, 3)) {
       const e = t.parCommune.get(c.code);
       const props: Proposition[] = [];
-      if (o.genres.includes('cp') && c.cp) props.push({ cle: `cp-${c.cp}`, genre: 'Code postal', nom: c.cp, detail: `celui ${c.nom.startsWith('Le ') ? `du ${c.nom.slice(3)}` : c.nom.startsWith('Les ') ? `des ${c.nom.slice(4)}` : `de ${c.nom}`}` });
-      if (o.genres.includes('interco') && e) props.push({ cle: `e-${e.siren}`, genre: 'Intercommunalité', nom: e.nom, detail: `celle de ${c.nom}` });
+      if (o.genres.includes('cp') && c.cp) props.push({ cle: `cp-${c.cp}`, genre: 'Code postal', nom: c.cp, detail: `celui ${deNom(c.nom)}` });
+      if (o.genres.includes('interco') && e) props.push({ cle: `e-${e.siren}`, genre: 'Intercommunalité', nom: e.nom, detail: `celle ${deNom(c.nom)}` });
       for (const p of props) if (!vus.has(p.cle)) (vus.add(p.cle), autour.push(p));
     }
   }
