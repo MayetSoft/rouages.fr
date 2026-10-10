@@ -19,6 +19,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { detailDepuisBrut, type DetailAffiche, type DetailBrut } from '../vues/detail-marche.ts';
 import { join } from 'node:path';
 import { anneePlausible } from './annees.ts';
+import { COLLECTIVITES_SIRENS } from './collectivites-sirens.ts';
 
 const BASE = join(process.cwd(), 'public', 'territoires');
 
@@ -692,6 +693,8 @@ type MarchesDep = {
   fenetre?: [string, string];
   procedures: string[];
   com: Record<string, string>;
+  /** Le département puis la région, quand ils ont des marchés. Absent avant le 9 octobre 2026. */
+  echelons?: string[];
   h: Record<string, { n: number; s?: string; m: MarcheBrut[]; ne?: number; e?: (MarcheBrut & { fin: string })[] }>;
 };
 interface FichierFlux {
@@ -1056,34 +1059,45 @@ function estRepresentant(siren: string): boolean {
   return sirenRepresentants.has(siren);
 }
 
+/** Les marchés d'un acheteur, lus dans le fichier d'un département. */
+function acheteurMarches(d: MarchesDep, siren: string, nom: string, natureLibelle: string | null): AcheteurMarches | null {
+  const e = d.h[siren];
+  if (!e || e.m.length === 0) return null;
+  const lire = (m: MarcheBrut): Marche => ({
+    objet: m.objet,
+    montant: m.montant,
+    date: m.date,
+    procedure: d.procedures[m.procedure] ?? null,
+    lots: m.lots,
+    offres: m.offres ?? null,
+    titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom, representant: estRepresentant(siren) })),
+    autresTitulaires: m.tx ?? 0,
+    detail: detailDepuisBrut(m.x),
+  });
+  return {
+    siren,
+    nom,
+    natureLibelle,
+    total: e.n,
+    siret: e.s ?? null,
+    liste: e.m.map(lire),
+    echeances: (e.e ?? []).map((m) => ({ ...lire(m), fin: m.fin, acheteur: nom })),
+    totalEcheances: e.ne ?? 0,
+  };
+}
+
+/**
+ * Ce que la commune et ses groupements commandent. Le département et la
+ * région, que le fichier porte aussi, n'y sont pas : leurs marchés noieraient
+ * ceux de la commune, et ils ont leur page.
+ */
 function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): AcheteurMarches[] {
   const d = marchesDep.get(commune.dep);
   if (!d) return [];
   const out: AcheteurMarches[] = [];
   const lireAcheteur = (siren: string, nom: string, natureLibelle: string | null) => {
-    const e = d.h[siren];
-    if (!e || e.m.length === 0) return;
-    const lire = (m: MarcheBrut): Marche => ({
-      objet: m.objet,
-      montant: m.montant,
-      date: m.date,
-      procedure: d.procedures[m.procedure] ?? null,
-      lots: m.lots,
-      offres: m.offres ?? null,
-      titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom, representant: estRepresentant(siren) })),
-      autresTitulaires: m.tx ?? 0,
-      detail: detailDepuisBrut(m.x),
-    });
-    out.push({
-      siren,
-      nom,
-      natureLibelle,
-      total: e.n,
-      siret: e.s ?? null,
-      liste: e.m.map(lire),
-      echeances: (e.e ?? []).map((m) => ({ ...lire(m), fin: m.fin, acheteur: nom })),
-      totalEcheances: e.ne ?? 0,
-    });
+    const a = acheteurMarches(d, siren, nom, natureLibelle);
+    if (a) out.push(a);
   };
   const sirenCommune = d.com[commune.code];
   if (sirenCommune) lireAcheteur(sirenCommune, commune.nom, 'la commune');
@@ -1101,6 +1115,34 @@ function titulairesDe(dep: string, acheteur: string): Set<string> {
   const s = new Set<string>();
   for (const m of [...(e?.m ?? []), ...(e?.e ?? [])]) for (const [siren] of m.t ?? []) s.add(siren);
   return s;
+}
+
+/**
+ * Les marchés d'un département, d'une région ou de la collectivité qui en
+ * tient lieu, lus dans le fichier du premier département qu'elle couvre.
+ */
+export function marchesCollectivite(c: Collectivite): {
+  liste: AcheteurMarches[];
+  depuis: string | null;
+  fenetre: [string, string] | null;
+  procedures: string[];
+} | null {
+  const trouve = [...COLLECTIVITES_SIRENS].find(([, x]) => x.echelon === c.echelon && x.code === c.code);
+  if (!trouve) return null;
+  const [siren, x] = trouve;
+  const d = marchesDep.get(x.deps[0]);
+  const a = d ? acheteurMarches(d, siren, x.nom, null) : null;
+  if (!d || !a) return null;
+  return { liste: [a], depuis: d.depuis, fenetre: d.fenetre ?? null, procedures: d.procedures };
+}
+
+/**
+ * « Le département — Allier » ou « La région — Auvergne-Rhône-Alpes », d'après
+ * la table des SIREN ; à défaut, le rang dans la liste, comme avant elle.
+ */
+function nomEchelon(commune: CommuneFiche, siren: string, rang: number): string {
+  const echelon = COLLECTIVITES_SIRENS.get(siren)?.echelon ?? (rang === 0 ? 'departement' : 'region');
+  return echelon === 'departement' ? `Le département — ${commune.depNom}` : nomRegion(commune);
 }
 
 function assemblerSubventions(commune: CommuneFiche, structures: StructureFiche[]): CollectiviteSubventionne[] {
@@ -1135,7 +1177,7 @@ function assemblerSubventions(commune: CommuneFiche, structures: StructureFiche[
   // Le département et sa région viennent en dernier : ils versent le plus, et
   // ce n'est pas d'eux qu'on part quand on cherche sa commune.
   for (const [i, siren] of (d.echelons ?? []).entries()) {
-    lireVerseur(siren, i === 0 ? `Le département — ${commune.depNom}` : nomRegion(commune), null);
+    lireVerseur(siren, nomEchelon(commune, siren, i), null);
   }
   return out;
 }
@@ -1163,7 +1205,7 @@ function assemblerDeliberations(commune: CommuneFiche, structures: StructureFich
   if (sirenCommune) lireAuteur(sirenCommune, commune.nom, 'la commune');
   for (const s of structures) lireAuteur(s.siren, s.nom, s.natureLibelle);
   for (const [i, siren] of (d.echelons ?? []).entries()) {
-    lireAuteur(siren, i === 0 ? `Le département — ${commune.depNom}` : nomRegion(commune), null);
+    lireAuteur(siren, nomEchelon(commune, siren, i), null);
   }
   return out;
 }

@@ -21,6 +21,7 @@ import { ecrireFinances, metaFinances, type ComptesCommunes } from './finances-e
 import { ecrireFlux, type FluxGroupements } from './flux-emettre.ts';
 import { ecrireEcoles, type Effectifs } from './ecoles-emettre.ts';
 import { ecrireElus, type Elus } from './elus-emettre.ts';
+import { echelonsDuDepartement } from '../src/modele/collectivites-sirens.ts';
 import { ecrireAttributionsNationales, ecrireAvisNationaux, ecrireEcheancesNationales, ecrireMarches, ecrireSuitesMarches, type Marches } from './marches-emettre.ts';
 import { ecrireSru, type InventaireSru } from './sru-emettre.ts';
 import { ecrireDmto, type Dmto } from './dmto-emettre.ts';
@@ -392,18 +393,22 @@ export function emettre(o: {
     );
     // Le département et sa région versent et délibèrent aussi, et c'est là que
     // se décide l'essentiel de ce que le site décrit par ailleurs. Leur SIREN
-    // n'est dans aucune liste : il se reconnaît à son préfixe, et on ne retient
-    // que ceux qui figurent réellement dans la donnée.
+    // vient de la table tirée de SIRENE, dans l'ordre département puis région ;
+    // le préfixe le reconnaît aussi, pour un ancien SIREN que la table ne porte
+    // plus — mais pas celui des sept régions de 2016. On ne retient que ceux
+    // qui figurent réellement dans la donnée.
     const prefixes = prefixesEchelon(dep, chefLieuDeRegion.get(dep));
-    const echelonsDelib = o.deliberations
-      ? sirensParPrefixe(prefixes, o.deliberations.parCollectivite.keys())
-      : [];
-    const echelonsSubv = o.subventions
-      ? sirensParPrefixe(prefixes, o.subventions.parCollectivite.keys())
-      : [];
+    const echelons = echelonsDuDepartement(dep);
+    const echelonsDe = (publies: Iterable<string>) => {
+      const presents = new Set(publies);
+      const parTable = echelons.filter((s) => presents.has(s));
+      return [...parTable, ...sirensParPrefixe(prefixes, presents).filter((s) => !parTable.includes(s))];
+    };
+    const echelonsDelib = o.deliberations ? echelonsDe(o.deliberations.parCollectivite.keys()) : [];
+    const echelonsSubv = o.subventions ? echelonsDe(o.subventions.parCollectivite.keys()) : [];
 
     if (o.marches) {
-      marchesEcrits += ecrireMarches(sortie, dep, sirens, sirenDeCommune, o.marches);
+      marchesEcrits += ecrireMarches(sortie, dep, sirens, sirenDeCommune, o.marches, echelons);
       if (o.deliberations) {
         delibEcrites += ecrireDeliberations(
           sortie,

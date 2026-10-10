@@ -1,5 +1,6 @@
 /**
- * Les marchés publics d'une commune et de ses groupements.
+ * Les marchés publics d'une commune et de ses groupements, de son département
+ * et de sa région.
  *
  * Les données essentielles de la commande publique disent à quoi une
  * collectivité passe commande : voirie, restauration scolaire, collecte des
@@ -51,6 +52,23 @@
  * alors combien de titulaires il ne nomme pas. Les lots regroupés d'un
  * accord-cadre réunissent leurs titulaires.
  *
+ * **Le département et la région, depuis le 9 octobre 2026.** Ils achètent
+ * autant que le bloc communal — collèges, lycées, routes, transports —, et qui
+ * répond aux marchés publics les a pour clients. Leur SIREN vient d'une table
+ * tirée du répertoire SIRENE (`src/modele/collectivites-sirens.ts`), pas du
+ * préfixe : les sept régions nées de la fusion de 2016 ont un SIREN en
+ * `200…`. Ils figurent dans le fichier de chacun des départements qu'ils
+ * couvrent, sous `echelons`, et dans les fichiers nationaux ; la page de
+ * commune ne les montre pas, celle du département et de la région si.
+ *
+ * **Tous les acheteurs publics, dans les fichiers nationaux, depuis le 10
+ * octobre 2026.** Hôpitaux, lycées, offices HLM, sociétés d'économie mixte,
+ * services de l'État : leurs échéances et leurs marchés récents entrent dans
+ * `echeances.json`, `attributions.json` et `avis.json`, situés et nommés
+ * d'après le répertoire (`acheteurs-nationaux.ts`). Ils n'ont ni fichier par
+ * département, ni liste à la demande, ni page : le site décrit les
+ * collectivités, les fichiers nationaux disent ce qui se renouvelle partout.
+ *
  * **Le contact de chaque acheteur et les avis ouverts, depuis le 8 octobre
  * 2026.** Les fichiers nationaux donnent, pour chaque acheteur, le téléphone,
  * l'adresse et le site de sa fiche à l'annuaire de l'administration
@@ -71,6 +89,8 @@ import { telechargerSiAbsent } from './par-departement.ts';
 import { retraits } from './retraits.ts';
 import { nomsSirene } from './sirene-noms.ts';
 import { jugementsBodacc, MOIS_RETENUS, situations as situationsDe, type Situation } from './titulaires-situation.ts';
+import { COLLECTIVITES_SIRENS, echelonsDuDepartement } from '../src/modele/collectivites-sirens.ts';
+import { situerAcheteurs, type AcheteurNational } from './acheteurs-nationaux.ts';
 
 const DECP =
   'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides';
@@ -268,6 +288,12 @@ export interface Marches {
    * a échoué ; un titulaire sans rien à signaler n'y figure pas.
    */
   situations?: Map<string, Situation>;
+  /**
+   * SIREN -> nom et départements des acheteurs qui ne sont pas des
+   * collectivités, pour les fichiers nationaux seulement ; absent si la
+   * collecte a échoué.
+   */
+  nationaux?: Map<string, AcheteurNational>;
 }
 
 /** AAAA-MM, `mois` mois après le mois de `iso`. Le jour ne compte pas. */
@@ -453,7 +479,7 @@ export async function collecterMarches(
   const titulaires = new Map<Marche, Set<string>>();
   for (const l of lignes) {
     const siren = String(l.acheteur_id ?? '').slice(0, 9);
-    if (siren.length !== 9 || !sirensSuivis.has(siren)) continue;
+    if (!/^\d{9}$/.test(siren)) continue;
     const siret = String(l.acheteur_id ?? '').trim();
     if (/^\d{14}$/.test(siret)) {
       const c = parSiret.get(siren) ?? new Map<string, number>();
@@ -583,8 +609,11 @@ export async function collecterMarches(
       recents.set(siren, neufs);
       nRecents += neufs.length;
     }
-    parAcheteur.set(siren, liste.slice(0, PAR_ACHETEUR));
-    if (liste.length > PAR_ACHETEUR) suites.set(siren, liste.slice(PAR_ACHETEUR));
+    // Les listes ne servent qu'aux pages : un acheteur sans page n'en a pas.
+    if (sirensSuivis.has(siren)) {
+      parAcheteur.set(siren, liste.slice(0, PAR_ACHETEUR));
+      if (liste.length > PAR_ACHETEUR) suites.set(siren, liste.slice(PAR_ACHETEUR));
+    }
     const proches = tout
       .filter((x): x is Echeance => x.fin !== undefined && x.fin >= fenetre[0] && x.fin <= fenetre[1])
       .map((x) => {
@@ -605,15 +634,30 @@ export async function collecterMarches(
     dire(`  procédure(s) hors liste, à ajouter à PROCEDURES : ${[...inconnues].join(' ; ')}`);
   }
 
-  const retenus = [...totaux.values()].reduce((a, b) => a + b, 0);
+  const retenus = [...totaux].filter(([s]) => sirensSuivis.has(s)).reduce((a, [, n]) => a + n, 0);
   dire(
     `Marchés publics : ${lignes.length.toLocaleString('fr-FR')} notifiés depuis ${DEPUIS.slice(0, 4)}, ` +
       `dont ${retenus.toLocaleString('fr-FR')} pour ${parAcheteur.size.toLocaleString('fr-FR')} ` +
-      `acheteurs du bloc communal ; ${nEcheances.toLocaleString('fr-FR')} à échéance prévisible ` +
-      `de ${fenetre[0]} à ${fenetre[1]} ; ${nRecents.toLocaleString('fr-FR')} notifiés depuis le ${recentsDepuis}.`,
+      `collectivités suivies — bloc communal, départements, régions ; tous acheteurs confondus, ` +
+      `${nEcheances.toLocaleString('fr-FR')} à échéance prévisible ` +
+      `de ${fenetre[0]} à ${fenetre[1]} et ${nRecents.toLocaleString('fr-FR')} notifiés depuis le ${recentsDepuis}.`,
   );
   const sirets = new Map<string, string>();
   for (const [siren, c] of parSiret) sirets.set(siren, [...c].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]);
+
+  // Les acheteurs qui ne sont pas des collectivités, situés et nommés au
+  // répertoire : ceux qui ont une échéance ou un marché récent. Collecte
+  // isolée : sans elle, les fichiers nationaux s'en tiennent aux collectivités.
+  let nationaux: Map<string, AcheteurNational> | undefined;
+  try {
+    const aSituer = new Map<string, string[]>();
+    for (const s of new Set([...echeances.keys(), ...recents.keys()])) {
+      if (!sirensSuivis.has(s)) aSituer.set(s, [...(parSiret.get(s)?.keys() ?? [])]);
+    }
+    nationaux = await situerAcheteurs(json, aSituer, dire);
+  } catch (e) {
+    dire(`  acheteurs hors collectivités : ${(e as Error).message} — les fichiers nationaux s'en tiennent aux collectivités.`);
+  }
 
   // Deux collectes de plus, isolées : l'échec de l'une ne coûte que ce qu'elle apporte.
   let annuaire: Map<string, FicheAnnuaire> | undefined;
@@ -660,6 +704,7 @@ export async function collecterMarches(
     ...(annuaire ? { annuaire } : {}),
     ...(avis ? { avis } : {}),
     ...(situations ? { situations } : {}),
+    ...(nationaux ? { nationaux } : {}),
   };
 }
 
@@ -678,7 +723,9 @@ function situationsCitees(marches: Marches, liste: Marche[]): { situations?: Rec
 
 /**
  * Un fichier par département, indexé par SIREN d'acheteur — commune ou
- * groupement, indifféremment : c'est le client qui sait de qui il dépend.
+ * groupement, indifféremment : c'est le client qui sait de qui il dépend. Le
+ * département et la région y figurent aussi, et `echelons` les nomme dans cet
+ * ordre — ceux qui ont des marchés.
  */
 export function ecrireMarches(
   sortie: string,
@@ -691,10 +738,12 @@ export function ecrireMarches(
    */
   sirenDeCommune: Map<string, string>,
   marches: Marches,
+  /** Le département puis la région : `echelonsDuDepartement(dep)`. */
+  echelons: string[] = [],
 ): number {
   const h: Record<string, { n: number; m: Marche[]; s?: string; ne?: number; e?: Echeance[] }> = {};
   let n = 0;
-  for (const siren of [...new Set(sirens)].sort()) {
+  for (const siren of [...new Set([...sirens, ...echelons])].sort()) {
     const liste = marches.parAcheteur.get(siren);
     if (!liste || liste.length === 0) continue;
     const ech = marches.echeances.get(siren) ?? [];
@@ -721,6 +770,7 @@ export function ecrireMarches(
       fenetre: marches.fenetre,
       procedures: PROCEDURES,
       com,
+      ...(echelons.some((x) => h[x]) ? { echelons: echelons.filter((x) => h[x]) } : {}),
       h,
     }),
   );
@@ -773,6 +823,13 @@ interface Acheteur {
   epci?: string[];
   /** Ses coordonnées à l'annuaire de l'administration, quand il y a une fiche. */
   contact?: Contact;
+  /**
+   * 1 pour un acheteur que le site ne suit pas — hôpital, lycée, office HLM,
+   * service de l'État, et le rare syndicat absent de BANATIC : il n'a pas de
+   * page. Absent pour une commune, un groupement de BANATIC, un département,
+   * une région.
+   */
+  hors?: 1;
 }
 
 /**
@@ -785,6 +842,8 @@ function acheteursNommes(
   sortie: string,
   /** Les fiches de l'annuaire : sans elles, les acheteurs n'ont pas de contact. */
   annuaire?: Map<string, FicheAnnuaire>,
+  /** Les acheteurs qui ne sont pas des collectivités : ni département ni page, mais un nom et un lieu. */
+  nationaux?: Map<string, AcheteurNational>,
 ): {
   acheteurs: Map<string, Acheteur>;
   epci: Map<string, { nom: string; deps: string[] }>;
@@ -841,7 +900,7 @@ function acheteursNommes(
     }
     for (const siren of Object.keys(d.h)) {
       const a = acheteurs.get(siren) ?? { nom: null, deps: [] };
-      a.nom ??= noms.get(siren) ?? null;
+      a.nom ??= noms.get(siren) ?? COLLECTIVITES_SIRENS.get(siren)?.nom ?? null;
       ajouter(a.deps, dep);
       const code = codeDeSiren.get(siren);
       if (code) a.commune = code;
@@ -852,6 +911,9 @@ function acheteursNommes(
       }
       acheteurs.set(siren, a);
     }
+  }
+  for (const [siren, a] of nationaux ?? []) {
+    if (!acheteurs.has(siren)) acheteurs.set(siren, { nom: a.nom, deps: [...a.deps], hors: 1 });
   }
   if (annuaire) {
     const prenoms = prenomsConnus(sortie);
@@ -889,11 +951,12 @@ function cites(
  *
  * Écrit après les fichiers par département, qu'il relit : le nom d'un
  * groupement est dans `dep/XX.json`, celui d'une commune aussi, son SIREN
- * dans `dep/XX-marches.json`. Un acheteur qu'aucun département n'a retenu n'y
- * figure pas, comme il ne figure sur aucune page.
+ * dans `dep/XX-marches.json`. S'y ajoutent, depuis le 10 octobre 2026, les
+ * acheteurs qui ne sont pas des collectivités (`Marches.nationaux`) : ils
+ * n'ont pas de page, mais ce qu'ils renouvellent est un fait public.
  */
 export function ecrireEcheancesNationales(sortie: string, marches: Marches): number {
-  const lus = acheteursNommes(sortie, marches.annuaire);
+  const lus = acheteursNommes(sortie, marches.annuaire, marches.nationaux);
   const { acheteurs } = lus;
   const e: (Echeance & { a: string })[] = [];
   for (const [siren, liste] of marches.echeances) {
@@ -926,7 +989,7 @@ export function ecrireEcheancesNationales(sortie: string, marches: Marches): num
  * marchés, du plus récent au plus ancien.
  */
 export function ecrireAttributionsNationales(sortie: string, marches: Marches): number {
-  const lus = acheteursNommes(sortie, marches.annuaire);
+  const lus = acheteursNommes(sortie, marches.annuaire, marches.nationaux);
   const { acheteurs } = lus;
   const m: (Attribution & { a: string })[] = [];
   for (const [siren, liste] of marches.recents) {
@@ -967,14 +1030,17 @@ export function ecrireAvisNationaux(
   marches: Marches,
 ): { avis: number; parSiret: number; parNom: number; ambigus: number } | null {
   if (!marches.avis) return null;
-  const lus = acheteursNommes(sortie, marches.annuaire);
+  const lus = acheteursNommes(sortie, marches.annuaire, marches.nationaux);
   const precedents = lireAvisPrecedents(sortie)?.avis ?? [];
   let departements = new Set<string>();
   const chemin = join(sortie, 'deps.json');
   if (existsSync(chemin)) {
     departements = new Set(Object.values(JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, string>).map(plierNom));
   }
-  const r = rattacherAvis(marches.avis, lus.acheteurs, precedents, departements);
+  // Le rattachement par le nom ne vaut que pour les collectivités, dont le nom
+  // est sûr dans leur département ; les autres acheteurs se reconnaissent à
+  // leur SIRET seulement.
+  const r = rattacherAvis(marches.avis, lus.acheteurs, precedents, departements, new Set(marches.nationaux?.keys() ?? []));
   const avis = r.avis.map((a) => {
     const objet = nettoyer(a.objet);
     return { ...a, objet: objet.length > MAX_OBJET ? `${objet.slice(0, MAX_OBJET - 1)}…` : objet };
@@ -1007,7 +1073,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     };
     parDep.set(dep, { sirens: Object.keys(d.h), com: new Map(Object.entries(d.com)) });
   }
-  const suivis = new Set([...parDep.values()].flatMap((d) => d.sirens));
+  const suivis = new Set([...[...parDep.values()].flatMap((d) => d.sirens), ...COLLECTIVITES_SIRENS.keys()]);
   const m = await collecterMarches(
     async (url) => (await obstine(url)).json(),
     suivis,
@@ -1017,7 +1083,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   );
   if (m) {
     let n = 0;
-    for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m);
+    for (const [dep, d] of parDep) n += ecrireMarches(sortie, dep, d.sirens, d.com, m, echelonsDuDepartement(dep));
     const suites = ecrireSuitesMarches(sortie, m);
     const nationales = ecrireEcheancesNationales(sortie, m);
     const attributions = ecrireAttributionsNationales(sortie, m);
