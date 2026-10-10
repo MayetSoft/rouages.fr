@@ -3829,3 +3829,84 @@ région — et sous le marché, y compris dans les lignes que « Voir les autres
 fait apparaître. Calculé au build sur les données déjà collectées : rien à
 réingérer. Au passage, les objets de marchés qui arrivaient avec des
 entités HTML (« d&#8217;électricité ») sont rendus en clair.
+
+### Les jeux : une quatrième section (10 octobre 2026)
+
+Une section `/jeux`, à côté du fonctionnement, des données de chez soi et
+de l'argent public, sur l'idée du mainteneur : apprendre qui décide quoi en
+jouant, dans un esprit collaboratif et complémentaire.
+
+**D'abord ce qui existe** : `contenu/jeux.yaml` recense les jeux tenus
+ailleurs, rangés en trois genres — deviner un lieu d'après une donnée
+(Worldle, Tradle), contribuer à une base en jouant (Hunger Games d'Open Food
+Facts, Wikidata Game), simuler une décision publique. Chaque entrée dit son
+principe en une phrase, les données d'où il part et le jour où on l'a vu en
+ligne ; la validation y applique les règles de tout `contenu/` (pas de nom de
+personne, sigles au glossaire). Écartés après vérification : le
+« cyber-budget » du ministère (2006), qui ne répond plus, et le jeu de table
+de Citéco sur l'équilibre budgétaire, qui ne part d'aucune donnée. Aucun jeu
+trouvé, à ce jour, sur les communes françaises, sur les ventes de DVF ou sur
+la répartition des compétences : c'est la place de ceux de Rouages.
+
+**Ce que Rouages prépare** — rien n'en paraît sur le site : décision du
+mainteneur, on n'annonce pas un jeu avant qu'il soit jouable. La page ne
+montre que les jeux tenus ailleurs.
+
+- **Qui décide ?** — pour une commune tirée au sort (ou la sienne), retrouver
+  qui exerce une compétence. Données : la résolution territoriale déjà
+  calculée (BANATIC et le graphe). Le cas `variable_selon_territoire` se
+  joue comme les autres, puisque la réponse locale est connue ; une
+  compétence `a_confirmer` n'entre pas dans les questions.
+- **La commune mystère** — des indices successifs tirés de la page de
+  commune (département, intercommunalité, tranche de population, écoles,
+  gare), la distance et la direction après chaque essai, comme Worldle.
+  Données : `public/territoires/`, les contours d'Admin Express.
+- **Plus ou moins** — deux communes, laquelle a le plus de… Seulement des
+  indicateurs déjà affichés, avec leur millésime, et jamais deux millésimes
+  différents face à face.
+- **Le bon ordre** — remettre les étapes d'un processus dans l'ordre. Données :
+  `contenu/processus/`. Seuls les processus `etabli` entrent.
+- **Où va l'argent** — classer des missions du budget de l'État. Données :
+  `budget-etat.json`, un seul exercice par partie, dit à l'écran.
+- **À combien s'est-elle vendue ?** — fait le 10 octobre, voir plus bas.
+
+**Les règles**, celles du site : aucune personne à deviner — ni élu, ni
+nuance politique, ni titulaire de marché — ; aucun palmarès de communes
+présenté comme un jugement ; chaque réponse renvoie à la page qui la source ;
+un chiffre n'entre dans une question que s'il est affiché ailleurs sur le
+site. Pour DVF, si un « juste prix » vient un jour : la commune et le type de
+bien, jamais l'adresse ni la parcelle.
+
+**Techniquement** : des pages statiques, les questions tirées au build ou
+dans le navigateur depuis les fichiers déjà publiés, aucun compte, aucun
+classement entre joueurs (pas de comptes avant la phase 4).
+
+### Le premier jeu : « À combien s'est-elle vendue ? » (10 octobre 2026)
+
+Choisi par le mainteneur : deviner le prix d'une vraie vente de DVF, située à
+la commune et à l'année. `/jeux/prix`, annoncé sur `/jeux` maintenant qu'il
+est jouable.
+
+**Les données** : `scripts/dvf-emettre.ts` garde, en plus des médianes, les
+ventes d'un seul logement de chaque commune d'au moins dix ventes sur trois
+ans, sans les 10 % extrêmes du prix au m² de son type, quarante au plus dans
+un ordre fixe, arrondies (prix au millier, surface à 5 m², terrain à
+100 m²), sans adresse, parcelle ni date (`ventesDuJeu`). Un fichier par
+département, `public/territoires/jeux/dvf/XX.json` : 14 Mo pour 97
+départements, 445 Ko pour le plus lourd (le Nord). Lu au 10 octobre : 247
+communes de l'Allier, dont Le Mayet-de-Montagne (40 maisons, aucun
+appartement).
+
+**Les garde-fous** de `docs/07-risques.md` : pas d'indexation (`robots.txt`,
+`X-Robots-Tag` par `public/territoires/jeux/.htaccess`, `noindex` sur la
+page), lecture des ventes au clic seulement, retrait sur signalement,
+mention dans `/mentions`.
+
+**La partie** : un département, une commune si l'on veut ; cinq ventes,
+tirées commune d'abord pour que les villages sortent autant que la
+préfecture ; 100 points pour le prix exact, 2 de moins par point d'écart.
+Après chaque réponse, le prix médian de la commune — déjà publié sur sa
+page — et le lien vers elle.
+
+**La suite possible** : partir de la page d'une commune (« jouer avec les
+ventes de la commune ») ; un mode appartements seuls dans les grandes villes.

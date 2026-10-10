@@ -502,6 +502,33 @@ export const Editeur = z.object({
   realisation_technique: z.string().min(2).optional(),
 });
 
+/**
+ * Un jeu bâti sur des données ouvertes, tenu par d'autres que Rouages.
+ *
+ * La section « Jeux » les recense plutôt que de les refaire : un jeu qui
+ * existe déjà et marche bien a sa place à côté de ceux du site, avec un lien.
+ * Le principe se dit en une phrase, les données d'où il part sont nommées, et
+ * la date dit quand on a vu le jeu en ligne pour la dernière fois.
+ */
+export const Jeu = z.object({
+  id: Id,
+  nom: z.string().min(2),
+  /** L'adresse où l'on joue. */
+  url: z.string().url(),
+  /**
+   * Deviner à partir d'une donnée, contribuer à une base en jouant, ou
+   * simuler une décision publique.
+   */
+  genre: z.enum(['devinette', 'contribution', 'simulation']),
+  /** Ce qu'on y fait, en une phrase. */
+  principe: z.string().min(10).max(280),
+  /** Les données sur lesquelles il repose, telles que le jeu les nomme. */
+  donnees: z.string().min(3).max(200),
+  /** Sur écran, ou sur table avec du matériel à imprimer. */
+  support: z.enum(['en_ligne', 'sur_table']).default('en_ligne'),
+  consulte_le: dateSimple,
+});
+
 /** Un fichier de contenu : toutes les entités d'un même rouage. */
 /**
  * Une localisation de projet européen corrigée par Rouages.
@@ -540,6 +567,7 @@ export const FichierContenu = z.object({
   reperes: z.array(Repere).default([]),
   surveillances: z.array(Surveillance).default([]),
   corrections_kohesio: z.array(CorrectionKohesio).default([]),
+  jeux: z.array(Jeu).default([]),
   decouverte: Decouverte.optional(),
   editeur: Editeur.optional(),
 });
@@ -549,6 +577,7 @@ export type Editeur = z.infer<typeof Editeur>;
 export type Repere = z.infer<typeof Repere>;
 export type Surveillance = z.infer<typeof Surveillance>;
 export type CorrectionKohesio = z.infer<typeof CorrectionKohesio>;
+export type Jeu = z.infer<typeof Jeu>;
 export type Sigle = z.infer<typeof Sigle>;
 export type Source = z.infer<typeof Source>;
 export type Acteur = z.infer<typeof Acteur>;

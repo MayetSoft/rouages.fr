@@ -536,6 +536,51 @@ mainteneur a validé la méthode proposée le 9 octobre ; elle est en place
   collectivité, et des participations dans de grands groupes (ENGIE,
   Orange) : la mention le dit tel quel, sans les trier.
 
+### Les ventes immobilières du jeu des prix (10 octobre 2026)
+
+Décision du mainteneur du 10 octobre : le premier jeu de la section « Jeux »
+fait deviner le prix d'une vraie vente, située à la commune et à l'année.
+Jusque-là, le site ne publiait de DVF que des médianes et des quartiles par
+commune. Le jeu publie des ventes une par une : c'est une autre exposition,
+écrite ici avant la collecte.
+
+**Ce que DVF permet.** Les conditions générales d'utilisation de la DGFiP
+(octobre 2020, fondées sur les articles L. 112 A et R.* 112 A-1 à A-3 du
+livre des procédures fiscales) posent quatre règles. La réutilisation sert
+l'objectif de la loi, la transparence des marchés fonciers et immobiliers.
+Elle ne peut avoir « ni pour objet ni pour effet » de réidentifier les
+personnes, et ne doit pas aboutir à une identification plus poussée que celle
+du jeu publié. Les informations ne sont pas indexées par les moteurs de
+recherche, et leur consultation « doit résulter d'une démarche volontaire ».
+Le RGPD s'applique : DVF contient des données personnelles, même sans nom.
+
+**Ce que le jeu retient, et ce qu'il laisse.**
+
+1. **Moins que DVF, jamais plus.** DVF publie l'adresse, la parcelle et la
+   date de l'acte ; le jeu donne la commune, l'année, maison ou appartement,
+   et des valeurs arrondies : le prix au millier d'euros, la surface
+   habitable à 5 m², le terrain à 100 m² (au millier au-delà d'un hectare),
+   le nombre de pièces. Aucun recoupement avec une autre source, aucun lien
+   vers la parcelle ou la carte.
+2. **Pas de commune où une vente serait seule.** Seulement les communes d'au
+   moins dix ventes d'un logement sur les trois ans.
+3. **Le marché, pas les cas particuliers.** Une vente hors du 1er et du
+   9e décile du prix au m² de sa commune n'entre pas : une cession entre
+   parents ou un bien d'exception ne dit rien du marché.
+4. **Pas d'indexation.** Les fichiers vont dans `/territoires/jeux/`, fermé
+   par `robots.txt` et servi avec l'en-tête `X-Robots-Tag: noindex`. La page
+   du jeu porte `noindex` ; elle ne contient aucune vente : elles ne sont
+   lues qu'au clic sur « Commencer », ce qui fait la démarche volontaire.
+5. **Pas plus longtemps que la source.** Les trois dernières années
+   publiées, réécrites à chaque ingestion : une vente sort du jeu quand elle
+   sort de la fenêtre.
+6. **Le retrait est possible.** Une demande reçue par `/signaler` retire la
+   vente à la main ; `/mentions` dit ce que le jeu montre et d'où il vient.
+
+**Ce qui reste exclu** : l'adresse, la rue, la parcelle, le mois ou le jour,
+les coordonnées, et toute vente d'un local professionnel, d'un terrain seul ou
+de plusieurs logements à la fois.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans

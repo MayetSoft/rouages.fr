@@ -770,9 +770,12 @@ async function principal() {
   );
   if (recensement) grise(`${ecrireRecensement(SORTIE, recensement)} fichiers de logements et d’emploi écrits.`);
 
-  const { anneesDvf, collecterDvf, ecrireDvf } = await import('./dvf-emettre.ts');
+  const { anneesDvf, collecterDvf, ecrireDvf, ecrireVentesJeu } = await import('./dvf-emettre.ts');
   const dvf = await tenter('Ventes immobilières', () => collecterDvf(anneesDvf(), enCache('DVF géolocalisé (100 Mo par an)'), CACHE, grise));
-  if (dvf) grise(`${ecrireDvf(SORTIE, dvf)} départements de prix immobiliers écrits.`);
+  if (dvf) {
+    grise(`${ecrireDvf(SORTIE, dvf)} départements de prix immobiliers écrits.`);
+    grise(`${ecrireVentesJeu(SORTIE, dvf)} départements écrits pour le jeu des prix.`);
+  }
 
   const { collecterIps, ecrireIps } = await import('./ips-emettre.ts');
   const ips = await tenter('Indices de position sociale', () =>

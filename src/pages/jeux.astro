@@ -1,0 +1,84 @@
+---
+/**
+ * Les jeux : ceux de Rouages, puis ceux bâtis ailleurs sur les données ouvertes.
+ *
+ * La page commence par ceux qui existent ailleurs (`contenu/jeux.yaml`) :
+ * Rouages ne refait pas un jeu qui marche, il y renvoie, dans le même esprit
+ * que pour Wikipédia ou Légifrance.
+ *
+ * Un jeu de Rouages n'y entre qu'une fois jouable : ceux qui se préparent
+ * restent dans `docs/05-roadmap.md`, pas sur le site.
+ */
+import Base from '../layouts/Base.astro';
+import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
+import type { Jeu } from '../modele/schemas.ts';
+
+const g = chargerGraphe();
+const jeux = [...g.jeux.values()];
+
+const GENRES: { genre: Jeu['genre']; titre: string; chapo: string }[] = [
+  { genre: 'devinette', titre: 'Deviner', chapo: 'Retrouver un lieu d’après ce que disent ses données.' },
+  { genre: 'contribution', titre: 'Contribuer en jouant', chapo: 'Chaque réponse améliore la base de données elle-même.' },
+  { genre: 'simulation', titre: 'Décider', chapo: 'Prendre une décision publique et en voir les effets.' },
+];
+const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === x.genre) })).filter(
+  (x) => x.jeux.length > 0,
+);
+---
+<Base
+  titre="Jeux"
+  description="Des jeux bâtis sur les données ouvertes : deviner le prix d’une vraie vente immobilière, et les jeux qui existent ailleurs."
+  section="jeux"
+>
+  <div class="page page--etroite">
+    <p class="badge">Jeux</p>
+    <h1>Jouer avec les données publiques</h1>
+    <p class="resume">
+      Deviner un lieu d’après ses données, ou améliorer les données en jouant. D’autres ont déjà fait de
+      très bons jeux à partir de données ouvertes&nbsp;: Rouages les recense et y renvoie, à côté des siens.
+    </p>
+
+    <h2 class="badge">Sur Rouages</h2>
+    <ul class="jeux-liste">
+      <li>
+        <a href="/jeux/prix">À combien s’est-elle vendue&nbsp;?</a>
+        <p>Cinq vraies ventes de maisons et d’appartements, dans votre département ou votre commune&nbsp;: devinez le prix.</p>
+        <p class="jeux-meta">Données&nbsp;: les demandes de valeurs foncières de la DGFiP, les trois dernières années publiées.</p>
+      </li>
+    </ul>
+
+    <h2 class="badge">Ailleurs</h2>
+    {groupes.map((x) => (
+      <section class="jeux-groupe">
+        <h3>{x.titre}</h3>
+        <p class="mesure">{x.chapo}</p>
+        <ul class="jeux-liste">
+          {x.jeux.map((j) => (
+            <li>
+              <a href={j.url} rel="noopener">{j.nom}</a>
+              {j.support === 'sur_table' && <span class="jeux-support"> · sur table</span>}
+              <p>{j.principe}</p>
+              <p class="jeux-meta">
+                {`Données : ${j.donnees}. En ligne le ${formaterDate(j.consulte_le)}.`}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+    <p class="mesure">
+      Un jeu manque&nbsp;? <a href="/signaler">Proposez-le</a>. Il entre dans la liste s’il part de données
+      publiques, ouvertes ou collaboratives, et s’il est jouable aujourd’hui.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .jeux-groupe h3 { margin: 1.2rem 0 .2rem; font-size: 1.05rem; }
+  .jeux-groupe .mesure { margin-top: 0; }
+  .jeux-liste { list-style: none; padding: 0; margin: 0 0 1.4rem; max-width: var(--mesure); }
+  .jeux-liste li { padding: .6rem 0; border-top: 1px solid var(--trait); }
+  .jeux-liste a { font-weight: 600; }
+  .jeux-liste p { margin: .25rem 0 0; }
+  .jeux-support, .jeux-meta { color: var(--encre-douce); font-size: .88rem; }
+</style>

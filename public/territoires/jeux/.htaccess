@@ -1,0 +1,7 @@
+# Les fichiers du jeu des prix reprennent des ventes de DVF une par une. Les
+# conditions d'utilisation de DVF interdisent leur indexation par les moteurs
+# de recherche : robots.txt ferme le dossier, et cet en-tête le dit aussi à
+# ceux qui y arriveraient par un lien (docs/07-risques.md).
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
