@@ -68,7 +68,7 @@ const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits
 {a.existantes > 0 && (
   <div class="p-risque-groupe">
     <span class="p-service-famille">
-      {`Les ${a.existantes.toLocaleString('fr-FR')} associations non dissoutes du répertoire, de la plus récemment déclarée à la plus ancienne`}
+      {`Les ${a.existantes.toLocaleString('fr-FR')} associations non dissoutes du répertoire, de la dernière à avoir fait une déclaration en préfecture — création ou modification — à la plus ancienne`}
     </span>
     <details open={courte}>
       <summary>{courte ? 'La liste' : `Voir les ${a.liste.length}`}</summary>
@@ -77,7 +77,7 @@ const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits
           <li class="p-risque-plan">
             <span class="p-risque-nom">{x.site ? <a href={x.site} target="_blank" rel="noopener nofollow">{x.titre}</a> : x.titre}</span>
             <span class="p-risque-detail">
-              {[x.annee ? `créée en ${x.annee}` : '', x.domaine ? x.domaine.charAt(0).toLowerCase() + x.domaine.slice(1) : '', x.objet]
+              {[x.annee ? `créée en ${x.annee}` : '', x.declaree && x.declaree !== x.annee ? `dernière déclaration en ${x.declaree}` : '', x.domaine ? x.domaine.charAt(0).toLowerCase() + x.domaine.slice(1) : '', x.objet]
                 .filter(Boolean)
                 .join(' · ')}
             </span>
@@ -114,7 +114,7 @@ const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits
   const domaines: string[] = JSON.parse(document.getElementById('assos-domaines')?.textContent ?? '[]');
   for (const bouton of document.querySelectorAll<HTMLButtonElement>('button[data-assos]')) {
     const ul = bouton.previousElementSibling as HTMLUListElement;
-    let reste: [string, string, number, number, string][] | null = null;
+    let reste: [string, string, number, number, string, number?][] | null = null;
     let affiches = 0;
     const dire = () => {
       const n = (reste ? reste.length : Number(bouton.dataset.reste)) - affiches;
@@ -126,7 +126,7 @@ const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits
         bouton.disabled = true;
         bouton.textContent = 'Chargement…';
         const f = await fetch(`/territoires/associations/${bouton.dataset.assos}.json`)
-          .then((r) => (r.ok ? (r.json() as Promise<{ x: [string, string, number, number, string][] }>) : null))
+          .then((r) => (r.ok ? (r.json() as Promise<{ x: [string, string, number, number, string, number?][] }>) : null))
           .catch(() => null);
         bouton.disabled = false;
         if (!f || f.x.length === 0) {
@@ -135,7 +135,7 @@ const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits
         }
         reste = f.x;
       }
-      for (const [titre, objet, dom, annee, site] of reste.slice(affiches, affiches + PAS)) {
+      for (const [titre, objet, dom, annee, site, declaree] of reste.slice(affiches, affiches + PAS)) {
         const li = document.createElement('li');
         li.className = 'p-risque-plan';
         const nom = document.createElement('span');
@@ -151,7 +151,14 @@ const dixieme = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits
         const detail = document.createElement('span');
         detail.className = 'p-risque-detail';
         const d = dom >= 0 ? domaines[dom] : '';
-        detail.textContent = [annee ? `créée en ${annee}` : '', d ? d.charAt(0).toLowerCase() + d.slice(1) : '', objet].filter(Boolean).join(' · ');
+        detail.textContent = [
+          annee ? `créée en ${annee}` : '',
+          declaree && declaree !== annee ? `dernière déclaration en ${declaree}` : '',
+          d ? d.charAt(0).toLowerCase() + d.slice(1) : '',
+          objet,
+        ]
+          .filter(Boolean)
+          .join(' · ');
         li.append(nom, detail);
         ul.append(li);
       }

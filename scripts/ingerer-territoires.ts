@@ -826,6 +826,11 @@ async function principal() {
   const europe21 = await tenter('Fonds européens 2021-2027 (Kohesio)', () => collecterEurope2127(lireJson, SORTIE, grise));
   if (europe21) grise(`${ecrireEurope2127(SORTIE, europe21)} départements de projets européens 2021-2027 écrits.`);
 
+  // Le budget de l'État, pour la page « L'argent public » : un fichier national.
+  const { collecterBudgetEtat, ecrireBudgetEtat } = await import('./budget-etat-emettre.ts');
+  const budgetEtat = await tenter('Budget de l’État', () => collecterBudgetEtat(lireJson, grise));
+  if (budgetEtat) ecrireBudgetEtat(SORTIE, budgetEtat);
+
   const { collecterMairies, ecrireMairies } = await import('./mairies-emettre.ts');
   const mairies = await tenter('Mairies', () => collecterMairies(lireJson, grise));
   if (mairies) grise(`${ecrireMairies(SORTIE, mairies)} départements de mairies écrits.`);

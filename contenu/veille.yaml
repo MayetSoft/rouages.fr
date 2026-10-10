@@ -810,6 +810,18 @@ surveillances:
     url: "https://cohesiondata.ec.europa.eu/resource/557j-pmg8.json?$limit=1"
     lien: od-kohesio
 
+  # Le jeu porte un millésime dans son nom : celui du projet 2027 en sera un
+  # autre, à repérer quand il paraît. Celui-ci ne doit plus bouger.
+  - id: budget-vert-2026
+    nom: "Direction du Budget — budget vert du projet de loi de finances 2026"
+    alimente: "la page « L'argent public » : les dépenses de l'État par mission, programme et action"
+    type: opendatasoft-total
+    licence: licence-ouverte-2.0
+    url: "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/plf-2026-budget-vert"
+    # Relevé au 10 octobre 2026, pas estimé.
+    attendu: 1816
+    lien: od-budget-vert-2026
+
   - id: kohesio-2021-2027
     nom: "Commission européenne — Kohesio, projets de la politique de cohésion 2021-2027 (API de la plateforme)"
     alimente: "les projets européens 2021-2027 localisés dans la commune"

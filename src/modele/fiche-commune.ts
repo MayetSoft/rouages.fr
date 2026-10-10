@@ -15,7 +15,7 @@
  * ne dit plus que qui exerce chaque compétence, et conduit à la page pour le
  * reste.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { detailDepuisBrut, type DetailAffiche, type DetailBrut } from '../vues/detail-marche.ts';
 import { join } from 'node:path';
 import { anneePlausible } from './annees.ts';
@@ -188,8 +188,12 @@ export interface Marche {
   lots: number;
   /** Nombre d'offres reçues, quand l'acheteur l'a déclaré. */
   offres: number | null;
-  /** Les titulaires nommés d'après SIRENE : sociétés, et entrepreneurs individuels diffusibles. */
-  titulaires: { siren: string; nom: string }[];
+  /**
+   * Les titulaires nommés d'après SIRENE : sociétés, et entrepreneurs
+   * individuels diffusibles. `representant` : le même SIREN figure au
+   * répertoire des représentants d'intérêts de la HATVP.
+   */
+  titulaires: { siren: string; nom: string; representant: boolean }[];
   /** Les titulaires que le site ne nomme pas. */
   autresTitulaires: number;
   /** Ce que les données essentielles déclarent en plus, quand la collecte l'a écrit. */
@@ -267,6 +271,8 @@ export interface Subvention {
   montant: number | null;
   annee: string;
   objet: string;
+  /** Le bénéficiaire, par son SIREN, est aussi titulaire d'un marché de la même collectivité. */
+  titulaire: boolean;
 }
 
 export interface CollectiviteSubventionne {
@@ -347,7 +353,7 @@ export interface Associations {
   recentes: { mois: string; titre: string; domaine: string | null }[];
   /** Les associations existantes au fichier Waldec : leur nombre, et les plus récemment déclarées. */
   existantes: number;
-  liste: { titre: string; objet: string; domaine: string | null; annee: number | null; site: string | null }[];
+  liste: { titre: string; objet: string; domaine: string | null; annee: number | null; site: string | null; declaree: number | null }[];
   /** La table des domaines, pour la suite chargée à la demande. */
   domainesTous: string[];
   taux: number;
@@ -543,7 +549,7 @@ type AssoDep = {
   domaines: string[];
   mediane: number;
   effectif: number;
-  c: Record<string, { n: number; a: number[]; d: [number, number][]; r: [string, string, number][]; e?: number; x?: [string, string, number, number, string][] }>;
+  c: Record<string, { n: number; a: number[]; d: [number, number][]; r: [string, string, number][]; e?: number; x?: [string, string, number, number, string, number?][] }>;
 };
 type PopDep = { maj: string; annees: number[]; c: Record<string, [number[], number, number]> };
 type CcasDep = {
@@ -638,7 +644,7 @@ type SubvDep = {
     {
       n: number;
       e: [string, string];
-      s: { qui: string; montant: number | null; annee: string; objet: string; rna: string }[];
+      s: { qui: string; montant: number | null; annee: string; objet: string; rna: string; sb?: string }[];
     }
   >;
 };
@@ -1033,18 +1039,42 @@ function nomRegion(commune: CommuneFiche): string {
   return nom ? `La région — ${nom}` : 'La région';
 }
 
+/**
+ * Les SIREN inscrits au répertoire des représentants d'intérêts, dans tout le
+ * pays : un titulaire de marché peut être inscrit ailleurs que dans la
+ * commune. Les identifiants RNA, ceux des associations sans SIREN, ne s'y
+ * rapprochent pas.
+ */
+let sirenRepresentants: Set<string> | null = null;
+function estRepresentant(siren: string): boolean {
+  if (!sirenRepresentants) {
+    sirenRepresentants = new Set();
+    const dossier = join(BASE, 'dep');
+    const fichiers = existsSync(dossier) ? readdirSync(dossier).filter((f) => f.endsWith('-hatvp.json')) : [];
+    for (const f of fichiers) {
+      const d = lire<HatvpDep>(`dep/${f}`);
+      for (const liste of Object.values(d?.c ?? {})) for (const [, id] of liste) if (/^\d{9}$/.test(id)) sirenRepresentants.add(id);
+    }
+  }
+  return sirenRepresentants.has(siren);
+}
+
+/** Certains objets arrivent avec des entités HTML (« d&#8217;électricité ») : on les rend en clair. */
+export const enClair = (t: string) =>
+  t.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+
 /** Les marchés d'un acheteur, lus dans le fichier d'un département. */
 function acheteurMarches(d: MarchesDep, siren: string, nom: string, natureLibelle: string | null): AcheteurMarches | null {
   const e = d.h[siren];
   if (!e || e.m.length === 0) return null;
   const lire = (m: MarcheBrut): Marche => ({
-    objet: m.objet,
+    objet: enClair(m.objet),
     montant: m.montant,
     date: m.date,
     procedure: d.procedures[m.procedure] ?? null,
     lots: m.lots,
     offres: m.offres ?? null,
-    titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom })),
+    titulaires: (m.t ?? []).map(([siren, nom]) => ({ siren, nom, representant: estRepresentant(siren) })),
     autresTitulaires: m.tx ?? 0,
     detail: detailDepuisBrut(m.x),
   });
@@ -1077,6 +1107,31 @@ function assemblerMarches(commune: CommuneFiche, structures: StructureFiche[]): 
   if (sirenCommune) lireAcheteur(sirenCommune, commune.nom, 'la commune');
   for (const s of structures) lireAcheteur(s.siren, s.nom, s.natureLibelle);
   return out;
+}
+
+/**
+ * Les SIREN des titulaires des marchés d'un acheteur, tels que le fichier du
+ * département les porte : ses marchés les plus récents et ses échéances. Un
+ * recoupement fondé sur ce seul champ.
+ */
+function titulairesDe(dep: string, acheteur: string): Set<string> {
+  const e = marchesDep.get(dep)?.h[acheteur];
+  const s = new Set<string>();
+  for (const m of [...(e?.m ?? []), ...(e?.e ?? [])]) for (const [siren] of m.t ?? []) s.add(siren);
+  return s;
+}
+
+/**
+ * Tous les marchés publiés d'un acheteur, réduits à leurs titulaires : le
+ * fichier complet que la page charge à la demande, sinon les plus récents et
+ * les échéances que porte le fichier du département. Pour les recoupements,
+ * qui doivent voir tout ce que le lecteur peut voir.
+ */
+export function marchesCompletsDe(dep: string, acheteur: string): { objet: string; date: string; t: [string, string][] }[] {
+  const complet = lire<{ m: MarcheBrut[] }>(`marches/${acheteur}.json`);
+  const e = marchesDep.get(dep)?.h[acheteur];
+  const liste = complet?.m?.length ? complet.m : [...(e?.m ?? []), ...(e?.e ?? [])];
+  return liste.map((m) => ({ objet: m.objet, date: m.date, t: m.t ?? [] }));
 }
 
 /**
@@ -1129,6 +1184,7 @@ function assemblerSubventions(commune: CommuneFiche, structures: StructureFiche[
         montant: x.montant,
         annee: anneePlausible(x.annee) ? x.annee : '',
         objet: x.objet,
+        titulaire: !!x.sb && titulairesDe(commune.dep, siren).has(x.sb),
       })),
     });
   };
@@ -1248,12 +1304,14 @@ function assemblerAssociations(commune: CommuneFiche, population: number): Assoc
     })),
     existantes: f.e ?? 0,
     domainesTous: d.domaines,
-    liste: (f.x ?? []).map(([titre, objet, dom, annee, site]) => ({
+    liste: (f.x ?? []).map(([titre, objet, dom, annee, site, declaree]) => ({
       titre,
       objet,
       domaine: dom >= 0 ? (d.domaines[dom] ?? null) : null,
       annee: annee || null,
       site: site || null,
+      // Absente des fichiers d'avant le 10 octobre 2026.
+      declaree: declaree || null,
     })),
     taux: population > 0 ? (f.n / population) * 1000 : 0,
     medianeTaux: d.mediane,

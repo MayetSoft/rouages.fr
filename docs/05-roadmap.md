@@ -3739,3 +3739,93 @@ procédure applicable. Adossés au graphe, jamais construits isolément. Voir
 - Pas de commentaires : coût de modération sans rapport avec la valeur.
 - Pas de couverture nationale exhaustive : mieux vaut un réseau dense et juste
   qu'un annuaire creux.
+
+### Relecture sur les vraies données, qui finance la commune, les recoupements (9 octobre 2026)
+
+**Relecture**, après la réingestion du 9 octobre, sur l'Allier, Paris, le
+Finistère et la Haute-Garonne (1 181 pages de communes) : aucune erreur
+JavaScript, aucun « NaN » ni « undefined », aucun débordement. Deux
+défauts corrigés : l'ordre des associations existantes, rangées par leur
+dernière déclaration sans le dire ; et les 1 796 représentants d'intérêts
+de Paris décrits en entier (942 Ko), désormais trente décrits et les autres
+nommés. Reste un constat : une page de commune pèse 327 Ko de HTML en
+médiane, dont 19 % de marchés — ceux de l'intercommunalité, repris sur la
+page de chacune de ses communes — et 28 % de SVG. À traiter pour le poids
+du déploiement.
+
+**Qui finance la commune**, en tête de l'onglet de l'argent : les postes
+des comptes qui viennent d'autres que la commune, par habitant et face à la
+médiane, puis les subventions d'investissement de l'État et les fonds
+européens, projet par projet. Les deux niveaux ne s'additionnent pas, et le
+bloc le dit.
+
+**Recoupements** : titulaire de marché inscrit au répertoire des
+représentants d'intérêts (par le SIREN), bénéficiaire de subvention aussi
+titulaire d'un marché de la même collectivité (par le SIREN, à la prochaine
+réingestion). Le rapprochement par le nom avec les déclarations d'intérêts
+des élus attendait la décision du mainteneur : validé le 10 octobre (voir
+plus bas).
+
+**Validé par le mainteneur le 10 octobre** : l'ordre des associations, les
+représentants d'intérêts de Paris, « Qui finance la commune ». Le poids des
+pages lui paraît raisonnable tant qu'il sert la compréhension : pas de
+réduction prévue.
+
+
+### L'argent public : le budget de l'État, première phase (10 octobre 2026)
+
+Une troisième section du site, `/argent-public`, à côté du fonctionnement
+et des données de chez soi : ce que l'État dépense, mission par mission,
+programme par programme, action par action.
+
+**La source** : le jeu « PLF 2026 — Budget vert » de la direction du Budget
+(`scripts/budget-etat-emettre.ts`, un fichier national
+`budget-etat.json`). Il sert au rapport environnemental, mais porte toute la
+dépense sur le périmètre des dépenses de l'État : 479,5 Md€ de crédits et
+21,4 Md€ de taxes affectées pour 2026 — les 501 Md€ que dit sa description,
+vérifié à la somme —, plus 88,3 Md€ de dépenses fiscales. Le ministère de
+chaque programme vient des données de comptabilité générale de l'État
+(DGFiP, exercice 2025) ; 18 programmes sur 157 n'y en ont pas, et restent
+sans.
+
+**Les règles** : un seul chiffre affiché à la fois, au choix — dépensé en
+2024, voté pour 2025, proposé pour 2026 —, la page dit toujours lequel, et
+les listes se rangent selon l'exercice choisi. Une seule échelle pour toutes
+les barres. Les taxes affectées et les dépenses fiscales restent à part ;
+aucune somme ne mêle dépenses fiscales et crédits. Les prélèvements sur
+recettes sont présentés pour ce qu'ils sont, pas comme des missions. La ligne
+négative « T3 – contribution au CAS » est dite telle que le fichier la nomme,
+sans explication inventée.
+
+**Les liens** : les programmes et prélèvements dont le libellé nomme un
+acteur du réseau (gendarmerie, police, juridictions administratives,
+Assemblée, Sénat, Conseil constitutionnel, Présidence, collectivités, Union
+européenne) renvoient à sa fiche, et sa fiche y renvoie. « Qui la finance »,
+sur la page de commune, situe la dotation globale parmi les prélèvements sur
+recettes.
+
+**La suite** :
+
+- **le voté face au dépensé, pour une même année** — le souhait du
+  mainteneur : la loi de finances initiale face à l'exécution, programme par
+  programme. Ce jeu ne le permet pas (l'exécution 2024 face au voté 2025) ;
+  il faudra les lois de règlement ou les situations mensuelles ;
+- **les comptes de l'État sur dix ans** (`balances_des_comptes_etat`,
+  2016-2025) : la comptabilité générale, une troisième nature de chiffres ;
+- **l'exécution mois par mois** (situations mensuelles budgétaires) ;
+- **le budget 2027** : le jeu du projet 2027 portera un autre identifiant ;
+  la veille surveille celui de 2026, qui ne doit plus bouger ;
+- **les totaux de la Sécurité sociale et des collectivités**, pour que la
+  dépense publique entière ait sa place, chacune avec sa nature.
+
+### Le rapprochement par le nom, élus et titulaires (10 octobre 2026)
+
+La méthode proposée le 9 octobre, validée le 10 : un titulaire de marché qui
+porte le même nom qu'une société ou un organisme de la déclaration
+d'intérêts d'un élu, sur les seuls marchés des collectivités où il siège
+(`src/modele/recoupements.ts`, détail dans `docs/07-risques.md`). Affiché
+sous l'élu — sur la page de la commune et sur celle du département ou de la
+région — et sous le marché, y compris dans les lignes que « Voir les autres »
+fait apparaître. Calculé au build sur les données déjà collectées : rien à
+réingérer. Au passage, les objets de marchés qui arrivaient avec des
+entités HTML (« d&#8217;électricité ») sont rendus en clair.

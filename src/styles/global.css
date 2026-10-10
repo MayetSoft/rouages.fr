@@ -54,6 +54,9 @@
   /* L'encre posée sur l'accent : elle s'inverse en sombre, où l'accent
      s'éclaircit pour rester lisible sur fond noir. */
   --sur-accent: #ffffff;
+  /* Les barres du budget de l'État : l'accent, plus saturé pour ne pas se lire
+     gris (vérifié au validateur de palette, contre la surface claire). */
+  --barre-budget: #1676a0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -78,6 +81,7 @@
     --nature-protection: #3f9e68;
     --nature-inventaire: #b77a2e;
     --sur-accent: #15171a;
+    --barre-budget: #3a9fc8;
 
     --rel-pouvoir: #3987e5;
     --rel-partage: #d95926;
@@ -1301,3 +1305,87 @@ a.p-sommaire-lien { text-decoration: none; }
 /* Dans le bloc des marchés, la grille de `.p-marches li` ne doit pas s'y appliquer. */
 .c-ailleurs li { display: block; font-size: .92rem; }
 .c-ailleurs-editeur { display: block; font-size: .78rem; color: var(--encre-tres-douce); }
+
+/* Les représentants d'intérêts au-delà des trente décrits : leurs noms, en colonnes. */
+.c-representants-courts { list-style: none; margin: .4rem 0 0; padding: 0; columns: 16rem; column-gap: 1.2rem; font-size: .84rem; }
+.c-representants-courts li { break-inside: avoid; padding: .1rem 0; }
+
+/* Qui finance la commune : qui, combien, et pourquoi. */
+.c-financeurs { list-style: none; margin: .6rem 0 1rem; padding: 0; display: grid; gap: .55rem; }
+.c-financeurs li { display: grid; grid-template-columns: 1fr auto; column-gap: .8rem; align-items: baseline; border-bottom: 1px solid var(--trait); padding-bottom: .45rem; }
+.c-financeurs-qui { font-weight: 600; }
+.c-financeurs-montant { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.c-financeurs li > .v-nature { grid-column: 1 / -1; display: block; margin-top: .1rem; }
+
+/* ------------------------------------------------------------------ *
+ * L'argent public : l'explorateur du budget de l'État
+ * ------------------------------------------------------------------ */
+
+.b-tuiles { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .7rem; }
+.b-tuile { border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--fond-carte); padding: .7rem .9rem; display: grid; gap: .15rem; }
+.b-tuile-titre { font-size: .8rem; color: var(--encre-douce); }
+.b-tuile-nombre { font-size: 1.6rem; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+/* Le choix de l'exercice reste sous la main pendant qu'on descend la liste. */
+.b-choix {
+  position: sticky; top: 0; z-index: 4; display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; align-items: center;
+  margin: 1.4rem 0 .4rem; padding: .5rem .8rem; border: 1px solid var(--trait); border-radius: var(--rayon);
+  background: var(--fond-carte); font-size: .9rem;
+}
+.b-choix legend { float: left; margin-right: .4rem; padding: 0; font-weight: 600; }
+.b-choix label { cursor: pointer; white-space: nowrap; }
+.b-choix input { accent-color: var(--accent); }
+.b-liste { list-style: none; margin: .3rem 0; padding: 0; display: flex; flex-direction: column; }
+/* Chaque liste se range selon l'exercice choisi (les rangs sont calculés au build). */
+.b-liste > li { order: var(--o1); }
+.b-vue:has(#b-col-0:checked) .b-liste > li { order: var(--o0); }
+.b-vue:has(#b-col-2:checked) .b-liste > li { order: var(--o2); }
+.b-ligne { scroll-margin-top: 4.5rem; }
+.b-ligne > summary, .b-action {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: .8rem; row-gap: .25rem; align-items: baseline;
+  padding: .45rem .2rem .5rem; border-bottom: 1px solid var(--trait);
+}
+.b-ligne > summary { cursor: pointer; list-style: none; }
+.b-ligne > summary::-webkit-details-marker { display: none; }
+.b-ligne > summary .b-nom::before { content: '▸'; display: inline-block; width: 1.1em; color: var(--encre-tres-douce); transition: transform var(--transition); }
+.b-ligne[open] > summary .b-nom::before { transform: rotate(90deg); }
+.b-ligne > summary:hover { background: var(--fond-doux); }
+.b-ligne > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.b-mission > summary .b-nom { font-weight: 600; }
+.b-numero { color: var(--encre-douce); font-size: .8rem; font-weight: 400; }
+.b-action { font-size: .88rem; padding-left: 1.1em; }
+.b-montant { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; text-align: right; }
+.b-action .b-montant { font-weight: 500; }
+/* La barre : une seule teinte, une seule échelle pour toute la page. Le trait
+   de fond dit où serait la plus grosse ligne ; l'extrémité arrondie, côté
+   valeur, reste ancrée à gauche. */
+.b-barre { grid-column: 1 / -1; display: block; height: 8px; border-radius: 0 4px 4px 0; background: var(--fond-doux); }
+.b-action .b-barre { height: 5px; }
+.b-barre i { display: block; height: 100%; width: var(--l1); min-width: 0; border-radius: 0 4px 4px 0; background: var(--barre-budget); transition: width var(--transition); }
+.b-detail { padding: .3rem 0 .8rem 1.1em; }
+.b-detail > .v-nature, .b-texte { display: block; margin: .3rem 0 .4rem; max-width: var(--mesure); }
+.b-texte { font-size: .92rem; }
+.b-sources li { margin-bottom: .4rem; }
+/* Un seul exercice à la fois. Sans :has(), la page montre le voté 2025. */
+.b-montant > span { display: none; }
+.b-montant > .b-c1 { display: inline; }
+.b-tuile { opacity: .6; }
+.b-tuile-1 { opacity: 1; border-color: var(--trait-fort); }
+.b-vue:has(#b-col-0:checked) .b-montant > .b-c1,
+.b-vue:has(#b-col-2:checked) .b-montant > .b-c1 { display: none; }
+.b-vue:has(#b-col-0:checked) .b-montant > .b-c0,
+.b-vue:has(#b-col-2:checked) .b-montant > .b-c2 { display: inline; }
+.b-vue:has(#b-col-0:checked) .b-barre i { width: var(--l0); }
+.b-vue:has(#b-col-2:checked) .b-barre i { width: var(--l2); }
+.b-vue:has(#b-col-0:checked) .b-tuile-1,
+.b-vue:has(#b-col-2:checked) .b-tuile-1 { opacity: .6; border-color: var(--trait); }
+.b-vue:has(#b-col-0:checked) .b-tuile-0,
+.b-vue:has(#b-col-2:checked) .b-tuile-2 { opacity: 1; border-color: var(--trait-fort); }
+@media (prefers-reduced-motion: reduce) { .b-barre i, .b-ligne > summary .b-nom::before { transition: none; } }
+@media (forced-colors: active) { .b-barre i { background: CanvasText; } .b-barre { border: 1px solid CanvasText; } }
+
+
+/* Un recoupement entre deux registres : discret, et qui dit son champ au survol. */
+.c-recoupement { font-size: .92em; }
+.c-recoupement a { color: var(--encre-douce); text-decoration-style: dotted; }
+.p-rapprochements { margin: .3rem 0 .2rem; padding-left: 1.1rem; font-size: .78rem; line-height: 1.45; color: var(--encre-douce); }
+.p-rapprochements li { margin-bottom: .2rem; }

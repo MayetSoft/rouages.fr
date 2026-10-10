@@ -475,6 +475,67 @@ et le module de l'ASP renvoie à l'identification. Il faut l'adresse du
 fichier national, relevée depuis une autre machine, pour écrire la collecte ;
 la première ingestion dira si les machines de GitHub le joignent.
 
+### Les recoupements (9 octobre 2026)
+
+Le mainteneur veut le plus de recoupements possible, pour la transparence.
+Un recoupement rapproche deux registres publics ; le site montre la
+coïncidence, dit sur quel champ elle repose, et n'en conclut rien.
+
+**Ceux qui reposent sur un identifiant, en place :**
+
+- **Un titulaire de marché inscrit au répertoire des représentants
+  d'intérêts** de la HATVP. Champ : le SIREN, que les données essentielles
+  des marchés et le répertoire publient l'un et l'autre. Le titulaire porte
+  la mention « inscrit au répertoire des représentants d'intérêts », avec
+  le lien vers sa fiche ; une note sous les marchés dit que l'inscription
+  signifie qu'il déclare chercher à influencer la décision publique,
+  quelque part, et non qu'il l'a fait auprès de cet acheteur. Ce sont des
+  personnes morales, ou des indépendants qui se sont inscrits eux-mêmes.
+- **Un bénéficiaire de subvention qui est aussi titulaire d'un marché de
+  la même collectivité.** Champ : le SIREN tiré du SIRET que la convention
+  déclare (`idBeneficiaire`, schéma national des subventions), comparé aux
+  titulaires des marchés publiés de cette collectivité. Les bénéficiaires
+  nommés sont déjà des associations, jamais des personnes : la collecte
+  écarte un intitulé qui nomme quelqu'un.
+
+**Celui qui repose sur un nom — décision du 10 octobre 2026 :** le
+mainteneur a validé la méthode proposée le 9 octobre ; elle est en place
+(`src/modele/recoupements.ts`).
+
+- **Un titulaire de marché qui porte le même nom qu'une société ou un
+  organisme de la déclaration d'intérêts d'un élu** de la collectivité qui a
+  passé le marché. La HATVP publie le nom, pas le SIREN : le rapprochement
+  se fait par le nom plié (casse, accents, ponctuation, formes juridiques
+  retirées), et seulement à l'identique. C'est un recoupement fragile —
+  deux sociétés peuvent porter le même nom, une société change de nom, une
+  filiale n'est pas sa maison mère, une déclaration peut dater d'avant ou
+  d'après le marché — et il touche une personne nommée, l'élu. D'où :
+  1. **seulement les marchés des collectivités où l'élu siège** : sa
+     commune ; son intercommunalité quand le répertoire des élus lui donne
+     un siège au conseil communautaire ; le département ou la région dont il
+     est conseiller. Pas les parlementaires, qui ne siègent dans aucune ;
+  2. **seulement les rubriques qui parlent de lui** : activités
+     professionnelles et de conseil, organes dirigeants, participations
+     financières. Ni l'employeur du conjoint, ni celui d'un collaborateur —
+     ce sont d'autres personnes —, ni les fonctions bénévoles ;
+  3. **affiché sous l'élu et sous le marché**, avec la phrase « même nom
+     que l'organisme déclaré par … dans sa déclaration d'intérêts du … —
+     rapprochement par le nom seul, que la HATVP ne double d'aucun numéro »,
+     le lien vers la déclaration et celui vers la fiche du titulaire ;
+  4. **rien de plus** — ni conflit d'intérêts, ni participation au vote : le
+     site ne sait pas si l'élu a pris part à la décision, et le dit ;
+  5. **un faux rapprochement signalé est retiré** au build suivant : la page
+     nominative de l'élu et le SIREN du titulaire, sous `rapprochements`
+     dans `retraits.yaml`. Un acheteur déclaré titulaire de son propre
+     marché, erreur de saisie, n'est jamais rapproché.
+
+  Au 10 octobre 2026, sur les données de la réingestion du 9 : 3
+  rapprochements sur des marchés de communes, 7 d'intercommunalités, une
+  trentaine de départements. La plupart sont des sociétés publiques locales,
+  des syndicats ou des associations où l'élu siège au titre de sa
+  collectivité, et des participations dans de grands groupes (ENGIE,
+  Orange) : la mention le dit tel quel, sans les trier.
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans

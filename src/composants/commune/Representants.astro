@@ -14,6 +14,14 @@ const { r } = Astro.props;
 const FICHE = 'https://www.hatvp.fr/fiche-organisation/?organisation=';
 const jour = (iso: string) =>
   iso ? new Date(iso).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : null;
+/**
+ * Au-delà, les organisations sont seulement nommées, avec leur fiche : Paris
+ * en compte près de mille huit cents, et leur description complète pesait à
+ * elle seule près d'un mégaoctet de page.
+ */
+const DECRITES = 30;
+const decrites = r.liste.slice(0, DECRITES);
+const autres = r.liste.slice(DECRITES);
 const minuscule = (f: string) => (f === f.toUpperCase() ? f.toLowerCase() : f.charAt(0).toLowerCase() + f.slice(1));
 ---
 <p class="p-strate">
@@ -22,7 +30,7 @@ const minuscule = (f: string) => (f === f.toUpperCase() ? f.toLowerCase() : f.ch
     'chercher à influencer la décision publique, auprès de qui que ce soit, ici ou ailleurs.'}
 </p>
 <ul class="p-representants">
-  {r.liste.map((o) => (
+  {decrites.map((o) => (
     <li class="p-risque-plan">
       <span class="p-risque-nom"><a href={FICHE + encodeURIComponent(o.id)} target="_blank" rel="noopener">{o.nom}</a></span>
       <span class="p-risque-detail">
@@ -37,6 +45,16 @@ const minuscule = (f: string) => (f === f.toUpperCase() ? f.toLowerCase() : f.ch
     </li>
   ))}
 </ul>
+{autres.length > 0 && (
+  <details class="p-adjoints">
+    <summary>{`Les ${autres.length.toLocaleString('fr-FR')} autres, nommées avec leur fiche`}</summary>
+    <ul class="c-representants-courts">
+      {autres.map((o) => (
+        <li><a href={FICHE + encodeURIComponent(o.id)} target="_blank" rel="noopener">{o.nom}</a></li>
+      ))}
+    </ul>
+  </details>
+)}
 <p class="p-source-territoire">
   {`D’après le répertoire des représentants d’intérêts de la HATVP (${r.maj}), sous licence ouverte. ` +
     'Chaque organisation y déclare elle-même son adresse et ses dirigeants, et le site les reprend tels quels, ' +

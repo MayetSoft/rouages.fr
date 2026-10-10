@@ -15,6 +15,9 @@
  */
 import type { AcheteurMarches } from '../../modele/fiche-commune.ts';
 import Glose from '../Glose.astro';
+import Representant from './Representant.astro';
+import RapprochementNom from './RapprochementNom.astro';
+import type { Rapprochement } from '../../modele/recoupements.ts';
 import { moisAnnee, montantCourt } from '../../vues/graphiques.ts';
 import { procedureAffichee } from '../../vues/sigles-marches.ts';
 import { detailMarcheHtml } from '../../vues/detail-marche.ts';
@@ -25,8 +28,10 @@ interface Props {
   /** Premier et dernier mois de la fenêtre des échéances (AAAA-MM). */
   fenetre: [string, string] | null;
   procedures: string[];
+  /** Les rapprochements par le nom avec les déclarations d'intérêts des élus, par « acheteur|SIREN ». */
+  rapprochements?: Map<string, Rapprochement[]>;
 }
-const { liste, depuis, fenetre, procedures } = Astro.props;
+const { liste, depuis, fenetre, procedures, rapprochements = new Map<string, Rapprochement[]>() } = Astro.props;
 /** La fiche publique d'une entreprise, sur l'annuaire de l'État. */
 const FICHE = 'https://annuaire-entreprises.data.gouv.fr/entreprise/';
 /**
@@ -101,7 +106,10 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
               <span class="p-marche-detail p-marche-titulaires">
                 <span class="visuellement-cache">titulaire : </span><span aria-hidden="true">→ </span>
                 {m.titulaires.map((t, i) => (
-                  <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                  <>
+                    {i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a>{t.representant && <Representant siren={t.siren} />}
+                    {rapprochements.get(`${sirenDe.get(m.acheteur)}|${t.siren}`) && <RapprochementNom r={rapprochements.get(`${sirenDe.get(m.acheteur)}|${t.siren}`)!} />}
+                  </>
                 ))}
                 {autres(m) && ` ${autres(m)}`}
               </span>
@@ -114,6 +122,25 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
       ))}
     </ul>
   </div>
+)}
+{liste.some((a) => a.liste.some((m) => m.titulaires.some((t) => t.representant))) && (
+  <p class="mesure">
+    Un titulaire marqué « inscrit au répertoire des représentants d’intérêts » y figure sous le même numéro SIREN&nbsp;:
+    le rapprochement repose sur ce seul champ, que les deux registres publient. L’inscription dit que l’organisation
+    déclare chercher à influencer la décision publique, quelque part, auprès de quelqu’un&nbsp;; elle ne dit pas
+    qu’elle l’a fait auprès de cet acheteur, et le site non plus. Seuls les marchés de cette page portent la mention.
+  </p>
+)}
+{[...rapprochements.keys()].some((k) => liste.some((a) => k.startsWith(`${a.siren}|`))) && (
+  <p class="mesure">
+    Un titulaire marqué «&nbsp;même nom que l’organisme déclaré par…&nbsp;» porte le nom d’une société ou d’un organisme
+    qu’un élu de cet acheteur a inscrit dans sa déclaration d’intérêts à la HATVP — une activité, un organe dirigeant
+    où il siège, une participation financière. Le rapprochement repose sur le nom seul, plié et comparé à l’identique&nbsp;:
+    la HATVP ne publie pas de numéro SIREN, deux sociétés peuvent porter le même nom, et une déclaration peut dater
+    d’avant ou d’après le marché. Il ne dit ni conflit d’intérêts ni participation à la décision&nbsp;: le site ne sait
+    pas si l’élu a pris part au choix du titulaire. La mention suit le titulaire dans tous les marchés de l’acheteur,
+    y compris ceux qu’on fait apparaître avec «&nbsp;Voir les autres&nbsp;». Un faux rapprochement se signale, et il est retiré.
+  </p>
 )}
 <p class="p-strate">
   {`Marchés notifiés depuis ${(depuis ?? '').slice(0, 4)}, du plus récent au plus ancien. Les ` +
@@ -149,7 +176,10 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
                 <span class="p-marche-detail p-marche-titulaires">
                   <span class="visuellement-cache">titulaire : </span><span aria-hidden="true">→ </span>
                   {m.titulaires.map((t, i) => (
-                    <>{i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a></>
+                    <>
+                      {i > 0 && ', '}<a href={FICHE + t.siren} target="_blank" rel="noopener">{t.nom}</a>{t.representant && <Representant siren={t.siren} />}
+                      {rapprochements.get(`${a.siren}|${t.siren}`) && <RapprochementNom r={rapprochements.get(`${a.siren}|${t.siren}`)!} />}
+                    </>
                   ))}
                   {autres(m) && `${m.titulaires.length > 0 ? ' ' : ''}${autres(m)}`}
                 </span>
@@ -191,6 +221,14 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
     'entrepreneur individuel seulement si le répertoire le dit diffusible ; un titulaire hors de France ou ' +
     'inconnu du répertoire est compté, pas nommé. Une demande de retrait s’adresse à l’éditeur (voir « Signaler »).'}
 </p>
+<script is:inline type="application/json" id="marches-rapprochements" set:html={JSON.stringify(
+  Object.fromEntries(
+    [...rapprochements].map(([k, l]) => [
+      k,
+      l.map((x) => ({ e: x.elu, r: x.rubrique, p: x.page, d: new Date(x.depot).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) })),
+    ]),
+  ),
+).replace(/</g, "\\u003c")} />
 <script is:inline type="application/json" id="marches-procedures" set:html={JSON.stringify(procedures).replace(/</g, "\\u003c")} />
 <script>
   import { procedureAffichee } from '../../vues/sigles-marches.ts';
@@ -203,6 +241,25 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
    */
   const PAS = 25;
   const procedures: string[] = JSON.parse(document.getElementById('marches-procedures')?.textContent ?? '[]');
+  /** Les rapprochements par le nom, par « acheteur|SIREN » : la même mention que sur les lignes écrites au build. */
+  const rapprochements: Record<string, { e: string; r: string; p: string; d: string }[]> = JSON.parse(
+    document.getElementById('marches-rapprochements')?.textContent ?? '{}',
+  );
+  const mentionRapprochement = (l: { e: string; r: string; p: string; d: string }[]) => {
+    const m = span('c-recoupement', ' · même nom que l’organisme déclaré par ');
+    l.forEach((x, i) => {
+      if (i > 0) m.append(i === l.length - 1 ? ' et par ' : ', par ');
+      m.append(`${x.e} (${x.r}) dans `);
+      const a = document.createElement('a');
+      a.href = x.p;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = `sa déclaration d’intérêts du ${x.d}`;
+      m.append(a);
+    });
+    m.append(' — rapprochement par le nom seul, que la HATVP ne double d’aucun numéro');
+    return m;
+  };
   const moisAnnee = (iso: string) => {
     const d = new Date(iso);
     return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
@@ -249,7 +306,9 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         detail.append(abbr);
       }
     });
-    droite.append(span('p-marche-objet', m.objet), detail);
+    // Certains objets arrivent avec des entités HTML (« d&#8217;électricité ») : on les rend en clair.
+    const objet = m.objet.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+    droite.append(span('p-marche-objet', objet), detail);
     if ((m.t ?? []).length > 0 || m.tx) {
       const t = span('p-marche-detail p-marche-titulaires', '');
       t.append(span('visuellement-cache', 'titulaire : '));
@@ -264,6 +323,8 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         a.rel = 'noopener';
         a.textContent = nom;
         t.append(a);
+        const r = rapprochements[`${acheteur.siren}|${siren}`];
+        if (r) t.append(mentionRapprochement(r));
       });
       if (m.tx) t.append(`${(m.t ?? []).length > 0 ? ' et ' : ''}${m.tx} titulaire${m.tx > 1 ? 's' : ''} non nommé${m.tx > 1 ? 's' : ''}`);
       droite.append(t);

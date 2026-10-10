@@ -187,6 +187,14 @@ Ce qui est autorisé à ce jour :
   relations entre le public et l'administration). **Jamais une déclaration de
   patrimoine d'élu local** : la loi ne la rend pas publique, et sa divulgation
   est un délit (article 26 de la loi du 11 octobre 2013) ;
+- **le rapprochement par le nom** entre la déclaration d'intérêts d'un élu
+  et les titulaires des marchés des collectivités où il siège — décision du
+  10 octobre 2026 : activités, organes dirigeants et participations
+  financières de l'élu, jamais celles du conjoint ni d'un collaborateur ; le
+  nom plié, comparé à l'identique ; affiché sous l'élu et sous le marché,
+  avec la phrase qui dit qu'il repose sur le nom seul et ne dit pas si l'élu
+  a pris part à la décision. Retrait par la page nominative et le SIREN,
+  sous `rapprochements` dans `retraits.yaml`. Voir `docs/07-risques.md` ;
 - **les bénéficiaires des aides de la PAC** (FEAGA et FEADER), d'après la
   liste que le ministère de l'Agriculture publie en application de l'article
   98 du règlement (UE) 2021/2116 — décision du 8 octobre 2026 : la

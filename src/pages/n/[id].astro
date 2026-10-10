@@ -9,6 +9,7 @@ import Glose from '../../composants/Glose.astro';
 import { chronologie } from '../../vues/chronologie.ts';
 import { fenetresAction } from '../../vues/fenetres-action.ts';
 import { urlSignaler } from '../../modele/signalement.ts';
+import { lignesDuBudget, montantBudget } from '../../modele/budget-etat.ts';
 
 export function getStaticPaths() {
   return construireReseau().noeuds.map((n) => ({ params: { id: n.id }, props: { noeud: n } }));
@@ -41,6 +42,9 @@ const groupes = ORDRE_LIENS.map((type) => ({
   type,
   liste: noeud.liens.filter((l) => l.type === type),
 })).filter((gr) => gr.liste.length > 0);
+
+// Ce que le budget de l'État lui consacre, quand une ligne le nomme.
+const budget = lignesDuBudget(noeud.id);
 ---
 
 <Base titre={noeud.nom} description={noeud.resume || noeud.nom} section="fonctionnement">
@@ -125,6 +129,20 @@ const groupes = ORDRE_LIENS.map((type) => ({
         <h2 class="badge">{frise.titre}</h2>
         <div class="cadre-schema" set:html={frise.svg} />
         <details class="equivalent"><summary>Le même en tableau</summary><div set:html={frise.tableau} /></details>
+      </section>
+    )}
+
+    {budget.length > 0 && (
+      <section>
+        <h2 class="badge">Dans le budget de l’État</h2>
+        <ul class="mesure">
+          {budget.map((l) => (
+            <li>
+              <a href={`/argent-public#${l.ancre}`}>{l.libelle}</a>{' '}
+              <span class="v-nature">{`${montantBudget(l.v[1])} votés pour 2025 · ${montantBudget(l.v[0])} dépensés en 2024 · ${montantBudget(l.v[2])} proposés pour 2026`}</span>
+            </li>
+          ))}
+        </ul>
       </section>
     )}
 

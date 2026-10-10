@@ -24,6 +24,7 @@ import { carteDeCommunes } from '../modele/carte.ts';
 import Investissement from './commune/Investissement.astro';
 import PetiteEnfance from './commune/PetiteEnfance.astro';
 import ElusCollectivite from './ElusCollectivite.astro';
+import { parTitulaire, rapprocher, type Rapprochement } from '../modele/recoupements.ts';
 import Marches from './commune/Marches.astro';
 import { elusDeCollectivite } from '../modele/elus-echelons.ts';
 
@@ -97,6 +98,21 @@ const petiteEnfance = partage || c.code === '67A' ? null : petiteEnfanceCollecti
 const codeRegion = c.echelon === 'departement' ? meta?.codesRegion?.[deps[0]] : undefined;
 const nomRegion = c.echelon === 'departement' ? meta?.regions?.[deps[0]] : undefined;
 
+
+// Le rapprochement par le nom (`src/modele/recoupements.ts`) : les marchés de
+// la collectivité, pour les conseillers qui y siègent — pas les parlementaires.
+const acheteur = marches?.liste[0];
+const rapprochementsParElu = new Map<string, Rapprochement[]>();
+if (elus && acheteur) {
+  for (const x of [...elus.executif, ...elus.groupes.flatMap((g) => g.elus)]) {
+    if (!x.declaration || rapprochementsParElu.has(x.declaration.page)) continue;
+    const r = rapprocher({ elu: x.nom, page: x.declaration.page, contenu: x.declaration.contenu }, [
+      { siren: acheteur.siren, nom: acheteur.nom, dep: deps[0] ?? '' },
+    ]);
+    if (r.length) rapprochementsParElu.set(x.declaration.page, r);
+  }
+}
+const rapprochementsMarches = parTitulaire([...rapprochementsParElu.values()].flat());
 const unique = c.echelon === 'region' && COLLECTIVITES_UNIQUES.has(c.code);
 const badge = c.echelon === 'departement' ? 'Département' : unique ? 'Collectivité unique' : 'Région';
 const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (région)'}`;
@@ -175,7 +191,7 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
     {marches && (
       <section id="marches" class="p-marches">
         <h2 class="badge">Ses marchés publics</h2>
-        <Marches liste={marches.liste} depuis={marches.depuis} fenetre={marches.fenetre} procedures={marches.procedures} />
+        <Marches liste={marches.liste} depuis={marches.depuis} fenetre={marches.fenetre} procedures={marches.procedures} rapprochements={rapprochementsMarches} />
       </section>
     )}
     {zonages && (
@@ -193,7 +209,7 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
     {elus && (
       <section id="elus" class="p-echelons">
         <h2 class="badge">Ses élus</h2>
-        <ElusCollectivite e={elus} nomsDeps={nomsDeps} />
+        <ElusCollectivite e={elus} nomsDeps={nomsDeps} rapprochements={rapprochementsParElu} />
       </section>
     )}
     {intercos.length > 0 && (
