@@ -4153,8 +4153,21 @@ la maison, mesurés ensemble. Justification dans `docs/07-risques.md`. Au
 Mayet-de-Montagne, une maison F vaut −9 % par rapport à la maison ordinaire
 de la commune, où les étiquettes basses sont nombreuses.
 
-**La suite** : la collecte des DPE pour toute la France, l'effet mesuré par
-région, un index spatial pour les grandes villes, dans la remise à plat de
-l'ingestion ; une vraie mesure de la précision des terrains ; d'autres
+**Le DPE pour toute la France, mesuré par région (11 octobre 2026).** Les
+DPE des maisons de tous les départements — 4,58 millions, 547 Mo en cache,
+une vingtaine de minutes à trois départements à la fois — sont collectés par
+l'ingestion avant l'estimation. L'effet de l'étiquette est mesuré région par
+région, sur 25 000 à 80 000 ventes rapprochées chacune. Il est plus faible
+que sur l'Allier seul : par rapport à D, F de −8 % (Île-de-France) à −22 %
+(Hauts-de-France), G de −12 % à −30 % ; l'écart médian passe de 17-22 % à
+15-19 % sur les ventes rapprochées. En Île-de-France, l'emplacement écrase
+l'étiquette. La Corse et les départements d'outre-mer n'ont pas assez de
+ventes rapprochées (moins de cinq cents) : pas d'étiquette proposée. Au
+Mayet-de-Montagne, une maison F vaut −5 % par rapport à la maison ordinaire
+de la commune. Le rapprochement ne regarde que les DPE de la bande de
+latitude de la vente : les 17 minutes de la collecte DVF, estimation et
+mesure régionale comprises, tiennent sur la France entière.
+
+**La suite** : une vraie mesure de la précision des terrains ; d'autres
 simulateurs. La vente par une agence ou de particulier à particulier ne se
 mesure pas : aucune donnée publique ne le dit, DVF pas davantage.
