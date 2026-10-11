@@ -13,7 +13,7 @@ import { collectivites, lienCollectivite } from '../modele/fiche-commune.ts';
 
 export const GET: APIRoute = ({ site }) => {
   const base = site?.href.replace(/\/$/, '') ?? 'https://rouages.fr';
-  const fixes = ['/', '/fonctionnement', '/chez-moi', '/etat', '/glossaire', '/methode', '/signaler', '/communes', '/comparer', '/le-plus-proche', '/trouver-des-communes', '/argent-public', '/jeux', '/jeux/qui-decide', '/jeux/commune-mystere', '/jeux/plus-ou-moins', '/jeux/ordre', '/jeux/argent'];
+  const fixes = ['/', '/fonctionnement', '/chez-moi', '/etat', '/glossaire', '/methode', '/signaler', '/communes', '/comparer', '/le-plus-proche', '/trouver-des-communes', '/argent-public', '/jeux', '/jeux/qui-decide', '/jeux/commune-mystere', '/jeux/plus-ou-moins', '/jeux/ordre', '/jeux/argent', '/simulateurs', '/simulateurs/estimation'];
   // Une liste par département : c'est par elles qu'un moteur suit le chemin
   // jusqu'aux communes, en plus de leurs propres plans.
   const departements = [...new Set(communes().map((c) => c.dep))].map((d) => `/communes/${d}`);

@@ -4085,3 +4085,47 @@ proposé), ou les statistiques de trafic du service placé devant le site.
 Ce qui se compte ainsi : les pages vues par jeu et la fréquentation de
 `/jeux/*.json`, qui dit combien de parties commencent. À vérifier auprès de
 l'hébergeur avant d'en promettre quoi que ce soit dans `/mentions`.
+
+### Une section « Simulateurs » : estimer un bien ou un terrain (11 octobre 2026)
+
+Demandée par le mainteneur, avec sa méthode : un bien vaut la somme de ses
+parts — l'habitable, le terrain constructible, les terres, les bois, les
+locaux d'activité comptés pour une part de l'habitable — et un modificateur
+pour l'état. Une entrée au menu, une porte sur l'accueil, `/simulateurs`,
+et un premier simulateur, `/simulateurs/estimation`.
+
+**Les prix de chaque part** sont mesurés sur les ventes DVF des trois
+dernières années, à la collecte (`scripts/estimation-emettre.ts`, appelé par
+`dvf-emettre.ts`), par commune avec ses voisines jusqu'à cent ventes de
+maisons et quinze de chaque terrain (trois anneaux au plus, voisines
+d'après les contours de l'ingestion précédente) :
+
+- terres et bois : médianes à l'hectare des terrains nus d'une seule nature,
+  les terres par taille (moins d'un demi-hectare, jusqu'à deux, au-delà) —
+  un petit pré se vend bien plus cher à l'hectare qu'un grand ;
+- terrain constructible vendu seul : médiane au m² ;
+- habitable et terrain de la maison : régression robuste (Huber), sans
+  constante, sur prix − terres − bois ;
+- locaux d'activité : un quart de l'habitable, l'hypothèse du mainteneur —
+  DVF n'en vend pas assez et ne donne aucune surface pour les dépendances ;
+- l'état : un curseur au jugement de qui estime, de −40 % à +40 % sur le
+  bâti ; aucun pourcentage n'est attribué à un état, les ventes ne le
+  disent pas.
+
+**La précision** est mesurée par validation croisée en cinq parts sur les
+ventes de maisons du voisinage : écart médian et quartiles du rapport prix /
+estimation, qui font la fourchette affichée. Au Mayet-de-Montagne, avec ses
+voisines (183 maisons) : 481 €/m² habitable, 34,8 €/m² de terrain de
+maison, 13,8 €/m² de terrain seul, terres 2 013 €/ha entre un demi et deux
+hectares, bois 2 887 €/ha, écart médian 40 %. Pour comparaison, les chiffres
+que le mainteneur avait établis à la main il y a quelques années : 370 €/m²
+habitable, 19 €/m² constructible, environ 3 000 €/ha de terres ou de bois.
+
+Les départements que DVF ne couvre pas (Alsace, Moselle, Mayotte) n'ont pas
+d'estimation, plutôt que celle de leurs voisins. Les fichiers
+(`territoires/simulateurs/estimation/XX.json`, 2,8 Mo pour la France) ne
+contiennent que des prix agrégés, aucune vente.
+
+**La suite possible** : étalonner l'état avec les diagnostics de performance
+énergétique (`dep/XX-dpe.json`) ; une vraie mesure de la précision des
+terrains ; d'autres simulateurs.

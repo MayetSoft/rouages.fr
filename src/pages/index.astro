@@ -6,7 +6,7 @@
  * peur : des centaines de nœuds avant d'avoir compris à quoi ils servaient.
  * Elle est passée dans « Fonctionnement » ; ici, on explique, puis on propose
  * une porte par section — son territoire, la mécanique d'ensemble, l'argent
- * de l'État, les jeux.
+ * de l'État, les jeux, les simulateurs.
  */
 import Base from '../layouts/Base.astro';
 import ChampTerritoire from '../composants/ChampTerritoire.astro';
@@ -70,6 +70,13 @@ const exemple = !filtre || filtre.length === 0 || filtre.includes('03');
         <span>
           Qui décide dans votre commune, la commune mystère, le prix d’une vraie vente… Un défi par jour, le même pour
           tout le monde, sur les données de votre territoire.
+        </span>
+      </a>
+      <a class="accueil-porte" href="/simulateurs">
+        <span class="accueil-porte-titre">Simulateurs</span>
+        <span>
+          Ce que vaut une maison, un terrain, un pré près de chez vous&nbsp;: une estimation poste par poste, d’après
+          les ventes réelles, avec sa précision mesurée.
         </span>
       </a>
     </div>
