@@ -1163,6 +1163,26 @@ a.p-sommaire-lien { text-decoration: none; }
 .comparer-colonne { min-width: 0; }
 .comparer-colonne h3 { font-size: 1rem; margin: 0 0 .5rem; }
 
+/* --- trouver des communes --- */
+.rq-filtres { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .8rem 1rem; margin: 1.2rem 0; }
+.rq-bloc { border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--fond-carte); padding: .6rem .9rem .8rem; margin: 0; min-width: 0; }
+.rq-bloc-large { grid-column: 1 / -1; }
+.rq-bloc legend { font-weight: 600; padding: 0 .3rem; }
+.rq-bloc label { display: inline-flex; align-items: center; gap: .4rem; margin-right: .8rem; }
+.rq-bloc input, .rq-bloc select { font: inherit; padding: .35rem .5rem; border: 1px solid var(--trait-fort); border-radius: 4px; background: var(--fond); color: var(--encre); max-width: 100%; }
+.rq-bloc input[type='number'] { width: 7rem; }
+.rq-criteres { list-style: none; margin: 0 0 .5rem; padding: 0; display: grid; gap: .4rem; }
+.rq-criteres:empty { display: none; }
+.rq-critere { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.rq-critere input[type='number'] { width: 4.5rem; }
+.rq-critere-nom { font-weight: 600; }
+.rq-csv { display: inline-block; margin: 0 0 .6rem; }
+.rq-cadre { overflow-x: auto; }
+.rq-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.rq-table th, .rq-table td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--trait); vertical-align: top; }
+.rq-table th { font-size: .8rem; color: var(--encre-douce); font-weight: 600; }
+.rq-nombre { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 /* --- le plus proche --- */
 .pp-choix { display: grid; gap: 1rem; margin: 1.2rem 0; }
 .pp-choix select { width: 100%; font: inherit; padding: .45rem .6rem; border: 1px solid var(--trait-fort); border-radius: 4px; background: var(--fond-carte); color: var(--encre); }
