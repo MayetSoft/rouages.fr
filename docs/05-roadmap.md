@@ -3987,7 +3987,7 @@ pages du site. Ils sont indexables, au contraire du jeu des prix.
   l'Annuaire des entreprises, l'avis de situation SIRENE, Data INPI, VIES pour
   la TVA intracommunautaire, le BODACC, la Base adresse nationale.
 
-**Proposé, pas commencé :**
+**Proposé, puis fait le 11 octobre (voir plus bas) :**
 
 - **Un requêteur** : choisir des critères (moins de N habitants, un club de
   football, une école, une commune soumise à la loi SRU…) et obtenir la
@@ -4022,3 +4022,23 @@ associations de chaque commune.
   l'API ; `/mentions` le dit.
 - **L'annuaire RGE** de France Rénov' rejoint les outils pour vérifier une
   entreprise.
+
+### Trouver des communes : le requêteur (11 octobre 2026)
+
+Une page `/trouver-des-communes` : des critères qu'on combine, et la liste
+des communes qui y répondent toutes, de la plus peuplée à la moins peuplée,
+avec un export CSV et une adresse qui garde la recherche.
+
+- **Les critères demandés par le mainteneur** : la population (de… à…), et
+  « au moins N » ou « aucun » pour les équipements sportifs (12 types), les
+  écoles (maternelle, élémentaire, primaire, collège) et la santé (13 types,
+  de la maison de santé à la pharmacie), d'après la base permanente des
+  équipements. S'y ajoutent le département, les autres types de la base et
+  les domaines d'associations, déjà prêts.
+- **Rien de nouveau à collecter ni à calculer** : la page lit l'index des
+  communes et les fichiers de `proximite/` — un par critère choisi.
+- La page dit ce que la liste ne dit pas : un terrain n'est pas un club, une
+  école se compte sous trois noms, un médecin compté n'est pas un rendez-vous.
+- Vérifié contre un calcul indépendant : dans l'Allier, 26 communes de 500
+  habitants au plus ont une école primaire et pas de pharmacie, 18 avec un
+  terrain de grands jeux.

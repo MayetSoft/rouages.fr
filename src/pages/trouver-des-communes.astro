@@ -1,0 +1,75 @@
+---
+/**
+ * Trouver des communes : des critères qu'on combine, et la liste de celles
+ * qui y répondent. Tout se passe dans le navigateur : voir
+ * `src/client/requeteur.ts`.
+ */
+import Base from '../layouts/Base.astro';
+---
+<Base
+  titre="Trouver des communes"
+  description="Les communes qui répondent à vos critères : une population, un département, des équipements sportifs, des écoles, des services de santé, des associations."
+  section="chez-moi"
+>
+  <div class="page page--comparer">
+    <p class="badge">Données de chez moi</p>
+    <h1>Trouver des communes</h1>
+    <p class="resume">
+      Les villages de moins de 500 habitants qui ont encore une école, les communes avec une piscine et un médecin,
+      celles qui n’ont pas de pharmacie&nbsp;: des critères qu’on combine, et la liste des communes qui y répondent
+      toutes. Rien n’est recalculé&nbsp;: ce sont les chiffres publiés sur leurs pages.
+    </p>
+
+    <div class="rq-filtres">
+      <fieldset class="rq-bloc">
+        <legend>Population</legend>
+        <label>de <input id="rq-pmin" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
+        <label>à <input id="rq-pmax" type="number" min="0" step="1" inputmode="numeric" placeholder="sans limite" /> habitants</label>
+      </fieldset>
+      <fieldset class="rq-bloc">
+        <legend>Département</legend>
+        <label class="visuellement-cache" for="rq-dep">Département</label>
+        <select id="rq-dep"><option value="">Toute la France</option></select>
+      </fieldset>
+      <fieldset class="rq-bloc rq-bloc-large">
+        <legend>Ce qu’elles ont, ou n’ont pas</legend>
+        <ul id="rq-criteres" class="rq-criteres"></ul>
+        <label class="visuellement-cache" for="rq-ajout">Ajouter un critère</label>
+        <select id="rq-ajout"><option value="">+ ajouter un critère : un équipement, une école, un service de santé…</option></select>
+      </fieldset>
+    </div>
+
+    <noscript>
+      <p class="c-vide">La recherche a besoin de JavaScript : elle se fait dans le navigateur.</p>
+    </noscript>
+    <p id="rq-etat" class="mesure" aria-live="polite"></p>
+    <div id="rq-resultats"></div>
+
+    <h2 class="badge">Ce que la liste dit, et ce qu’elle ne dit pas</h2>
+    <ul class="mesure">
+      <li>
+        <strong>Un équipement n’est pas un club.</strong> La base de l’INSEE compte des terrains, des salles, des
+        bassins&nbsp;; un club de football est une association, que le critère «&nbsp;Associations&nbsp;» cherche par
+        domaine — le répertoire ne dit pas quel sport.
+      </li>
+      <li>
+        <strong>Une école peut être comptée sous trois noms</strong>&nbsp;: maternelle, élémentaire, ou primaire quand
+        elle réunit les deux. Pour «&nbsp;une école&nbsp;», le plus sûr est de regarder les trois.
+      </li>
+      <li>
+        <strong>Un service de santé compté n’est pas un rendez-vous disponible.</strong> Un médecin installé peut ne plus
+        prendre de patients&nbsp;; la page de chaque commune dit, quand la donnée existe, l’accessibilité aux médecins
+        mesurée par la DREES.
+      </li>
+    </ul>
+    <p class="p-strate">
+      D’après l’index des communes, dont la population vient du découpage administratif publié par Etalab, la base permanente des équipements de l’INSEE et le
+      répertoire national des associations, sous Licence Ouverte. Les associations sont comptées par le premier domaine de
+      leur objet social.
+    </p>
+  </div>
+</Base>
+<script>
+  import { brancherRequeteur } from '../client/requeteur.ts';
+  brancherRequeteur();
+</script>
