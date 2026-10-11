@@ -21,6 +21,7 @@ import { investissementCollectivite, petiteEnfanceCollectivite, zonagesGroupe } 
 import ZonagesGroupe from './ZonagesGroupe.astro';
 import CarteCommunes from './CarteCommunes.astro';
 import { carteDeCommunes } from '../modele/carte.ts';
+import { thematiquesDepartement } from '../modele/carte-thematique.ts';
 import Investissement from './commune/Investissement.astro';
 import PetiteEnfance from './commune/PetiteEnfance.astro';
 import ElusCollectivite from './ElusCollectivite.astro';
@@ -85,6 +86,9 @@ const carte =
           .map((x) => ({ code: x.code, nom: x.nom, groupe: intercoDe.get(x.code) ?? '' })),
       );
 
+// Les teintes de la carte, pour un département d'un seul numéro (pas la Collectivité européenne d'Alsace).
+const thematiques = carte && deps.length === 1 ? thematiquesDepartement(deps[0], carte.communes.map((x) => x.code)) : [];
+
 // Le Rhône et la Métropole de Lyon se partagent les mêmes communes, et la CAF
 // ne publie qu'un Rhône entier : ni zonages réunis ni accueil du jeune enfant
 // sous ces deux pages, plutôt qu'un chiffre attribué à la mauvaise.
@@ -138,6 +142,7 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
         carte={carte}
         libelle={`Carte des ${carte.communes.length.toLocaleString('fr-FR')} communes de ${c.nom}, avec les limites de ses intercommunalités.`}
         legende="Chaque commune mène à sa page ; le trait fort sépare les intercommunalités."
+        thematiques={thematiques}
       />
     )}
     {c.code === '67A' && (

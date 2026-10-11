@@ -1419,6 +1419,28 @@ a.p-sommaire-lien { text-decoration: none; }
 .carte-communes-commune:focus-visible path { stroke: var(--accent); stroke-width: 2; }
 .carte-communes-limite { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
 .carte-communes figcaption { font-size: .8rem; color: var(--encre-douce); margin-top: .3rem; }
+/* La carte teintée : une seule teinte, du plus clair (moins) au plus foncé (plus). */
+.carte-communes { --cc-0: #e6f0f3; --cc-1: #b7d4de; --cc-2: #7cb0c4; --cc-3: #3d84a2; --cc-4: #1b5568; }
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light'])) .carte-communes { --cc-0: #1e2c31; --cc-1: #2a4a55; --cc-2: #3c7085; --cc-3: #5c9cb4; --cc-4: #a3d2e3; }
+}
+.cc-choix { display: flex; flex-wrap: wrap; gap: .35rem .5rem; border: 0; padding: 0; margin: 0 0 .6rem; font-size: .84rem; }
+.cc-choix label { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .7rem; border: 1px solid var(--trait); border-radius: 999px; background: var(--fond-carte); cursor: pointer; }
+.cc-choix label:has(input:checked) { border-color: var(--accent); background: var(--accent-doux); color: var(--encre); font-weight: 600; }
+.cc-choix input { accent-color: var(--accent); margin: 0; }
+.cc-teintee .carte-communes-limite { stroke: var(--encre); stroke-opacity: .55; stroke-width: 1.1; }
+.cc-teintee .carte-communes-commune path { stroke: var(--fond-carte); stroke-width: .5; }
+.carte-communes-commune.cc-q0 path, .cc-echelle .cc-q0 { fill: var(--cc-0); background: var(--cc-0); }
+.carte-communes-commune.cc-q1 path, .cc-echelle .cc-q1 { fill: var(--cc-1); background: var(--cc-1); }
+.carte-communes-commune.cc-q2 path, .cc-echelle .cc-q2 { fill: var(--cc-2); background: var(--cc-2); }
+.carte-communes-commune.cc-q3 path, .cc-echelle .cc-q3 { fill: var(--cc-3); background: var(--cc-3); }
+.carte-communes-commune.cc-q4 path, .cc-echelle .cc-q4 { fill: var(--cc-4); background: var(--cc-4); }
+.carte-communes-commune.cc-sans path { fill: var(--fond-carte); }
+.cc-teintee .carte-communes-commune:hover path { stroke: var(--encre); stroke-width: 1.5; }
+.cc-legende { margin-top: .5rem; font-size: .8rem; color: var(--encre-douce); }
+.cc-echelle { display: grid; grid-template-columns: repeat(5, 1fr); height: .7rem; border-radius: 4px; overflow: hidden; max-width: 24rem; }
+.cc-bornes { margin-top: .25rem; font-variant-numeric: tabular-nums; }
+.cc-source { margin: .25rem 0 0; color: var(--encre-tres-douce); }
 
 /* Les sites qui présentent la commune autrement. */
 .c-ailleurs ul { list-style: none; margin: .3rem 0 0; padding: 0; display: grid; gap: .5rem; max-width: var(--mesure); }
