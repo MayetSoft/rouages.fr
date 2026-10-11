@@ -4,7 +4,7 @@
  * copie. Une compétence que le registre ne permet pas de trancher ici
  * (« non renseigné ») n'entre pas, ni celle dont la fiche reste à confirmer.
  *
- * `k` : [id, nom] des compétences.
+ * `k` : [id, nom, résumé de la fiche] des compétences.
  * `s` : [siren, nom, nature, 1 si à fiscalité propre] des groupements.
  * `c` : par commune, [nom, indice de son intercommunalité à fiscalité propre
  *   ou -1, indices des autres groupements, réponses]. Une réponse est
@@ -35,7 +35,7 @@ export const GET: APIRoute = ({ params }) => {
     .noeuds.filter((n) => n.banatic && n.banatic.length > 0)
     .map((n) => ({ id: n.id, banatic: n.banatic! }))
     .filter((r) => g.competences.get(r.id)?.confiance !== 'a_confirmer');
-  const k: [string, string][] = resolubles.map((r) => [r.id, g.competences.get(r.id)?.nom ?? r.id]);
+  const k: [string, string, string][] = resolubles.map((r) => [r.id, g.competences.get(r.id)?.nom ?? r.id, g.competences.get(r.id)?.resume ?? '']);
   const indiceK = new Map(k.map(([id], i) => [id, i]));
   const s: [string, string, string, number][] = [];
   const indiceS = new Map<string, number>();

@@ -66,6 +66,68 @@ export function memoire(prefixe: string) {
   };
 }
 
+/** Les jeux, par la clé de leur historique : leur nom et leur adresse. */
+export const JEUX = {
+  qui: { nom: 'Qui décide ?', adresse: '/jeux/qui-decide' },
+  mystere: { nom: 'La commune mystère', adresse: '/jeux/commune-mystere' },
+  plus: { nom: 'Plus ou moins', adresse: '/jeux/plus-ou-moins' },
+  prix: { nom: 'À combien s’est-elle vendue ?', adresse: '/jeux/prix' },
+  ordre: { nom: 'Le bon ordre', adresse: '/jeux/ordre' },
+  argent: { nom: 'Où va l’argent ?', adresse: '/jeux/argent' },
+} as const;
+export type CleJeu = keyof typeof JEUX;
+
+/**
+ * L'historique des défis du jour, par jeu et par jour : le lieu, les cases,
+ * le score. Dans le navigateur seulement, comme le reste ; soixante jours au
+ * plus, assez pour une série et un petit relevé.
+ */
+export type Trace = { lieu: string | null; cases: Case[]; score: string };
+const HISTORIQUE = memoire('rouages-jeux');
+const GARDER = 60;
+
+export function historique(jeu: CleJeu): Record<string, Trace> {
+  return HISTORIQUE.lire<Record<string, Record<string, Trace>>>('historique')?.[jeu] ?? {};
+}
+
+export function noterResultat(jeu: CleJeu, r: Resultat): void {
+  const tout = HISTORIQUE.lire<Record<string, Record<string, Trace>>>('historique') ?? {};
+  const h = { ...(tout[jeu] ?? {}), [r.jour]: { lieu: r.lieu, cases: r.cases, score: r.score } };
+  tout[jeu] = Object.fromEntries(Object.entries(h).sort((a, b) => b[0].localeCompare(a[0])).slice(0, GARDER));
+  HISTORIQUE.ecrire('historique', tout);
+}
+
+/** Le jour d'avant, AAAA-MM-JJ, en restant sur le calendrier (midi évite les changements d'heure). */
+function veille(jour: string): string {
+  const d = new Date(`${jour}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Les jours de suite où le défi a été joué, en finissant aujourd'hui — ou hier, s'il reste à jouer. */
+export function serie(jeu: CleJeu, aujourdhui = jourDeParis()): number {
+  const h = historique(jeu);
+  let jour = h[aujourdhui] ? aujourdhui : veille(aujourdhui);
+  let n = 0;
+  while (h[jour]) {
+    n++;
+    jour = veille(jour);
+  }
+  return n;
+}
+
+/** Le temps jusqu'au prochain défi, à minuit à Paris : « 6 h 12 », « 4 min ». */
+export function avantMinuit(d = new Date()): string {
+  const [h, m, s] = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    .format(d)
+    .split(':')
+    .map(Number);
+  const reste = Math.max(60, 86_400 - (h * 3600 + m * 60 + s));
+  const heures = Math.floor(reste / 3600);
+  const minutes = Math.floor((reste % 3600) / 60);
+  return heures > 0 ? `${heures} h ${String(minutes).padStart(2, '0')}` : `${minutes} min`;
+}
+
 /** Une manche réussie, à moitié, ratée : les couleurs des cases, en emoji et en image. */
 export type Case = 'vert' | 'jaune' | 'orange' | 'rouge';
 export const EMOJI: Record<Case, string> = { vert: '🟩', jaune: '🟨', orange: '🟧', rouge: '🟥' };
@@ -142,7 +204,7 @@ export async function imageDuResultat(r: Resultat): Promise<Blob> {
  * branche ses boutons. `resultat` est relu à chaque clic : le bloc sert pour
  * toutes les parties de la page.
  */
-export function brancherPartage(prefixe: string, resultat: () => Resultat | null): (r: Resultat) => void {
+export function brancherPartage(prefixe: string, resultat: () => Resultat | null, jeu: CleJeu): (r: Resultat) => void {
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(`${prefixe}-${id}`) as T;
   const note = $('note-image');
   $('natif').hidden = typeof navigator.share !== 'function';
@@ -185,7 +247,35 @@ export function brancherPartage(prefixe: string, resultat: () => Resultat | null
       note.hidden = false;
     }
   });
+  // Le suivi : la série, les sept derniers jours, le compte à rebours.
+  let minuterie = 0;
+  const suivre = (r: Resultat) => {
+    noterResultat(jeu, r);
+    const n = serie(jeu, r.jour);
+    $('serie').textContent = n > 1 ? `${n} jours de suite` : 'Premier jour de la série';
+    const h = historique(jeu);
+    const semaine = $('semaine');
+    semaine.innerHTML = '';
+    let jour = r.jour;
+    const jours: string[] = [];
+    for (let i = 0; i < 7; i++, jour = veille(jour)) jours.unshift(jour);
+    for (const j of jours) {
+      const li = document.createElement('li');
+      const t = h[j];
+      const nom = new Date(`${j}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
+      li.className = t ? 'joue' : '';
+      li.title = t ? `${dateLongue(j)} : ${t.score}${t.lieu ? `, ${t.lieu}` : ''}` : `${dateLongue(j)} : pas joué`;
+      li.append(Object.assign(document.createElement('span'), { textContent: nom }), Object.assign(document.createElement('strong'), { textContent: t ? t.score.split(' ')[0] : '·' }));
+      semaine.append(li);
+    }
+    const rebours = () => ($('rebours').textContent = `Prochain défi dans ${avantMinuit()}`);
+    rebours();
+    clearInterval(minuterie);
+    minuterie = window.setInterval(rebours, 30_000);
+  };
+
   return (r: Resultat) => {
+    suivre(r);
     const texte = texteDuResultat(r);
     $('apercu').textContent = `${texte}\n${r.adresse}`;
     const complet = encodeURIComponent(`${texte}\n${r.adresse}`);

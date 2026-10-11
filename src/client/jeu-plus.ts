@@ -2,7 +2,7 @@
  * Plus ou moins, côté navigateur : huit duels entre deux communes du
  * périmètre, chacun sur un indicateur que leurs deux pages renseignent.
  */
-import { brancherChampLieu, resoudre, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
+import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, type Resultat } from './jeux-commun.ts';
 import { nombre, perimetre, type Communes } from './jeux-communes.ts';
 
@@ -56,7 +56,7 @@ export function brancherJeuPlus(): void {
           adresse: `${location.origin}${location.pathname}?t=${encodeURIComponent(lieu.cle)}`,
         }
       : null;
-  const remplirPartage = brancherPartage('jm', resultat);
+  const remplirPartage = brancherPartage('jm', resultat, 'plus');
 
   /** Huit duels : deux communes, un indicateur que les deux renseignent, et assez d'écart. */
   const tirer = (alea: () => number): Duel[] => {
@@ -132,7 +132,8 @@ export function brancherJeuPlus(): void {
     recap.innerHTML = '';
     for (const d of partie) {
       const li = document.createElement('li');
-      li.textContent = `${juste(d) ? EMOJI.vert : EMOJI.rouge} ${data.i[d.i][1]} : ${data.c[d.a][0]}, ${ecrit(d.a, d.i)} ; ${data.c[d.b][0]}, ${ecrit(d.b, d.i)}`;
+      const lien = (code: string) => Object.assign(document.createElement('a'), { href: `/commune/${code}`, textContent: data.c[code][0] });
+      li.append(`${juste(d) ? EMOJI.vert : EMOJI.rouge} ${data.i[d.i][1]} : `, lien(d.a), `, ${ecrit(d.a, d.i)} ; `, lien(d.b), `, ${ecrit(d.b, d.i)}`);
       recap.append(li);
     }
     $('jm-partage').hidden = !duJour;
@@ -162,8 +163,7 @@ export function brancherJeuPlus(): void {
     }
   };
 
-  const demande = new URLSearchParams(location.search).get('t') ?? garde.lire<string>('lieu');
-  if (demande) {
+  quandLieu(LIEUX, garde.lire<string>('lieu'), (demande) => {
     void (async () => {
       lieu = await resoudre(demande, LIEUX).catch(() => null);
       if (!lieu) return message('Cherchez un code postal, une intercommunalité, un département, ou votre commune.');
@@ -172,6 +172,7 @@ export function brancherJeuPlus(): void {
         codes = p.codes;
         data = p.communes;
         garde.ecrire('lieu', lieu.cle);
+        retenirLieu(lieu.cle);
         $('jm-lieu-nom').textContent = lieu.nom;
         $('jm-lieu-detail').textContent = `(${codes.length} communes${p.elargi ? ', voisines comprises' : ''})`;
         jouer.textContent = garde.lire(cleDuJour()) ? 'Revoir mon résultat du jour' : 'Jouer le défi du jour';
@@ -180,7 +181,7 @@ export function brancherJeuPlus(): void {
         message('Les communes n’ont pas pu être lues. Réessayez dans un instant.');
       }
     })();
-  }
+  });
   jouer.addEventListener('click', () => void lancer(true));
   $('jm-libre').addEventListener('click', () => void lancer(false));
   $('jm-suivante').addEventListener('click', () => {

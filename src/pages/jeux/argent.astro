@@ -35,6 +35,7 @@ const missions = (b?.credits ?? [])
   titre="Où va l’argent"
   description="Classez les missions du budget de l’État, de la plus grosse à la plus petite, d’après les crédits votés pour 2025."
   section="jeux"
+  image="/apercus/argent.png"
 >
   <div class="page page--etroite">
     <p class="badge"><a href="/jeux">Jeux</a></p>
@@ -49,7 +50,7 @@ const missions = (b?.credits ?? [])
     ) : (
       <ClassementJeu
         id="ja"
-        consigne="De la plus grosse à la plus petite : montez ou descendez chaque mission, puis validez. Trois essais ; les missions bien placées restent en place."
+        consigne="De la plus grosse à la plus petite : glissez chaque mission à sa place — ou par les flèches —, puis validez. Trois essais ; les missions bien placées restent en place."
         autre="Cinq autres missions, au hasard"
       />
     )}
@@ -80,6 +81,7 @@ const missions = (b?.credits ?? [])
   const missions = JSON.parse(document.getElementById('ja-donnees')?.textContent ?? '[]') as Mission[];
   if (missions.length >= 5) {
     brancherClassement({
+      cle: 'argent',
       prefixe: 'ja',
       jeu: 'Où va l’argent ?',
       embleme: '💶',

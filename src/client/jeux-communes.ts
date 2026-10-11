@@ -8,8 +8,8 @@ import { departementDe, type Lieu } from './jeux-lieu.ts';
 
 /** [clé, libellé, unité, source et millésime] */
 export type Indicateur = [string, string, string, string];
-/** [nom, code postal, longitude, latitude, voisines, intercommunalité, valeurs] */
-export type CommuneJeu = [string, string, number, number, string[], string, (number | null)[]];
+/** [nom, code postal, longitude, latitude, voisines, intercommunalité, valeurs, contours encodés] */
+export type CommuneJeu = [string, string, number, number, string[], string, (number | null)[], number[][]];
 export type Communes = { i: Indicateur[]; c: Record<string, CommuneJeu> };
 
 const fichiers = new Map<string, Promise<Communes>>();
@@ -73,3 +73,49 @@ export function direction(a: CommuneJeu, b: CommuneJeu): string {
 }
 
 export const nombre = (x: number) => x.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+
+/** Les anneaux d'une commune, décodés en degrés. */
+export function anneaux(c: CommuneJeu): [number, number][][] {
+  return (c[7] ?? []).map((r) => {
+    const sortie: [number, number][] = [];
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i + 1 < r.length; i += 2) {
+      x += r[i];
+      y += r[i + 1];
+      sortie.push([x / 10_000, y / 10_000]);
+    }
+    return sortie;
+  });
+}
+
+/**
+ * La carte d'un ensemble de communes, en SVG : une projection simple, à la
+ * latitude moyenne, qui suffit à l'échelle d'un département. `classe` donne
+ * à chaque commune sa classe CSS, `titre` son infobulle.
+ */
+export function carte(communes: Communes, codes: string[], classe: (code: string) => string, titre: (code: string) => string): SVGSVGElement {
+  const NS = 'http://www.w3.org/2000/svg';
+  const formes = codes.map((code) => ({ code, a: anneaux(communes.c[code]) }));
+  const points = formes.flatMap((f) => f.a.flat());
+  const lat = points.reduce((s, p) => s + p[1], 0) / Math.max(1, points.length);
+  const k = Math.cos((lat * Math.PI) / 180);
+  const xs = points.map((p) => p[0] * k);
+  const ys = points.map((p) => -p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const marge = Math.max(x1 - x0, y1 - y0) * 0.03;
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `${x0 - marge} ${y0 - marge} ${x1 - x0 + 2 * marge} ${y1 - y0 + 2 * marge}`);
+  svg.setAttribute('role', 'img');
+  for (const f of formes) {
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', f.a.map((r) => `M${r.map((p) => `${(p[0] * k).toFixed(5)},${(-p[1]).toFixed(5)}`).join('L')}Z`).join(''));
+    path.setAttribute('class', classe(f.code));
+    path.setAttribute('vector-effect', 'non-scaling-stroke');
+    const t = document.createElementNS(NS, 'title');
+    t.textContent = titre(f.code);
+    path.append(t);
+    svg.append(path);
+  }
+  return svg;
+}

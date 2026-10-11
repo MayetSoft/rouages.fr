@@ -3,15 +3,16 @@
  * essais. « Le bon ordre » (les étapes d'une démarche) et « Où va l'argent »
  * (les missions du budget de l'État) en sont deux réglages.
  *
- * Les éléments se déplacent par des boutons, pas par glisser-déposer : ils
- * marchent au clavier, au lecteur d'écran et au doigt. Un élément bien placé
- * se fige ; les autres sautent par-dessus.
+ * Les éléments se glissent-déposent, à la souris n'importe où sur la ligne,
+ * au doigt par la poignée — la ligne entière bloquerait le défilement de la
+ * page. Les flèches restent pour le clavier et les lecteurs d'écran. Un
+ * élément bien placé se fige ; les autres passent par-dessus.
  *
  * Le balisage attendu, préfixé : `-compteur`, `-nom`, `-liste`, `-valider`,
  * `-verdict`, `-contexte`, `-fin`, `-score`, `-cases`, `-libre`, et le bloc
  * de `PartageJeu.astro`.
  */
-import { brancherPartage, EMOJI, hasard, jourDeParis, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, type CleJeu, EMOJI, hasard, jourDeParis, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 export interface Element {
   texte: string;
@@ -31,6 +32,8 @@ export interface Partie {
 
 export interface Reglage {
   prefixe: string;
+  /** La clé de l'historique : `ordre`, `argent`. */
+  cle: CleJeu;
   jeu: string;
   embleme: string;
   /** Le préfixe de la mémoire du navigateur. */
@@ -72,7 +75,7 @@ export function brancherClassement(r: Reglage): void {
       adresse: `${location.origin}${location.pathname}`,
     };
   };
-  const remplirPartage = brancherPartage(r.prefixe, resultat);
+  const remplirPartage = brancherPartage(r.prefixe, resultat, r.cle);
 
   const fige = (k: number) => trouve[ordre[k]] > 0;
   const peutAller = (k: number, sens: -1 | 1) => {
@@ -88,12 +91,38 @@ export function brancherClassement(r: Reglage): void {
     (liste.children[j]?.querySelector(`button[data-sens="${sens}"]`) as HTMLButtonElement | null)?.focus();
   };
 
+  /**
+   * Déplace l'élément de la position `de` à la position `vers`, en ne
+   * faisant glisser que les positions libres : les éléments figés restent où
+   * ils sont.
+   */
+  const inserer = (de: number, vers: number) => {
+    const libres = ordre.map((_, k) => k).filter((k) => !fige(k));
+    const a = libres.indexOf(de);
+    const b = libres.indexOf(vers);
+    if (a < 0 || b < 0 || a === b) return false;
+    const suite = libres.map((k) => ordre[k]);
+    const [x] = suite.splice(a, 1);
+    suite.splice(b, 0, x);
+    libres.forEach((k, n) => (ordre[k] = suite[n]));
+    return true;
+  };
+
+  let termine = false;
   const dessiner = (fini = false) => {
+    termine = fini;
     liste.innerHTML = '';
     for (const [k, i] of ordre.entries()) {
       const e = partie.elements[i];
       const li = document.createElement('li');
-      li.className = fige(k) ? 'juste' : fini ? 'faux' : '';
+      li.dataset.k = String(k);
+      if (!fini && !fige(k)) {
+        li.classList.add('mobile');
+        li.append(Object.assign(document.createElement('span'), { className: 'cl-poignee', textContent: '⠿', title: 'Glisser pour déplacer' }));
+      } else li.append(Object.assign(document.createElement('span'), { className: 'cl-poignee vide' }));
+      // `nouveau` : trouvé à cet essai — seul celui-là s'anime.
+      if (fige(k)) li.classList.add('juste', ...(trouve[i] === essai ? ['nouveau'] : []));
+      else if (fini) li.classList.add('faux');
       const texte = document.createElement('span');
       texte.className = 'cl-texte';
       texte.textContent = e.texte;
@@ -115,6 +144,63 @@ export function brancherClassement(r: Reglage): void {
       liste.append(li);
     }
   };
+
+  // Le glisser-déposer, aux événements de pointeur : souris, doigt et stylet
+  // par le même chemin. La ligne suit le pointeur ; un trait marque où elle
+  // tombera ; au lâcher, l'ordre change et la liste se redessine.
+  let glisse: { li: HTMLLIElement; k: number; y0: number; pointeur: number } | null = null;
+  let cible: number | null = null;
+  const marquerCible = (k: number | null, avant = true) => {
+    for (const li of liste.querySelectorAll('li')) li.classList.remove('cible-avant', 'cible-apres');
+    cible = k;
+    if (k !== null) liste.querySelector(`li[data-k="${k}"]`)?.classList.add(avant ? 'cible-avant' : 'cible-apres');
+  };
+  liste.addEventListener('pointerdown', (e) => {
+    const li = (e.target as HTMLElement).closest<HTMLLIElement>('li.mobile');
+    if (!li || termine || (e.target as HTMLElement).closest('button')) return;
+    // Au doigt, seule la poignée prend la ligne : ailleurs, on fait défiler la page.
+    if (e.pointerType !== 'mouse' && !(e.target as HTMLElement).closest('.cl-poignee')) return;
+    e.preventDefault();
+    glisse = { li, k: Number(li.dataset.k), y0: e.clientY, pointeur: e.pointerId };
+    try {
+      li.setPointerCapture(e.pointerId);
+    } catch {
+      /* sans capture, le glissé marche tant que le pointeur reste sur la liste */
+    }
+    li.classList.add('glisse');
+  });
+  liste.addEventListener('pointermove', (e) => {
+    if (!glisse || e.pointerId !== glisse.pointeur) return;
+    glisse.li.style.transform = `translateY(${e.clientY - glisse.y0}px)`;
+    // La position libre la plus proche du pointeur.
+    let mieux: { k: number; avant: boolean; d: number } | null = null;
+    for (const autre of liste.querySelectorAll<HTMLLIElement>('li.mobile')) {
+      const k = Number(autre.dataset.k);
+      if (autre === glisse.li) continue;
+      const r = autre.getBoundingClientRect();
+      const d = Math.abs(e.clientY - (r.top + r.height / 2));
+      if (!mieux || d < mieux.d) mieux = { k, avant: k < glisse.k, d };
+    }
+    const r = glisse.li.getBoundingClientRect();
+    // Tant que la ligne n'a pas quitté sa place, elle ne vise rien.
+    if (mieux && Math.abs(e.clientY - glisse.y0) > r.height / 2) marquerCible(mieux.k, mieux.avant);
+    else marquerCible(null);
+  });
+  const lacher = (e: PointerEvent) => {
+    if (!glisse || e.pointerId !== glisse.pointeur) return;
+    const { k } = glisse;
+    glisse.li.classList.remove('glisse');
+    glisse.li.style.transform = '';
+    glisse = null;
+    const vers = cible;
+    marquerCible(null);
+    if (vers !== null && inserer(k, vers)) {
+      dessiner();
+      liste.querySelector<HTMLLIElement>(`li[data-k="${vers}"]`)?.classList.add('pose');
+    }
+  };
+  liste.addEventListener('pointerup', lacher);
+  liste.addEventListener('pointercancel', lacher);
 
   const terminer = () => {
     // La réponse : l'ordre juste, ce qu'on avait trouvé en vert.

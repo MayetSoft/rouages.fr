@@ -14,7 +14,7 @@
  * volontaire que demandent les conditions d'utilisation de DVF.
  */
 import { aLieu } from '../modele/signalement.ts';
-import { brancherChampLieu, resoudre, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
+import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 /** [année, 0 maison ou 1 appartement, prix, surface, pièces, terrain] — voir `ventesDuJeu`. */
@@ -95,6 +95,23 @@ export function brancherJeuPrix(): void {
   const reponse = $('jp-reponse')!;
   const fin = $('jp-fin')!;
   const jouer = $<HTMLButtonElement>('jp-jouer')!;
+  const curseur = $<HTMLInputElement>('jp-curseur')!;
+
+  // Au téléphone, taper un montant est pénible : un curseur et des pas.
+  const montrer = (x: number) => {
+    saisie.value = Math.max(0, Math.round(x)).toLocaleString('fr-FR');
+    curseur.value = String(x);
+    saisie.setCustomValidity('');
+  };
+  curseur.addEventListener('input', () => montrer(Number(curseur.value)));
+  saisie.addEventListener('input', () => {
+    const x = lireMontant(saisie.value);
+    if (x !== null) curseur.value = String(x);
+    saisie.setCustomValidity('');
+  });
+  for (const b of document.querySelectorAll<HTMLButtonElement>('.jp-pas button')) {
+    b.addEventListener('click', () => montrer((lireMontant(saisie.value) ?? Number(curseur.value)) + Number(b.dataset.pas)));
+  }
 
   const fichiers = new Map<string, Promise<FichierJeu>>();
   const chargerDep = (dep: string) => {
@@ -113,6 +130,8 @@ export function brancherJeuPrix(): void {
   let lieu: Lieu | null = null;
   let communes: Record<string, CommuneJeu> = {};
   let annees: number[] = [];
+  /** Le haut du curseur : la vente la plus chère du périmètre, arrondie, 300 000 € au moins. */
+  let plafond = 500_000;
   let partie: Manche[] = [];
   let courante = 0;
   let duJour = true;
@@ -131,7 +150,7 @@ export function brancherJeuPrix(): void {
           adresse: `${location.origin}${location.pathname}?t=${encodeURIComponent(lieu.cle)}`,
         }
       : null;
-  const remplirPartage = brancherPartage('jp', resultat);
+  const remplirPartage = brancherPartage('jp', resultat, 'prix');
 
   const message = (texte: string, liens: { cle: string; nom: string }[] = []) => {
     const p = $('jp-message')!;
@@ -153,6 +172,8 @@ export function brancherJeuPrix(): void {
     essai.hidden = false;
     saisie.value = '';
     saisie.setCustomValidity('');
+    curseur.max = String(plafond);
+    curseur.value = String(Math.round(plafond / 3 / 1000) * 1000);
     manche.hidden = false;
     fin.hidden = true;
     saisie.focus();
@@ -166,7 +187,11 @@ export function brancherJeuPrix(): void {
     recap.innerHTML = '';
     for (const m of partie) {
       const li = document.createElement('li');
-      li.textContent = `${EMOJI[caseDe(m.points ?? 0)]} ${m.vente[1] === 0 ? 'Maison' : 'Appartement'} ${aLieu(communes[m.code].n)} (${m.vente[0]}) : ${euros(m.vente[2])}, vous disiez ${euros(m.essai ?? 0)} — ${m.points} pt${(m.points ?? 0) > 1 ? 's' : ''}`;
+      li.append(
+        `${EMOJI[caseDe(m.points ?? 0)]} ${m.vente[1] === 0 ? 'Maison' : 'Appartement'} `,
+        Object.assign(document.createElement('a'), { href: `/commune/${m.code}`, textContent: aLieu(communes[m.code].n) }),
+        ` (${m.vente[0]}) : ${euros(m.vente[2])}, vous disiez ${euros(m.essai ?? 0)} — ${m.points} pt${(m.points ?? 0) > 1 ? 's' : ''}`,
+      );
       recap.append(li);
     }
     $('jp-partage')!.hidden = !duJour;
@@ -176,8 +201,7 @@ export function brancherJeuPrix(): void {
     fin.hidden = false;
   };
 
-  // Le lieu choisi : celui de l'adresse, ou le dernier joué.
-  const demande = new URLSearchParams(location.search).get('t') ?? garde.lire<string>('lieu');
+  // Le lieu choisi : celui de l'adresse, ou le dernier joué, ici ou dans un autre jeu.
   const preparer = async (cle: string) => {
     lieu = await resoudre(cle, LIEUX).catch(() => null);
     if (!lieu) {
@@ -185,12 +209,13 @@ export function brancherJeuPrix(): void {
       return;
     }
     garde.ecrire('lieu', lieu.cle);
+    retenirLieu(lieu.cle);
     $('jp-lieu-nom')!.textContent = lieu.nom;
     jouer.textContent = garde.lire<Garde>(cleDuJour()) ? 'Revoir mon résultat du jour' : 'Jouer le défi du jour';
     choix.hidden = false;
     message('');
   };
-  if (demande) void preparer(demande);
+  quandLieu(LIEUX, garde.lire<string>('lieu'), (cle) => void preparer(cle));
 
   const lancer = async (modeDuJour: boolean) => {
     if (!lieu) return;
@@ -200,6 +225,8 @@ export function brancherJeuPrix(): void {
       communes = Object.assign({}, ...lus.map((f) => f.c));
       annees = lus[0]?.annees ?? [];
       const codes = (lieu.communes ?? Object.keys(communes)).filter((c) => communes[c]);
+      const cher = Math.max(0, ...codes.flatMap((c) => communes[c].v.map((v) => v[2])));
+      plafond = Math.max(300_000, Math.ceil((cher * 1.2) / 50_000) * 50_000);
       if (codes.length === 0) {
         message(`Pas assez de ventes ${lieu.genre === 'commune' ? aLieu(lieu.nom) : 'ici'} pour une partie.`, lieu.replis);
         return;
@@ -254,15 +281,37 @@ export function brancherJeuPrix(): void {
     // Les médianes que la page de la commune publie déjà : un repère, sur les trois ans.
     const { n, m: [mediane, m2Median] } = communes[m.code];
     const periode = annees.length ? `de ${annees[0]} à ${annees[annees.length - 1]}` : '';
-    if (m.vente[1] === 0 && mediane) contexte.append(`Prix médian d’une maison ${aLieu(n)} ${periode} : ${euros(mediane)}. `);
+    if (m.vente[1] === 0 && mediane) contexte.append(`Prix médian d’une maison ${aLieu(n)} ${periode} : ${euros(mediane)}, le trait gris. `);
     else if (m.vente[1] === 1 && m2Median) contexte.append(`Prix médian d’un appartement ${aLieu(n)} ${periode} : ${euros(m2Median)} le m². `);
     contexte.append(Object.assign(document.createElement('a'), { href: `/commune/${m.code}`, textContent: 'La page de la commune' }), '.');
+    dessinerEchelle(x, prix, m.vente[1] === 0 ? mediane : null);
     essai.hidden = true;
     reponse.hidden = false;
     if (duJour && courante + 1 === partie.length) garde.ecrire(cleDuJour(), { essais: partie.map((p) => p.essai ?? 0) } satisfies Garde);
     $('jp-suivante')!.textContent = courante + 1 < partie.length ? 'Vente suivante' : 'Voir le score';
     $<HTMLButtonElement>('jp-suivante')!.focus();
   });
+
+  /** L'estimation, le prix et la médiane de la commune sur une même règle. */
+  function dessinerEchelle(essai: number, prix: number, mediane: number | null) {
+    const echelle = $('jp-echelle')!;
+    echelle.innerHTML = '<div class="axe"></div>';
+    const haut = Math.max(essai, prix, mediane ?? 0) * 1.12;
+    const reperes: [string, number, string][] = [
+      ['prix', prix, `vendue ${euros(prix)}`],
+      ['essai', essai, `vous : ${euros(essai)}`],
+    ];
+    // La médiane, en simple trait : son montant est écrit dans la phrase qui suit, et deux étiquettes en bas se chevaucheraient.
+    if (mediane) reperes.push(['mediane', mediane, '']);
+    for (const [classe, v, texte] of reperes) {
+      const r = document.createElement('div');
+      // Le prix en haut, les autres en bas : les étiquettes ne se chevauchent pas.
+      r.className = `repere ${classe}${classe === 'prix' ? '' : ' bas'}`;
+      r.style.left = `${Math.min(96, Math.max(4, (v / haut) * 100))}%`;
+      if (texte) r.append(Object.assign(document.createElement('span'), { textContent: texte }));
+      echelle.append(r);
+    }
+  }
 
   $('jp-suivante')!.addEventListener('click', () => {
     courante++;

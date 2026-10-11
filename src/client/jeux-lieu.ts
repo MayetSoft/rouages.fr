@@ -269,3 +269,56 @@ export function brancherChampLieu(id: string, o: OptionsLieu): void {
     if (!champ.parentElement?.contains(e.target as Node)) fermer();
   });
 }
+
+/**
+ * Le lieu commun à tous les jeux : le dernier choisi, dans n'importe lequel.
+ * Un jeu qui ne se joue pas sur une commune seule en prend le code postal,
+ * à défaut l'intercommunalité, à défaut le département ; un jeu qui se joue
+ * sur une commune ne peut rien tirer d'un code postal, et garde le sien.
+ */
+const COMMUN = 'rouages-jeux:lieu';
+
+export function retenirLieu(cle: string): void {
+  try {
+    localStorage.setItem(COMMUN, JSON.stringify(cle));
+  } catch {
+    /* navigation privée */
+  }
+}
+
+function lieuCommun(): string | null {
+  try {
+    const brut = localStorage.getItem(COMMUN);
+    return brut ? (JSON.parse(brut) as string) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function adapter(cle: string, o: OptionsLieu): Promise<string | null> {
+  const genre = ({ d: 'departement', e: 'interco', c: 'commune', cp: 'cp' } as Record<string, GenreLieu>)[cle.slice(0, cle.indexOf('-'))];
+  if (!genre) return null;
+  if (o.genres.includes(genre)) return cle;
+  if (genre !== 'commune') return null;
+  const code = cle.slice(2);
+  const c = (await chargerIndex()).find((x) => x.code === code);
+  if (o.genres.includes('cp') && c?.cp) return `cp-${c.cp}`;
+  const e = (await chargerTerritoires(o.source)).parCommune.get(code);
+  if (o.genres.includes('interco') && e) return `e-${e.siren}`;
+  if (o.genres.includes('departement')) return `d-${departementDe(code)}`;
+  return null;
+}
+
+/**
+ * Le lieu de départ d'un jeu : celui de l'adresse, sinon le lieu commun
+ * adapté au jeu, sinon le dernier lieu de ce jeu. `faire` reçoit la clé.
+ */
+export function quandLieu(o: OptionsLieu, propre: string | null, faire: (cle: string) => void): void {
+  const t = new URLSearchParams(location.search).get('t');
+  if (t) return faire(t);
+  const commun = lieuCommun();
+  void (commun ? adapter(commun, o).catch(() => null) : Promise.resolve(null)).then((cle) => {
+    const choisi = cle ?? propre;
+    if (choisi) faire(choisi);
+  });
+}

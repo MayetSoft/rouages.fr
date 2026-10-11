@@ -9,11 +9,13 @@
  */
 import Base from '../../layouts/Base.astro';
 import ClassementJeu from '../../composants/jeux/ClassementJeu.astro';
-import { chargerGraphe } from '../../modele/graphe.ts';
+import { chargerGraphe, formaterDelai } from '../../modele/graphe.ts';
 import '../../styles/jeux.css';
 
 const g = chargerGraphe();
-/** [id, nom, étapes : [ordre, action, qui, conditionnelle]] — dans l'ordre des id, pour que le tirage soit stable. */
+/** Ce qu'un délai engage : un plafond, un plancher, un ordre de grandeur. */
+const NATURE = { maximum_legal: 'au plus', minimum_legal: 'au moins', indicatif: 'environ', observe: 'en pratique' } as const;
+/** [id, nom, étapes : [ordre, action, qui, conditionnelle, délai]] — dans l'ordre des id, pour que le tirage soit stable. */
 const procedures = [...g.processus.values()]
   .filter((p) => p.confiance === 'etabli' && p.etapes.length >= 3 && p.etapes.every((e) => e.confiance === 'etabli'))
   .sort((a, b) => a.id.localeCompare(b.id))
@@ -22,13 +24,20 @@ const procedures = [...g.processus.values()]
     p.nom,
     [...p.etapes]
       .sort((a, b) => a.ordre - b.ordre)
-      .map((e) => [e.ordre, e.action, g.acteurs.get(e.acteur)?.nom_court ?? g.acteurs.get(e.acteur)?.nom ?? '', e.conditionnelle ? 1 : 0]),
+      .map((e) => [
+        e.ordre,
+        e.action,
+        g.acteurs.get(e.acteur)?.nom_court ?? g.acteurs.get(e.acteur)?.nom ?? '',
+        e.conditionnelle ? 1 : 0,
+        e.delai ? `délai : ${NATURE[e.delai.nature]} ${formaterDelai(e.delai)}` : '',
+      ]),
   ]);
 ---
 <Base
   titre="Le bon ordre"
   description="Remettez dans l’ordre les étapes d’une démarche publique : le permis de construire, le budget communal, l’inscription sur les listes électorales…"
   section="jeux"
+  image="/apercus/ordre.png"
 >
   <div class="page page--etroite">
     <p class="badge"><a href="/jeux">Jeux</a></p>
@@ -39,7 +48,7 @@ const procedures = [...g.processus.values()]
 
     <ClassementJeu
       id="jo"
-      consigne="Du premier geste à la décision : montez ou descendez chaque étape, puis validez. Trois essais ; les étapes bien placées restent en place."
+      consigne="Du premier geste à la décision : glissez chaque étape à sa place — ou montez-la, descendez-la par les flèches —, puis validez. Trois essais ; les étapes bien placées restent en place."
       autre="Une autre démarche, au hasard"
     />
 
@@ -63,11 +72,12 @@ const procedures = [...g.processus.values()]
 <script>
   import { brancherClassement } from '../../client/jeux-classement.ts';
 
-  /** [id, nom, étapes : [ordre, action, qui, conditionnelle]] */
-  type Procedure = [string, string, [number, string, string, 0 | 1][]];
+  /** [id, nom, étapes : [ordre, action, qui, conditionnelle, délai]] */
+  type Procedure = [string, string, [number, string, string, 0 | 1, string][]];
   const procedures = JSON.parse(document.getElementById('jo-donnees')?.textContent ?? '[]') as Procedure[];
   if (procedures.length > 0) {
     brancherClassement({
+      cle: 'ordre',
       prefixe: 'jo',
       jeu: 'Le bon ordre',
       embleme: '🔢',
@@ -77,7 +87,8 @@ const procedures = [...g.processus.values()]
         const [id, nom, etapes] = procedures[Math.floor(alea() * procedures.length)];
         return {
           titre: nom,
-          elements: etapes.map(([, action, qui, cond]) => ({ texte: action, precision: [qui, cond ? 'si besoin' : ''].filter(Boolean).join(' · ') })),
+          // Le délai de chaque étape ne paraît qu'avec la réponse : il apprend quelque chose, sans souffler l'ordre.
+          elements: etapes.map(([, action, qui, cond, delai]) => ({ texte: action, precision: [qui, cond ? 'si besoin' : ''].filter(Boolean).join(' · '), reponse: delai })),
           apres: (contexte) => {
             contexte.append(Object.assign(document.createElement('a'), { href: `/n/${id}`, textContent: `La fiche « ${nom} »` }), ' : les délais, les recours, qui décide.');
           },
