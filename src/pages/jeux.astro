@@ -29,6 +29,7 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
   titre="Jeux"
   description="Des jeux bâtis sur les données ouvertes : deviner le prix d’une vraie vente immobilière, et les jeux qui existent ailleurs."
   section="jeux"
+  image="/apercus/jeux.png"
 >
   <div class="page page--etroite">
     <p class="badge">Jeux</p>
@@ -40,33 +41,39 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
 
     <h2 class="badge">Sur Rouages</h2>
     <ul class="jeux-liste">
-      <li>
+      <li data-jeu="qui">
         <a href="/jeux/qui-decide">Qui décide&nbsp;?</a>
+        <span class="jeux-etat" hidden></span>
         <p>L’eau, les déchets, la mobilité&nbsp;: dans votre commune, qui s’en occupe&nbsp;? Cinq questions, et la réponse de sa page.</p>
         <p class="jeux-meta">Données&nbsp;: le registre national BANATIC et la loi, comme sur chaque page de commune.</p>
       </li>
-      <li>
+      <li data-jeu="mystere">
         <a href="/jeux/commune-mystere">La commune mystère</a>
+        <span class="jeux-etat" hidden></span>
         <p>Une commune se cache dans votre code postal, votre intercommunalité ou votre département&nbsp;: retrouvez-la, indice après indice, avec la distance et la direction à chaque essai.</p>
         <p class="jeux-meta">Données&nbsp;: les contours d’Admin Express, et les chiffres des pages de commune.</p>
       </li>
-      <li>
+      <li data-jeu="plus">
         <a href="/jeux/plus-ou-moins">Plus ou moins</a>
+        <span class="jeux-etat" hidden></span>
         <p>Deux communes face à face&nbsp;: laquelle a le plus d’habitants, la maison la plus chère, la gare la plus proche&nbsp;?</p>
         <p class="jeux-meta">Données&nbsp;: INSEE, DGFiP, SNCF, Éducation nationale, avec leur année.</p>
       </li>
-      <li>
+      <li data-jeu="prix">
         <a href="/jeux/prix">À combien s’est-elle vendue&nbsp;?</a>
+        <span class="jeux-etat" hidden></span>
         <p>Cinq vraies ventes de maisons et d’appartements, autour de chez vous&nbsp;: devinez le prix.</p>
         <p class="jeux-meta">Données&nbsp;: les demandes de valeurs foncières de la DGFiP, les trois dernières années publiées.</p>
       </li>
-      <li>
+      <li data-jeu="ordre">
         <a href="/jeux/ordre">Le bon ordre</a>
+        <span class="jeux-etat" hidden></span>
         <p>Les étapes d’une démarche publique, mélangées&nbsp;: le permis de construire, le budget communal, l’inscription électorale…</p>
         <p class="jeux-meta">Données&nbsp;: les fiches de démarche de Rouages.</p>
       </li>
-      <li>
+      <li data-jeu="argent">
         <a href="/jeux/argent">Où va l’argent&nbsp;?</a>
+        <span class="jeux-etat" hidden></span>
         <p>Cinq missions du budget de l’État, à ranger de la plus grosse à la plus petite.</p>
         <p class="jeux-meta">Données&nbsp;: les crédits votés pour 2025, d’après la direction du Budget.</p>
       </li>
@@ -102,12 +109,36 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
   </div>
 </Base>
 
+<script>
+  import { historique, jourDeParis, serie, type CleJeu } from '../client/jeux-commun.ts';
+
+  // L'état du défi du jour de chaque jeu, d'après la mémoire du navigateur.
+  const jour = jourDeParis();
+  for (const li of document.querySelectorAll<HTMLElement>('li[data-jeu]')) {
+    const cle = li.dataset.jeu as CleJeu;
+    const etat = li.querySelector<HTMLElement>('.jeux-etat');
+    if (!etat) continue;
+    const fait = historique(cle)[jour];
+    const n = serie(cle, jour);
+    etat.textContent = fait
+      ? `Fait aujourd’hui : ${fait.score}${n > 1 ? ` · ${n} jours de suite` : ''}`
+      : `Défi du jour à jouer${n > 0 ? ` · série de ${n} jour${n > 1 ? 's' : ''} en cours` : ''}`;
+    etat.classList.toggle('fait', !!fait);
+    etat.hidden = false;
+  }
+</script>
+
 <style>
   .jeux-groupe h3 { margin: 1.2rem 0 .2rem; font-size: 1.05rem; }
   .jeux-groupe .mesure { margin-top: 0; }
   .jeux-liste { list-style: none; padding: 0; margin: 0 0 1.4rem; max-width: var(--mesure); }
   .jeux-liste li { padding: .6rem 0; border-top: 1px solid var(--trait); }
   .jeux-liste a { font-weight: 600; }
+  .jeux-etat {
+    display: inline-block; margin-left: .5rem; padding: .05rem .5rem; border-radius: 999px; font-size: .78rem;
+    background: var(--accent-doux); color: var(--accent);
+  }
+  .jeux-etat.fait { background: var(--fond-doux); color: var(--encre-douce); }
   .jeux-liste p { margin: .25rem 0 0; }
   .jeux-support, .jeux-meta { color: var(--encre-douce); font-size: .88rem; }
 </style>

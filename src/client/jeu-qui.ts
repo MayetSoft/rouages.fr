@@ -7,7 +7,7 @@
  * sans quoi sa seule présence la trahirait.
  */
 import { aLieu } from '../modele/signalement.ts';
-import { brancherChampLieu, resoudre, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
+import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 import { brancherPartage, EMOJI, hasard, jourDeParis, melanger, memoire, type Resultat } from './jeux-commun.ts';
 
 type Genre = 'T' | 'L' | 'C' | 'R' | 'D' | 'E';
@@ -16,7 +16,7 @@ type Fichier = {
   maj: string | null;
   departement: string;
   region: string | null;
-  k: [string, string][];
+  k: [string, string, string][];
   s: [string, string, string, number][];
   c: Record<string, [string, number, number[], Reponse[]]>;
 };
@@ -86,7 +86,7 @@ export function brancherJeuQui(): void {
           adresse: `${location.origin}${location.pathname}?t=${encodeURIComponent(lieu.cle)}`,
         }
       : null;
-  const remplirPartage = brancherPartage('jq', resultat);
+  const remplirPartage = brancherPartage('jq', resultat, 'qui');
 
   /** Les choix d'une question : la commune, son intercommunalité, un syndicat, le département, la région. */
   const options = (r: Reponse, alea: () => number): Option[] => {
@@ -155,7 +155,9 @@ export function brancherJeuQui(): void {
     $('jq-verdict').append(Object.assign(document.createElement('strong'), { textContent: estJuste(q) ? 'Juste. ' : 'Non. ' }), explication(q.reponse));
     const contexte = $('jq-contexte');
     contexte.textContent = '';
-    const [id, nom] = f.k[q.reponse[0]];
+    const [id, nom, resume] = f.k[q.reponse[0]];
+    // Ce que recouvre la compétence, d'après sa fiche : la réponse apprend quelque chose.
+    if (resume) contexte.append(Object.assign(document.createElement('span'), { className: 'jeu-resume', textContent: resume }), ' ');
     contexte.append(
       Object.assign(document.createElement('a'), { href: `/n/${id}`, textContent: `La fiche « ${nom} »` }),
       ' · ',
@@ -175,7 +177,12 @@ export function brancherJeuQui(): void {
     recap.innerHTML = '';
     for (const q of partie) {
       const li = document.createElement('li');
-      li.textContent = `${estJuste(q) ? EMOJI.vert : EMOJI.rouge} ${f.k[q.reponse[0]][1]} : ${justes(q.reponse).map(libelle).join(', ')}`;
+      const [id, nom] = f.k[q.reponse[0]];
+      li.append(
+        `${estJuste(q) ? EMOJI.vert : EMOJI.rouge} `,
+        Object.assign(document.createElement('a'), { href: `/n/${id}`, textContent: nom }),
+        ` : ${justes(q.reponse).map(libelle).join(', ')}`,
+      );
       recap.append(li);
     }
     $('jq-partage').hidden = !duJour;
@@ -214,19 +221,19 @@ export function brancherJeuQui(): void {
     }
   };
 
-  const demande = new URLSearchParams(location.search).get('t') ?? garde.lire<string>('lieu');
-  if (demande) {
+  quandLieu(LIEUX, garde.lire<string>('lieu'), (demande) => {
     void resoudre(demande, LIEUX)
       .catch(() => null)
       .then((l) => {
         lieu = l;
         if (!l) return message('Cherchez votre commune par son nom ou son code postal.');
         garde.ecrire('lieu', l.cle);
+        retenirLieu(l.cle);
         $('jq-lieu-nom').textContent = l.nom;
         jouer.textContent = garde.lire(`${jour}:${l.cle}`) ? 'Revoir mon résultat du jour' : 'Jouer le défi du jour';
         $('jq-choix').hidden = false;
       });
-  }
+  });
   jouer.addEventListener('click', () => void lancer(true));
   $('jq-libre').addEventListener('click', () => void lancer(false));
   $('jq-suivante').addEventListener('click', () => {

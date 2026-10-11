@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
 import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
 import { RACINE, formaterDate } from '../../modele/graphe.ts';
 import { collectivitesPour } from '../../modele/fiche-commune.ts';
 
@@ -39,6 +40,7 @@ const entete = parDefaut
   titre="À combien s’est-elle vendue ?"
   description="Cinq vraies ventes de maisons et d’appartements, d’après les données des notaires publiées par la DGFiP : devinez le prix."
   section="jeux"
+  image="/apercus/prix.png"
   indexer={false}
 >
   <div class="page page--etroite">
@@ -77,9 +79,17 @@ const entete = parDefaut
               <span aria-hidden="true">€</span>
             </span>
             <button class="bouton jp-bouton" type="submit">Valider</button>
+            <span class="jp-pas" role="group" aria-label="Ajuster l’estimation">
+              <button type="button" class="plat" data-pas="-10000">−10 000</button>
+              <button type="button" class="plat" data-pas="-1000">−1 000</button>
+              <button type="button" class="plat" data-pas="1000">+1 000</button>
+              <button type="button" class="plat" data-pas="10000">+10 000</button>
+            </span>
+            <input id="jp-curseur" class="jp-curseur" type="range" min="0" max="500000" step="1000" value="0" aria-label="Estimation, au curseur" />
           </form>
           <div id="jp-reponse" hidden>
             <p class="jp-verdict" id="jp-verdict"></p>
+            <div class="jp-echelle" id="jp-echelle" aria-hidden="true"></div>
             <p class="jp-contexte" id="jp-contexte"></p>
             <button class="bouton jp-bouton" type="button" id="jp-suivante">Vente suivante</button>
           </div>
@@ -87,7 +97,8 @@ const entete = parDefaut
 
         <section id="jp-fin" class="jp-carte" hidden aria-live="polite">
           <p class="jp-score"><span id="jp-score"></span> <span id="jp-cases" class="jp-cases"></span></p>
-          <ol class="jp-recap" id="jp-recap"></ol>
+          <h3 class="jeu-compteur">Ce que vous avez appris — chaque ligne mène à sa page</h3>
+        <ol class="jp-recap" id="jp-recap"></ol>
           <PartageJeu id="jp" />
           <button class="plat" type="button" id="jp-libre">Une partie libre, avec d’autres ventes</button>
         </section>
@@ -152,5 +163,23 @@ const entete = parDefaut
   .jp-message { color: var(--alerte); margin: 0 0 1rem; max-width: var(--mesure); }
   .jp-choix { margin: 0 0 1.6rem; max-width: var(--mesure); }
   .jp-choix p { margin: 0 0 .6rem; }
+  .jp-pas { display: flex; flex-wrap: wrap; gap: .35rem; flex-basis: 100%; }
+  .jp-pas .plat { font-size: .85rem; padding: .2rem .6rem; }
+  .jp-curseur { flex-basis: 100%; accent-color: var(--accent); margin: .2rem 0 0; }
   .jp-cases { display: block; letter-spacing: .1em; font-weight: 400; margin-top: .2rem; }
+</style>
+
+<style is:global>
+  /* L'échelle est dessinée par le script. */
+  .jp-echelle { position: relative; height: 3.4rem; margin: .4rem 0 .8rem; }
+  .jp-echelle .axe { position: absolute; left: 0; right: 0; top: 1.6rem; height: 4px; border-radius: 2px; background: var(--fond-doux); }
+  .jp-echelle .repere { position: absolute; top: .9rem; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; font-size: .72rem; white-space: nowrap; }
+  .jp-echelle .repere::before { content: ''; width: 3px; height: 1.6rem; border-radius: 2px; background: currentColor; }
+  .jp-echelle .repere span { margin-top: .1rem; }
+  .jp-echelle .repere.bas { top: auto; bottom: 1.2rem; flex-direction: column-reverse; }
+  .jp-echelle .repere.bas::before { height: 1rem; }
+  .jp-echelle .prix { color: #2e9e5b; font-weight: 600; }
+  .jp-echelle .essai { color: var(--accent); }
+  .jp-echelle .mediane { color: var(--encre-douce); top: 1.2rem; }
+  .jp-echelle .mediane::before { height: .8rem; width: 2px; }
 </style>

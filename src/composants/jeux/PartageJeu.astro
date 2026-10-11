@@ -16,6 +16,10 @@ const { id } = Astro.props;
 const LIENS: Reseau[] = ['whatsapp', 'facebook', 'x', 'bluesky', 'linkedin'];
 ---
 <div id={`${id}-partage`} class="pj" hidden>
+  <div class="pj-suivi">
+    <p class="pj-serie"><strong id={`${id}-serie`}></strong> · <span id={`${id}-rebours`}></span></p>
+    <ol class="pj-semaine" id={`${id}-semaine`} aria-label="Vos sept derniers jours"></ol>
+  </div>
   <p class="pj-titre">Partager le défi du jour — le résultat seulement</p>
   <pre id={`${id}-apercu`} class="pj-apercu"></pre>
   <div class="pj-boutons">
@@ -38,6 +42,9 @@ const LIENS: Reseau[] = ['whatsapp', 'facebook', 'x', 'bluesky', 'linkedin'];
 <style>
   .pj { border-top: 1px solid var(--trait); margin: 1rem 0; padding-top: .8rem; }
   .pj [hidden], .pj[hidden] { display: none; }
+  .pj-suivi { margin: 0 0 1rem; }
+  .pj-serie { margin: 0 0 .5rem; }
+  .pj-semaine { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: .3rem; max-width: 24rem; }
   .pj-titre { color: var(--encre-douce); font-size: .85rem; margin: 0 0 .4rem; }
   .pj-note { margin: .6rem 0 0; }
   .pj-apercu {
@@ -57,4 +64,14 @@ const LIENS: Reseau[] = ['whatsapp', 'facebook', 'x', 'bluesky', 'linkedin'];
   .pj-reseau svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
   /* Le logo de X est noir sur blanc ou blanc sur noir : on suit le thème. */
   .pj-reseau[data-reseau="x"] { background: var(--encre); color: var(--fond); }
+</style>
+
+<style is:global>
+  /* Les jours sont dessinés par le script : hors de portée des styles de composant. */
+  .pj-semaine li {
+    display: flex; flex-direction: column; align-items: center; gap: .1rem; padding: .3rem 0;
+    border: 1px solid var(--trait); border-radius: 8px; font-size: .78rem; color: var(--encre-douce);
+  }
+  .pj-semaine li strong { font-size: .85rem; color: var(--encre); font-variant-numeric: tabular-nums; }
+  .pj-semaine li.joue { background: var(--accent-doux); border-color: var(--accent); }
 </style>

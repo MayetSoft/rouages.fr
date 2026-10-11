@@ -11,7 +11,7 @@
  * `-verdict`, `-contexte`, `-fin`, `-score`, `-cases`, `-libre`, et le bloc
  * de `PartageJeu.astro`.
  */
-import { brancherPartage, EMOJI, hasard, jourDeParis, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, type CleJeu, EMOJI, hasard, jourDeParis, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 export interface Element {
   texte: string;
@@ -31,6 +31,8 @@ export interface Partie {
 
 export interface Reglage {
   prefixe: string;
+  /** La clé de l'historique : `ordre`, `argent`. */
+  cle: CleJeu;
   jeu: string;
   embleme: string;
   /** Le préfixe de la mémoire du navigateur. */
@@ -72,7 +74,7 @@ export function brancherClassement(r: Reglage): void {
       adresse: `${location.origin}${location.pathname}`,
     };
   };
-  const remplirPartage = brancherPartage(r.prefixe, resultat);
+  const remplirPartage = brancherPartage(r.prefixe, resultat, r.cle);
 
   const fige = (k: number) => trouve[ordre[k]] > 0;
   const peutAller = (k: number, sens: -1 | 1) => {
@@ -93,7 +95,8 @@ export function brancherClassement(r: Reglage): void {
     for (const [k, i] of ordre.entries()) {
       const e = partie.elements[i];
       const li = document.createElement('li');
-      li.className = fige(k) ? 'juste' : fini ? 'faux' : '';
+      // `nouveau` : trouvé à cet essai — seul celui-là s'anime.
+      li.className = fige(k) ? `juste${trouve[i] === essai ? ' nouveau' : ''}` : fini ? 'faux' : '';
       const texte = document.createElement('span');
       texte.className = 'cl-texte';
       texte.textContent = e.texte;

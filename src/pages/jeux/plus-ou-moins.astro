@@ -17,6 +17,7 @@ const mayet = !filtre?.length || filtre.includes('03');
   titre="Plus ou moins"
   description="Deux communes face à face : laquelle a le plus d’habitants, la maison la plus chère, la gare la plus proche ? Dans votre code postal, votre intercommunalité ou votre département."
   section="jeux"
+  image="/apercus/plus-ou-moins.png"
 >
   <div class="page page--etroite">
     <p class="badge"><a href="/jeux">Jeux</a></p>
@@ -60,6 +61,7 @@ const mayet = !filtre?.length || filtre.includes('03');
 
       <section id="jm-fin" class="jeu-carte" hidden aria-live="polite">
         <p class="jeu-score"><span id="jm-score"></span> <span id="jm-cases" class="jeu-cases"></span></p>
+        <h3 class="jeu-compteur">Ce que vous avez appris — chaque ligne mène à sa page</h3>
         <ol class="jeu-recap" id="jm-recap"></ol>
         <PartageJeu id="jm" />
         <button class="plat" type="button" id="jm-libre">Huit autres duels</button>

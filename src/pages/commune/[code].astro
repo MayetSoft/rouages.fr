@@ -1203,6 +1203,15 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <li><a href="/n/s-informer-sur-les-risques">S’informer sur les risques de son adresse</a> — ce
         qu’un vendeur doit dire, et ce qui s’ouvre après un arrêté de catastrophe naturelle.</li>
       )}
+      <li>
+        {/* Les jeux, réglés sur la commune ou, pour ceux qui portent sur plusieurs communes, sur son code postal. */}
+        Jouer avec cette commune&nbsp;: <a href={`/jeux/qui-decide?t=c-${commune.code}`}>qui décide&nbsp;?</a>,{' '}
+        <a href={`/jeux/prix?t=c-${commune.code}`}>le prix de ses ventes</a>
+        {commune.cp && (
+          <>, et autour d’elle, <a href={`/jeux/commune-mystere?t=cp-${commune.cp}`}>la commune mystère</a> ou{' '}
+          <a href={`/jeux/plus-ou-moins?t=cp-${commune.cp}`}>plus ou moins</a></>
+        )}.
+      </li>
       <li><a href="/methode">Comment ces réponses sont construites</a></li>
       <li><a href={urlSignaler(undefined, commune.code, `/commune/${commune.code}`)}>Signaler une erreur sur cette commune</a></li>
     </ul>

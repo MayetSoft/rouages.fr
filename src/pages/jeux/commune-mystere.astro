@@ -18,6 +18,7 @@ const mayet = !filtre?.length || filtre.includes('03');
   titre="La commune mystère"
   description="Retrouvez la commune du jour à partir d’indices tirés de sa page, avec la distance et la direction à chaque essai : dans votre code postal, votre intercommunalité ou votre département."
   section="jeux"
+  image="/apercus/commune-mystere.png"
 >
   <div class="page page--etroite">
     <p class="badge"><a href="/jeux">Jeux</a></p>
@@ -46,11 +47,12 @@ const mayet = !filtre?.length || filtre.includes('03');
         <p class="jeu-question">Les indices</p>
         <ul class="jx-indices" id="jx-indices"></ul>
         <form id="jx-essai" class="jx-essai">
-          <label for="jx-saisie">Votre réponse</label>
+          <label for="jx-saisie">Votre réponse — tapez son nom, ou cliquez-la sur la carte</label>
           <input id="jx-saisie" class="jeu-saisie" list="jx-noms" autocomplete="off" required placeholder="Le nom d’une commune du périmètre" />
           <datalist id="jx-noms"></datalist>
           <button class="bouton jeu-bouton" type="submit">Proposer</button>
         </form>
+        <div class="jx-carte" id="jx-carte"></div>
         <ol class="jx-essais" id="jx-essais"></ol>
         <p class="jeu-verdict" id="jx-verdict" hidden></p>
         <p class="jeu-contexte" id="jx-contexte" hidden></p>
@@ -92,6 +94,15 @@ const mayet = !filtre?.length || filtre.includes('03');
   .jx-essai { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: center; margin: 0 0 1rem; }
   .jx-essai label { flex-basis: 100%; font-size: .88rem; color: var(--encre-douce); }
   .jx-essai input { flex: 1 1 12rem; min-width: 0; }
+  .jx-carte { margin: 0 0 1rem; }
+  .jx-carte svg { width: 100%; max-height: 22rem; display: block; }
+  .jx-c { fill: var(--fond-doux); stroke: var(--trait-fort); stroke-width: 1; cursor: pointer; transition: fill var(--transition); }
+  .jx-c:hover { fill: var(--accent-doux); }
+  .jx-c.jaune { fill: #e6b422; }
+  .jx-c.orange { fill: #e8762c; }
+  .jx-c.rouge { fill: #cf3b2f; }
+  .jx-c.vert, .jx-c.cible { fill: #2e9e5b; }
+  .jx-c.cible { stroke: var(--encre); stroke-width: 2.5; }
   .jx-essais { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .35rem; }
   .jx-essais li {
     display: grid; grid-template-columns: 1fr auto auto; gap: .6rem; align-items: center;

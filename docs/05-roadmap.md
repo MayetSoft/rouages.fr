@@ -4042,3 +4042,46 @@ avec un export CSV et une adresse qui garde la recherche.
 - Vérifié contre un calcul indépendant : dans l'Allier, 26 communes de 500
   habitants au plus ont une école primaire et pas de pharmacie, 18 avec un
   terrain de grands jeux.
+
+### Les jeux : revenir, apprendre, partager (11 octobre 2026)
+
+Les cinq pistes proposées le 10 octobre, validées en bloc par le mainteneur.
+
+**Revenir chaque jour.** Chaque jeu garde dans le navigateur l'historique de
+ses défis du jour (soixante jours, `jeux-commun.ts`) : la fin d'un défi
+montre la série de jours, les sept derniers jours et le temps avant le
+prochain défi, à minuit à Paris. La page `/jeux` dit pour chaque jeu si le
+défi du jour reste à jouer, ou le score s'il est fait.
+
+**Moins de friction.** Le lieu choisi dans un jeu sert aux autres
+(`quandLieu` et `retenirLieu`, `jeux-lieu.ts`) : un jeu qui ne se joue pas
+sur une commune seule en prend le code postal, à défaut l'intercommunalité.
+Chaque page de commune propose, dans « Aller plus loin », les jeux réglés sur
+elle ou sur son code postal. Le jeu des prix a un curseur et des pas de
+± 1 000 et ± 10 000 € ; le haut du curseur suit la vente la plus chère du
+périmètre.
+
+**Des retours plus parlants.** La commune mystère dessine son périmètre (les
+contours au trait grossier, ajoutés à `/jeux/communes/XX.json`) : les essais
+s'y colorent selon la distance, une commune se propose d'un clic, la commune
+mystère s'éclaire à la fin. Le jeu des prix place sur une même règle
+l'estimation, le prix et la médiane de la commune. Une animation brève
+marque les bonnes réponses et les erreurs, sauf pour qui a demandé à son
+système de réduire les animations.
+
+**Apprendre.** « Qui décide ? » donne après chaque réponse le résumé de la
+fiche de la compétence ; « Le bon ordre » révèle avec la réponse le délai de
+chaque étape — au plus, au moins, environ, selon sa nature. Les récapitulatifs
+de fin mènent à chaque fiche ou page de commune.
+
+**Finitions.** Une image d'aperçu par jeu et pour le site (`og:image`,
+1 200 × 630, `public/apercus/`, refaite par `scripts/apercus.mjs`). Les six
+jeux ont été joués au clavier seul, focus visible partout.
+
+**La fréquentation, sans traceur.** Rien n'est ajouté aux pages : ni script,
+ni cookie, ni pixel. La piste est de lire les journaux que le serveur tient
+déjà — chez l'hébergeur (un outil comme AWStats ou GoAccess, s'il est
+proposé), ou les statistiques de trafic du service placé devant le site.
+Ce qui se compte ainsi : les pages vues par jeu et la fréquentation de
+`/jeux/*.json`, qui dit combien de parties commencent. À vérifier auprès de
+l'hébergeur avant d'en promettre quoi que ce soit dans `/mentions`.

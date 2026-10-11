@@ -27,6 +27,9 @@
 .jeu-option.faux { background: #fbe6e3; border-color: #cf3b2f; color: #17171a; }
 .jeu-verdict { font-size: 1.05rem; margin: .6rem 0 .3rem; }
 .jeu-contexte { color: var(--encre-douce); font-size: .92rem; margin: 0 0 1rem; }
+.jeu-resume { display: block; color: var(--encre); margin-bottom: .4rem; }
+.jeu-apprendre { margin: 0 0 1rem; }
+.jeu-apprendre h3 { font-size: .95rem; margin: 0 0 .3rem; }
 .jeu-score { font-size: 1.3rem; font-weight: 600; margin: 0 0 .6rem; }
 .jeu-cases { display: block; letter-spacing: .1em; font-weight: 400; margin-top: .2rem; }
 .jeu-recap { padding-left: 1.2rem; margin: 0 0 1rem; }
@@ -41,3 +44,23 @@
 }
 :root[data-theme="dark"] .jeu-option.juste { background: #183a26; color: var(--encre); }
 :root[data-theme="dark"] .jeu-option.faux { background: #3d1c18; color: var(--encre); }
+
+/*
+ * Les animations : un rebond pour une bonne réponse, une secousse pour une
+ * erreur, une apparition douce pour le verdict. Rien pour qui a demandé à
+ * son système de réduire les animations.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes jeu-rebond { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
+  @keyframes jeu-secousse { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  @keyframes jeu-apparition { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .jeu-option.juste, .cl-liste li.juste.nouveau, .jx-essais li.juste { animation: jeu-rebond .35s ease-out; }
+  .jeu-option.faux, .cl-liste li.faux { animation: jeu-secousse .3s ease-in-out; }
+  .jeu-verdict, .jp-verdict, .jp-echelle, .jeu-score, .jp-score { animation: jeu-apparition .3s ease-out; }
+  .jx-c { transition: fill .4s ease; }
+}
+
+/* Au clavier, on doit toujours voir où l'on est. */
+.jeu-option:focus-visible, .cl-fleches button:focus-visible, .jeu-bouton:focus-visible, .jeu .plat:focus-visible, .jp-pas button:focus-visible {
+  outline: 3px solid var(--accent); outline-offset: 2px;
+}

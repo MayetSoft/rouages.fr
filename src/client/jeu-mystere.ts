@@ -4,9 +4,9 @@
  * chaque essai.
  */
 import { aplatir } from './recherche-commune.ts';
-import { brancherChampLieu, resoudre, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
+import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
-import { direction, distance, nombre, perimetre, type Communes, type CommuneJeu } from './jeux-communes.ts';
+import { carte, direction, distance, nombre, perimetre, type Communes, type CommuneJeu } from './jeux-communes.ts';
 
 const ESSAIS = 6;
 const MINIMUM = 8;
@@ -88,9 +88,31 @@ export function brancherJeuMystere(): void {
           adresse: `${location.origin}${location.pathname}?t=${encodeURIComponent(lieu.cle)}`,
         }
       : null;
-  const remplirPartage = brancherPartage('jx', resultat);
+  const remplirPartage = brancherPartage('jx', resultat, 'mystere');
+
+  const dessinerCarte = () => {
+    const boite = $('jx-carte');
+    const svg = carte(
+      data,
+      codes,
+      (code) => {
+        if (fini() && code === cible) return 'jx-c cible';
+        if (essais.includes(code)) return `jx-c ${caseDistance(distance(data.c[code], data.c[cible]), code === cible)}`;
+        return 'jx-c';
+      },
+      (code) => {
+        const [nom] = data.c[code];
+        if (!essais.includes(code) || code === cible) return nom;
+        return `${nom} : ${nombre(Math.round(distance(data.c[code], data.c[cible]) * 10) / 10)} km`;
+      },
+    );
+    svg.setAttribute('aria-label', `Carte des ${codes.length} communes du périmètre`);
+    svg.querySelectorAll('path').forEach((p, i) => p.setAttribute('data-code', codes[i]));
+    boite.replaceChildren(svg);
+  };
 
   const dessiner = () => {
+    dessinerCarte();
     const ul = $('jx-indices');
     ul.innerHTML = '';
     const montres = fini() ? liste.length : Math.min(liste.length, AU_DEPART + essais.length);
@@ -143,11 +165,18 @@ export function brancherJeuMystere(): void {
     if (!fini()) saisie.focus();
   };
 
+  const proposer = (code: string) => {
+    if (fini() || essais.includes(code)) return;
+    essais.push(code);
+    if (duJour) garde.ecrire(cleDuJour(), { essais });
+    saisie.value = '';
+    dessiner();
+  };
   $<HTMLFormElement>('jx-essai').addEventListener('submit', (e) => {
     e.preventDefault();
     const code = parNom.get(aplatir(saisie.value));
     if (!code) {
-      saisie.setCustomValidity('Choisissez une commune du périmètre dans la liste.');
+      saisie.setCustomValidity('Choisissez une commune du périmètre dans la liste, ou sur la carte.');
       saisie.reportValidity();
       return;
     }
@@ -156,16 +185,17 @@ export function brancherJeuMystere(): void {
       saisie.reportValidity();
       return;
     }
-    essais.push(code);
-    if (duJour) garde.ecrire(cleDuJour(), { essais });
-    saisie.value = '';
-    dessiner();
+    proposer(code);
     if (!fini()) saisie.focus();
+  });
+  // Sur la carte, une commune se propose d'un clic.
+  $('jx-carte').addEventListener('click', (e) => {
+    const code = (e.target as Element).closest('path')?.getAttribute('data-code');
+    if (code) proposer(code);
   });
   saisie.addEventListener('input', () => saisie.setCustomValidity(''));
 
-  const demande = new URLSearchParams(location.search).get('t') ?? garde.lire<string>('lieu');
-  if (demande) {
+  quandLieu(LIEUX, garde.lire<string>('lieu'), (demande) => {
     void (async () => {
       lieu = await resoudre(demande, LIEUX).catch(() => null);
       if (!lieu) return message('Cherchez un code postal, une intercommunalité, un département, ou votre commune.');
@@ -186,6 +216,7 @@ export function brancherJeuMystere(): void {
           noms.append(Object.assign(document.createElement('option'), { value: affiche }));
         }
         garde.ecrire('lieu', lieu.cle);
+        retenirLieu(lieu.cle);
         $('jx-lieu-nom').textContent = lieu.nom;
         $('jx-lieu-detail').textContent = `(${codes.length} communes${p.elargi ? ', voisines comprises' : ''})`;
         jouer.textContent = garde.lire(cleDuJour()) ? 'Reprendre le défi du jour' : 'Jouer le défi du jour';
@@ -194,7 +225,7 @@ export function brancherJeuMystere(): void {
         message('Les communes n’ont pas pu être lues. Réessayez dans un instant.');
       }
     })();
-  }
+  });
   jouer.addEventListener('click', () => lancer(true));
   $('jx-libre').addEventListener('click', () => lancer(false));
 }

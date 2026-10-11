@@ -5,7 +5,10 @@
  *
  * `i` décrit les indicateurs : [clé, libellé, unité, source et millésime].
  * `c` : par commune, [nom, code postal, longitude, latitude, voisines,
- *   intercommunalité, valeurs dans l'ordre de `i` (null si inconnue)].
+ *   intercommunalité, valeurs dans l'ordre de `i` (null si inconnue),
+ *   contours au trait grossier, en dix-millièmes de degré et par écarts
+ *   successifs comme dans `dep/XX-contours.json`]. La commune mystère en
+ *   dessine sa carte.
  *
  * Le point d'une commune est le centre de son plus grand contour, d'après
  * Admin Express : c'est de lui que la commune mystère mesure les distances.
@@ -25,7 +28,7 @@ export const getStaticPaths: GetStaticPaths = () => {
   return deps.map((dep) => ({ params: { dep } }));
 };
 
-type Contours = { millesime: string; c: Record<string, [number[][], string[]]> };
+type Contours = { millesime: string; c: Record<string, [number[][], string[], number[][]?]> };
 type Population = { annees: number[]; c: Record<string, [number[], number, number]> };
 type Revenus = { millesime: number; c: Record<string, [number | null, number | null]> };
 type Dvf = { annees: number[]; c: Record<string, (number | null)[]> };
@@ -85,7 +88,7 @@ export const GET: APIRoute = ({ params }) => {
     ['ecoles', 'Écoles', '', 'Ministère de l’Éducation nationale, annuaire de l’éducation'],
   ];
 
-  const c: Record<string, [string, string, number, number, string[], string, (number | null)[]]> = {};
+  const c: Record<string, [string, string, number, number, string[], string, (number | null)[], number[][]]> = {};
   for (const commune of communes().filter((x) => x.dep === dep)) {
     const forme = ct?.c[commune.code];
     if (!forme) continue;
@@ -112,6 +115,7 @@ export const GET: APIRoute = ({ params }) => {
         g ? ('g' in g ? 0 : g.p[2]) : null,
         serv ? (ecoles ?? 0) : null,
       ],
+      forme[2] ?? forme[0],
     ];
   }
   return new Response(JSON.stringify({ i, c }), { headers: { 'Content-Type': 'application/json' } });
