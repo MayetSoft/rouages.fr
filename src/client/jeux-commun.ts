@@ -166,23 +166,25 @@ export async function imageDuResultat(r: Resultat): Promise<Blob> {
   toile.width = L;
   toile.height = H;
   const g = toile.getContext('2d')!;
+  await document.fonts?.load('700 64px Fraunces').catch(() => []);
   await document.fonts?.ready;
   const police = getComputedStyle(document.body).fontFamily || 'sans-serif';
+  const titre = `Fraunces, Georgia, serif`;
   g.fillStyle = '#fbfaf8';
   g.fillRect(0, 0, L, H);
   g.fillStyle = '#1e5f74';
   g.fillRect(0, 0, L, 18);
-  const ligne = (texte: string, y: number, taille: number, couleur: string, graisse = 400) => {
-    g.font = `${graisse} ${taille}px ${police}`;
+  const ligne = (texte: string, y: number, taille: number, couleur: string, graisse = 400, famille = police) => {
+    g.font = `${graisse} ${taille}px ${famille}`;
     g.fillStyle = couleur;
     // Un nom long se réduit plutôt que de sortir du cadre.
     let t = taille;
-    while (g.measureText(texte).width > L - 160 && t > 24) g.font = `${graisse} ${(t -= 2)}px ${police}`;
+    while (g.measureText(texte).width > L - 160 && t > 24) g.font = `${graisse} ${(t -= 2)}px ${famille}`;
     g.fillText(texte, 80, y);
   };
   ligne('Rouages · Jeux', 130, 36, '#5f5c55', 500);
-  ligne(r.jeu, 230, 64, '#17171a', 700);
-  if (r.lieu) ligne(r.lieu, 420, 56, '#17171a', 600);
+  ligne(r.jeu, 240, 76, '#17171a', 700, titre);
+  if (r.lieu) ligne(r.lieu, 420, 56, '#17171a', 600, titre);
   ligne(`Défi du ${dateLongue(r.jour)}`, r.lieu ? 490 : 420, 40, '#5f5c55');
   const n = Math.max(1, r.cases.length);
   const cote = Math.min(150, (L - 160 - (n - 1) * 24) / n);
@@ -193,7 +195,7 @@ export async function imageDuResultat(r: Resultat): Promise<Blob> {
     g.roundRect(80 + i * (cote + ecart), 600, cote, cote, Math.round(cote / 7));
     g.fill();
   }
-  ligne(r.score, 960, 120, '#17171a', 700);
+  ligne(r.score, 960, 130, '#17171a', 700, titre);
   ligne('Saurez-vous faire mieux ?', 1170, 44, '#1e5f74', 600);
   ligne(r.adresse.replace(/^https?:\/\//, ''), 1240, 34, '#5f5c55');
   return new Promise((ok, ko) => toile.toBlob((b) => (b ? ok(b) : ko(new Error('image'))), 'image/png'));
@@ -252,7 +254,9 @@ export function brancherPartage(prefixe: string, resultat: () => Resultat | null
   const suivre = (r: Resultat) => {
     noterResultat(jeu, r);
     const n = serie(jeu, r.jour);
-    $('serie').textContent = n > 1 ? `${n} jours de suite` : 'Premier jour de la série';
+    const palier = n >= 30 ? ' — un mois entier !' : n >= 7 ? ' — une semaine complète !' : n >= 3 ? ' — ça devient une habitude' : '';
+    $('serie').textContent = n > 1 ? `🔥 ${n} jours de suite${palier}` : 'Premier jour de la série';
+    $('serie').classList.toggle('jeu-serie-palier', n >= 3);
     const h = historique(jeu);
     const semaine = $('semaine');
     semaine.innerHTML = '';
@@ -276,6 +280,7 @@ export function brancherPartage(prefixe: string, resultat: () => Resultat | null
 
   return (r: Resultat) => {
     suivre(r);
+    if (reussie(r.cases)) feter();
     const texte = texteDuResultat(r);
     $('apercu').textContent = `${texte}\n${r.adresse}`;
     const complet = encodeURIComponent(`${texte}\n${r.adresse}`);
@@ -288,3 +293,71 @@ export function brancherPartage(prefixe: string, resultat: () => Resultat | null
     note.hidden = true;
   };
 }
+
+/**
+ * La progression d'une partie, sous le compteur : une pastille par manche,
+ * de la couleur de son résultat une fois jouée, la manche en cours marquée.
+ * L'élément se crée à la première fois, juste après `compteur`.
+ */
+export function progression(compteur: HTMLElement, faites: Case[], total: number): void {
+  let barre = compteur.nextElementSibling as HTMLElement | null;
+  if (!barre?.classList.contains('jeu-progres')) {
+    barre = Object.assign(document.createElement('ol'), { className: 'jeu-progres' });
+    barre.setAttribute('aria-hidden', 'true');
+    compteur.after(barre);
+  }
+  barre.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const li = document.createElement('li');
+    li.className = i < faites.length ? `fait ${faites[i]}` : i === faites.length ? 'encours' : '';
+    barre.append(li);
+  }
+}
+
+/**
+ * Une pluie de confettis, une fois, pour une partie réussie : quelques
+ * dizaines de rectangles aux couleurs des cases, dessinés sur une toile posée
+ * au-dessus de la page, puis retirée. Rien pour qui a demandé à son système
+ * de réduire les animations.
+ */
+export function feter(): void {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const toile = Object.assign(document.createElement('canvas'), { className: 'jeu-confettis' });
+  toile.setAttribute('aria-hidden', 'true');
+  document.body.append(toile);
+  const L = (toile.width = innerWidth);
+  const H = (toile.height = innerHeight);
+  const g = toile.getContext('2d')!;
+  const couleurs = Object.values(COULEUR).concat('#1e5f74');
+  const morceaux = Array.from({ length: 90 }, () => ({
+    x: L / 2 + (Math.random() - 0.5) * L * 0.3,
+    y: H * 0.35,
+    vx: (Math.random() - 0.5) * 12,
+    vy: -Math.random() * 11 - 4,
+    r: Math.random() * Math.PI,
+    vr: (Math.random() - 0.5) * 0.3,
+    c: couleurs[Math.floor(Math.random() * couleurs.length)],
+  }));
+  const debut = performance.now();
+  const image = (t: number) => {
+    g.clearRect(0, 0, L, H);
+    for (const m of morceaux) {
+      m.vy += 0.32;
+      m.x += m.vx;
+      m.y += m.vy;
+      m.r += m.vr;
+      g.save();
+      g.translate(m.x, m.y);
+      g.rotate(m.r);
+      g.fillStyle = m.c;
+      g.fillRect(-5, -3, 10, 6);
+      g.restore();
+    }
+    if (t - debut < 2600) requestAnimationFrame(image);
+    else toile.remove();
+  };
+  requestAnimationFrame(image);
+}
+
+/** Une partie réussie, assez pour qu'on la fête : quatre manches sur cinq au moins. */
+export const reussie = (cases: Case[]) => cases.length > 0 && cases.filter((c) => c === 'vert').length / cases.length >= 0.8;
