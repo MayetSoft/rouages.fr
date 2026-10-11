@@ -4085,3 +4085,76 @@ proposé), ou les statistiques de trafic du service placé devant le site.
 Ce qui se compte ainsi : les pages vues par jeu et la fréquentation de
 `/jeux/*.json`, qui dit combien de parties commencent. À vérifier auprès de
 l'hébergeur avant d'en promettre quoi que ce soit dans `/mentions`.
+
+### Une section « Simulateurs » : estimer un bien ou un terrain (11 octobre 2026)
+
+Demandée par le mainteneur, avec sa méthode : un bien vaut la somme de ses
+parts — l'habitable, le terrain constructible, les terres, les bois, les
+locaux d'activité comptés pour une part de l'habitable — et un modificateur
+pour l'état. Une entrée au menu, une porte sur l'accueil, `/simulateurs`,
+et un premier simulateur, `/simulateurs/estimation`.
+
+**Les prix de chaque part** sont mesurés sur les ventes DVF des trois
+dernières années, à la collecte (`scripts/estimation-emettre.ts`, appelé par
+`dvf-emettre.ts`), par commune avec ses voisines jusqu'à cent ventes de
+maisons et quinze de chaque terrain (trois anneaux au plus, voisines
+d'après les contours de l'ingestion précédente) :
+
+- terres et bois : médianes à l'hectare des terrains nus d'une seule nature,
+  les terres par taille (moins d'un demi-hectare, jusqu'à deux, au-delà) —
+  un petit pré se vend bien plus cher à l'hectare qu'un grand ;
+- terrain constructible vendu seul : médiane au m² ;
+- habitable et terrain de la maison : régression robuste (Huber), sans
+  constante, sur prix − terres − bois ;
+- locaux d'activité : un quart de l'habitable, l'hypothèse du mainteneur —
+  DVF n'en vend pas assez et ne donne aucune surface pour les dépendances ;
+- l'état : un curseur au jugement de qui estime, de −40 % à +40 % sur le
+  bâti ; aucun pourcentage n'est attribué à un état, les ventes ne le
+  disent pas.
+
+**La précision** est mesurée par validation croisée en cinq parts sur les
+ventes de maisons du voisinage : écart médian et quartiles du rapport prix /
+estimation, qui font la fourchette affichée. Au Mayet-de-Montagne, avec ses
+voisines (183 maisons) : 481 €/m² habitable, 34,8 €/m² de terrain de
+maison, 13,8 €/m² de terrain seul, terres 2 013 €/ha entre un demi et deux
+hectares, bois 2 887 €/ha, écart médian 40 %. Le mainteneur avait établi la
+méthode à la main sur les ventes de 2017 à 2022 : le prix des terrains
+constructibles vendus, retranché des prix totaux pour trouver la valeur du
+reste, et des propriétés semblables comparées pour la part des dépendances.
+Ses valeurs d'alors ne se transposent ni dans le temps ni ailleurs : c'est
+la démarche qui est reprise, pas les chiffres.
+
+Les départements que DVF ne couvre pas (Alsace, Moselle, Mayotte) n'ont pas
+d'estimation, plutôt que celle de leurs voisins. Les fichiers
+(`territoires/simulateurs/estimation/XX.json`, 2,8 Mo pour la France) ne
+contiennent que des prix agrégés, aucune vente.
+
+**Le DPE, essayé sur l'Allier.** Les ventes DVF ne disent pas l'étiquette du
+bien ; la base des DPE de l'ADEME donne l'adresse de chaque diagnostic. En
+rapprochant une vente de maison d'un DPE de la même commune, à moins de 30 m,
+établi dans les deux ans avant la vente, pour une surface à ±20 % : 3 930
+ventes sur 10 187 (39 %) de 2023 à 2025. À surface, terrain et commune
+égaux, par rapport à D : A +35 %, B +30 %, C +12 %, E −15 %, F −28 %,
+G −37 %. L'écart médian de l'estimation passe de 26 à 22 % sur ces ventes.
+Le même modèle, en pourcentages et avec un effet par commune, s'écarte de
+30 % sur toutes les ventes de maisons de l'Allier, contre 32 % pour le calcul
+additif publié : la forme du modèle compte peu, le DPE davantage.
+
+**Le DPE dans le simulateur, sur l'Allier seulement (11 octobre 2026).**
+`scripts/dpe-maisons-emettre.ts` met en cache (`.cache/dpe-maisons-XX.json`,
+hors du dépôt) le point, l'étiquette, la surface et la date des DPE de
+maisons — 33 474 pour l'Allier ; `estimation-emettre.ts` les rapproche des
+ventes quand le cache est là et publie les seuls multiplicateurs par
+étiquette, le nombre de ventes rapprochées et, par commune, le multiplicateur
+moyen des maisons du lieu, tiré de la répartition des étiquettes. Le
+simulateur propose l'étiquette ; sans elle, l'estimation vaut pour une maison
+ordinaire de la commune, et l'écart s'applique à l'habitable et au terrain de
+la maison, mesurés ensemble. Justification dans `docs/07-risques.md`. Au
+Mayet-de-Montagne, une maison F vaut −9 % par rapport à la maison ordinaire
+de la commune, où les étiquettes basses sont nombreuses.
+
+**La suite** : la collecte des DPE pour toute la France, l'effet mesuré par
+région, un index spatial pour les grandes villes, dans la remise à plat de
+l'ingestion ; une vraie mesure de la précision des terrains ; d'autres
+simulateurs. La vente par une agence ou de particulier à particulier ne se
+mesure pas : aucune donnée publique ne le dit, DVF pas davantage.

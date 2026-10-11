@@ -589,6 +589,33 @@ Le RGPD s'applique : DVF contient des données personnelles, même sans nom.
 les coordonnées, et toute vente d'un local professionnel, d'un terrain seul ou
 de plusieurs logements à la fois.
 
+### Les ventes rapprochées des DPE, pour le simulateur d'estimation (11 octobre 2026)
+
+Décision du mainteneur du 11 octobre : mesurer l'effet de l'étiquette
+énergétique sur le prix des maisons, d'abord sur l'Allier. DVF ne dit pas
+l'étiquette du bien vendu ; la base des DPE de l'ADEME donne l'adresse de
+chaque diagnostic. Le rapprochement des deux, vente par vente, est un
+traitement nouveau, écrit ici avant la collecte.
+
+**Ce qui est rapproché.** Une vente d'une maison et un DPE de maison de la
+même commune, à moins de 30 m l'un de l'autre, établi dans les deux ans
+avant la vente, pour une surface habitable à ±20 %. Rien d'autre que ces
+champs n'est lu : ni nom, ni numéro de DPE conservé, ni adresse écrite.
+
+**Ce qui en sort.** Seulement des coefficients agrégés : l'écart de prix de
+chaque étiquette par rapport à D, mesuré sur des centaines de ventes, et le
+gain de précision. Le rapprochement vit le temps du calcul, en mémoire ; il
+n'est ni publié, ni écrit dans un fichier du dépôt. Les DPE téléchargés
+restent dans `.cache/`, hors du dépôt, comme les fichiers de DVF.
+
+**Pourquoi c'est tenable.** Les conditions d'utilisation de DVF interdisent
+un traitement qui aboutirait à identifier davantage les personnes que le jeu
+publié : un coefficient régional n'identifie personne, et rien n'est montré
+vente par vente. La base des DPE est publiée par l'ADEME sous Licence
+Ouverte 2.0, adresses comprises (« DPE Logements existants depuis juillet
+2021 », 15,7 millions de diagnostics au 30 juin 2026) ; les notaires publient
+chaque année une mesure de même nature, la « valeur verte ».
+
 ## 4. Risques juridiques directs
 
 - **Diffamation** (famille D) : traitée par la règle « pas de personnes » dans

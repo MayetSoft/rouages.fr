@@ -20,7 +20,8 @@ import { fileURLToPath } from 'node:url';
  * complètes des marchés et des associations, chargées à la demande —, et
  * `echeances.json`, `attributions.json` et `avis.json`, que personne ne lit
  * sur le site : ils sont publiés pour être téléchargés. Et `jeux`, les ventes
- * que le jeu des prix lit au clic.
+ * que le jeu des prix lit au clic, et `simulateurs`, les prix unitaires du
+ * simulateur d'estimation.
  */
 const RACINE_GARDEE = new Set([
   'index.json',
@@ -34,6 +35,7 @@ const RACINE_GARDEE = new Set([
   'avis.json',
   'jeux',
   'proximite',
+  'simulateurs',
 ]);
 
 /** Par département : les groupements (`03.json`) et le prix de l'eau (`03-eau.json`). */

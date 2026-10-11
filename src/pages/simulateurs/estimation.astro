@@ -1,0 +1,139 @@
+---
+/**
+ * Estimer un bien ou un terrain : chaque part au prix relevé sur les ventes
+ * autour de la commune (`scripts/estimation-emettre.ts`), et l'état du
+ * bâtiment au jugement de qui estime. La page dit la méthode, les ventes qui
+ * ont servi et l'écart mesuré entre ces estimations et les prix réels.
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Estimer un bien ou un terrain"
+  description="Une maison, un terrain, un pré, un bois : chaque part au prix des ventes réelles autour de votre commune, d’après les données des notaires publiées par la DGFiP."
+  section="simulateurs"
+  image="/apercus/estimation.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/simulateurs">Simulateurs</a></p>
+    <h1>Estimer un bien ou un terrain</h1>
+    <p class="resume">
+      Un bien vaut la somme de ses parts&nbsp;: la surface habitable, le terrain constructible, les terres, les bois, les
+      locaux d’activité. Chaque part est mise au prix des ventes réelles autour de votre commune&nbsp;; l’état du
+      bâtiment, c’est vous qui en jugez.
+    </p>
+
+    <div id="se" class="jeu">
+      <ChampLieuJeu
+        id="se-lieu"
+        etiquette="La commune du bien"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+      <p id="se-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <form id="se-form" class="jeu-carte se-form" hidden>
+        <p class="jeu-question" id="se-titre"></p>
+        <div class="se-champs">
+          <label>Surface habitable <span><input type="number" min="0" step="1" inputmode="numeric" name="habitable" value="0" /> m²</span></label>
+          <label>Terrain constructible <small>sol, jardin, terrain à bâtir</small> <span><input type="number" min="0" step="10" inputmode="numeric" name="constructible" value="0" /> m²</span></label>
+          <label>Terres et prés <small>non constructibles</small> <span><input type="number" min="0" step="100" inputmode="numeric" name="agricole" value="0" /> m²</span></label>
+          <label>Bois <span><input type="number" min="0" step="100" inputmode="numeric" name="bois" value="0" /> m²</span></label>
+          <label>Local d’activité, grange, atelier <span><input type="number" min="0" step="1" inputmode="numeric" name="activite" value="0" /> m²</span></label>
+          <label>Il compte pour <span><input type="number" min="0" max="100" step="5" inputmode="numeric" name="part" value="25" /> % de l’habitable</span></label>
+        </div>
+        <label class="se-dpe" id="se-dpe-bloc" hidden>
+          L’étiquette énergétique de la maison (DPE)
+          <select name="dpe">
+            <option value="">Je ne sais pas</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+          </select>
+          <small id="se-dpe-note"></small>
+        </label>
+        <label class="se-etat">
+          L’état du bâtiment, à votre jugement — au-delà de ce que dit l’étiquette&nbsp;: <strong id="se-etat-valeur">tel quel</strong>
+          <input type="range" name="etat" min="-40" max="40" step="5" value="0" />
+          <span class="se-etat-bornes"><span>à rénover entièrement</span><span>refait à neuf</span></span>
+        </label>
+      </form>
+
+      <section id="se-resultat" class="jeu-carte" hidden aria-live="polite">
+        <table class="se-table">
+          <thead><tr><th>Part</th><th>Surface</th><th class="se-col-prix">Prix relevé</th><th>Valeur</th></tr></thead>
+          <tbody id="se-lignes"></tbody>
+          <tfoot><tr><th colspan="2">Estimation</th><th class="se-col-prix"></th><th id="se-total"></th></tr></tfoot>
+        </table>
+        <p class="jeu-verdict" id="se-fourchette"></p>
+        <p class="jeu-contexte" id="se-precision"></p>
+      </section>
+      <noscript><p class="mesure">Le simulateur a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La méthode</h2>
+    <ul class="accueil-themes">
+      <li><strong>Les terres et les bois</strong>&nbsp;: la médiane des ventes de terrain nu d’une seule nature, à l’hectare. Les terres sont rangées par taille — moins d’un demi-hectare, jusqu’à deux, au-delà — parce qu’un petit pré se vend plus cher à l’hectare qu’un grand.</li>
+      <li><strong>Le terrain constructible vendu seul</strong>&nbsp;: la médiane au mètre carré des ventes de sol, de jardin ou de terrain à bâtir sans bâtiment.</li>
+      <li><strong>L’habitable et le terrain d’une maison</strong>&nbsp;: une régression robuste sur les ventes de maisons — le prix, moins ses terres et ses bois, partagé entre la surface habitable et le terrain. Une vente extravagante y pèse peu.</li>
+      <li><strong>Les locaux d’activité</strong>&nbsp;: les ventes ne permettent pas de les mesurer — trop peu de ventes, et aucune surface pour les dépendances. Ils comptent pour une part de l’habitable, un quart par défaut&nbsp;: une hypothèse, à votre réglage.</li>
+      <li><strong>Le voisinage</strong>&nbsp;: un village vend peu. Chaque commune est mesurée avec ses voisines, un anneau après l’autre, jusqu’à cent ventes de maisons et quinze de chaque terrain&nbsp;; la page dit combien ont servi.</li>
+      <li><strong>L’étiquette énergétique</strong>&nbsp;: les ventes ne la disent pas, mais la base des DPE de l’ADEME donne l’adresse de chaque diagnostic. Une vente de maison est rapprochée d’un DPE de la même commune, à moins de 30&nbsp;m, établi dans les deux ans avant la vente, pour une surface proche. Sur ces ventes, on mesure ce que chaque étiquette change au prix d’une maison, à surface, terrain et commune égaux, par rapport à une maison D. L’écart s’applique à la maison et à son terrain, rapporté aux étiquettes des maisons de la commune&nbsp;: une estimation sans étiquette vaut pour une maison ordinaire du lieu. Mesuré pour l’instant dans l’Allier.</li>
+      <li><strong>La précision</strong>&nbsp;: les ventes de maisons sont partagées en cinq, chaque cinquième estimé par les quatre autres. La fourchette est celle où tombe la moitié de ces ventes. Les ventes ne disent rien de l’état d’une maison&nbsp;: c’est l’essentiel de l’écart, et la raison du curseur.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <ul class="mesure b-sources">
+      <li>
+        <a href="https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres-geolocalisees" target="_blank" rel="noopener">Etalab — Demandes de valeurs foncières géolocalisées</a>{', d’après les demandes de valeurs foncières de la DGFiP, Licence Ouverte : les ventes des trois dernières années publiées.'}
+      </li>
+      <li>
+        <a href="https://data.ademe.fr/datasets/dpe03existant" target="_blank" rel="noopener">ADEME — DPE des logements existants depuis juillet 2021</a>{', Licence Ouverte 2.0 : l’étiquette des maisons vendues, rapprochée à l’adresse, et la répartition des étiquettes par commune. Rien n’est publié vente par vente.'}
+      </li>
+      <li>
+        <a href="https://geoservices.ign.fr/adminexpress" target="_blank" rel="noopener">IGN — Admin Express</a>{' : les communes voisines, par leurs contours.'}
+      </li>
+    </ul>
+    <p class="mesure">
+      Une estimation n’est pas une expertise&nbsp;: elle ne voit ni la vue, ni la route, ni la toiture. Elle dit ce que
+      valent, autour de chez vous, des surfaces comme les vôtres.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import { brancherEstimation } from '../../client/simulateur-estimation.ts';
+  brancherEstimation();
+</script>
+
+<style is:global>
+  .se-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .7rem 1rem; margin: .4rem 0 1rem; }
+  .se-champs label { display: flex; flex-direction: column; gap: .2rem; font-size: .9rem; }
+  .se-champs small { color: var(--encre-douce); font-size: .78rem; }
+  .se-champs span { display: inline-flex; align-items: center; gap: .4rem; color: var(--encre-douce); }
+  .se-champs input, .se-etat input[type="number"] {
+    font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait);
+    border-radius: var(--rayon); padding: .35rem .5rem; width: 7.5rem; font-variant-numeric: tabular-nums;
+  }
+  .se-dpe { display: flex; flex-direction: column; gap: .25rem; font-size: .9rem; margin: 0 0 1rem; max-width: 20rem; }
+  .se-dpe select { font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .35rem .5rem; }
+  .se-dpe small { color: var(--encre-douce); font-size: .78rem; }
+  .se-etat { display: flex; flex-direction: column; gap: .3rem; font-size: .9rem; }
+  .se-etat input[type="range"] { accent-color: var(--accent); }
+  .se-etat-bornes { display: flex; justify-content: space-between; color: var(--encre-douce); font-size: .78rem; }
+  .se-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 0 0 .8rem; }
+  .se-table th, .se-table td { text-align: left; padding: .35rem .3rem; border-bottom: 1px solid var(--trait); font-size: .9rem; }
+  .se-table td:nth-child(n+2), .se-table th:nth-child(n+2) { text-align: right; }
+  .se-table tfoot th { font-size: 1.05rem; border-bottom: 0; }
+  .se-table small { display: block; color: var(--encre-douce); font-size: .76rem; }
+  .se-prix-court { display: none; }
+  /* Sur un téléphone, le prix relevé passe sous le nom de la part : quatre colonnes ne tiennent pas. */
+  @media (max-width: 560px) {
+    .se-col-prix { display: none; }
+    .se-prix-court { display: block; }
+    .se-table th, .se-table td { padding: .3rem .15rem; font-size: .82rem; }
+    #se-resultat { padding: .9rem .7rem; }
+  }
+</style>

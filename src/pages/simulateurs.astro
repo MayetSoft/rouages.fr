@@ -1,0 +1,43 @@
+---
+/**
+ * Les simulateurs : un calcul sur les données publiques, à partir de ce
+ * qu'on saisit. Le premier estime un bien immobilier ou un terrain, poste par
+ * poste, d'après les ventes réelles (DVF) ; chacun dit sa méthode et sa
+ * précision mesurée.
+ */
+import Base from '../layouts/Base.astro';
+---
+<Base
+  titre="Simulateurs"
+  description="Des simulateurs sur les données publiques : ce que vaut une maison, un terrain ou un pré près de chez vous, d’après les ventes réelles."
+  section="simulateurs"
+  image="/apercus/simulateurs.png"
+>
+  <div class="page page--etroite">
+    <p class="badge">Simulateurs</p>
+    <h1>Simulateurs</h1>
+    <p class="resume">
+      Un calcul sur les données publiques, à partir de ce que vous saisissez. Chaque simulateur dit d’où viennent
+      ses chiffres, comment il les combine, et à quel point il se trompe&nbsp;: c’est mesuré, pas supposé.
+    </p>
+
+    <ul class="sim-liste">
+      <li>
+        <a href="/simulateurs/estimation">Estimer un bien ou un terrain</a>
+        <p>
+          La surface habitable, le terrain constructible, les terres, les bois, les locaux d’activité&nbsp;: chaque
+          part au prix des ventes réelles autour de votre commune, et l’état du bâtiment à votre jugement.
+        </p>
+        <p class="sim-meta">Données&nbsp;: les demandes de valeurs foncières de la DGFiP, les trois dernières années publiées.</p>
+      </li>
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .sim-liste { list-style: none; padding: 0; margin: 0 0 1.4rem; max-width: var(--mesure); }
+  .sim-liste li { padding: .6rem 0; border-top: 1px solid var(--trait); }
+  .sim-liste a { font-weight: 600; }
+  .sim-liste p { margin: .25rem 0 0; }
+  .sim-meta { color: var(--encre-douce); font-size: .88rem; }
+</style>

@@ -1,6 +1,6 @@
 /**
  * Les images d'aperçu des liens (`og:image`) : 1 200 × 630, une pour le site,
- * une pour la page des jeux, une par jeu. Elles vont dans `public/apercus/`
+ * une pour la page des jeux, une par jeu, une par simulateur. Elles vont dans `public/apercus/`
  * et sont versionnées : elles ne changent qu'avec le nom d'un jeu.
  *
  * Playwright n'est pas une dépendance du site ; pour les refaire :
@@ -24,6 +24,8 @@ const IMAGES = [
   ['prix', 'Rouages · Jeux', 'À combien s’est-elle vendue ?', 'Cinq vraies ventes de maisons et d’appartements : devinez le prix.', ['jaune', 'vert', 'orange', 'vert', 'rouge']],
   ['ordre', 'Rouages · Jeux', 'Le bon ordre', 'Les étapes d’une démarche publique, mélangées : remettez-les dans l’ordre.', ['vert', 'vert', 'jaune', 'jaune', 'orange']],
   ['argent', 'Rouages · Jeux', 'Où va l’argent ?', 'Cinq missions du budget de l’État, de la plus grosse à la plus petite.', ['vert', 'jaune', 'vert', 'rouge', 'vert']],
+  ['simulateurs', 'Rouages · Simulateurs', 'Simulateurs', 'Un calcul sur les données publiques, à partir de ce que vous saisissez — avec sa précision mesurée.', []],
+  ['estimation', 'Rouages · Simulateurs', 'Estimer un bien ou un terrain', 'L’habitable, le terrain, les terres, les bois : chaque part au prix des ventes réelles autour de chez vous.', []],
 ];
 const COULEUR = { vert: '#2e9e5b', jaune: '#e6b422', orange: '#e8762c', rouge: '#cf3b2f' };
 

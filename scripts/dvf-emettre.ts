@@ -34,7 +34,8 @@
  *
  * Lancé seul — `tsx scripts/dvf-emettre.ts` —, il réécrit les fichiers
  * `public/territoires/dep/XX-dvf.json`, et ceux du jeu des prix,
- * `public/territoires/jeux/dvf/XX.json`.
+ * `public/territoires/jeux/dvf/XX.json`, et ceux du simulateur d'estimation,
+ * `public/territoires/simulateurs/estimation/XX.json`.
  */
 import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -42,6 +43,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { communeDe, departementDe, ecrireParDepartement, lignesCsv, mediane, telechargerSiAbsent } from './par-departement.ts';
+import { bienDe, ecrireEstimation, type Bien } from './estimation-emettre.ts';
 
 export const ADRESSE = (annee: number) => `https://files.data.gouv.fr/geo-dvf/latest/csv/${annee}/full.csv.gz`;
 /** Sous ce nombre de ventes, la médiane serait celle de trois maisons. */
@@ -63,6 +65,8 @@ export interface Dvf {
   detailsDep: Map<string, Detail>;
   /** Les ventes d'un seul logement, par commune, pour le jeu des prix. */
   ventes: Map<string, Vente[]>;
+  /** Les maisons et les terrains nus, surfaces par nature, pour le simulateur d'estimation. */
+  biens: Bien[];
 }
 
 type Vente = {
@@ -158,6 +162,7 @@ export async function lireVentes(
   annee: number,
   ajouter: (v: Vente) => void,
   ajouterTerrain: (t: Terrain) => void = () => {},
+  ajouterBien: (b: Bien) => void = () => {},
 ): Promise<void> {
   let col: Record<string, number> | null = null;
   let id = '';
@@ -165,6 +170,9 @@ export async function lireVentes(
   const flux = createReadStream(chemin).pipe(createGunzip()) as unknown as AsyncIterable<Uint8Array>;
   const clore = () => {
     if (lignes.length > 0) {
+      // Pour le simulateur d'estimation, une lecture de plus des mêmes lignes.
+      const b = bienDe(lignes, col!);
+      if (b) ajouterBien(b);
       const v = venteDe(lignes, col!, annee);
       if (v) ajouter(v);
       else {
@@ -272,6 +280,7 @@ export async function collecterDvf(
 ): Promise<Dvf | null> {
   const parCommune = new Map<string, Vente[]>();
   const terrainsParCommune = new Map<string, Terrain[]>();
+  const biens: Bien[] = [];
   const lues: number[] = [];
   for (const annee of annees) {
     const vers = join(cache, `dvf-${annee}.csv.gz`);
@@ -296,6 +305,7 @@ export async function collecterDvf(
         terrainsParCommune.get(t.commune)!.push(t);
         nt++;
       },
+      (b) => biens.push(b),
     );
     dire(`Ventes immobilières ${annee} : ${n.toLocaleString('fr-FR')} ventes d’un seul logement, ${nt.toLocaleString('fr-FR')} de terrain nu.`);
     lues.push(annee);
@@ -329,7 +339,7 @@ export async function collecterDvf(
   for (const dep of new Set([...parDep.keys(), ...terrainsParDep.keys()])) {
     detailsDep.set(dep, detailler(parDep.get(dep) ?? [], terrainsParDep.get(dep) ?? []));
   }
-  return { maj: new Date().toISOString().slice(0, 10), annees, communes, departements, details, detailsDep, ventes: parCommune };
+  return { maj: new Date().toISOString().slice(0, 10), annees, communes, departements, details, detailsDep, ventes: parCommune, biens };
 }
 
 /** Les trois dernières années complètes : la base est publiée au printemps et en automne. */
@@ -462,5 +472,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (d) {
     console.log(`${ecrireDvf(sortie, d)} départements écrits.`);
     console.log(`${ecrireVentesJeu(sortie, d)} départements écrits pour le jeu des prix.`);
+    console.log(`${ecrireEstimation(sortie, d.biens, d.annees, d.maj, cache)} départements écrits pour le simulateur d’estimation.`);
   }
 }
