@@ -20,6 +20,7 @@ import { communes, intercommunalites, lienIntercommunalite, metaTerritoires } fr
 import { investissementCollectivite, petiteEnfanceCollectivite, zonagesGroupe } from '../modele/fiche-vie.ts';
 import ZonagesGroupe from './ZonagesGroupe.astro';
 import CarteCommunes from './CarteCommunes.astro';
+import CentEuros from './CentEuros.astro';
 import { carteDeCommunes } from '../modele/carte.ts';
 import { thematiquesDepartement } from '../modele/carte-thematique.ts';
 import Investissement from './commune/Investissement.astro';
@@ -177,6 +178,7 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
     {comptes ? (
       <section class="p-finances p-echelons">
         <h2 class="badge">{`Ses comptes, en ${annee}`}</h2>
+        {annee && <CentEuros lignes={comptes.lignes} annee={annee} qui={c.echelon === 'departement' ? 'la collectivité' : 'la région'} />}
         <ComptesCollectivite
           c={comptes}
           echelon={c.echelon === 'departement' ? 'collectivités départementales' : 'collectivités régionales'}

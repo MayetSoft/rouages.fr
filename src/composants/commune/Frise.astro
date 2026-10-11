@@ -1,0 +1,41 @@
+---
+/**
+ * La commune en quelques dates : des jalons déjà donnés plus bas dans la page
+ * — le premier recensement de la série, le maximum d'habitants, le dernier,
+ * l'approbation du document d'urbanisme, le début du mandat municipal en
+ * cours —, posés sur une même ligne du temps. Aucune date n'est ajoutée qui
+ * ne figure pas dans un bloc, avec sa source.
+ */
+export interface Jalon {
+  annee: number;
+  texte: string;
+  /** Le bloc qui en dit plus. */
+  lien: string;
+}
+interface Props {
+  jalons: Jalon[];
+}
+const tries = [...Astro.props.jalons].sort((a, b) => a.annee - b.annee);
+// Deux jalons la même année n'en font qu'un.
+const jalons = tries.reduce<Jalon[]>((t, j) => {
+  const dernier = t.at(-1);
+  if (dernier && dernier.annee === j.annee) dernier.texte += ` ; ${j.texte}`;
+  else t.push({ ...j });
+  return t;
+}, []);
+---
+{jalons.length >= 3 && (
+  <section class="frise" aria-labelledby="frise-titre">
+    <h2 id="frise-titre" class="badge">En quelques dates</h2>
+    <ol class="frise-liste">
+      {jalons.map((j) => (
+        <li>
+          <a href={j.lien}>
+            <span class="frise-annee">{j.annee}</span>
+            <span class="frise-texte">{j.texte}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}

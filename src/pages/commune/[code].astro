@@ -90,6 +90,8 @@ import Ailleurs from '../../composants/commune/Ailleurs.astro';
 import { SITES_COMMANDE_PUBLIQUE, SITES_VERIFIER_ENTREPRISE, sitesDeCommune } from '../../modele/sites-complementaires.ts';
 import CarteSituation from '../../composants/commune/CarteSituation.astro';
 import Icone from '../../composants/Icone.astro';
+import CentEuros from '../../composants/CentEuros.astro';
+import Frise, { type Jalon } from '../../composants/commune/Frise.astro';
 import type { NomIcone } from '../../modele/icones.ts';
 import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
@@ -205,6 +207,23 @@ const lignes = fiche
  * plan du tout — auquel cas le préfet donne son accord sur chaque permis.
  */
 const urb = fiche?.urbanisme ?? null;
+
+// Les jalons de la frise : des dates que la page donne déjà, chacune vers son bloc.
+const jalons: Jalon[] = [];
+const h = plus.histoire;
+if (h) {
+  const premier = h.serie.findIndex((v) => v !== null);
+  const nbh = (v: number) => `${v.toLocaleString('fr-FR')} habitant${v > 1 ? 's' : ''}`;
+  if (premier >= 0 && h.annees[premier] !== h.sommet[0]) jalons.push({ annee: h.annees[premier], texte: `${nbh(h.serie[premier]!)} au recensement`, lien: '#habitants' });
+  if (h.sommet[0] !== h.anneeActuelle) jalons.push({ annee: h.sommet[0], texte: `${nbh(h.sommet[1])}, son maximum recensé`, lien: '#habitants' });
+  jalons.push({ annee: h.anneeActuelle, texte: nbh(h.actuelle), lien: '#habitants' });
+}
+if (urb?.approuve && /^\d{4}/.test(urb.approuve) && urb.document !== 'RNU') {
+  jalons.push({ annee: Number(urb.approuve.slice(0, 4)), texte: `${NOM_DOCUMENT[urb.document] ?? urb.document} approuvé${ARTICLE_DOCUMENT[urb.document] === 'une' ? 'e' : ''}`, lien: '#urbanisme' });
+}
+if (fiche?.maire?.depuis && /^\d{4}/.test(fiche.maire.depuis)) {
+  jalons.push({ annee: Number(fiche.maire.depuis.slice(0, 4)), texte: 'début du mandat du maire en cours', lien: '#apercu' });
+}
 const phraseUrbanisme = !urb
   ? ''
   : urb.document === 'RNU'
@@ -466,6 +485,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
 
     <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
 
+    <Frise jalons={jalons} />
+
     {fiche?.maire && (
       <p class="p-maire">
         <span class="p-maire-fonction">Maire</span>
@@ -675,6 +696,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     {plus.finances && (
       <section id="comptes" class="p-finances">
         <h2 class="badge">{`Ses comptes, en ${plus.finances.annee}`}</h2>
+        <CentEuros lignes={plus.finances.lignes} annee={plus.finances.annee} qui="la commune" />
         <Comptes f={plus.finances} />
         <Demarches bloc="comptes" />
         <ChambreComptes codeRegion={meta?.codesRegion?.[commune.dep]} nom={commune.nom} />
