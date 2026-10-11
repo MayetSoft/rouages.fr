@@ -1,35 +1,34 @@
 ---
 /**
- * Comparer deux communes, bloc par bloc. La page ne calcule rien : elle
+ * Comparer de deux à cinq communes, bloc par bloc. La page ne calcule rien : elle
  * rapproche les pages déjà publiées — voir `src/client/comparer.ts`.
  */
 import Base from '../layouts/Base.astro';
 ---
 <Base
-  titre="Comparer deux communes"
-  description="Deux communes côte à côte, bloc par bloc : les mêmes chiffres, les mêmes sources que sur leurs pages."
+  titre="Comparer des communes"
+  description="De deux à cinq communes côte à côte, bloc par bloc : les mêmes chiffres, les mêmes sources que sur leurs pages."
   section="chez-moi"
 >
   <div class="page page--comparer">
-    <h1>Comparer deux communes</h1>
+    <h1>Comparer des communes</h1>
     <p class="resume">
-      Deux communes côte à côte, bloc par bloc. Rien n’est recalculé&nbsp;: la page rapproche ce que disent leurs deux
-      pages, avec les mêmes sources et les mêmes réserves. Un écart entre deux chiffres ne dit pas à lui seul
+      De deux à cinq communes côte à côte, bloc par bloc. Rien n’est recalculé&nbsp;: la page rapproche ce que disent
+      leurs pages, avec les mêmes sources et les mêmes réserves. Un écart entre deux chiffres ne dit pas à lui seul
       pourquoi&nbsp;: la taille, la structure et les choix de chaque commune pèsent.
     </p>
 
     <div class="comparer-choix">
-      {(['a', 'b'] as const).map((cote) => (
-        <div class="comparer-champ">
-          <label for={`comparer-${cote}`}>{cote === 'a' ? 'Première commune' : 'Seconde commune'}</label>
-          <input id={`comparer-${cote}`} type="search" autocomplete="off" placeholder="Une commune, un code postal…" />
-          <ul id={`comparer-${cote}-liste`} class="comparer-liste" aria-label="Communes trouvées"></ul>
-        </div>
-      ))}
+      <ul id="comparer-choisies" class="comparer-choisies" aria-label="Communes comparées"></ul>
+      <div class="comparer-champ">
+        <label for="comparer-ajout">Ajouter une commune</label>
+        <input id="comparer-ajout" type="search" autocomplete="off" placeholder="Une commune, un code postal…" />
+        <ul id="comparer-ajout-liste" class="comparer-liste" aria-label="Communes trouvées"></ul>
+      </div>
     </div>
 
     <noscript>
-      <p class="c-vide">La comparaison a besoin de JavaScript : elle charge les deux pages dans le navigateur.</p>
+      <p class="c-vide">La comparaison a besoin de JavaScript : elle charge les pages des communes dans le navigateur.</p>
     </noscript>
     <p id="comparaison-etat" class="p-strate" aria-live="polite"></p>
     <div id="comparaison"></div>

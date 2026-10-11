@@ -1139,7 +1139,17 @@ a.p-sommaire-lien { text-decoration: none; }
 
 /* --- Comparer deux communes ------------------------------------------------ */
 .page--comparer { max-width: 72rem; }
-.comparer-choix { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+.page--comparer-large { max-width: 110rem; }
+.comparer-choix { display: grid; gap: .7rem; margin: 1.2rem 0; max-width: 40rem; }
+.comparer-choisies { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.comparer-choisies:empty { display: none; }
+.comparer-choisies li {
+  display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .3rem .2rem .7rem;
+  border: 1px solid var(--trait-fort); border-radius: 999px; background: var(--fond-carte); font-size: .9rem;
+}
+.comparer-retirer { font: inherit; line-height: 1; width: 1.6rem; height: 1.6rem; border: 0; border-radius: 50%; background: none; color: var(--encre-douce); cursor: pointer; }
+.comparer-retirer:hover, .comparer-retirer:focus-visible { background: var(--fond-doux); color: var(--encre); }
+.comparer-champ input:disabled { opacity: .6; }
 .comparer-champ label { display: block; font-weight: 600; margin-bottom: .3rem; }
 .comparer-champ input { width: 100%; font: inherit; padding: .45rem .6rem; border: 1px solid var(--trait-fort); border-radius: 4px; background: var(--fond-carte); color: var(--encre); }
 .comparer-liste { list-style: none; margin: .2rem 0 0; padding: 0; }
@@ -1147,7 +1157,9 @@ a.p-sommaire-lien { text-decoration: none; }
 .comparer-liste button { display: block; width: 100%; text-align: left; font: inherit; padding: .35rem .6rem; background: none; border: 0; cursor: pointer; }
 .comparer-liste button:hover, .comparer-liste button:focus-visible { background: var(--fond-doux); }
 .comparer-bloc { margin: 2rem 0; }
-.comparer-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+/* Une colonne par commune. Sous seize rems, un tableau ne se lit plus : la grille défile de côté. */
+.comparer-grille { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(16rem, 1fr)); gap: 1.5rem; overflow-x: auto; scroll-snap-type: x proximity; }
+.comparer-colonne { scroll-snap-align: start; position: relative; overflow-x: auto; }
 .comparer-colonne { min-width: 0; }
 .comparer-colonne h3 { font-size: 1rem; margin: 0 0 .5rem; }
 @media (max-width: 760px) {
@@ -1167,6 +1179,15 @@ a.p-sommaire-lien { text-decoration: none; }
   border: 1px solid var(--trait-fort); border-radius: 999px; background: var(--fond-carte); color: var(--encre);
 }
 .cm-champ input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cm-ici { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; margin: .5rem 0 0; font-size: .88rem; }
+.cm-ici-bouton {
+  font: inherit; cursor: pointer; padding: .3rem .8rem; border: 1px solid var(--trait-fort); border-radius: 999px;
+  background: var(--fond-carte); color: var(--accent);
+}
+.cm-ici-bouton:hover { background: var(--accent-doux); }
+.cm-ici-bouton:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cm-ici-bouton:disabled { opacity: .6; cursor: progress; }
+.cm-ici-message { color: var(--encre-douce); }
 .cm-liste {
   position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + .3rem);
   margin: 0; padding: .25rem; list-style: none; background: var(--fond-carte);

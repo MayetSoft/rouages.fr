@@ -98,3 +98,54 @@ export const SITES_COMMANDE_PUBLIQUE: SiteComplementaire[] = [
     url: 'https://onveillecp.fr/',
   },
 ];
+
+/**
+ * Vérifier une entreprise — un titulaire, un candidat, un fournisseur — aux
+ * registres publics : qu'elle existe, qu'elle est active, que son numéro de TVA
+ * et son adresse sont les bons. Des services de l'État ou de l'Union, sans
+ * inscription.
+ */
+export const SITES_VERIFIER_ENTREPRISE: SiteComplementaire[] = [
+  {
+    id: 'annuaire-entreprises',
+    nom: 'Annuaire des entreprises',
+    editeur: 'l’État (direction interministérielle du numérique)',
+    quoi: 'à partir d’un nom, d’un SIREN ou d’un SIRET : l’état administratif, les établissements, les dirigeants déclarés, les labels et certifications, les annonces légales',
+    url: 'https://annuaire-entreprises.data.gouv.fr/',
+  },
+  {
+    id: 'avis-situation-sirene',
+    nom: 'Avis de situation au répertoire SIRENE',
+    editeur: 'l’INSEE',
+    quoi: 'le document officiel, à télécharger, qui atteste l’inscription d’une entreprise ou d’un établissement et son état, actif ou fermé',
+    url: 'https://avis-situation-sirene.insee.fr/',
+  },
+  {
+    id: 'data-inpi',
+    nom: 'Data INPI',
+    editeur: 'l’Institut national de la propriété industrielle',
+    quoi: 'le registre national des entreprises : la forme juridique, le capital, les dirigeants, les actes et comptes déposés, et l’extrait gratuit',
+    url: 'https://data.inpi.fr/',
+  },
+  {
+    id: 'vies',
+    nom: 'VIES',
+    editeur: 'la Commission européenne',
+    quoi: 'vérifier qu’un numéro de TVA intracommunautaire est valide, en France ou dans un autre pays de l’Union',
+    url: 'https://ec.europa.eu/taxation_customs/vies/',
+  },
+  {
+    id: 'bodacc',
+    nom: 'BODACC',
+    editeur: 'l’État (direction de l’information légale et administrative)',
+    quoi: 'les annonces légales d’une entreprise : création, vente, modification, procédure collective, radiation',
+    url: 'https://www.bodacc.fr/',
+  },
+  {
+    id: 'ban',
+    nom: 'Base adresse nationale',
+    editeur: 'l’État, avec les communes qui la tiennent à jour',
+    quoi: 'vérifier qu’une adresse existe et la retrouver telle qu’elle est référencée, avec sa position',
+    url: 'https://adresse.data.gouv.fr/',
+  },
+];

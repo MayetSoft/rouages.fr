@@ -3972,3 +3972,32 @@ prix y est rebranché à l'identique : mêmes tirages, même mémoire.
 
 Aucun de ces jeux ne montre de donnée personnelle ni de chiffre absent des
 pages du site. Ils sont indexables, au contraire du jeu des prix.
+
+### Comparer jusqu'à cinq, « Là où je suis », vérifier une entreprise (10 octobre 2026)
+
+- **Comparer jusqu'à cinq communes** : une colonne par commune, cinq sur un
+  grand écran ; en dessous, la grille défile de côté, et un téléphone
+  empile les communes. L'adresse devient `?c=03165,03310,…` ; l'ancienne,
+  `?a=…&b=…`, est toujours lue.
+- **« Là où je suis »**, sous le grand champ de l'accueil et des « Données de
+  chez moi » : la position, demandée par le navigateur, arrondie à une
+  dizaine de mètres, est envoyée une fois à l'API Découpage administratif
+  (geo.api.gouv.fr), qui renvoie la commune. `/mentions` le dit.
+- **Vérifier une entreprise**, sous les marchés et sous les entreprises :
+  l'Annuaire des entreprises, l'avis de situation SIRENE, Data INPI, VIES pour
+  la TVA intracommunautaire, le BODACC, la Base adresse nationale.
+
+**Proposés, pas commencés :**
+
+- **Un requêteur** : choisir des critères (moins de N habitants, un club de
+  football, une école, une commune soumise à la loi SRU…) et obtenir la
+  liste des communes, avec des recoupements à la volée. Faisable sans
+  serveur : un index national des indicateurs déjà publiés, lu dans le
+  navigateur, comme l'index de recherche. Chaque critère dit sa source ; la
+  liste ne calcule rien qui ne soit déjà sur les pages.
+- **Le plus proche** : l'association, l'entreprise ou l'équipement le plus
+  proche d'une commune qui n'en a pas. Les équipements ont leurs
+  coordonnées ; les entreprises, peut-être par la recherche autour d'un
+  point de l'API Recherche d'entreprises de l'État (à vérifier : elle n'a
+  pas répondu depuis l'environnement de développement) ; les associations, faute de
+  coordonnées au répertoire, à la distance entre communes.
