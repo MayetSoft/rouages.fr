@@ -10,6 +10,7 @@
  * restent dans `docs/05-roadmap.md`, pas sur le site.
  */
 import Base from '../layouts/Base.astro';
+import Icone from '../composants/Icone.astro';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
 import type { Jeu } from '../modele/schemas.ts';
 
@@ -41,37 +42,43 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
 
     <h2 class="badge">Sur Rouages</h2>
     <ul class="jeux-liste">
-      <li data-jeu="qui">
+      <li data-jeu="qui" data-theme-couleur="decide">
+        <span class="pastille"><Icone nom="decide" /></span>
         <a href="/jeux/qui-decide">Qui décide&nbsp;?</a>
         <span class="jeux-etat" hidden></span>
         <p>L’eau, les déchets, la mobilité&nbsp;: dans votre commune, qui s’en occupe&nbsp;? Cinq questions, et la réponse de sa page.</p>
         <p class="jeux-meta">Données&nbsp;: le registre national BANATIC et la loi, comme sur chaque page de commune.</p>
       </li>
-      <li data-jeu="mystere">
+      <li data-jeu="mystere" data-theme-couleur="nature">
+        <span class="pastille"><Icone nom="carte" /></span>
         <a href="/jeux/commune-mystere">La commune mystère</a>
         <span class="jeux-etat" hidden></span>
         <p>Une commune se cache dans votre code postal, votre intercommunalité ou votre département&nbsp;: retrouvez-la, indice après indice, avec la distance et la direction à chaque essai.</p>
         <p class="jeux-meta">Données&nbsp;: les contours d’Admin Express, et les chiffres des pages de commune.</p>
       </li>
-      <li data-jeu="plus">
+      <li data-jeu="plus" data-theme-couleur="habitants">
+        <span class="pastille"><Icone nom="habitants" /></span>
         <a href="/jeux/plus-ou-moins">Plus ou moins</a>
         <span class="jeux-etat" hidden></span>
         <p>Deux communes face à face&nbsp;: laquelle a le plus d’habitants, la maison la plus chère, la gare la plus proche&nbsp;?</p>
         <p class="jeux-meta">Données&nbsp;: INSEE, DGFiP, SNCF, Éducation nationale, avec leur année.</p>
       </li>
-      <li data-jeu="prix">
+      <li data-jeu="prix" data-theme-couleur="logement">
+        <span class="pastille"><Icone nom="logement" /></span>
         <a href="/jeux/prix">À combien s’est-elle vendue&nbsp;?</a>
         <span class="jeux-etat" hidden></span>
         <p>Cinq vraies ventes de maisons et d’appartements, autour de chez vous&nbsp;: devinez le prix.</p>
         <p class="jeux-meta">Données&nbsp;: les demandes de valeurs foncières de la DGFiP, les trois dernières années publiées.</p>
       </li>
-      <li data-jeu="ordre">
+      <li data-jeu="ordre" data-theme-couleur="suivre">
+        <span class="pastille"><Icone nom="deliberations" /></span>
         <a href="/jeux/ordre">Le bon ordre</a>
         <span class="jeux-etat" hidden></span>
         <p>Les étapes d’une démarche publique, mélangées&nbsp;: le permis de construire, le budget communal, l’inscription électorale…</p>
         <p class="jeux-meta">Données&nbsp;: les fiches de démarche de Rouages.</p>
       </li>
-      <li data-jeu="argent">
+      <li data-jeu="argent" data-theme-couleur="argent">
+        <span class="pastille"><Icone nom="argent" /></span>
         <a href="/jeux/argent">Où va l’argent&nbsp;?</a>
         <span class="jeux-etat" hidden></span>
         <p>Cinq missions du budget de l’État, à ranger de la plus grosse à la plus petite.</p>
@@ -134,6 +141,12 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
   .jeux-liste { list-style: none; padding: 0; margin: 0 0 1.4rem; max-width: var(--mesure); }
   .jeux-liste li { padding: .6rem 0; border-top: 1px solid var(--trait); }
   .jeux-liste a { font-weight: 600; }
+  /* Les jeux de Rouages : leur icône à gauche, le reste en colonne. */
+  .jeux-liste li[data-theme-couleur] { display: grid; grid-template-columns: 2.4rem 1fr; column-gap: .9rem; align-items: start; padding: .85rem 0; }
+  .jeux-liste li[data-theme-couleur] > .pastille { grid-row: 1 / span 4; margin-top: .1rem; }
+  .jeux-liste li[data-theme-couleur] > :not(.pastille) { grid-column: 2; }
+  .jeux-liste li[data-theme-couleur] > a { font-family: var(--titre); font-size: 1.2rem; font-weight: 620; justify-self: start; }
+  .jeux-liste li[data-theme-couleur] > .jeux-etat { justify-self: start; margin: .2rem 0 0; }
   .jeux-etat {
     display: inline-block; margin-left: .5rem; padding: .05rem .5rem; border-radius: 999px; font-size: .78rem;
     background: var(--accent-doux); color: var(--accent);

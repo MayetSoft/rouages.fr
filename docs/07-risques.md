@@ -597,14 +597,19 @@ l'étiquette du bien vendu ; la base des DPE de l'ADEME donne l'adresse de
 chaque diagnostic. Le rapprochement des deux, vente par vente, est un
 traitement nouveau, écrit ici avant la collecte.
 
+Étendu à toute la France le même jour, après l'essai sur l'Allier : les DPE
+des maisons de tous les départements (4,7 millions), l'effet mesuré région
+par région. Rien d'autre ne change — mêmes champs, mêmes sorties.
+
 **Ce qui est rapproché.** Une vente d'une maison et un DPE de maison de la
 même commune, à moins de 30 m l'un de l'autre, établi dans les deux ans
 avant la vente, pour une surface habitable à ±20 %. Rien d'autre que ces
 champs n'est lu : ni nom, ni numéro de DPE conservé, ni adresse écrite.
 
 **Ce qui en sort.** Seulement des coefficients agrégés : l'écart de prix de
-chaque étiquette par rapport à D, mesuré sur des centaines de ventes, et le
-gain de précision. Le rapprochement vit le temps du calcul, en mémoire ; il
+chaque étiquette par rapport à D, mesuré par région sur des milliers de
+ventes, et le gain de précision ; par commune, le multiplicateur moyen tiré
+de la répartition des étiquettes, déjà publiée (`dep/XX-dpe.json`). Le rapprochement vit le temps du calcul, en mémoire ; il
 n'est ni publié, ni écrit dans un fichier du dépôt. Les DPE téléchargés
 restent dans `.cache/`, hors du dépôt, comme les fichiers de DVF.
 

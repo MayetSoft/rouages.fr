@@ -55,6 +55,7 @@ const mayet = !filtre?.length || filtre.includes('03');
         </div>
         <div id="jm-reponse" hidden>
           <p class="jeu-verdict" id="jm-verdict"></p>
+          <div class="jm-carte" id="jm-carte"></div>
           <button class="bouton jeu-bouton" type="button" id="jm-suivante">Duel suivant</button>
         </div>
       </section>
@@ -85,6 +86,13 @@ const mayet = !filtre?.length || filtre.includes('03');
   brancherJeuPlus();
 </script>
 
+<style is:global>
+  /* La carte du duel, dessinée par le script : les styles ne peuvent pas être limités à la page. */
+  .jm-carte svg { width: 100%; max-height: 14rem; display: block; margin: .2rem 0 .8rem; }
+  .jm-c { fill: var(--fond-doux); stroke: var(--trait-fort); stroke-width: .6; }
+  .jm-c.jm-a { fill: var(--trait-fort); }
+  .jm-c.jm-b { fill: var(--accent); stroke: var(--accent); }
+</style>
 <style>
   .jm-source { color: var(--encre-douce); font-size: .85rem; }
   .jm-duel { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: 0 0 1rem; }

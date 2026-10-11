@@ -4,8 +4,9 @@
  * chaque essai.
  */
 import { aplatir } from './recherche-commune.ts';
+import { boutonPhoto } from './photo-commune.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, progression, type Case, type Resultat } from './jeux-commun.ts';
 import { carte, direction, distance, nombre, perimetre, type Communes, type CommuneJeu } from './jeux-communes.ts';
 
 const ESSAIS = 6;
@@ -132,6 +133,7 @@ export function brancherJeuMystere(): void {
       ol.append(li);
     }
     $('jx-compteur').textContent = `${duJour ? 'Défi du jour' : 'Partie libre'} · ${fini() ? 'terminé' : `essai ${essais.length + 1} sur ${ESSAIS}`}`;
+    progression($('jx-compteur'), essais.map((e) => caseDistance(distance(data.c[e], data.c[cible]), e === cible)), trouve() ? essais.length : ESSAIS);
     $('jx-essai').hidden = fini();
     if (!fini()) return;
     const [nom] = data.c[cible];
@@ -141,6 +143,8 @@ export function brancherJeuMystere(): void {
     contexte.textContent = '';
     contexte.append(Object.assign(document.createElement('a'), { href: `/commune/${cible}`, textContent: `La page de ${nom}` }), ' : d’où viennent les indices.');
     contexte.hidden = false;
+    boutonPhoto($('jx-photo'), cible, nom);
+    $('jx-photo').hidden = false;
     const r = resultat()!;
     $('jx-score').textContent = r.score;
     $('jx-cases').textContent = r.cases.map((c) => EMOJI[c]).join('');
@@ -157,6 +161,7 @@ export function brancherJeuMystere(): void {
     liste = indices(data.c[cible], data, lieu);
     essais = duJour ? (garde.lire<{ essais: string[] }>(cleDuJour())?.essais ?? []).filter((e) => data.c[e]) : [];
     $('jx-verdict').hidden = true;
+    $('jx-photo').hidden = true;
     $('jx-contexte').hidden = true;
     $('jx-fin').hidden = true;
     $('jx-manche').hidden = false;

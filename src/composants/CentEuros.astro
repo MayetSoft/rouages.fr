@@ -1,0 +1,77 @@
+---
+/**
+ * « Sur 100 € » : d'où vient l'argent d'une collectivité, et où il va,
+ * ramené à cent euros. Les mêmes comptes que le tableau poste par poste
+ * (`Comptes.astro`), pas un chiffre de plus : seulement les postes les plus
+ * fins — ceux qu'aucun autre ne détaille — de chaque total, au prorata.
+ *
+ * Une seule teinte : une barre par poste, sa part de la largeur, striée
+ * d'un trait par euro. Les six plus gros postes ont leur ligne ; le reste est
+ * regroupé.
+ */
+import type { LigneCompte } from '../modele/fiche-commune.ts';
+
+interface Props {
+  lignes: LigneCompte[];
+  annee: number;
+  /** « la commune », « le département »… */
+  qui: string;
+}
+const { lignes, annee, qui } = Astro.props;
+
+/** Les postes les plus fins sous un total : ni « dont », ni détaillés plus bas. */
+function feuilles(idTotal: string): { nom: string; montant: number }[] {
+  const i = lignes.findIndex((l) => l.id === idTotal);
+  if (i < 0) return [];
+  const base = lignes[i].niveau;
+  const sous: LigneCompte[] = [];
+  for (let j = i + 1; j < lignes.length && lignes[j].niveau > base; j++) if (!lignes[j].dont) sous.push(lignes[j]);
+  return sous
+    .filter((l, k) => !(sous[k + 1] && sous[k + 1].niveau > l.niveau))
+    .filter((l) => (l.montant ?? 0) > 0)
+    .map((l) => ({ nom: l.nom, montant: l.montant! }));
+}
+
+/** Cent euros, répartis au plus fort reste : la somme fait toujours cent. */
+function centEuros(postes: { nom: string; montant: number }[]): { nom: string; euros: number }[] {
+  const tries = [...postes].sort((a, b) => b.montant - a.montant);
+  const gardes = tries.slice(0, 6);
+  const reste = tries.slice(6).reduce((s, p) => s + p.montant, 0);
+  if (reste > 0) gardes.push({ nom: 'Le reste', montant: reste });
+  const total = gardes.reduce((s, p) => s + p.montant, 0);
+  if (!(total > 0)) return [];
+  const brut = gardes.map((p) => ({ nom: p.nom, exact: (p.montant / total) * 100 }));
+  const parts = brut.map((p) => ({ nom: p.nom, euros: Math.floor(p.exact), reste: p.exact - Math.floor(p.exact) }));
+  let manque = 100 - parts.reduce((s, p) => s + p.euros, 0);
+  for (const p of [...parts].sort((a, b) => b.reste - a.reste)) {
+    if (manque-- <= 0) break;
+    p.euros++;
+  }
+  return parts.filter((p) => p.euros > 0).map(({ nom, euros }) => ({ nom, euros }));
+}
+
+const recettes = centEuros(feuilles('repere-recettes-totales'));
+const depenses = centEuros(feuilles('repere-depenses-totales'));
+---
+{recettes.length > 1 && depenses.length > 1 && (
+  <div class="ce" role="group" aria-label={`Les comptes de ${qui} en ${annee}, ramenés à cent euros`}>
+    {[
+      { titre: `D’où viennent 100 € de ${qui}`, postes: recettes },
+      { titre: `Où vont 100 € de ${qui}`, postes: depenses },
+    ].map((bloc) => (
+      <div class="ce-bloc">
+        <h3 class="ce-titre">{bloc.titre}</h3>
+        <ul>
+          {bloc.postes.map((p) => (
+            <li>
+              <span class="ce-euros">{`${p.euros} €`}</span>
+              <span class="ce-nom">{p.nom}</span>
+              <span class="ce-pieces" style={`--n:${p.euros}`} aria-hidden="true"></span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+    <p class="ce-note">{`D’après les mêmes comptes ${annee} que le tableau ci-dessous, chaque poste au prorata de son total ; les six plus gros ont leur ligne. Un trait par euro.`}</p>
+  </div>
+)}

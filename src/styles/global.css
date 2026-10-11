@@ -50,6 +50,19 @@
   --mesure: 66ch;
   --rayon: 10px;
   --sans: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Les titres : Fraunces (SIL OFL), servie par le site lui-même. Elle donne
+     au site une voix ; le texte courant reste dans la police du système. */
+  --titre: 'Fraunces', Georgia, 'Times New Roman', serif;
+  /* Les pastilles des thèmes : un fond très doux derrière une icône, sur les
+     portes et les titres. Jamais dans un graphique — la couleur y reste aux
+     relations. */
+  --theme-decide: #e3ecf7;     --theme-decide-encre: #22528c;
+  --theme-argent: #e1f2ea;     --theme-argent-encre: #1c6b4a;
+  --theme-habitants: #f4e9f6;  --theme-habitants-encre: #74387f;
+  --theme-logement: #fbeadf;   --theme-logement-encre: #9a4a1c;
+  --theme-quotidien: #fdf3d6;  --theme-quotidien-encre: #7c5a07;
+  --theme-nature: #e6f1df;     --theme-nature-encre: #3b6b23;
+  --theme-suivre: #ecebe7;     --theme-suivre-encre: #4d4a44;
   --transition: 180ms cubic-bezier(0.2, 0, 0.2, 1);
   /* L'encre posée sur l'accent : elle s'inverse en sombre, où l'accent
      s'éclaircit pour rester lisible sur fond noir. */
@@ -77,6 +90,13 @@
     --alerte: #e0a468;
     --alerte-doux: #2c2317;
     --favorable: #5fc28e;
+    --theme-decide: #1d2a3a;     --theme-decide-encre: #9cc2f0;
+    --theme-argent: #18302a;     --theme-argent-encre: #86d3b0;
+    --theme-habitants: #2d2032;  --theme-habitants-encre: #dcaee6;
+    --theme-logement: #33241b;   --theme-logement-encre: #f0b48e;
+    --theme-quotidien: #322a14;  --theme-quotidien-encre: #e8c86a;
+    --theme-nature: #1f2b1a;     --theme-nature-encre: #a8d48c;
+    --theme-suivre: #26282b;     --theme-suivre-encre: #c9c5bd;
     --defavorable: #f08a80;
     --nature-protection: #3f9e68;
     --nature-inventaire: #b77a2e;
@@ -93,6 +113,15 @@
 
 * { box-sizing: border-box; }
 
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/polices/fraunces-latin.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 body {
   margin: 0;
   background: var(--fond);
@@ -103,6 +132,27 @@ body {
 
 a { color: var(--accent); text-underline-offset: 2px; }
 h1, h2, h3 { letter-spacing: -0.014em; }
+h1, .titre-voix { font-family: var(--titre); font-weight: 640; letter-spacing: -0.02em; line-height: 1.12; font-optical-sizing: auto; }
+
+/* Une icône de thème, à la taille du texte qui la porte. */
+.icone { width: 1.15em; height: 1.15em; flex: none; vertical-align: -0.18em; }
+/* La pastille : l'icône dans un rond teinté, couleur du thème. */
+.pastille {
+  display: inline-grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 999px; flex: none;
+  background: var(--pastille-fond, var(--accent-doux)); color: var(--pastille-encre, var(--accent));
+}
+.pastille .icone { width: 1.25rem; height: 1.25rem; }
+[data-theme-couleur='decide'] { --pastille-fond: var(--theme-decide); --pastille-encre: var(--theme-decide-encre); }
+[data-theme-couleur='argent'] { --pastille-fond: var(--theme-argent); --pastille-encre: var(--theme-argent-encre); }
+[data-theme-couleur='habitants'] { --pastille-fond: var(--theme-habitants); --pastille-encre: var(--theme-habitants-encre); }
+[data-theme-couleur='logement'] { --pastille-fond: var(--theme-logement); --pastille-encre: var(--theme-logement-encre); }
+[data-theme-couleur='quotidien'] { --pastille-fond: var(--theme-quotidien); --pastille-encre: var(--theme-quotidien-encre); }
+[data-theme-couleur='nature'] { --pastille-fond: var(--theme-nature); --pastille-encre: var(--theme-nature-encre); }
+[data-theme-couleur='suivre'] { --pastille-fond: var(--theme-suivre); --pastille-encre: var(--theme-suivre-encre); }
+
+/* Les grands chiffres : un nombre qui se lit d'un coup d'œil, sa légende dessous. */
+.chiffre { display: block; font-family: var(--titre); font-weight: 600; font-size: clamp(1.5rem, 3.4vw, 2rem); line-height: 1.1; font-variant-numeric: lining-nums tabular-nums; letter-spacing: -0.01em; }
+.chiffre-legende { display: block; color: var(--encre-douce); font-size: .8rem; line-height: 1.35; margin-top: .25rem; }
 
 /* Le lien d'évitement : invisible jusqu'à ce que le clavier l'atteigne, il
    saute l'en-tête et mène droit au contenu. */
@@ -1110,11 +1160,17 @@ a.p-sommaire-lien { text-decoration: none; }
 
 /* L'essentiel : un sommaire chiffré, chaque carte mène à son bloc. */
 .c-essentiel { margin: 1.2rem 0 .6rem; }
-.c-essentiel-liste { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); }
-.c-essentiel-carte { display: grid; gap: .1rem; padding: .6rem .75rem; border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--fond-carte); color: var(--encre); text-decoration: none; height: 100%; box-sizing: border-box; transition: border-color var(--transition); }
-.c-essentiel-carte:hover, .c-essentiel-carte:focus-visible { border-color: var(--accent); }
-.c-essentiel-nom { font-size: .8rem; color: var(--encre-douce); }
-.c-essentiel-valeur { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.c-essentiel-liste { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr)); }
+@media (max-width: 480px) {
+  .c-essentiel-liste { grid-template-columns: 1fr 1fr; }
+  .c-essentiel-valeur { font-size: 1.12rem; }
+}
+.c-essentiel-carte { display: grid; gap: .1rem; padding: .7rem .8rem; border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--fond-carte); color: var(--encre); text-decoration: none; height: 100%; box-sizing: border-box; transition: border-color var(--transition); }
+.c-essentiel-carte:hover, .c-essentiel-carte:focus-visible { border-color: var(--pastille-encre, var(--accent)); }
+.c-essentiel-nom { font-size: .8rem; color: var(--encre-douce); display: flex; align-items: center; gap: .45rem; }
+.c-essentiel-valeur { font-family: var(--titre); font-size: 1.35rem; font-weight: 600; line-height: 1.2; font-variant-numeric: lining-nums tabular-nums; margin-top: .15rem; }
+.pastille--petite { width: 1.7rem; height: 1.7rem; }
+.pastille--petite .icone { width: .95rem; height: .95rem; }
 .c-essentiel-detail { font-size: .8rem; color: var(--encre-tres-douce); }
 
 /* Les démarches qu'un bloc appelle : une ligne, sous le bloc. */
@@ -1240,10 +1296,24 @@ a.p-sommaire-lien { text-decoration: none; }
   color: var(--encre-douce); text-decoration: none;
 }
 .accueil-porte:hover, .accueil-porte:focus-visible { border-color: var(--accent); }
-.accueil-porte-titre { color: var(--accent); font-weight: 650; font-size: 1.15rem; }
+.accueil-porte-titre { color: var(--encre); font-family: var(--titre); font-weight: 620; font-size: 1.3rem; letter-spacing: -0.01em; }
+.accueil-porte .pastille { margin-bottom: .2rem; }
+.accueil-porte:hover, .accueil-porte:focus-visible { border-color: var(--pastille-encre, var(--accent)); }
 .accueil-themes { max-width: var(--mesure); padding-left: 1.1rem; }
 .accueil-themes li { margin-bottom: .45rem; }
-.accueil-questions { padding-left: 1.1rem; margin-bottom: 2rem; }
+.accueil-questions-grille {
+  list-style: none; padding: 0; margin: 0 0 2.2rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.5rem), 1fr)); gap: .7rem;
+}
+.accueil-questions-grille a {
+  display: flex; align-items: center; gap: .8rem; height: 100%; box-sizing: border-box;
+  padding: .8rem .9rem; border-radius: var(--rayon); background: var(--fond-carte); border: 1px solid var(--trait);
+  color: var(--encre); text-decoration: none; transition: border-color var(--transition), transform var(--transition);
+}
+.accueil-questions-grille a:hover, .accueil-questions-grille a:focus-visible { border-color: var(--pastille-encre, var(--accent)); transform: translateY(-1px); }
+.accueil-questions-grille strong { display: block; font-weight: 620; line-height: 1.3; }
+.accueil-questions-grille small { display: block; color: var(--encre-douce); font-size: .8rem; margin-top: .1rem; }
+@media (prefers-reduced-motion: reduce) { .accueil-questions-grille a:hover { transform: none; } }
 @media (max-width: 600px) {
   .cm-liste a { grid-template-columns: 1fr; }
   .cm-genre { grid-row: auto; }
@@ -1306,7 +1376,7 @@ a.p-sommaire-lien { text-decoration: none; }
 /* Carte de situation : la commune, ses voisines, et l'encart du département. */
 .situation { margin: 1rem 0 .4rem; }
 .situation-cadre { position: relative; border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--fond-carte); overflow: hidden; }
-.situation-carte { display: block; width: 100%; height: auto; }
+.situation-carte { display: block; width: 100%; height: auto; max-height: 22rem; }
 .situation-voisine path { fill: var(--fond-doux); stroke: var(--trait-fort); stroke-width: 1; stroke-linejoin: round; transition: fill var(--transition); }
 .situation-voisine:hover path, .situation-voisine:focus-visible path { fill: var(--accent-doux); }
 .situation-voisine:focus-visible { outline: none; }
@@ -1349,6 +1419,28 @@ a.p-sommaire-lien { text-decoration: none; }
 .carte-communes-commune:focus-visible path { stroke: var(--accent); stroke-width: 2; }
 .carte-communes-limite { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
 .carte-communes figcaption { font-size: .8rem; color: var(--encre-douce); margin-top: .3rem; }
+/* La carte teintée : une seule teinte, du plus clair (moins) au plus foncé (plus). */
+.carte-communes { --cc-0: #e6f0f3; --cc-1: #b7d4de; --cc-2: #7cb0c4; --cc-3: #3d84a2; --cc-4: #1b5568; }
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light'])) .carte-communes { --cc-0: #1e2c31; --cc-1: #2a4a55; --cc-2: #3c7085; --cc-3: #5c9cb4; --cc-4: #a3d2e3; }
+}
+.cc-choix { display: flex; flex-wrap: wrap; gap: .35rem .5rem; border: 0; padding: 0; margin: 0 0 .6rem; font-size: .84rem; }
+.cc-choix label { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .7rem; border: 1px solid var(--trait); border-radius: 999px; background: var(--fond-carte); cursor: pointer; }
+.cc-choix label:has(input:checked) { border-color: var(--accent); background: var(--accent-doux); color: var(--encre); font-weight: 600; }
+.cc-choix input { accent-color: var(--accent); margin: 0; }
+.cc-teintee .carte-communes-limite { stroke: var(--encre); stroke-opacity: .55; stroke-width: 1.1; }
+.cc-teintee .carte-communes-commune path { stroke: var(--fond-carte); stroke-width: .5; }
+.carte-communes-commune.cc-q0 path, .cc-echelle .cc-q0 { fill: var(--cc-0); background: var(--cc-0); }
+.carte-communes-commune.cc-q1 path, .cc-echelle .cc-q1 { fill: var(--cc-1); background: var(--cc-1); }
+.carte-communes-commune.cc-q2 path, .cc-echelle .cc-q2 { fill: var(--cc-2); background: var(--cc-2); }
+.carte-communes-commune.cc-q3 path, .cc-echelle .cc-q3 { fill: var(--cc-3); background: var(--cc-3); }
+.carte-communes-commune.cc-q4 path, .cc-echelle .cc-q4 { fill: var(--cc-4); background: var(--cc-4); }
+.carte-communes-commune.cc-sans path { fill: var(--fond-carte); }
+.cc-teintee .carte-communes-commune:hover path { stroke: var(--encre); stroke-width: 1.5; }
+.cc-legende { margin-top: .5rem; font-size: .8rem; color: var(--encre-douce); }
+.cc-echelle { display: grid; grid-template-columns: repeat(5, 1fr); height: .7rem; border-radius: 4px; overflow: hidden; max-width: 24rem; }
+.cc-bornes { margin-top: .25rem; font-variant-numeric: tabular-nums; }
+.cc-source { margin: .25rem 0 0; color: var(--encre-tres-douce); }
 
 /* Les sites qui présentent la commune autrement. */
 .c-ailleurs ul { list-style: none; margin: .3rem 0 0; padding: 0; display: grid; gap: .5rem; max-width: var(--mesure); }
@@ -1439,3 +1531,50 @@ a.p-sommaire-lien { text-decoration: none; }
 .c-recoupement a { color: var(--encre-douce); text-decoration-style: dotted; }
 .p-rapprochements { margin: .3rem 0 .2rem; padding-left: 1.1rem; font-size: .78rem; line-height: 1.45; color: var(--encre-douce); }
 .p-rapprochements li { margin-bottom: .2rem; }
+
+/* ------------------------------------------------------------------ *
+ * « Sur 100 € » : une rangée de pièces par poste, une pièce par euro.
+ * ------------------------------------------------------------------ */
+.ce { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem 1.6rem; margin: .6rem 0 1.4rem; padding: 1rem 1.1rem; background: var(--fond-carte); border: 1px solid var(--trait); border-radius: var(--rayon); }
+.ce-titre { font-family: var(--titre); font-weight: 620; font-size: 1.1rem; margin: 0 0 .5rem; }
+.ce ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+.ce li { display: grid; grid-template-columns: 3.2rem 1fr; column-gap: .6rem; align-items: baseline; }
+.ce-euros { font-family: var(--titre); font-weight: 650; font-size: 1.15rem; font-variant-numeric: lining-nums tabular-nums; text-align: right; }
+.ce-nom { font-size: .86rem; color: var(--encre-douce); line-height: 1.3; }
+/* La barre d'un poste : sa part des cent euros, en part de la largeur, striée
+   d'une pièce par euro — cent pièces font toute la largeur. */
+.ce-bloc { container-type: inline-size; }
+.ce-pieces {
+  grid-column: 2; display: block; height: .5rem; margin-top: .2rem; border-radius: 999px;
+  width: calc(var(--n) * (100cqi - 3.8rem) / 100);
+  min-width: .5rem;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc((100cqi - 3.8rem) / 100 - 1px), color-mix(in srgb, var(--fond-carte) 55%, transparent) 0 calc((100cqi - 3.8rem) / 100)),
+    var(--barre-budget);
+}
+.ce-note { grid-column: 1 / -1; margin: 0; font-size: .78rem; color: var(--encre-tres-douce); }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes ce-remplir { from { width: 0; } }
+  .ce-pieces { animation: ce-remplir .9s cubic-bezier(.2, 0, .2, 1) both; }
+}
+
+/* ------------------------------------------------------------------ *
+ * « En quelques dates » : une ligne du temps, verticale sur un téléphone.
+ * ------------------------------------------------------------------ */
+.frise { margin: 1.4rem 0 .8rem; }
+.frise-liste { list-style: none; margin: 0; padding: 0 0 0 1.1rem; position: relative; display: grid; gap: .7rem; }
+.frise-liste::before { content: ''; position: absolute; left: .3rem; top: .4rem; bottom: .4rem; width: 2px; background: var(--trait-fort); border-radius: 2px; }
+.frise-liste li { position: relative; }
+.frise-liste li::before { content: ''; position: absolute; left: -1.05rem; top: .45rem; width: .7rem; height: .7rem; border-radius: 999px; background: var(--fond); border: 2px solid var(--accent); box-sizing: border-box; }
+.frise-liste a { display: grid; grid-template-columns: 3.6rem 1fr; gap: .6rem; align-items: baseline; color: var(--encre); text-decoration: none; }
+.frise-liste a:hover .frise-texte { text-decoration: underline; }
+.frise-annee { font-family: var(--titre); font-weight: 650; font-size: 1.25rem; font-variant-numeric: lining-nums; color: var(--accent); }
+.frise-texte { font-size: .9rem; color: var(--encre-douce); }
+@media (min-width: 720px) {
+  /* À intervalles égaux : les jalons récents se serrent trop pour une échelle du temps, et chacun dit son année. */
+  .frise-liste { grid-auto-flow: column; grid-auto-columns: 1fr; gap: .8rem; padding: 0; }
+  .frise-liste::before { left: 0; right: 0; top: 2.35rem; bottom: auto; width: auto; height: 2px; }
+  .frise-liste li::before { left: 50%; top: 2rem; transform: translateX(-50%); }
+  .frise-liste a { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; }
+  .frise-texte { font-size: .8rem; line-height: 1.3; }
+}

@@ -15,7 +15,7 @@
  */
 import { aLieu } from '../modele/signalement.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, progression, type Case, type Resultat } from './jeux-commun.ts';
 
 /** [année, 0 maison ou 1 appartement, prix, surface, pièces, terrain] — voir `ventesDuJeu`. */
 type VenteJeu = [number, 0 | 1, number, number, number, number];
@@ -166,6 +166,7 @@ export function brancherJeuPrix(): void {
     const m = partie[courante];
     const [annee, type] = m.vente;
     $('jp-compteur')!.textContent = `${duJour ? 'Défi du jour' : 'Partie libre'} · vente ${courante + 1} sur ${partie.length}`;
+    progression($('jp-compteur')!, partie.slice(0, courante).map((x) => caseDe(x.points ?? 0)), partie.length);
     $('jp-bien')!.textContent = `${type === 0 ? 'Une maison' : 'Un appartement'} ${aLieu(communes[m.code].n)}, vendu${type === 0 ? 'e' : ''} en ${annee}`;
     $('jp-details')!.textContent = decrire(m.vente);
     reponse.hidden = true;
@@ -265,6 +266,7 @@ export function brancherJeuPrix(): void {
     const prix = m.vente[2];
     m.essai = x;
     m.points = points(x, prix);
+    progression($('jp-compteur')!, partie.slice(0, courante + 1).map((y) => caseDe(y.points ?? 0)), partie.length);
     const ecart = Math.round(((x - prix) / prix) * 100);
     const verdict = $('jp-verdict')!;
     verdict.innerHTML = '';

@@ -10,6 +10,7 @@
  * différents empruntent, est une limite de groupe.
  */
 import type { CarteCommunes, Point } from '../modele/carte.ts';
+import type { Thematique } from '../modele/carte-thematique.ts';
 
 interface Props {
   carte: CarteCommunes;
@@ -17,8 +18,13 @@ interface Props {
   libelle: string;
   /** Une phrase sous la carte, quand le trait fort a un sens à dire. */
   legende?: string;
+  /**
+   * Les teintes possibles, chacune une classe par commune dans l'ordre de
+   * `carte.communes` : la carte s'ouvre sans teinte, et un choix la colore.
+   */
+  thematiques?: Thematique[];
 }
-const { carte, libelle, legende } = Astro.props;
+const { carte, libelle, legende, thematiques = [] } = Astro.props;
 
 const W = 560;
 const tous = carte.communes.flatMap((c) => c.anneaux.flat());
@@ -81,7 +87,14 @@ for (const [a, b] of segments) {
   fin = b;
 }
 ---
-<figure class="carte-communes">
+<figure class="carte-communes" data-thematique-carte={thematiques.length ? '' : undefined}>
+  {thematiques.length > 0 && (
+    <fieldset class="cc-choix" hidden>
+      <legend class="visuellement-cache">Teinter les communes selon</legend>
+      <label><input type="radio" name="cc-teinte" value="" checked /> Les intercommunalités</label>
+      {thematiques.map((t) => <label><input type="radio" name="cc-teinte" value={t.id} /> {t.nom}</label>)}
+    </fieldset>
+  )}
   <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={libelle}>
     {formes.map((c) => (
       <a href={`/commune/${c.code}`} class="carte-communes-commune">
@@ -91,8 +104,24 @@ for (const [a, b] of segments) {
     ))}
     <path class="carte-communes-limite" d={limites} />
   </svg>
+  {thematiques.length > 0 && (
+    <div class="cc-legende" hidden aria-live="polite">
+      <div class="cc-echelle" aria-hidden="true">
+        {[0, 1, 2, 3, 4].map((i) => <span class={`cc-q${i}`} />)}
+      </div>
+      <div class="cc-bornes"></div>
+      <p class="cc-source"></p>
+    </div>
+  )}
   {legende && <figcaption>{legende}</figcaption>}
+  {thematiques.length > 0 && <script type="application/json" class="cc-donnees" set:html={JSON.stringify(thematiques)} />}
 </figure>
+{thematiques.length > 0 && (
+  <script>
+    import { brancherCartesThematiques } from '../client/carte-thematique.ts';
+    brancherCartesThematiques();
+  </script>
+)}
 <p class="p-source-territoire">
   {`D’après les contours des communes d’ADMIN EXPRESS COG de l’IGN, au découpage du 1er janvier ${carte.millesime}, simplifiés à ${carte.tolerance} mètres pour le dessin en gardant les limites partagées.`}
 </p>

@@ -3,8 +3,8 @@
  * périmètre, chacun sur un indicateur que leurs deux pages renseignent.
  */
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, type Resultat } from './jeux-commun.ts';
-import { nombre, perimetre, type Communes } from './jeux-communes.ts';
+import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, progression, type Resultat } from './jeux-commun.ts';
+import { carte, nombre, perimetre, type Communes } from './jeux-communes.ts';
 
 type Duel = { a: string; b: string; i: number; choix?: 1 | -1 };
 
@@ -82,6 +82,7 @@ export function brancherJeuPlus(): void {
     const d = partie[courante];
     const [, libelle, , source] = data.i[d.i];
     $('jm-compteur').textContent = `${duJour ? 'Défi du jour' : 'Partie libre'} · duel ${courante + 1} sur ${partie.length}`;
+    progression($('jm-compteur'), partie.slice(0, courante).map((x) => (juste(x) ? 'vert' : 'rouge')), partie.length);
     $('jm-indicateur').textContent = libelle;
     $('jm-source').textContent = source;
     $('jm-a-nom').textContent = data.c[d.a][0];
@@ -102,6 +103,7 @@ export function brancherJeuPlus(): void {
   const repondre = (sens: 1 | -1) => {
     const d = partie[courante];
     d.choix = sens;
+    progression($('jm-compteur'), partie.slice(0, courante + 1).map((x) => (juste(x) ? 'vert' : 'rouge')), partie.length);
     $('jm-b-valeur').textContent = ecrit(d.b, d.i);
     for (const b of $('jm-boutons').querySelectorAll<HTMLButtonElement>('button')) {
       b.disabled = true;
@@ -115,6 +117,12 @@ export function brancherJeuPlus(): void {
       Object.assign(document.createElement('a'), { href: `/commune/${d.b}`, textContent: 'Sa page' }),
       '.',
     );
+    // Où sont les deux communes, dans le périmètre de la partie.
+    const lieuCarte = $('jm-carte');
+    lieuCarte.innerHTML = '';
+    const svg = carte(data, codes, (c) => `jm-c${c === d.a ? ' jm-a' : c === d.b ? ' jm-b' : ''}`, (c) => data.c[c][0]);
+    svg.setAttribute('aria-label', `${data.c[d.a][0]} et ${data.c[d.b][0]} sur la carte des communes de la partie`);
+    lieuCarte.append(svg, Object.assign(document.createElement('p'), { className: 'jeu-contexte', textContent: `En gris foncé, ${data.c[d.a][0]} ; en couleur, ${data.c[d.b][0]}.` }));
     $('jm-reponse').hidden = false;
     if (duJour && courante + 1 === partie.length) garde.ecrire(cleDuJour(), { choix: partie.map((x) => x.choix ?? 0) });
     $('jm-suivante').textContent = courante + 1 < partie.length ? 'Duel suivant' : 'Voir le score';

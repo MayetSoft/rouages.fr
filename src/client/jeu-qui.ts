@@ -8,7 +8,7 @@
  */
 import { aLieu } from '../modele/signalement.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, melanger, memoire, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDeParis, melanger, memoire, progression, type Resultat } from './jeux-commun.ts';
 
 type Genre = 'T' | 'L' | 'C' | 'R' | 'D' | 'E';
 type Reponse = [number, Genre, ...number[]];
@@ -106,6 +106,7 @@ export function brancherJeuQui(): void {
     const q = partie[courante];
     const [k] = q.reponse;
     $('jq-compteur').textContent = `${duJour ? 'Défi du jour' : 'Partie libre'} · question ${courante + 1} sur ${partie.length}`;
+    progression($('jq-compteur'), partie.slice(0, courante).map((x) => (estJuste(x) ? 'vert' : 'rouge')), partie.length);
     $('jq-question').textContent = f.k[k][1];
     $('jq-sous').textContent = `${aLieu(commune[0]).replace(/^./, (c) => c.toUpperCase())}, qui s’en occupe ?`;
     const ul = $('jq-options');
@@ -145,6 +146,7 @@ export function brancherJeuQui(): void {
   const repondre = (o: Option) => {
     const q = partie[courante];
     q.choix = o;
+    progression($('jq-compteur'), partie.slice(0, courante + 1).map((x) => (estJuste(x) ? 'vert' : 'rouge')), partie.length);
     const bons = justes(q.reponse);
     for (const [i, b] of [...$('jq-options').querySelectorAll('button')].entries()) {
       b.disabled = true;

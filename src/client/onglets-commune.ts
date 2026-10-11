@@ -23,7 +23,7 @@ if (conteneur && carte) {
   const sommaire = document.querySelector<HTMLElement>('.c-sommaire');
   const champ = conteneur.querySelector<HTMLInputElement>('.c-chercher-champ')!;
   const resultats = conteneur.querySelector<HTMLElement>('.c-chercher-resultats')!;
-  const nomDe = new Map(boutons.map((b) => [b.dataset.famille!, b.firstChild?.textContent?.trim() ?? '']));
+  const nomDe = new Map(boutons.map((b) => [b.dataset.famille!, b.querySelector('.c-onglet-nom')?.textContent?.trim() ?? '']));
 
   // Les blocs : les sections qui suivent la barre d'onglets, chacune avec sa famille.
   const blocs: { section: HTMLElement; famille: string }[] = [];
