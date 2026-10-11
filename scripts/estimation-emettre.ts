@@ -304,7 +304,7 @@ const MESUREES = ['A', 'B', 'C', 'E', 'F', 'G'];
 /** Moins de cinq cents ventes rapprochées, et les écarts par étiquette ne tiennent pas. */
 const DPE_MIN = 500;
 
-/** Ce que pèse chaque étiquette, mesuré sur un département. */
+/** Ce que pèse chaque étiquette, mesuré sur une région. */
 export type EffetsDpe = {
   /** Le prix d'une maison de chaque étiquette, rapporté à celui d'une maison D. */
   multiplicateurs: Record<string, number>;
@@ -320,16 +320,28 @@ export type EffetsDpe = {
 const metres = (a: number, b: number, c: number, d: number) =>
   6_371_000 * Math.hypot(((d - b) * Math.PI) / 180 * Math.cos((a * Math.PI) / 180), ((c - a) * Math.PI) / 180);
 const jours = (a: string, b: string) => (Date.parse(a) - Date.parse(b)) / 86_400_000;
+/** 30 m en latitude, et un peu plus : la fenêtre où chercher, dans des DPE rangés par latitude. */
+const FENETRE = 0.0003;
 
 /**
  * Une vente de maison et un DPE de maison de la même commune, à moins de 30 m,
  * établi dans les deux ans avant la vente, pour une surface à ±20 % ; le plus
- * proche s'il y en a plusieurs.
+ * proche s'il y en a plusieurs. Les DPE de la commune sont rangés par
+ * latitude : on ne regarde que ceux de la bande où la vente se trouve — une
+ * grande ville compte des dizaines de milliers de diagnostics.
  */
 export function rapprocher(b: Bien, dpe: DpeMaison[] | undefined): string | null {
   if (!dpe || b.lat === null || b.lon === null || !b.jour) return null;
+  let bas = 0;
+  let haut = dpe.length;
+  while (bas < haut) {
+    const m = (bas + haut) >> 1;
+    if (dpe[m][0] < b.lat - FENETRE) bas = m + 1;
+    else haut = m;
+  }
   let mieux: [number, string] | null = null;
-  for (const [lat, lon, e, s, jour] of dpe) {
+  for (let i = bas; i < dpe.length && dpe[i][0] <= b.lat + FENETRE; i++) {
+    const [lat, lon, e, s, jour] = dpe[i];
     const ecart = jours(b.jour, jour);
     if (ecart < 0 || ecart > 730 || Math.abs(s - b.habitable) > 0.2 * b.habitable) continue;
     const d = metres(b.lat, b.lon, lat, lon);
@@ -416,6 +428,7 @@ function ecartCroise(x: number[][], y: number[], groupes: string[]): number | nu
 
 /** L'effet de chaque étiquette sur un ensemble de ventes de maisons, ou null s'il y en a trop peu à rapprocher. */
 export function mesurerDpe(biens: Bien[], dpe: Map<string, DpeMaison[]>, portee: string): EffetsDpe | null {
+  for (const l of dpe.values()) l.sort((a, b) => a[0] - b[0]);
   const lignes: { b: Bien; e: string }[] = [];
   for (const b of biens) {
     if (!(b.habitable > 0) || b.activite > 0) continue;
@@ -453,6 +466,33 @@ function melanges(sortie: string, dep: string, mult: Record<string, number>): Ma
   return new Map(Object.entries(f.c).map(([code, n]) => [code, Math.round((n.reduce((a, b) => a + b, 0) >= 20 ? moyenne(n) : duDep) * 1000) / 1000]));
 }
 
+/**
+ * L'effet de l'étiquette, mesuré région par région sur les ventes de ses
+ * départements : assez de ventes rapprochées partout, et un marché moins
+ * disparate que la France entière. Une région n'est mesurée que si les DPE de
+ * tous ses départements sont en cache — sinon l'effet dirait « région » sur
+ * une partie seulement. Rend l'effet de chaque département.
+ */
+function effetsParRegion(sortie: string, biens: Bien[], deps: string[], cache: string): Map<string, EffetsDpe> {
+  const meta = JSON.parse(readFileSync(join(sortie, 'meta.json'), 'utf8')) as { regions: Record<string, string>; codesRegion: Record<string, string> };
+  const regions = new Map<string, string[]>();
+  for (const dep of deps) {
+    const r = meta.codesRegion[dep];
+    if (r) (regions.get(r) ?? regions.set(r, []).get(r)!).push(dep);
+  }
+  const effets = new Map<string, EffetsDpe>();
+  for (const membres of regions.values()) {
+    if (!membres.every((d) => existsSync(fichierCache(cache, d)))) continue;
+    const diagnostics = new Map<string, DpeMaison[]>();
+    for (const d of membres)
+      for (const [code, l] of Object.entries(JSON.parse(readFileSync(fichierCache(cache, d), 'utf8')) as Record<string, DpeMaison[]>)) diagnostics.set(code, l);
+    const dansRegion = new Set(membres);
+    const e = mesurerDpe(biens.filter((b) => dansRegion.has(departementDe(b.commune))), diagnostics, `région ${meta.regions[membres[0]]}`);
+    if (e) for (const d of membres) effets.set(d, e);
+  }
+  return effets;
+}
+
 export function ecrireEstimation(sortie: string, biens: Bien[], annees: number[], maj: string, cache?: string): number {
   const estimations = estimer(biens, lireVoisines(sortie));
   const parDep = new Map<string, Record<string, Estimation>>();
@@ -462,18 +502,15 @@ export function ecrireEstimation(sortie: string, biens: Bien[], annees: number[]
   }
   const dossier = join(sortie, 'simulateurs', 'estimation');
   mkdirSync(dossier, { recursive: true });
+  const deps = [...parDep.keys()].filter((dep) => existsSync(join(sortie, 'dep', `${dep}.json`)));
+  const effets = cache ? effetsParRegion(sortie, biens, deps, cache) : new Map<string, EffetsDpe>();
   let n = 0;
-  for (const [dep, c] of parDep) {
-    if (!existsSync(join(sortie, 'dep', `${dep}.json`))) continue;
-    // L'étiquette, là où les DPE du département sont en cache (pour l'instant, l'Allier) : mesurée sur ses ventes.
-    let dpe: EffetsDpe | null = null;
-    if (cache && existsSync(fichierCache(cache, dep))) {
-      const diagnostics = new Map(Object.entries(JSON.parse(readFileSync(fichierCache(cache, dep), 'utf8')) as Record<string, DpeMaison[]>));
-      dpe = mesurerDpe(biens.filter((b) => departementDe(b.commune) === dep), diagnostics, `département ${dep}`);
-      if (dpe) {
-        const m = melanges(sortie, dep, dpe.multiplicateurs);
-        for (const [code, e] of Object.entries(c)) e[10] = m.get(code) ?? null;
-      }
+  for (const dep of deps) {
+    const c = parDep.get(dep)!;
+    const dpe = effets.get(dep) ?? null;
+    if (dpe) {
+      const m = melanges(sortie, dep, dpe.multiplicateurs);
+      for (const [code, e] of Object.entries(c)) e[10] = m.get(code) ?? null;
     }
     writeFileSync(join(dossier, `${dep}.json`), JSON.stringify({ maj, annees, tailles: TAILLES, partActivite: PART_ACTIVITE, dpe, c }));
     n++;

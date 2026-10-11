@@ -775,6 +775,10 @@ async function principal() {
   if (dvf) {
     grise(`${ecrireDvf(SORTIE, dvf)} départements de prix immobiliers écrits.`);
     grise(`${ecrireVentesJeu(SORTIE, dvf)} départements écrits pour le jeu des prix.`);
+    // Les DPE des maisons, rapprochés des ventes pour l'effet de l'étiquette : près de
+    // cinq cents pages de l'ADEME, gardées en cache comme les gros fichiers.
+    const { collecterDpeMaisons, tousLesDepartements } = await import('./dpe-maisons-emettre.ts');
+    await tenter('DPE des maisons', () => collecterDpeMaisons(CACHE, tousLesDepartements(SORTIE), lireJson, grise, reutiliser));
     const { ecrireEstimation } = await import('./estimation-emettre.ts');
     grise(`${ecrireEstimation(SORTIE, dvf.biens, dvf.annees, dvf.maj, CACHE)} départements écrits pour le simulateur d’estimation.`);
   }
