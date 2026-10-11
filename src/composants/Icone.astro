@@ -1,0 +1,15 @@
+---
+/**
+ * Une icône de thème (voir `src/modele/icones.ts`), décorative : le texte à
+ * côté dit la même chose. Elle vient du fichier commun `/icones.svg`, chargé
+ * une fois pour tout le site.
+ */
+import type { NomIcone } from '../modele/icones.ts';
+
+interface Props {
+  nom: NomIcone;
+  class?: string;
+}
+const { nom, class: classe = 'icone' } = Astro.props;
+---
+<svg class={classe} width="24" height="24" aria-hidden="true"><use href={`/icones.svg#${nom}`} /></svg>

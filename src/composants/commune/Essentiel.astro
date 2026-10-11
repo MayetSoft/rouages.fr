@@ -11,6 +11,8 @@
  */
 import type { ComplementsFiche } from '../../modele/fiche-commune.ts';
 import type { ComplementsVie } from '../../modele/fiche-vie.ts';
+import type { NomIcone } from '../../modele/icones.ts';
+import Icone from '../Icone.astro';
 
 interface Props {
   plus: ComplementsFiche;
@@ -219,6 +221,27 @@ if (faits > 0) {
     detail: 'datés, en six mois',
   });
 }
+
+// L'icône et la teinte de chaque carte : le thème, pas la valeur — une teinte
+// ne dit jamais si un chiffre est bon ou mauvais.
+const THEMES: Record<string, [NomIcone, string]> = {
+  habitants: ['habitants', 'habitants'],
+  niveaux: ['argent', 'argent'],
+  sante: ['sante', 'quotidien'],
+  logements: ['logement', 'logement'],
+  loyers: ['logement', 'logement'],
+  'petite-enfance': ['habitants', 'habitants'],
+  reseaux: ['numerique', 'quotidien'],
+  election: ['vote', 'decide'],
+  comptes: ['argent', 'argent'],
+  investissement: ['collectivite', 'argent'],
+  zonages: ['montagne', 'nature'],
+  travail: ['economie', 'habitants'],
+  secheresse: ['eau', 'nature'],
+  entreprises: ['economie', 'habitants'],
+  ccas: ['habitants', 'argent'],
+  journal: ['deliberations', 'suivre'],
+};
 ---
 {cartes.length >= 3 && (
   <section class="c-essentiel" aria-labelledby="essentiel-titre">
@@ -226,8 +249,8 @@ if (faits > 0) {
     <ul class="c-essentiel-liste">
       {cartes.map((c) => (
         <li>
-          <a class="c-essentiel-carte" href={`#${c.id}`}>
-            <span class="c-essentiel-nom">{c.nom}</span>
+          <a class="c-essentiel-carte" href={`#${c.id}`} data-theme-couleur={THEMES[c.id]?.[1]}>
+            <span class="c-essentiel-nom">{THEMES[c.id] && <span class="pastille pastille--petite"><Icone nom={THEMES[c.id][0]} /></span>}{c.nom}</span>
             <span class="c-essentiel-valeur">{c.valeur}</span>
             {c.detail && <span class="c-essentiel-detail">{c.detail}</span>}
           </a>

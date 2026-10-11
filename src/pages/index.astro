@@ -10,18 +10,29 @@
  */
 import Base from '../layouts/Base.astro';
 import ChampTerritoire from '../composants/ChampTerritoire.astro';
+import Icone from '../composants/Icone.astro';
+import type { NomIcone } from '../modele/icones.ts';
 import { construireReseau } from '../modele/reseau.ts';
 import { communes } from '../modele/territoires.ts';
 
 const reseau = construireReseau();
 const noeud = (id: string) => reseau.noeuds.find((n) => n.id === id);
+// Les questions qu'on se pose, plutôt que les rubriques du site : chacune mène
+// à la page qui y répond. Une question sur une compétence n'est gardée que si
+// sa fiche existe.
+type Question = { q: string; lien: string; icone: NomIcone; theme: string; ou: string; noeud?: string };
 const questions = (
   [
-    ['eau-potable', 'Qui s’occupe de l’eau du robinet ?'],
-    ['colleges', 'Qui construit et entretient les collèges ?'],
-    ['delivrance-autorisation-urbanisme', 'Qui délivre un permis de construire ?'],
-  ] as const
-).filter(([id]) => noeud(id));
+    { q: 'Combien vaut ma maison ?', lien: '/simulateurs/estimation', icone: 'logement', theme: 'logement', ou: 'le simulateur, d’après les ventes réelles' },
+    { q: 'Qui s’occupe de l’eau du robinet ?', lien: '/n/eau-potable', noeud: 'eau-potable', icone: 'eau', theme: 'quotidien', ou: 'commune, intercommunalité ou syndicat' },
+    { q: 'Qui ramasse mes poubelles ?', lien: '/n/dechets-menagers', noeud: 'dechets-menagers', icone: 'dechets', theme: 'nature', ou: 'la collecte et le traitement' },
+    { q: 'Qui délivre un permis de construire ?', lien: '/n/delivrance-autorisation-urbanisme', noeud: 'delivrance-autorisation-urbanisme', icone: 'decide', theme: 'decide', ou: 'le maire, au nom de qui' },
+    { q: 'Qui ouvre ou ferme une classe ?', lien: '/n/carte-scolaire', noeud: 'carte-scolaire', icone: 'ecole', theme: 'habitants', ou: 'la carte scolaire' },
+    { q: 'Qui construit les collèges ?', lien: '/n/colleges', noeud: 'colleges', icone: 'collectivite', theme: 'habitants', ou: 'le département' },
+    { q: 'Où va l’argent de l’État ?', lien: '/argent-public', icone: 'argent', theme: 'argent', ou: 'mission par mission' },
+    { q: 'Trouverez-vous la commune mystère ?', lien: '/jeux/commune-mystere', icone: 'carte', theme: 'suivre', ou: 'un défi par jour, près de chez vous' },
+  ] satisfies Question[]
+).filter((x: Question) => !x.noeud || noeud(x.noeud));
 const nCommunes = communes().length;
 const acteurs = reseau.noeuds.filter((n) => n.type === 'acteur').length;
 const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
@@ -45,34 +56,52 @@ const exemple = !filtre || filtre.length === 0 || filtre.includes('03');
       <p class="cm-exemple">Par exemple&nbsp;: <a href="/commune/03165">Le Mayet-de-Montagne</a>, dans l’Allier.</p>
     )}
 
+    <h2 class="badge">Les questions qu’on se pose</h2>
+    <ul class="accueil-questions-grille">
+      {questions.map((x) => (
+        <li>
+          <a href={x.lien} data-theme-couleur={x.theme}>
+            <span class="pastille"><Icone nom={x.icone} /></span>
+            <span><strong>{x.q}</strong><small>{x.ou}</small></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <h2 class="badge">Par où entrer</h2>
     <div class="accueil-portes">
-      <a class="accueil-porte" href="/chez-moi">
+      <a class="accueil-porte" href="/chez-moi" data-theme-couleur="decide">
+        <span class="pastille"><Icone nom="lieu" /></span>
         <span class="accueil-porte-titre">Données de chez moi</span>
         <span>
           {`Votre commune, votre intercommunalité, votre département ou votre région : qui y exerce quoi, ses comptes, ses écoles, ses services, ses risques, son élection. ${nCommunes.toLocaleString('fr-FR')} communes, chacune sa page.`}
         </span>
       </a>
-      <a class="accueil-porte" href="/fonctionnement">
+      <a class="accueil-porte" href="/fonctionnement" data-theme-couleur="suivre">
+        <span class="pastille"><Icone nom="reseau" /></span>
         <span class="accueil-porte-titre">Fonctionnement</span>
         <span>
           {`Le réseau des ${acteurs} institutions et de leurs liens : qui décide, qui finance, qui contrôle. Pour voir comment les pièces s’emboîtent.`}
         </span>
       </a>
-      <a class="accueil-porte" href="/argent-public">
+      <a class="accueil-porte" href="/argent-public" data-theme-couleur="argent">
+        <span class="pastille"><Icone nom="argent" /></span>
         <span class="accueil-porte-titre">L’argent public</span>
         <span>
           Ce que l’État dépense, mission par mission, programme par programme&nbsp;: ce qui a été dépensé en 2024,
           voté pour 2025, proposé pour 2026.
         </span>
       </a>
-      <a class="accueil-porte" href="/jeux">
+      <a class="accueil-porte" href="/jeux" data-theme-couleur="habitants">
+        <span class="pastille"><Icone nom="jeux" /></span>
         <span class="accueil-porte-titre">Jeux</span>
         <span>
           Qui décide dans votre commune, la commune mystère, le prix d’une vraie vente… Un défi par jour, le même pour
           tout le monde, sur les données de votre territoire.
         </span>
       </a>
-      <a class="accueil-porte" href="/simulateurs">
+      <a class="accueil-porte" href="/simulateurs" data-theme-couleur="logement">
+        <span class="pastille"><Icone nom="simulateurs" /></span>
         <span class="accueil-porte-titre">Simulateurs</span>
         <span>
           Ce que vaut une maison, un terrain, un pré près de chez vous&nbsp;: une estimation poste par poste, d’après
@@ -92,15 +121,6 @@ const exemple = !filtre || filtre.length === 0 || filtre.includes('03');
     <p class="mesure">
       Et jusqu’à cinq communes se comparent bloc par bloc&nbsp;: <a href="/comparer">comparer des communes</a>.
     </p>
-
-    {questions.length > 0 && (
-      <>
-        <h2 class="badge">Trois questions pour commencer</h2>
-        <ul class="accueil-questions">
-          {questions.map(([id, q]) => <li><a href={`/n/${id}`}>{q}</a></li>)}
-        </ul>
-      </>
-    )}
 
     <h2 class="badge">Ce que Rouages s’engage à faire</h2>
     <ul class="accueil-themes">

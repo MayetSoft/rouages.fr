@@ -89,6 +89,8 @@ import Secheresse from '../../composants/commune/Secheresse.astro';
 import Ailleurs from '../../composants/commune/Ailleurs.astro';
 import { SITES_COMMANDE_PUBLIQUE, SITES_VERIFIER_ENTREPRISE, sitesDeCommune } from '../../modele/sites-complementaires.ts';
 import CarteSituation from '../../composants/commune/CarteSituation.astro';
+import Icone from '../../composants/Icone.astro';
+import type { NomIcone } from '../../modele/icones.ts';
 import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
 import Production from '../../composants/commune/Production.astro';
@@ -366,6 +368,10 @@ const entrees = sommaire.filter(([, , present]) => !!present);
  * moteurs de recherche ; `client/onglets-commune.ts` les regroupe à
  * l'affichage. Un bloc absent d'ici suit la famille du bloc qui le précède.
  */
+const ICONE_FAMILLE: Record<string, NomIcone> = {
+  apercu: 'lieu', decider: 'decide', argent: 'argent', habitants: 'habitants',
+  logement: 'logement', quotidien: 'transport', environnement: 'nature', suivre: 'deliberations',
+};
 const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   // Le haut de la page — le maire, son conseil, la carte, l'essentiel — est
   // un onglet lui aussi, ouvert d'abord : la barre arrive sous le nom de la
@@ -430,7 +436,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
         <div class="c-onglets-barre" role="tablist" aria-label="Les familles d’informations sur la commune">
           {famillesPresentes.map((f) => (
             <button type="button" role="tab" class="c-onglet" id={`onglet-${f.id}`} data-famille={f.id} aria-selected="false" tabindex="-1">
-              {f.nom}
+              {ICONE_FAMILLE[f.id] && <Icone nom={ICONE_FAMILLE[f.id]} />}
+              <span class="c-onglet-nom">{f.nom}</span>
               <span class="c-onglet-nombre" data-trouves></span>
             </button>
           ))}
@@ -455,6 +462,10 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
 
     <section id="apercu">
       <h2 class="visuellement-cache">En bref</h2>
+    {carte && <CarteSituation carte={carte} nom={commune.nom} depNom={commune.depNom} />}
+
+    <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
+
     {fiche?.maire && (
       <p class="p-maire">
         <span class="p-maire-fonction">Maire</span>
@@ -534,9 +545,6 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
 
     {vie.mairies && <Mairies m={vie.mairies} population={commune.population} delibs={plus.deliberations.length > 0} />}
 
-    {carte && <CarteSituation carte={carte} nom={commune.nom} depNom={commune.depNom} />}
-
-    <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
     </section>
 
 
