@@ -35,10 +35,25 @@ const { id, consigne, autre } = Astro.props;
 <style is:global>
   .cl-liste { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .45rem; counter-reset: rang; }
   .cl-liste li {
-    display: grid; grid-template-columns: 1.6rem 1fr auto; gap: .5rem; align-items: center;
+    display: grid; grid-template-columns: 1.1rem 1.4rem 1fr auto; gap: .45rem; align-items: center; position: relative;
     background: var(--fond-doux); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .5rem .6rem;
   }
-  .cl-liste li::before { counter-increment: rang; content: counter(rang); font-weight: 600; color: var(--encre-douce); text-align: center; }
+  .cl-liste li::before { counter-increment: rang; content: counter(rang); font-weight: 600; color: var(--encre-douce); text-align: center; grid-column: 2; grid-row: 1; }
+  .cl-poignee { grid-column: 1; grid-row: 1; color: var(--encre-douce); font-size: 1.1rem; line-height: 1; text-align: center; touch-action: none; cursor: grab; user-select: none; }
+  .cl-poignee.vide { cursor: default; }
+  .cl-texte { grid-column: 3; }
+  .cl-fleches { grid-column: 4; }
+  .cl-liste li.mobile { cursor: grab; user-select: none; }
+  .cl-liste li.glisse { cursor: grabbing; z-index: 2; box-shadow: 0 6px 18px rgba(0, 0, 0, .18); background: var(--fond-carte); }
+  .cl-liste li.cible-avant::after, .cl-liste li.cible-apres::after {
+    content: ''; position: absolute; left: .4rem; right: .4rem; height: 3px; border-radius: 2px; background: var(--accent);
+  }
+  .cl-liste li.cible-avant::after { top: -.35rem; }
+  .cl-liste li.cible-apres::after { bottom: -.35rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes cl-pose { from { background: var(--accent-doux); } to { background: var(--fond-doux); } }
+    .cl-liste li.pose { animation: cl-pose .6s ease-out; }
+  }
   .cl-liste li.juste { background: #e3f3e9; border-color: #2e9e5b; }
   .cl-liste li.faux { border-color: #cf3b2f; }
   .cl-texte small { display: block; color: var(--encre-douce); font-size: .82rem; margin-top: .15rem; }
