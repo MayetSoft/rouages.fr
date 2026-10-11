@@ -472,6 +472,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (d) {
     console.log(`${ecrireDvf(sortie, d)} départements écrits.`);
     console.log(`${ecrireVentesJeu(sortie, d)} départements écrits pour le jeu des prix.`);
-    console.log(`${ecrireEstimation(sortie, d.biens, d.annees, d.maj)} départements écrits pour le simulateur d’estimation.`);
+    console.log(`${ecrireEstimation(sortie, d.biens, d.annees, d.maj, cache)} départements écrits pour le simulateur d’estimation.`);
   }
 }

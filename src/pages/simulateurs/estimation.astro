@@ -46,8 +46,16 @@ const mayet = !filtre?.length || filtre.includes('03');
           <label>Local d’activité, grange, atelier <span><input type="number" min="0" step="1" inputmode="numeric" name="activite" value="0" /> m²</span></label>
           <label>Il compte pour <span><input type="number" min="0" max="100" step="5" inputmode="numeric" name="part" value="25" /> % de l’habitable</span></label>
         </div>
+        <label class="se-dpe" id="se-dpe-bloc" hidden>
+          L’étiquette énergétique de la maison (DPE)
+          <select name="dpe">
+            <option value="">Je ne sais pas</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+          </select>
+          <small id="se-dpe-note"></small>
+        </label>
         <label class="se-etat">
-          L’état du bâtiment, à votre jugement&nbsp;: <strong id="se-etat-valeur">tel quel</strong>
+          L’état du bâtiment, à votre jugement — au-delà de ce que dit l’étiquette&nbsp;: <strong id="se-etat-valeur">tel quel</strong>
           <input type="range" name="etat" min="-40" max="40" step="5" value="0" />
           <span class="se-etat-bornes"><span>à rénover entièrement</span><span>refait à neuf</span></span>
         </label>
@@ -72,6 +80,7 @@ const mayet = !filtre?.length || filtre.includes('03');
       <li><strong>L’habitable et le terrain d’une maison</strong>&nbsp;: une régression robuste sur les ventes de maisons — le prix, moins ses terres et ses bois, partagé entre la surface habitable et le terrain. Une vente extravagante y pèse peu.</li>
       <li><strong>Les locaux d’activité</strong>&nbsp;: les ventes ne permettent pas de les mesurer — trop peu de ventes, et aucune surface pour les dépendances. Ils comptent pour une part de l’habitable, un quart par défaut&nbsp;: une hypothèse, à votre réglage.</li>
       <li><strong>Le voisinage</strong>&nbsp;: un village vend peu. Chaque commune est mesurée avec ses voisines, un anneau après l’autre, jusqu’à cent ventes de maisons et quinze de chaque terrain&nbsp;; la page dit combien ont servi.</li>
+      <li><strong>L’étiquette énergétique</strong>&nbsp;: les ventes ne la disent pas, mais la base des DPE de l’ADEME donne l’adresse de chaque diagnostic. Une vente de maison est rapprochée d’un DPE de la même commune, à moins de 30&nbsp;m, établi dans les deux ans avant la vente, pour une surface proche. Sur ces ventes, on mesure ce que chaque étiquette change au prix d’une maison, à surface, terrain et commune égaux, par rapport à une maison D. L’écart s’applique à la maison et à son terrain, rapporté aux étiquettes des maisons de la commune&nbsp;: une estimation sans étiquette vaut pour une maison ordinaire du lieu. Mesuré pour l’instant dans l’Allier.</li>
       <li><strong>La précision</strong>&nbsp;: les ventes de maisons sont partagées en cinq, chaque cinquième estimé par les quatre autres. La fourchette est celle où tombe la moitié de ces ventes. Les ventes ne disent rien de l’état d’une maison&nbsp;: c’est l’essentiel de l’écart, et la raison du curseur.</li>
     </ul>
 
@@ -79,6 +88,9 @@ const mayet = !filtre?.length || filtre.includes('03');
     <ul class="mesure b-sources">
       <li>
         <a href="https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres-geolocalisees" target="_blank" rel="noopener">Etalab — Demandes de valeurs foncières géolocalisées</a>{', d’après les demandes de valeurs foncières de la DGFiP, Licence Ouverte : les ventes des trois dernières années publiées.'}
+      </li>
+      <li>
+        <a href="https://data.ademe.fr/datasets/dpe03existant" target="_blank" rel="noopener">ADEME — DPE des logements existants depuis juillet 2021</a>{', Licence Ouverte 2.0 : l’étiquette des maisons vendues, rapprochée à l’adresse, et la répartition des étiquettes par commune. Rien n’est publié vente par vente.'}
       </li>
       <li>
         <a href="https://geoservices.ign.fr/adminexpress" target="_blank" rel="noopener">IGN — Admin Express</a>{' : les communes voisines, par leurs contours.'}
@@ -105,6 +117,9 @@ const mayet = !filtre?.length || filtre.includes('03');
     font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait);
     border-radius: var(--rayon); padding: .35rem .5rem; width: 7.5rem; font-variant-numeric: tabular-nums;
   }
+  .se-dpe { display: flex; flex-direction: column; gap: .25rem; font-size: .9rem; margin: 0 0 1rem; max-width: 20rem; }
+  .se-dpe select { font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .35rem .5rem; }
+  .se-dpe small { color: var(--encre-douce); font-size: .78rem; }
   .se-etat { display: flex; flex-direction: column; gap: .3rem; font-size: .9rem; }
   .se-etat input[type="range"] { accent-color: var(--accent); }
   .se-etat-bornes { display: flex; justify-content: space-between; color: var(--encre-douce); font-size: .78rem; }

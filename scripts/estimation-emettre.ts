@@ -37,6 +37,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { communeDe, departementDe } from './par-departement.ts';
+import { fichierCache, type DpeMaison } from './dpe-maisons-emettre.ts';
 
 /** Une vente lue pour l'estimation : surfaces en m². */
 export type Bien = {
@@ -51,6 +52,10 @@ export type Bien = {
   /** Terres, prés, landes. */
   agricole: number;
   bois: number;
+  /** Le point et le jour de la vente, pour la rapprocher d'un DPE. */
+  lat: number | null;
+  lon: number | null;
+  jour: string;
 };
 
 const CONSTRUCTIBLE = new Set(['S', 'AG', 'AB', 'J']);
@@ -95,7 +100,10 @@ export function bienDe(lignes: string[][], col: Record<string, number>): Bien | 
   const activite = [...locaux.values()].reduce((a, b) => a + b, 0);
   if (maisons.size === 1 && !(habitable >= 9)) return null;
   if (habitable + activite + constructible + agricole + bois <= 0) return null;
-  return { commune: communeDe([...communes][0]), prix, habitable, activite, constructible, agricole, bois };
+  const lat = col.latitude !== undefined ? Number(lignes[0][col.latitude]) || null : null;
+  const lon = col.longitude !== undefined ? Number(lignes[0][col.longitude]) || null : null;
+  const jour = col.date_mutation !== undefined ? lignes[0][col.date_mutation] : '';
+  return { commune: communeDe([...communes][0]), prix, habitable, activite, constructible, agricole, bois, lat, lon, jour };
 }
 
 /** Les bornes des tailles de terrain agricole, en m² : moins d'un demi-hectare, jusqu'à deux, au-delà. */
@@ -189,6 +197,8 @@ export type Estimation = [
   number,
   number,
   number,
+  /** Le multiplicateur moyen des maisons de la commune, selon leurs étiquettes, là où l'effet du DPE est mesuré. */
+  (number | null)?,
 ];
 
 export function estimer(biens: Bien[], voisines: (code: string) => string[]): Map<string, Estimation> {
@@ -284,7 +294,166 @@ export function lireVoisines(sortie: string): (code: string) => string[] {
   };
 }
 
-export function ecrireEstimation(sortie: string, biens: Bien[], annees: number[], maj: string): number {
+/* ------------------------------------------------------------------ *
+ * L'étiquette énergétique (voir `docs/07-risques.md`)
+ * ------------------------------------------------------------------ */
+
+const ETIQUETTES = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+/** Les étiquettes mesurées, D servant de référence. */
+const MESUREES = ['A', 'B', 'C', 'E', 'F', 'G'];
+/** Moins de cinq cents ventes rapprochées, et les écarts par étiquette ne tiennent pas. */
+const DPE_MIN = 500;
+
+/** Ce que pèse chaque étiquette, mesuré sur un département. */
+export type EffetsDpe = {
+  /** Le prix d'une maison de chaque étiquette, rapporté à celui d'une maison D. */
+  multiplicateurs: Record<string, number>;
+  /** Les ventes rapprochées d'un DPE, et leur nombre par étiquette. */
+  ventes: number;
+  repartition: Record<string, number>;
+  /** L'écart médian de l'estimation, sans puis avec l'étiquette, sur ces ventes. */
+  ecart: [number, number];
+  /** Sur quel territoire l'effet est mesuré. */
+  portee: string;
+};
+
+const metres = (a: number, b: number, c: number, d: number) =>
+  6_371_000 * Math.hypot(((d - b) * Math.PI) / 180 * Math.cos((a * Math.PI) / 180), ((c - a) * Math.PI) / 180);
+const jours = (a: string, b: string) => (Date.parse(a) - Date.parse(b)) / 86_400_000;
+
+/**
+ * Une vente de maison et un DPE de maison de la même commune, à moins de 30 m,
+ * établi dans les deux ans avant la vente, pour une surface à ±20 % ; le plus
+ * proche s'il y en a plusieurs.
+ */
+export function rapprocher(b: Bien, dpe: DpeMaison[] | undefined): string | null {
+  if (!dpe || b.lat === null || b.lon === null || !b.jour) return null;
+  let mieux: [number, string] | null = null;
+  for (const [lat, lon, e, s, jour] of dpe) {
+    const ecart = jours(b.jour, jour);
+    if (ecart < 0 || ecart > 730 || Math.abs(s - b.habitable) > 0.2 * b.habitable) continue;
+    const d = metres(b.lat, b.lon, lat, lon);
+    if (d <= 30 && (!mieux || d < mieux[0])) mieux = [d, e];
+  }
+  return mieux?.[1] ?? null;
+}
+
+/** Résout A x = b, A symétrique de petite taille (pivot de Gauss). */
+function resoudre(A: number[][], b: number[]): number[] | null {
+  const n = b.length;
+  const M = A.map((ligne, i) => [...ligne, b[i]]);
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let i = c + 1; i < n; i++) if (Math.abs(M[i][c]) > Math.abs(M[p][c])) p = i;
+    if (Math.abs(M[p][c]) < 1e-10) return null;
+    [M[c], M[p]] = [M[p], M[c]];
+    for (let i = 0; i < n; i++) {
+      if (i === c) continue;
+      const f = M[i][c] / M[c][c];
+      for (let j = c; j <= n; j++) M[i][j] -= f * M[c][j];
+    }
+  }
+  return M.map((ligne, i) => ligne[n] / ligne[i]);
+}
+
+/**
+ * Le prix en logarithme, avec un effet propre à chaque commune — ce qui ne
+ * tient ni à la surface ni à l'étiquette, l'emplacement — retiré par
+ * centrage commune par commune ; moindres carrés repondérés (Huber).
+ * Rend les coefficients et l'effet de chaque commune.
+ */
+function ajusterLog(x: number[][], y: number[], groupes: string[]): { b: number[]; effets: Map<string, number> } | null {
+  const k = x[0]?.length ?? 0;
+  let w = y.map(() => 1);
+  let b: number[] = new Array(k).fill(0);
+  let effets = new Map<string, number>();
+  for (let tour = 0; tour < 15; tour++) {
+    const somme = new Map<string, { w: number; y: number; x: number[] }>();
+    x.forEach((xi, i) => {
+      const g = somme.get(groupes[i]) ?? somme.set(groupes[i], { w: 0, y: 0, x: new Array(k).fill(0) }).get(groupes[i])!;
+      g.w += w[i];
+      g.y += w[i] * y[i];
+      xi.forEach((v, j) => (g.x[j] += w[i] * v));
+    });
+    const A = Array.from({ length: k }, () => new Array(k).fill(0));
+    const B = new Array(k).fill(0);
+    x.forEach((xi, i) => {
+      const g = somme.get(groupes[i])!;
+      const xc = xi.map((v, j) => v - g.x[j] / g.w);
+      const yc = y[i] - g.y / g.w;
+      for (let a = 0; a < k; a++) {
+        B[a] += w[i] * xc[a] * yc;
+        for (let c = 0; c < k; c++) A[a][c] += w[i] * xc[a] * xc[c];
+      }
+    });
+    const sol = resoudre(A, B);
+    if (!sol) return null;
+    b = sol;
+    effets = new Map([...somme].map(([g, v]) => [g, (v.y - b.reduce((s, bj, j) => s + bj * v.x[j], 0)) / v.w]));
+    const r = y.map((v, i) => v - effets.get(groupes[i])! - b.reduce((s, bj, j) => s + bj * x[i][j], 0));
+    const echelle = (mediane(r.map(Math.abs)) ?? 1) / 0.6745 || 1;
+    const seuil = 1.345 * echelle;
+    w = r.map((v) => (Math.abs(v) <= seuil ? 1 : seuil / Math.abs(v)));
+  }
+  return { b, effets };
+}
+
+/** L'écart médian entre estimation et prix, sur des ventes que l'ajustement n'a pas vues (cinq parts). */
+function ecartCroise(x: number[][], y: number[], groupes: string[]): number | null {
+  const ecarts: number[] = [];
+  for (let part = 0; part < 5; part++) {
+    const appris = y.map((_, i) => i).filter((i) => i % 5 !== part);
+    const m = ajusterLog(appris.map((i) => x[i]), appris.map((i) => y[i]), appris.map((i) => groupes[i]));
+    if (!m) continue;
+    y.forEach((v, i) => {
+      if (i % 5 !== part || !m.effets.has(groupes[i])) return;
+      const p = m.effets.get(groupes[i])! + m.b.reduce((s, bj, j) => s + bj * x[i][j], 0);
+      ecarts.push(Math.abs(Math.exp(p - v) - 1));
+    });
+  }
+  return ecarts.length ? mediane(ecarts) : null;
+}
+
+/** L'effet de chaque étiquette sur un ensemble de ventes de maisons, ou null s'il y en a trop peu à rapprocher. */
+export function mesurerDpe(biens: Bien[], dpe: Map<string, DpeMaison[]>, portee: string): EffetsDpe | null {
+  const lignes: { b: Bien; e: string }[] = [];
+  for (const b of biens) {
+    if (!(b.habitable > 0) || b.activite > 0) continue;
+    const e = rapprocher(b, dpe.get(b.commune));
+    if (e) lignes.push({ b, e });
+  }
+  if (lignes.length < DPE_MIN) return null;
+  const base = lignes.map(({ b }) => [Math.log(b.habitable), Math.log1p(b.constructible + b.agricole + b.bois)]);
+  const avec = lignes.map(({ e }, i) => [...base[i], ...MESUREES.map((m) => (m === e ? 1 : 0))]);
+  const y = lignes.map(({ b }) => Math.log(b.prix));
+  const groupes = lignes.map(({ b }) => b.commune);
+  const m = ajusterLog(avec, y, groupes);
+  if (!m) return null;
+  const multiplicateurs: Record<string, number> = { D: 1 };
+  MESUREES.forEach((e, j) => (multiplicateurs[e] = Math.round(Math.exp(m.b[2 + j]) * 1000) / 1000));
+  const repartition = Object.fromEntries(ETIQUETTES.map((e) => [e, lignes.filter((l) => l.e === e).length]));
+  const r2 = (v: number | null) => Math.round((v ?? 0) * 100) / 100;
+  return { multiplicateurs, ventes: lignes.length, repartition, ecart: [r2(ecartCroise(base, y, groupes)), r2(ecartCroise(avec, y, groupes))], portee };
+}
+
+/**
+ * Le multiplicateur moyen des maisons d'une commune, d'après les étiquettes
+ * de ses diagnostics (`dep/XX-dpe.json`) : le prix d'une maison D, c'est le
+ * prix estimé divisé par lui. Sous vingt diagnostics, ceux du département.
+ */
+function melanges(sortie: string, dep: string, mult: Record<string, number>): Map<string, number> {
+  const p = join(sortie, 'dep', `${dep}-dpe.json`);
+  if (!existsSync(p)) return new Map();
+  const f = JSON.parse(readFileSync(p, 'utf8')) as { dep: number[]; c: Record<string, number[]> };
+  const moyenne = (n: number[]) => {
+    const total = n.reduce((a, b) => a + b, 0);
+    return total ? ETIQUETTES.reduce((s, e, i) => s + (n[i] / total) * mult[e], 0) : 1;
+  };
+  const duDep = moyenne(f.dep);
+  return new Map(Object.entries(f.c).map(([code, n]) => [code, Math.round((n.reduce((a, b) => a + b, 0) >= 20 ? moyenne(n) : duDep) * 1000) / 1000]));
+}
+
+export function ecrireEstimation(sortie: string, biens: Bien[], annees: number[], maj: string, cache?: string): number {
   const estimations = estimer(biens, lireVoisines(sortie));
   const parDep = new Map<string, Record<string, Estimation>>();
   for (const [code, e] of [...estimations].sort((a, b) => a[0].localeCompare(b[0]))) {
@@ -296,7 +465,17 @@ export function ecrireEstimation(sortie: string, biens: Bien[], annees: number[]
   let n = 0;
   for (const [dep, c] of parDep) {
     if (!existsSync(join(sortie, 'dep', `${dep}.json`))) continue;
-    writeFileSync(join(dossier, `${dep}.json`), JSON.stringify({ maj, annees, tailles: TAILLES, partActivite: PART_ACTIVITE, c }));
+    // L'étiquette, là où les DPE du département sont en cache (pour l'instant, l'Allier) : mesurée sur ses ventes.
+    let dpe: EffetsDpe | null = null;
+    if (cache && existsSync(fichierCache(cache, dep))) {
+      const diagnostics = new Map(Object.entries(JSON.parse(readFileSync(fichierCache(cache, dep), 'utf8')) as Record<string, DpeMaison[]>));
+      dpe = mesurerDpe(biens.filter((b) => departementDe(b.commune) === dep), diagnostics, `département ${dep}`);
+      if (dpe) {
+        const m = melanges(sortie, dep, dpe.multiplicateurs);
+        for (const [code, e] of Object.entries(c)) e[10] = m.get(code) ?? null;
+      }
+    }
+    writeFileSync(join(dossier, `${dep}.json`), JSON.stringify({ maj, annees, tailles: TAILLES, partActivite: PART_ACTIVITE, dpe, c }));
     n++;
   }
   return n;

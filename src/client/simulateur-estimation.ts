@@ -18,8 +18,10 @@ type Estimation = [
   number,
   number,
   number,
+  (number | null)?,
 ];
-type Fichier = { maj: string; annees: number[]; tailles: [number, number]; partActivite: number; c: Record<string, Estimation> };
+type EffetsDpe = { multiplicateurs: Record<string, number>; ventes: number; repartition: Record<string, number>; ecart: [number, number]; portee: string };
+type Fichier = { maj: string; annees: number[]; tailles: [number, number]; partActivite: number; dpe: EffetsDpe | null; c: Record<string, Estimation> };
 
 const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
 const euros = (x: number) => `${Math.round(x).toLocaleString('fr-FR')} €`;
@@ -51,15 +53,27 @@ export function brancherEstimation(): void {
     const Na = champ('agricole');
     const Nb = champ('bois');
     const etat = Number((form.elements.namedItem('etat') as HTMLInputElement).value) / 100;
+    // L'étiquette : le prix d'une maison de cette étiquette, rapporté à celui d'une maison ordinaire de la commune.
+    const etiquette = (form.elements.namedItem('dpe') as HTMLSelectElement).value;
+    const melange = e[10] ?? null;
+    const effetDpe = etiquette && f.dpe && melange ? f.dpe.multiplicateurs[etiquette] / melange : 1;
+    $('se-dpe-note').textContent =
+      etiquette && f.dpe && melange
+        ? `Une maison ${etiquette} vaut ${Math.round((effetDpe - 1) * 100) >= 0 ? '+' : '−'}${Math.abs(Math.round((effetDpe - 1) * 100))} % par rapport à une maison ordinaire de la commune, d’après ${f.dpe.ventes.toLocaleString('fr-FR')} ventes rapprochées d’un DPE (${f.dpe.portee}).`
+        : f.dpe
+          ? 'Sans étiquette, l’estimation vaut pour une maison ordinaire de la commune.'
+          : '';
     $('se-etat-valeur').textContent = etat === 0 ? 'tel quel' : `${etat > 0 ? '+' : '−'}${Math.abs(Math.round(etat * 100))} % sur le bâti`;
 
     const lignes: { part: string; surface: string; prix: string; valeur: number | null; note?: string }[] = [];
     const bati = H > 0 || A > 0;
-    if (H > 0) lignes.push({ part: 'Habitable', surface: m2(H), prix: h ? `${euros(h)}/m²` : '—', valeur: h ? h * H * (1 + etat) : null });
+    if (H > 0) lignes.push({ part: 'Habitable', surface: m2(H), prix: h ? `${euros(Math.round(h * effetDpe))}/m²` : '—', valeur: h ? h * effetDpe * H * (1 + etat) : null, note: effetDpe !== 1 ? `étiquette ${etiquette}` : undefined });
     if (A > 0) lignes.push({ part: 'Local d’activité', surface: m2(A), prix: h ? `${Math.round(part * 100)} % de ${euros(h)}/m²` : '—', valeur: h ? h * part * A * (1 + etat) : null });
     if (C > 0) {
       // Le terrain d'une maison se mesure dans les ventes de maisons ; un terrain seul, dans les ventes de terrain seul.
-      const unitaire = bati ? (c ?? cSeul) : (cSeul ?? c);
+      const brut = bati ? (c ?? cSeul) : (cSeul ?? c);
+      // L'étiquette pèse sur la maison et son terrain, mesurés ensemble ; pas sur un terrain seul.
+      const unitaire = brut !== null && H > 0 ? Math.round(brut * effetDpe * 10) / 10 : brut;
       lignes.push({ part: bati ? 'Terrain de la maison' : 'Terrain constructible', surface: m2(C), prix: unitaire !== null ? `${unitaire.toLocaleString('fr-FR')} €/m²` : '—', valeur: unitaire !== null ? unitaire * C : null });
     }
     if (Na > 0) {
@@ -98,6 +112,7 @@ export function brancherEstimation(): void {
       const [ecart, bas, haut] = precision;
       fourchette.textContent = `Entre ${euros(arrondi(total * bas))} et ${euros(arrondi(total * haut))}`;
       precisionTexte.textContent =
+        (f.dpe && etiquette ? `Avec l’étiquette, l’écart médian passe de ${Math.round(f.dpe.ecart[0] * 100)} à ${Math.round(f.dpe.ecart[1] * 100)} % sur les ventes rapprochées d’un DPE (${f.dpe.portee}) ; la fourchette ci-dessus est celle sans étiquette. ` : '') +
         `La moitié des ${nMaisons} ventes de maisons ${anneaux === 0 ? 'de la commune' : `de la commune et de ses voisines (${anneaux} anneau${anneaux > 1 ? 'x' : ''})`} ` +
         `se sont vendues dans cette fourchette autour de leur estimation ; l’écart médian est de ${Math.round(ecart * 100)} %. ` +
         'Le curseur d’état sert à le réduire : les ventes ne disent rien de l’état d’une maison.';
@@ -125,6 +140,7 @@ export function brancherEstimation(): void {
     message('');
     $('se-titre').textContent = `${aLieu(lieu.nom).replace(/^./, (x) => x.toUpperCase())}, ventes de ${f.annees[0]} à ${f.annees[f.annees.length - 1]}`;
     (form.elements.namedItem('part') as HTMLInputElement).value = String(Math.round(f.partActivite * 100));
+    $('se-dpe-bloc').hidden = !(f.dpe && e[10]);
     form.hidden = false;
     calculer();
     (form.elements.namedItem('habitable') as HTMLInputElement).focus();

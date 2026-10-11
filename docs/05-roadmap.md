@@ -4132,7 +4132,7 @@ contiennent que des prix agrégés, aucune vente.
 **Le DPE, essayé sur l'Allier.** Les ventes DVF ne disent pas l'étiquette du
 bien ; la base des DPE de l'ADEME donne l'adresse de chaque diagnostic. En
 rapprochant une vente de maison d'un DPE de la même commune, à moins de 30 m,
-établi dans les deux ans avant la vente, pour une surface à ±20 % : 3 938
+établi dans les deux ans avant la vente, pour une surface à ±20 % : 3 930
 ventes sur 10 187 (39 %) de 2023 à 2025. À surface, terrain et commune
 égaux, par rapport à D : A +35 %, B +30 %, C +12 %, E −15 %, F −28 %,
 G −37 %. L'écart médian de l'estimation passe de 26 à 22 % sur ces ventes.
@@ -4140,8 +4140,21 @@ Le même modèle, en pourcentages et avec un effet par commune, s'écarte de
 30 % sur toutes les ventes de maisons de l'Allier, contre 32 % pour le calcul
 additif publié : la forme du modèle compte peu, le DPE davantage.
 
-**La suite possible** : collecter les DPE des maisons, les rapprocher des
-ventes à l'ingestion et mesurer l'effet de chaque étiquette par région — un
-rapprochement à l'adresse de deux jeux publics, dont rien n'est publié vente
-par vente : à justifier dans `docs/07-risques.md` avant la collecte ; une
-vraie mesure de la précision des terrains ; d'autres simulateurs.
+**Le DPE dans le simulateur, sur l'Allier seulement (11 octobre 2026).**
+`scripts/dpe-maisons-emettre.ts` met en cache (`.cache/dpe-maisons-XX.json`,
+hors du dépôt) le point, l'étiquette, la surface et la date des DPE de
+maisons — 33 474 pour l'Allier ; `estimation-emettre.ts` les rapproche des
+ventes quand le cache est là et publie les seuls multiplicateurs par
+étiquette, le nombre de ventes rapprochées et, par commune, le multiplicateur
+moyen des maisons du lieu, tiré de la répartition des étiquettes. Le
+simulateur propose l'étiquette ; sans elle, l'estimation vaut pour une maison
+ordinaire de la commune, et l'écart s'applique à l'habitable et au terrain de
+la maison, mesurés ensemble. Justification dans `docs/07-risques.md`. Au
+Mayet-de-Montagne, une maison F vaut −9 % par rapport à la maison ordinaire
+de la commune, où les étiquettes basses sont nombreuses.
+
+**La suite** : la collecte des DPE pour toute la France, l'effet mesuré par
+région, un index spatial pour les grandes villes, dans la remise à plat de
+l'ingestion ; une vraie mesure de la précision des terrains ; d'autres
+simulateurs. La vente par une agence ou de particulier à particulier ne se
+mesure pas : aucune donnée publique ne le dit, DVF pas davantage.

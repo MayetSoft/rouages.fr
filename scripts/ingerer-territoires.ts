@@ -776,7 +776,7 @@ async function principal() {
     grise(`${ecrireDvf(SORTIE, dvf)} départements de prix immobiliers écrits.`);
     grise(`${ecrireVentesJeu(SORTIE, dvf)} départements écrits pour le jeu des prix.`);
     const { ecrireEstimation } = await import('./estimation-emettre.ts');
-    grise(`${ecrireEstimation(SORTIE, dvf.biens, dvf.annees, dvf.maj)} départements écrits pour le simulateur d’estimation.`);
+    grise(`${ecrireEstimation(SORTIE, dvf.biens, dvf.annees, dvf.maj, CACHE)} départements écrits pour le simulateur d’estimation.`);
   }
 
   const { collecterIps, ecrireIps } = await import('./ips-emettre.ts');
