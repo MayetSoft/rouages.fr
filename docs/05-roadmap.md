@@ -3987,7 +3987,7 @@ pages du site. Ils sont indexables, au contraire du jeu des prix.
   l'Annuaire des entreprises, l'avis de situation SIRENE, Data INPI, VIES pour
   la TVA intracommunautaire, le BODACC, la Base adresse nationale.
 
-**Proposés, pas commencés :**
+**Proposé, pas commencé :**
 
 - **Un requêteur** : choisir des critères (moins de N habitants, un club de
   football, une école, une commune soumise à la loi SRU…) et obtenir la
@@ -3995,9 +3995,30 @@ pages du site. Ils sont indexables, au contraire du jeu des prix.
   serveur : un index national des indicateurs déjà publiés, lu dans le
   navigateur, comme l'index de recherche. Chaque critère dit sa source ; la
   liste ne calcule rien qui ne soit déjà sur les pages.
-- **Le plus proche** : l'association, l'entreprise ou l'équipement le plus
-  proche d'une commune qui n'en a pas. Les équipements ont leurs
-  coordonnées ; les entreprises, peut-être par la recherche autour d'un
-  point de l'API Recherche d'entreprises de l'État (à vérifier : elle n'a
-  pas répondu depuis l'environnement de développement) ; les associations, faute de
-  coordonnées au répertoire, à la distance entre communes.
+- **Le plus proche** : fait le 11 octobre (voir plus bas).
+
+### Le plus proche : équipements, entreprises, associations (11 octobre 2026)
+
+Une page `/le-plus-proche` : depuis une commune — saisie, ou « Là où je
+suis » —, l'équipement, l'entreprise ou l'association la plus proche, quand
+elle manque sur place. Un lien y mène depuis les équipements et les
+associations de chaque commune.
+
+- **Les équipements** (85 types de la base permanente des équipements) et
+  **les associations** (29 domaines du répertoire national) sont comptés par
+  commune : la distance va du centre d'une commune à celui de l'autre, à vol
+  d'oiseau. `scripts/proximite-emettre.ts` réordonne, en fin d'ingestion, ce
+  que les autres collectes ont écrit : le centre de chaque commune (le
+  barycentre du plus grand anneau de son contour, au millième de degré) et,
+  par type ou par domaine, les communes qui en ont. Un petit fichier par
+  question, chargé à la demande ; 4,4 Mo en tout, rien à télécharger de plus.
+- **Les entreprises** viennent de l'API Recherche d'entreprises de l'État,
+  autour du centre de la commune, dans un rayon de 5, puis 15, puis 50 km :
+  34 activités du quotidien, chacune avec ses codes NAF, vérifiés contre la
+  nomenclature de l'INSEE (`src/modele/activites-proches.ts`). L'API filtre
+  l'entreprise, pas l'établissement : la page ne garde que les
+  établissements ouverts qui exercent l'activité. Un établissement non
+  diffusible est compté, pas nommé. Seul le centre de la commune part vers
+  l'API ; `/mentions` le dit.
+- **L'annuaire RGE** de France Rénov' rejoint les outils pour vérifier une
+  entreprise.

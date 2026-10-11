@@ -11,7 +11,57 @@
  */
 const API = 'https://geo.api.gouv.fr/communes';
 
-export function brancherLaOuJeSuis(bouton: HTMLButtonElement, message: HTMLElement): void {
+/** Pourquoi la commune n'a pas été trouvée : de quoi écrire un message juste. */
+export type EchecIci = 'refus' | 'position' | 'hors-france' | 'service';
+
+/**
+ * La commune où l'on se tient : la position demandée au navigateur, arrondie,
+ * puis le contour qui la contient, d'après l'API Découpage administratif.
+ */
+export function communeIci(): Promise<{ code: string; nom: string }> {
+  return new Promise((ok, ko) => {
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const q = new URLSearchParams({
+            lat: coords.latitude.toFixed(4),
+            lon: coords.longitude.toFixed(4),
+            fields: 'code,nom',
+            format: 'json',
+          });
+          const r = await fetch(`${API}?${q}`);
+          if (!r.ok) return ko('service' satisfies EchecIci);
+          const c = ((await r.json()) as { code: string; nom: string }[])[0];
+          if (c) ok(c);
+          else ko('hors-france' satisfies EchecIci);
+        } catch {
+          ko('service' satisfies EchecIci);
+        }
+      },
+      (e) => ko((e.code === e.PERMISSION_DENIED ? 'refus' : 'position') satisfies EchecIci),
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 },
+    );
+  });
+}
+
+export const MESSAGES_ICI: Record<EchecIci, string> = {
+  refus: 'Position refusée : rien n’a été envoyé. Saisissez le nom de la commune ou son code postal.',
+  position: 'La position n’a pas pu être obtenue. Saisissez le nom de la commune ou son code postal.',
+  'hors-france': 'Aucune commune française ne contient ce point. Saisissez son nom ou son code postal.',
+  service: 'Le service qui situe la commune ne répond pas. Saisissez son nom ou son code postal.',
+};
+
+/**
+ * Le bouton. Par défaut, il ouvre la page de la commune ; `choisir` en fait
+ * autre chose — « Le plus proche » s'en sert comme point de départ.
+ */
+export function brancherLaOuJeSuis(
+  bouton: HTMLButtonElement,
+  message: HTMLElement,
+  choisir: (c: { code: string; nom: string }) => void = (c) => {
+    location.href = `/commune/${c.code}`;
+  },
+): void {
   if (!('geolocation' in navigator)) return;
   bouton.hidden = false;
   const dire = (texte: string) => {
@@ -21,40 +71,15 @@ export function brancherLaOuJeSuis(bouton: HTMLButtonElement, message: HTMLEleme
   bouton.addEventListener('click', () => {
     bouton.disabled = true;
     dire('Le navigateur demande votre position…');
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          dire('Recherche de la commune…');
-          const q = new URLSearchParams({
-            lat: coords.latitude.toFixed(4),
-            lon: coords.longitude.toFixed(4),
-            fields: 'code,nom',
-            format: 'json',
-          });
-          const r = await fetch(`${API}?${q}`);
-          const communes = r.ok ? ((await r.json()) as { code: string; nom: string }[]) : [];
-          const c = communes[0];
-          if (!c) {
-            dire('Aucune commune française ne contient ce point. Saisissez son nom ou son code postal.');
-            bouton.disabled = false;
-            return;
-          }
-          dire(`${c.nom} : ouverture de sa page…`);
-          location.href = `/commune/${c.code}`;
-        } catch {
-          dire('Le service qui situe la commune ne répond pas. Saisissez son nom ou son code postal.');
-          bouton.disabled = false;
-        }
-      },
-      (e) => {
-        dire(
-          e.code === e.PERMISSION_DENIED
-            ? 'Position refusée : rien n’a été envoyé. Saisissez le nom de la commune ou son code postal.'
-            : 'La position n’a pas pu être obtenue. Saisissez le nom de la commune ou son code postal.',
-        );
+    communeIci()
+      .then((c) => {
+        dire('');
         bouton.disabled = false;
-      },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 },
-    );
+        choisir(c);
+      })
+      .catch((e: EchecIci) => {
+        dire(MESSAGES_ICI[e] ?? MESSAGES_ICI.service);
+        bouton.disabled = false;
+      });
   });
 }

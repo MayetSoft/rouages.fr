@@ -33,6 +33,7 @@ const RACINE_GARDEE = new Set([
   'attributions.json',
   'avis.json',
   'jeux',
+  'proximite',
 ]);
 
 /** Par département : les groupements (`03.json`) et le prix de l'eau (`03-eau.json`). */

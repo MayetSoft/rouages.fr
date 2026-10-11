@@ -142,6 +142,13 @@ export const SITES_VERIFIER_ENTREPRISE: SiteComplementaire[] = [
     url: 'https://www.bodacc.fr/',
   },
   {
+    id: 'annuaire-rge',
+    nom: 'Annuaire des professionnels RGE',
+    editeur: 'l’État (France Rénov’)',
+    quoi: 'vérifier qu’une entreprise est « reconnue garante de l’environnement » pour tel type de travaux, à la date des travaux — la condition des aides à la rénovation énergétique',
+    url: 'https://france-renov.gouv.fr/annuaire-rge',
+  },
+  {
     id: 'ban',
     nom: 'Base adresse nationale',
     editeur: 'l’État, avec les communes qui la tiennent à jour',

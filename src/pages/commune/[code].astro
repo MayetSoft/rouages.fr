@@ -957,6 +957,9 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="associations" class="p-assos">
         <h2 class="badge">Les associations</h2>
         <Associations a={plus.associations} code={commune.code} />
+        <p class="mesure">
+          Pour une activité qui n’a pas d’association ici&nbsp;: <a href={`/le-plus-proche?c=${commune.code}`}>la plus proche</a>, domaine par domaine.
+        </p>
       </section>
     )}
     {droitLocal && (
@@ -1004,6 +1007,10 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="equipements" class="p-equipements">
         <h2 class="badge">Ce qu’on trouve sur place</h2>
         <Equipements e={equ} />
+        <p class="mesure">
+          Ce qui manque ici, où le trouver&nbsp;: <a href={`/le-plus-proche?c=${commune.code}`}>le plus proche</a> —
+          l’équipement, l’entreprise ou l’association la plus proche de {commune.nom}.
+        </p>
         <Demarches bloc="equipements" />
       </section>
     )}

@@ -1162,6 +1162,15 @@ a.p-sommaire-lien { text-decoration: none; }
 .comparer-colonne { scroll-snap-align: start; position: relative; overflow-x: auto; }
 .comparer-colonne { min-width: 0; }
 .comparer-colonne h3 { font-size: 1rem; margin: 0 0 .5rem; }
+
+/* --- le plus proche --- */
+.pp-choix { display: grid; gap: 1rem; margin: 1.2rem 0; }
+.pp-choix select { width: 100%; font: inherit; padding: .45rem .6rem; border: 1px solid var(--trait-fort); border-radius: 4px; background: var(--fond-carte); color: var(--encre); }
+.pp-liste { list-style: none; margin: .4rem 0 .8rem; padding: 0; }
+.pp-liste li { display: grid; grid-template-columns: 7.5rem 1fr; column-gap: .8rem; padding: .45rem 0; border-bottom: 1px solid var(--trait); }
+.pp-liste li > .v-nature { grid-column: 2; }
+.pp-distance { grid-row: span 2; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--encre-douce); }
+@media (max-width: 640px) { .pp-liste li { grid-template-columns: 4.6rem 1fr; } }
 @media (max-width: 760px) {
   .comparer-choix, .comparer-grille { grid-template-columns: 1fr; }
 }
