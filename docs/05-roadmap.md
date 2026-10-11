@@ -4117,15 +4117,31 @@ ventes de maisons du voisinage : écart médian et quartiles du rapport prix /
 estimation, qui font la fourchette affichée. Au Mayet-de-Montagne, avec ses
 voisines (183 maisons) : 481 €/m² habitable, 34,8 €/m² de terrain de
 maison, 13,8 €/m² de terrain seul, terres 2 013 €/ha entre un demi et deux
-hectares, bois 2 887 €/ha, écart médian 40 %. Pour comparaison, les chiffres
-que le mainteneur avait établis à la main il y a quelques années : 370 €/m²
-habitable, 19 €/m² constructible, environ 3 000 €/ha de terres ou de bois.
+hectares, bois 2 887 €/ha, écart médian 40 %. Le mainteneur avait établi la
+méthode à la main sur les ventes de 2017 à 2022 : le prix des terrains
+constructibles vendus, retranché des prix totaux pour trouver la valeur du
+reste, et des propriétés semblables comparées pour la part des dépendances.
+Ses valeurs d'alors ne se transposent ni dans le temps ni ailleurs : c'est
+la démarche qui est reprise, pas les chiffres.
 
 Les départements que DVF ne couvre pas (Alsace, Moselle, Mayotte) n'ont pas
 d'estimation, plutôt que celle de leurs voisins. Les fichiers
 (`territoires/simulateurs/estimation/XX.json`, 2,8 Mo pour la France) ne
 contiennent que des prix agrégés, aucune vente.
 
-**La suite possible** : étalonner l'état avec les diagnostics de performance
-énergétique (`dep/XX-dpe.json`) ; une vraie mesure de la précision des
-terrains ; d'autres simulateurs.
+**Le DPE, essayé sur l'Allier.** Les ventes DVF ne disent pas l'étiquette du
+bien ; la base des DPE de l'ADEME donne l'adresse de chaque diagnostic. En
+rapprochant une vente de maison d'un DPE de la même commune, à moins de 30 m,
+établi dans les deux ans avant la vente, pour une surface à ±20 % : 3 938
+ventes sur 10 187 (39 %) de 2023 à 2025. À surface, terrain et commune
+égaux, par rapport à D : A +35 %, B +30 %, C +12 %, E −15 %, F −28 %,
+G −37 %. L'écart médian de l'estimation passe de 26 à 22 % sur ces ventes.
+Le même modèle, en pourcentages et avec un effet par commune, s'écarte de
+30 % sur toutes les ventes de maisons de l'Allier, contre 32 % pour le calcul
+additif publié : la forme du modèle compte peu, le DPE davantage.
+
+**La suite possible** : collecter les DPE des maisons, les rapprocher des
+ventes à l'ingestion et mesurer l'effet de chaque étiquette par région — un
+rapprochement à l'adresse de deux jeux publics, dont rien n'est publié vente
+par vente : à justifier dans `docs/07-risques.md` avant la collecte ; une
+vraie mesure de la précision des terrains ; d'autres simulateurs.
