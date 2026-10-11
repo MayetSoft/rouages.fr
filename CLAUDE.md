@@ -31,6 +31,9 @@ npm run relire               les fiches encore à vérifier contre leur source
 npm run veille               l'état des sources surveillées
 npm run territoires -- --cache   réingère tout en réutilisant les gros fichiers
 npx tsx scripts/comptes-emettre.ts  les comptes seuls (communes, départements, régions)
+docker compose up -d runner      le runner auto-hébergé, dans Docker (PC du mainteneur)
+docker compose run --rm ingestion  l'ingestion à la main dans Docker, puis le contrôle de la CI
+docker compose run --rm sonde    ce que la connexion de la machine joint
 ```
 
 `npm run territoires` dure une quarantaine de minutes et touche plus de trente

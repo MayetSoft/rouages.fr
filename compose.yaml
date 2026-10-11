@@ -1,0 +1,52 @@
+# L'ingestion dans Docker, sur un PC ou un serveur. Voir
+# `docs/08-runner-auto-heberge.md`, section « Sur un PC, avec Docker ».
+#
+#   docker compose up -d runner         le runner auto-hébergé, à l'écoute
+#   docker compose run --rm ingestion   l'ingestion à la main, dans ce dépôt
+#   docker compose run --rm sonde       ce que cette connexion joint
+#
+# Les deux partagent le cache des gros fichiers (volume `rouages-cache`).
+# Les secrets viennent de `.env`, jamais committé : voir `.env.exemple`.
+
+x-image: &image
+  build: docker/ingestion
+  image: rouages-ingestion
+  env_file:
+    - path: .env
+      required: false
+
+services:
+  runner:
+    <<: *image
+    user: node
+    command: runner.sh
+    restart: unless-stopped
+    volumes:
+      - rouages-runner:/home/node/runner
+      - rouages-cache:/home/node/rouages-cache
+
+  ingestion:
+    <<: *image
+    profiles: [main]
+    entrypoint: dans-depot.sh
+    command: ingerer.sh
+    working_dir: /rouages
+    volumes:
+      - .:/rouages
+      - rouages-cache:/rouages/.cache
+      - rouages-modules:/rouages/node_modules
+
+  sonde:
+    <<: *image
+    profiles: [main]
+    entrypoint: dans-depot.sh
+    working_dir: /rouages
+    command: sh -c "npm ci --no-audit --no-fund --silent && npx tsx scripts/sonder-sources.ts"
+    volumes:
+      - .:/rouages
+      - rouages-modules:/rouages/node_modules
+
+volumes:
+  rouages-runner:
+  rouages-cache:
+  rouages-modules:
