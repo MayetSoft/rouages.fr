@@ -6,3 +6,4 @@ dist/
 *.log
 veille/rapport.md
 .deploiement/
+.env

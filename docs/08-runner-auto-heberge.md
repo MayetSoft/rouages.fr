@@ -83,6 +83,76 @@ le dire. Les collectes qui téléchargent toujours (HATVP, répertoire des
 5. Lancer : onglet *Actions → Réingestion des territoires → Run workflow*,
    machine « auto-hebergee ».
 
+## Sur un PC, avec Docker
+
+L'image de `docker/ingestion/` porte tout ce qu'il faut : Node 22, git,
+curl, unzip, `gh` pour ouvrir la PR, les bibliothèques du runner. Le même
+`compose.yaml` en tire trois services :
+
+- **`runner`**, le runner auto-hébergé, à l'écoute : le workflow
+  « Réingestion des territoires », machine « auto-hebergee », tourne chez
+  vous et ouvre sa PR comme d'habitude. C'est la voie à préférer ;
+- **`ingestion`**, l'ingestion à la main sur le dépôt cloné, suivie du
+  contrôle de la CI ; on relit le diff et on committe soi-même ;
+- **`sonde`**, `scripts/sonder-sources.ts` depuis cette connexion : ce
+  qu'elle joint parmi les sources que GitHub ne joint pas (Géorisques, le
+  BRGM, Kohesio). Une connexion domestique n'est pas une adresse
+  d'hébergeur : c'est à constater, pas à supposer.
+
+Les deux premiers partagent le cache des gros fichiers (volume
+`rouages-cache`), avec la même règle des six jours.
+
+### Sous Windows
+
+- **Docker Desktop, moteur WSL 2.**
+- **Le dépôt cloné dans WSL** (`\\wsl$\Ubuntu\home\…`), pas sur `C:` :
+  l'ingestion réécrit des dizaines de milliers de fichiers, et un dossier
+  Windows passe par une couche réseau, bien plus lente. Le conteneur tourne
+  sous l'utilisateur à qui appartient le dépôt : les fichiers réécrits
+  restent les vôtres.
+- **La mémoire.** WSL prend par défaut la moitié de la mémoire du PC ;
+  l'ingestion demande 12 Go à Node. Pour lui en donner davantage, ou le
+  borner, dans `%UserProfile%\.wslconfig` :
+
+  ```
+  [wsl2]
+  memory=40GB
+  ```
+
+  puis `wsl --shutdown` et relancer Docker Desktop.
+- **Le disque.** Les volumes vivent dans le disque virtuel de Docker
+  Desktop : compter une soixantaine de gigaoctets pour le cache, le dépôt et
+  ses modules.
+
+### La mise en route
+
+1. `cp .env.exemple .env`, et remplir `ROUAGES_RETRAITS_SECRET` (le même
+   que dans GitHub Actions ; jamais publié ni changé).
+2. Sonder : `docker compose run --rm sonde`.
+3. Le runner : sur GitHub, *Settings → Actions → Runners → New self-hosted
+   runner*, recopier le jeton de la ligne `./config.sh … --token` dans
+   `RUNNER_TOKEN`, puis `docker compose up -d runner`. Au premier lancement,
+   il télécharge la dernière version du runner et s'inscrit avec
+   l'étiquette `rouages` ; `docker compose logs -f runner` le montre. Le
+   jeton ne sert plus ensuite : l'inscription est gardée dans le volume
+   `rouages-runner`, et le service repart avec Docker Desktop.
+4. Lancer : onglet *Actions → Réingestion des territoires*, machine
+   « auto-hebergee ». Si le PC est éteint, le job attend un runner — jusqu'à
+   vingt-quatre heures — ; on peut l'annuler et relancer sur « github ».
+
+À la main, sans GitHub : `docker compose run --rm ingestion` fait
+l'ingestion complète et le contrôle de la CI. Une collecte seule, par
+exemple les DPE de l'Allier :
+
+```
+docker compose run --rm ingestion bash -c "npm ci && ROUAGES_DEPS=03 npx tsx scripts/dpe-maisons-emettre.ts"
+```
+
+Le runner dans un conteneur garde la règle de la section « La sécurité » :
+il n'exécute que ce workflow, déclenché à la main. Le conteneur n'ajoute pas
+d'accès au PC — il ne voit que ses volumes —, mais il partage la connexion
+du réseau local.
+
 ## L'autre voie : une tâche planifiée sur l'hébergement o2switch
 
 Une première version de cette page disait que l'hébergement mutualisé « ne

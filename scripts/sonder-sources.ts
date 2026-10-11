@@ -1,6 +1,8 @@
 /**
  * Sonder, depuis le réseau de GitHub, des sources que l'environnement de
  * développement ne joint pas — ccomptes.fr, par exemple, y coupe la connexion.
+ * Depuis une machine à nous aussi : `docker compose run --rm sonde` dit ce que
+ * sa connexion joint (voir `docs/08-runner-auto-heberge.md`).
  * Rien n'est écrit : le journal du job dit ce que chaque adresse rend, pour
  * décider d'une collecte avant de l'écrire.
  *
@@ -41,6 +43,9 @@ const SONDES: Sonde[] = [
     url: 'https://mapsref.brgm.fr/wxs/georisques/georisques_dl?service=wfs&version=2.0.0&request=GetCapabilities',
     motifs: [/<Name>[^<]*<\/Name>/g],
   },
+  // Kohesio refuse les adresses des hébergeurs, GitHub compris : une
+  // connexion domestique passe-t-elle ? (La même requête que `europe-emettre.ts`.)
+  { url: 'https://kohesio.ec.europa.eu/api/queries/funds?language=fr' },
   // La Cour des comptes et les chambres régionales : leurs publications sont-
   // elles listées quelque part de lisible par un programme ?
   { url: 'https://www.ccomptes.fr/robots.txt', motifs: [/^Sitemap:.*$/gim] },
