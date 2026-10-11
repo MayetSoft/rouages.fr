@@ -1251,6 +1251,12 @@ async function ecrire(
 // « Sources » (voir `provenance.ts`).
 journaliserLesLectures();
 await principal();
+// « Le plus proche » : réordonne ce qui vient d'être écrit, sans rien lire au-dehors.
+await tenter('Proximité', async () => {
+  const { emettreProximite } = await import('./proximite-emettre.ts');
+  emettreProximite(SORTIE, (m) => dire(`${GRIS}${m}${RAZ}`));
+  return true;
+});
 {
   const n = await ecrireProvenance(SORTIE, async (url) => (await obstine(url, 2)).json());
   dire(`${GRIS}${n} liens de sources datés (provenance.json).${RAZ}`);

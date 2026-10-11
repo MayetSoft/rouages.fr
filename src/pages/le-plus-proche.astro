@@ -1,0 +1,75 @@
+---
+/**
+ * Le plus proche : depuis une commune, l'équipement, l'entreprise ou
+ * l'association la plus proche — pour quand ce qu'on cherche manque sur
+ * place. Tout se passe dans le navigateur : voir `src/client/plus-proche.ts`.
+ */
+import Base from '../layouts/Base.astro';
+---
+<Base
+  titre="Le plus proche"
+  description="Depuis une commune, l'équipement, l'entreprise ou l'association la plus proche : une boulangerie, un médecin, une piscine, un club de sport."
+  section="chez-moi"
+>
+  <div class="page page--etroite">
+    <p class="badge">Données de chez moi</p>
+    <h1>Le plus proche</h1>
+    <p class="resume">
+      Quand ce qu’on cherche manque sur place&nbsp;: la boulangerie, le médecin, la piscine ou le club de sport le plus
+      proche d’une commune. Les équipements et les associations sont comptés commune par commune&nbsp;; les entreprises,
+      établissement par établissement, à leur adresse.
+    </p>
+
+    <div class="pp-choix">
+      <div class="comparer-champ">
+        <label for="pp-commune">Depuis</label>
+        <input id="pp-commune" type="search" autocomplete="off" placeholder="Une commune, un code postal…" />
+        <ul id="pp-commune-liste" class="comparer-liste" aria-label="Communes trouvées"></ul>
+        <p class="cm-ici pp-ici">
+          <button type="button" class="cm-ici-bouton" hidden><span aria-hidden="true">⌖</span> Là où je suis</button>
+          <span class="cm-ici-message" role="status" hidden></span>
+        </p>
+      </div>
+      <div class="comparer-champ">
+        <label for="pp-quoi">Je cherche</label>
+        <select id="pp-quoi">
+          <option value="">— choisir —</option>
+        </select>
+      </div>
+    </div>
+
+    <noscript>
+      <p class="c-vide">La recherche a besoin de JavaScript : elle se fait dans le navigateur.</p>
+    </noscript>
+    <p id="pp-etat" class="p-strate" aria-live="polite"></p>
+    <div id="pp-resultats"></div>
+
+    <h2 class="badge">Ce que la recherche dit, et ce qu’elle ne dit pas</h2>
+    <ul class="mesure">
+      <li>
+        <strong>Les distances sont à vol d’oiseau</strong>, pas par la route. Pour un équipement ou une association,
+        elles vont du centre d’une commune à celui de l’autre&nbsp;: les fichiers comptent par commune, sans adresse.
+        Pour une entreprise, elles vont du centre de la commune de départ à l’adresse de l’établissement.
+      </li>
+      <li>
+        <strong>Une entreprise est cherchée par son activité principale déclarée</strong>, telle que le répertoire SIRENE
+        la code. Un commerce peut en exercer une autre, et un professionnel installé chez lui y figure à son adresse.
+        Un établissement que le répertoire ne diffuse pas est compté, jamais nommé.
+      </li>
+      <li>
+        <strong>Ce qui part du navigateur</strong>&nbsp;: pour une entreprise, le centre de la commune de départ,
+        envoyé à l’API Recherche d’entreprises de l’État&nbsp;; pour «&nbsp;Là où je suis&nbsp;», la position arrondie,
+        envoyée à l’API Découpage administratif. Rien d’autre, et rien n’est gardé.
+      </li>
+    </ul>
+    <p class="p-strate">
+      D’après la base permanente des équipements de l’INSEE, le répertoire national des associations, les contours des
+      communes d’ADMIN EXPRESS (IGN), et l’API Recherche d’entreprises de l’État sur les données SIRENE de l’INSEE, sous
+      Licence Ouverte.
+    </p>
+  </div>
+</Base>
+<script>
+  import { brancherPlusProche } from '../client/plus-proche.ts';
+  brancherPlusProche();
+</script>
