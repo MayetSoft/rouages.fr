@@ -3,8 +3,7 @@
   "r": "2026-10-09"
  },
  "https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration/": {
-  "r": "2026-10-09",
-  "v": "2026-10-09"
+  "r": "2026-10-12"
  },
  "https://api.insee.fr/melodi/file/DS_ETAT_CIVIL_DECES_COMMUNES/DS_ETAT_CIVIL_DECES_COMMUNES_2025_CSV_FR": {
   "r": "2026-10-09"
@@ -31,8 +30,7 @@
   "r": "2026-10-09"
  },
  "https://bodacc-datadila.opendatasoft.com/explore/dataset/annonces-commerciales/": {
-  "r": "2026-10-09",
-  "v": "2026-10-08"
+  "r": "2026-10-12"
  },
  "https://data-pipeline-open.s3.sbg.io.cloud.ovh.net/rna/waldec.csv": {
   "r": "2026-10-09",
@@ -59,8 +57,7 @@
   "v": "2026-07-21"
  },
  "https://data.economie.gouv.fr/explore/dataset/decp-2022-marches-valides/": {
-  "r": "2026-10-09",
-  "v": "2026-10-04"
+  "r": "2026-10-12"
  },
  "https://data.economie.gouv.fr/explore/dataset/dmto_attrib/": {
   "r": "2026-10-09",
@@ -130,8 +127,7 @@
   "v": "2026-05-29"
  },
  "https://public.opendatasoft.com/explore/dataset/economicref-france-sirene-v3/": {
-  "r": "2026-10-09",
-  "v": "2026-08-15"
+  "r": "2026-10-12"
  },
  "https://ressources.data.sncf.com/explore/dataset/frequentation-gares/": {
   "r": "2026-10-09",
@@ -251,8 +247,7 @@
   "r": "2026-10-09"
  },
  "https://www.data.gouv.fr/datasets/service-public-gouv-fr-annuaire-de-ladministration-base-de-donnees-locales/": {
-  "r": "2026-10-09",
-  "v": "2026-10-09"
+  "r": "2026-10-12"
  },
  "https://www.hatvp.fr/agora/opendata/agora_repertoire_opendata.json": {
   "r": "2026-10-09",
