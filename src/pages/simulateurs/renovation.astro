@@ -112,6 +112,16 @@ const relu = new Date(`${RELU}T12:00:00`).toLocaleDateString('fr-FR', { day: 'nu
           <p class="jeu-verdict" id="sr-bilan" hidden></p>
         </div>
 
+        <div class="jeu-carte sr-bloc" id="sr-locales" hidden>
+          <h2 class="sr-bloc-titre">Les aides locales ici</h2>
+          <p class="jeu-contexte">
+            Celles de la commune, de l’intercommunalité et du département, écrites d’après leurs textes. Elles ne sont
+            pas déduites du reste à charge&nbsp;: leurs conditions se vérifient auprès du guichet.
+          </p>
+          <ul class="al-liste" id="sr-locales-liste"></ul>
+          <p class="al-hors" id="sr-locales-hors" hidden></p>
+        </div>
+
         <div class="jeu-carte sr-bloc">
           <h2 class="sr-bloc-titre">Pour louer</h2>
           <ul class="sr-conditions" id="sr-location"></ul>

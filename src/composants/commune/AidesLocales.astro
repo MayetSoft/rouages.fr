@@ -1,0 +1,105 @@
+---
+/**
+ * Les aides locales à la rénovation qui valent dans la commune : celles de
+ * la commune, de l'intercommunalité, du département et de la région, écrites
+ * depuis leurs textes (`contenu/aides-locales.yaml`). Chaque aide dit qui la
+ * porte, pour quels travaux et quels ménages, le montant tel que le texte le
+ * fixe, le guichet et la démarche, ses sources et leur date.
+ *
+ * Les aides d'un porteur dont la commune est hors du périmètre sont dites à
+ * part : c'est souvent la vraie réponse — l'OPAH de l'agglomération ne couvre
+ * que certaines communes —, et la taire laisserait chercher en vain.
+ */
+import { BENEFICIAIRES, etatAide, LIBELLE_ETAT, TRAVAUX, type AideLocale } from '../../modele/aides-locales.ts';
+
+interface Props {
+  aides: AideLocale[];
+  horsPerimetre: AideLocale[];
+  commune: { code: string; nom: string };
+}
+const { aides, horsPerimetre, commune } = Astro.props;
+const date = (iso: string) =>
+  new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/^1 /, '1er ');
+const liste = <T extends string>(xs: T[], noms: Record<T, string>) => xs.map((x) => noms[x]).join(', ');
+const enCours = aides.filter((a) => etatAide(a) !== 'fermee');
+const fermees = aides.filter((a) => etatAide(a) === 'fermee');
+const horsOuvertes = horsPerimetre.filter((a) => etatAide(a) !== 'fermee');
+---
+{enCours.length > 0 ? (
+  <ul class="al-liste">
+    {enCours.map((a) => {
+      const etat = etatAide(a);
+      return (
+        <li class="al-aide">
+          <p class="al-tete">
+            <strong>{a.intitule}</strong>
+            <span class={`al-etat al-etat--${etat}`}>{LIBELLE_ETAT[etat]}</span>
+          </p>
+          <p class="al-qui">
+            {a.porteur.nom} · {liste(a.travaux, TRAVAUX)} · {liste(a.beneficiaires, BENEFICIAIRES)}
+            {a.ressources && <> · {a.ressources}</>}
+          </p>
+          {a.montant ? (
+            <p class="al-montant">{a.montant}</p>
+          ) : (
+            <p class="al-montant al-montant--inconnu">Montant non publié : à demander au guichet.</p>
+          )}
+          {a.perimetre.communes !== null && a.perimetre.precision && <p class="al-perimetre">{`Ici seulement : ${a.perimetre.precision}.`}</p>}
+          {(a.demarche.guichet || a.demarche.url) && (
+            <p class="al-demarche">
+              {a.demarche.avant_travaux === true && <strong>À demander avant tout début de travaux. </strong>}
+              {a.demarche.guichet && <>{a.demarche.guichet}. </>}
+              {a.demarche.url && <a href={a.demarche.url}>Comment la demander</a>}
+            </p>
+          )}
+          <p class="al-sources">
+            {a.sources.map((s, i) => (
+              <>
+                {i > 0 && ' · '}
+                <a href={s.url}>{s.titre}</a>
+                {s.date_texte && <> ({date(s.date_texte)})</>}
+              </>
+            ))}
+            {a.anil && <> · <a href={a.anil}>la fiche de l’ANIL</a></>}
+            {` · vérifiée le ${date(a.verifie_le)}`}
+          </p>
+        </li>
+      );
+    })}
+  </ul>
+) : (
+  <p>Aucune aide locale à la rénovation en vigueur n’est recensée pour {commune.nom}.</p>
+)}
+{horsOuvertes.length > 0 && (
+  <p class="al-hors">
+    {`Ne valent pas à ${commune.nom}, qui est hors de leur périmètre : `}
+    {horsOuvertes.map((a, i) => (
+      <>
+        {i > 0 && ' ; '}
+        {`${a.intitule} (${a.porteur.nom}${a.perimetre.precision ? ` — ${a.perimetre.precision}` : ''})`}
+      </>
+    ))}
+    .
+  </p>
+)}
+{fermees.length > 0 && (
+  <details class="al-fermees">
+    <summary>{fermees.length === 1 ? 'Une aide fermée' : `${fermees.length} aides fermées`}</summary>
+    <ul>
+      {fermees.map((a) => (
+        <li>
+          {`${a.intitule} — ${a.porteur.nom}`}
+          {a.fermeture && `, fermée le ${date(a.fermeture)}`}
+          {' · '}
+          <a href={a.sources[0].url}>{a.sources[0].titre}</a>
+        </li>
+      ))}
+    </ul>
+  </details>
+)}
+<p class="al-note">
+  Ces aides s’ajoutent souvent à MaPrimeRénov’, que calcule le{' '}
+  <a href={`/simulateurs/renovation?t=c-${commune.code}`}>simulateur de rénovation</a>. Chaque montant est celui du
+  texte de la collectivité, à la date dite ; le guichet confirme ce qui s’applique à votre logement, et le conseil
+  de l’ADIL ou d’un espace France Rénov’ est gratuit.
+</p>

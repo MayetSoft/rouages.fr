@@ -646,6 +646,21 @@ main section[id] { scroll-margin-top: 9rem; }
    La carence est la seule situation où l'État peut se substituer au maire :
    elle mérite l'encre d'alerte, le simple déficit non. */
 .p-sru { margin-top: 1.2rem; }
+/* Les aides locales à la rénovation (`composants/commune/AidesLocales.astro`). */
+.al-liste { list-style: none; padding: 0; margin: .4rem 0 1rem; display: grid; gap: .8rem; }
+.al-aide { background: var(--fond-carte); border: 1px solid var(--trait); border-radius: .5rem; padding: .7rem .9rem; }
+.al-aide p { margin: .2rem 0; }
+.al-tete { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .2rem .8rem; }
+.al-etat { font-size: .78rem; font-weight: 600; padding: 0 .45rem; border-radius: 1rem; border: 1px solid currentColor; white-space: nowrap; }
+.al-etat--ouverte { color: var(--accent); }
+.al-etat--a_confirmer, .al-etat--a_reverifier { color: var(--alerte); }
+.al-qui, .al-sources, .al-perimetre { font-size: .85rem; color: var(--encre-douce); }
+.al-montant { font-weight: 600; }
+.al-montant--inconnu { font-weight: 400; font-style: italic; color: var(--encre-douce); }
+.al-demarche { font-size: .9rem; }
+.al-hors, .al-note { font-size: .88rem; color: var(--encre-douce); max-width: var(--mesure); }
+.al-fermees { font-size: .85rem; color: var(--encre-douce); margin: .4rem 0; }
+
 .p-sru-liste { margin: 0; display: grid; gap: .35rem; }
 .p-sru-liste > div { display: grid; grid-template-columns: 9.5rem 1fr; gap: .6rem; align-items: baseline; }
 .p-sru-liste dt { font-size: .78rem; color: var(--encre-douce); }

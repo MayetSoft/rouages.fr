@@ -1,0 +1,17 @@
+# Les aides locales à la rénovation du logement — voir src/modele/aides-locales.ts.
+#
+# Chaque aide est écrite depuis le texte de la collectivité qui la porte :
+# délibération, règlement d'aides, convention d'opération, formulaire. La base
+# « Aides locales aux travaux » de l'ANIL sert à savoir quels textes lire ;
+# rien n'en est repris, et chaque aide renvoie à sa fiche (`anil`).
+#
+# Règles, contrôlées par `npm run valider` :
+# - un montant ne s'écrit qu'avec la citation, mot pour mot, du texte qui le
+#   fixe (`conditions[].citation`, `source` = rang dans `sources`) ; sans
+#   texte trouvé, `montant: null` et `statut: a_confirmer` ;
+# - `perimetre.communes` : null si l'aide vaut sur tout le territoire du
+#   porteur, sinon les codes INSEE des communes, et `precision` dit ce qui
+#   fixe ce périmètre ;
+# - aucune personne nommée : des services et des guichets ;
+# - `verifie_le` : au-delà d'un an, l'aide s'affiche « à revérifier ».
+aides_locales: []

@@ -13,6 +13,7 @@ import { construireGlossaire } from '../src/modele/glossaire.ts';
 import { construireReseau } from '../src/modele/reseau.ts';
 import { ATTENTE_EDITEUR } from '../src/modele/schemas.ts';
 import { nommeUnePersonne } from '../src/modele/civilites.ts';
+import { aidesLocales, controlerAidesLocales } from '../src/modele/aides-locales.ts';
 import { existsSync, readFileSync } from 'node:fs';
 
 const args = new Set(process.argv.slice(2));
@@ -322,6 +323,18 @@ if (existsSync(META)) {
 }
 
 /* ------------------------------------------------------------------ *
+ * Les aides locales à la rénovation (`contenu/aides-locales.yaml`) :
+ * pas de montant sans citation de son texte, un périmètre en communes
+ * connues, aucune personne nommée.
+ * ------------------------------------------------------------------ */
+
+{
+  const r = controlerAidesLocales();
+  erreurs.push(...r.erreurs);
+  avertissements.push(...r.avertissements);
+}
+
+/* ------------------------------------------------------------------ *
  * Liens (réseau, sur demande)
  * ------------------------------------------------------------------ */
 
@@ -386,7 +399,7 @@ console.log(
   `${GRIS}${total} entités : ${g.acteurs.size} acteurs, ${g.competences.size} compétences, ` +
     `${g.processus.size} processus, ${g.documents.size} documents, ${g.flux.size} flux, ` +
     `${g.sources.size} sources, ${g.sigles.size} sigles, ${g.reperes.size} repères, ` +
-    `${g.surveillances.size} surveillances.${RAZ}`,
+    `${g.surveillances.size} surveillances, ${aidesLocales().length} aides locales.${RAZ}`,
 );
 
 for (const a of avertissements) console.log(`${JAUNE}avertissement${RAZ} ${a}`);

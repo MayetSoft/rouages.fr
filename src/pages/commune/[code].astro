@@ -72,6 +72,8 @@ import Votes from '../../composants/commune/Votes.astro';
 import Sols from '../../composants/commune/Sols.astro';
 import ChambreComptes from '../../composants/ChambreComptes.astro';
 import Dpe from '../../composants/commune/Dpe.astro';
+import AidesLocales from '../../composants/commune/AidesLocales.astro';
+import { aidesDeCommune, aidesHorsPerimetre } from '../../modele/aides-locales.ts';
 import Dotations from '../../composants/commune/Dotations.astro';
 import Caf from '../../composants/commune/Caf.astro';
 import Defibrillateurs from '../../composants/commune/Defibrillateurs.astro';
@@ -321,6 +323,9 @@ const echelonsMontres = plus.echelons.length > 0;
 const risquesGaspar = !!fiche?.risques && (fiche.risques.recenses.length > 0 || fiche.risques.catnat.length > 0);
 const risquesMontres = risquesGaspar || !!vie.radon;
 const ZONES_RADON = ['', 'potentiel faible', 'potentiel faible, mais des facteurs géologiques peuvent faciliter son passage dans les bâtiments', 'potentiel significatif'];
+// Les aides locales à la rénovation : celles qui valent ici, et celles d'un porteur de la commune dont elle est hors du périmètre.
+const aidesIci = aidesDeCommune(commune.code, commune.dep);
+const aidesAilleurs = aidesHorsPerimetre(commune.code, commune.dep);
 const sommaire: [string, string, unknown][] = [
   ['habitants', 'Les habitants', plus.histoire || plus.etatCivil || plus.ages],
   ['niveaux', 'Revenus, emploi, diplômes', plus.niveauDeVie || plus.diplomes || vie.emploi],
@@ -341,6 +346,7 @@ const sommaire: [string, string, unknown][] = [
   ['logements', 'Les logements', vie.parc || vie.immobilier],
   ['loyers', 'Les loyers', vie.loyers],
   ['dpe', 'Les étiquettes énergétiques', vie.dpe],
+  ['aides-locales', 'Les aides à la rénovation', aidesIci.length > 0 || aidesAilleurs.length > 0],
   ['vente', 'Une vente immobilière', dmtoDernier >= 0],
   ['urbanisme', 'Ce qui peut s’y construire', fiche?.urbanisme],
   ['construit', 'Ce qui s’y construit', fiche?.logements],
@@ -410,7 +416,7 @@ const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   {
     id: 'logement',
     nom: 'Se loger, construire',
-    blocs: ['zonages', 'logements', 'loyers', 'dpe', 'vente', 'urbanisme', 'construit', 'sols', 'logement-social'],
+    blocs: ['zonages', 'logements', 'loyers', 'dpe', 'aides-locales', 'vente', 'urbanisme', 'construit', 'sols', 'logement-social'],
   },
   {
     id: 'quotidien',
@@ -783,6 +789,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="dpe" class="p-logements">
         <h2 class="badge">L’étiquette énergétique des logements vendus ou loués</h2>
         <Dpe d={vie.dpe} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />
+      </section>
+    )}
+
+    {(aidesIci.length > 0 || aidesAilleurs.length > 0) && (
+      <section id="aides-locales" class="p-aides-locales">
+        <h2 class="badge">Les aides locales à la rénovation</h2>
+        <AidesLocales aides={aidesIci} horsPerimetre={aidesAilleurs} commune={{ code: commune.code, nom: commune.nom }} />
       </section>
     )}
 
