@@ -178,6 +178,9 @@ for (const a of g.acteurs.values()) {
   const concerne =
     a.echelon !== 'union_europeenne' &&
     ((a.echelon === 'etat' && a.type !== 'personne') ||
+      // Ce qui relève de l'État déclare sa branche, où qu'il agisse : le préfet
+      // agit dans le département et reste un organe de l'exécutif.
+      a.releve_de === 'etat' ||
       a.type === 'service_deconcentre' ||
       a.type === 'juridiction' ||
       a.type === 'autorite_independante');

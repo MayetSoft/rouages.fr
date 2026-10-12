@@ -220,10 +220,12 @@ parties.
 Le graphe, lui, ne change pas : mêmes nœuds, mêmes arêtes, mêmes propriétés
 (`npm run verifier-reseau`). Seul le dessin de la carte d'ensemble change.
 
-**Ce qui reste ouvert** : le préfet, la DDT, l'architecte des Bâtiments de
-France agissent dans le département, et restent rangés dans la colonne de
-l'État ; les déplacer dans une boîte « L'État dans le département » est une
-décision de contenu à prendre à part.
+**L'État dans le département** (décision du 12 octobre 2026) : le préfet, la
+DDT et l'architecte des Bâtiments de France agissent dans le département ; ils
+y sont rangés, dans une boîte en pointillés, et gardent leur branche — la
+validation l'exige de tout ce qui relève de l'État, où qu'il agisse. Au
+passage, le préfet était typé « mandat électif » : il est nommé en conseil des
+ministres, et dirige un service déconcentré.
 
 ## Quand la loi répond avant le registre
 

@@ -4400,5 +4400,8 @@ validé —, la règle est écrite dans `docs/02-familles.md` (« La colonne et 
 boîte »). Le graphe ne change pas : 233 nœuds, diamètre 6, 66,8 % des paires
 à trois clics.
 
-Reste ouvert : ranger le préfet, la DDT et l'architecte des Bâtiments de
-France dans une boîte « L'État dans le département ».
+Le même jour, à la demande du mainteneur : le préfet, la DDT et
+l'architecte des Bâtiments de France passent dans la colonne Département,
+boîte en pointillés « L'État dans le département ». Le préfet, typé à tort
+« mandat électif », devient un service déconcentré. Le graphe ne change pas
+(diamètre 6, 66,8 % à trois clics).

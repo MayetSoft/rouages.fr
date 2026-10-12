@@ -190,8 +190,10 @@ acteurs:
   - id: prefet
     nom: "Le préfet"
     nom_court: "Préfet"
-    type: mandat_electif
-    echelon: etat
+    # Nommé en conseil des ministres, pas élu : il dirige la préfecture, service
+    # déconcentré de l'État, et agit dans le département (« L'État dans le département »).
+    type: service_deconcentre
+    echelon: departement
     pouvoirs: [executif]
     releve_de: etat
     resume: "Représentant de l'État dans le département : ordre public, gestion de crise, et contrôle de légalité des actes des collectivités."
@@ -219,7 +221,7 @@ acteurs:
     nom: "L'architecte des Bâtiments de France"
     nom_court: "Bâtiments de France"
     type: service_deconcentre
-    echelon: etat
+    echelon: departement
     pouvoirs: [executif]
     releve_de: etat
     resume: "Rend un avis, parfois conforme, sur les projets situés en périmètre de protection du patrimoine."
@@ -505,7 +507,7 @@ acteurs:
     nom: "La direction départementale des territoires"
     nom_court: "DDT"
     type: service_deconcentre
-    echelon: etat
+    echelon: departement
     pouvoirs: [executif]
     releve_de: etat
     # Le critère n'est pas l'absence de document d'urbanisme, comme cette fiche
