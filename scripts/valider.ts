@@ -173,11 +173,14 @@ for (const a of g.acteurs.values()) {
   // et toutes deux relèvent de l'État. C'est la nature qui tranche, pas
   // l'adresse — la première version de cette règle ne regardait que l'échelon
   // et refusait la DREAL.
+  // La séparation des pouvoirs décrite ici est celle de la France : une
+  // institution de l'Union, la Cour de justice comprise, n'y a pas de branche.
   const concerne =
-    (a.echelon === 'etat' && a.type !== 'personne') ||
-    a.type === 'service_deconcentre' ||
-    a.type === 'juridiction' ||
-    a.type === 'autorite_independante';
+    a.echelon !== 'union_europeenne' &&
+    ((a.echelon === 'etat' && a.type !== 'personne') ||
+      a.type === 'service_deconcentre' ||
+      a.type === 'juridiction' ||
+      a.type === 'autorite_independante');
   if (concerne && !a.pouvoirs) {
     erreurs.push(
       `acteur « ${a.id} » relève de l'État ou d'une juridiction sans déclarer sa branche — ` +

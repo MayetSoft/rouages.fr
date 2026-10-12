@@ -27,6 +27,18 @@ sources:
   - { id: wp-taxe-fonciere, type: wikipedia, titre: "Taxe foncière", url: "https://fr.wikipedia.org/wiki/Taxe_fonci%C3%A8re", consulte_le: 2026-09-05 }
   - { id: wp-teom, type: wikipedia, titre: "Taxe d'enlèvement des ordures ménagères", url: "https://fr.wikipedia.org/wiki/Taxe_d%27enl%C3%A8vement_des_ordures_m%C3%A9nag%C3%A8res", consulte_le: 2026-09-05 }
   - { id: wp-hlm, type: wikipedia, titre: "Logement social en France", url: "https://fr.wikipedia.org/wiki/Logement_social_en_France", consulte_le: 2026-09-05 }
+  - { id: wp-parlement-europeen, type: wikipedia, titre: "Parlement européen", url: "https://fr.wikipedia.org/wiki/Parlement_europ%C3%A9en", consulte_le: 2026-10-12 }
+  - { id: wp-conseil-ue, type: wikipedia, titre: "Conseil de l'Union européenne", url: "https://fr.wikipedia.org/wiki/Conseil_de_l%27Union_europ%C3%A9enne", consulte_le: 2026-10-12 }
+  - { id: wp-commission-europeenne, type: wikipedia, titre: "Commission européenne", url: "https://fr.wikipedia.org/wiki/Commission_europ%C3%A9enne", consulte_le: 2026-10-12 }
+  - { id: wp-conseil-europeen, type: wikipedia, titre: "Conseil européen", url: "https://fr.wikipedia.org/wiki/Conseil_europ%C3%A9en", consulte_le: 2026-10-12 }
+  - { id: wp-cour-justice-ue, type: wikipedia, titre: "Cour de justice de l'Union européenne", url: "https://fr.wikipedia.org/wiki/Cour_de_justice_de_l%27Union_europ%C3%A9enne", consulte_le: 2026-10-12 }
+  - { id: traite-ue, type: droit, titre: "Traité sur l'Union européenne, version consolidée (articles 13 à 19 : les institutions)", url: "https://eur-lex.europa.eu/eli/treaty/teu_2016/oj?locale=fr", consulte_le: 2026-10-12 }
+  - { id: traite-fue, type: droit, titre: "Traité sur le fonctionnement de l'Union européenne, version consolidée (articles 258, 267 et 288)", url: "https://eur-lex.europa.eu/eli/treaty/tfeu_2016/oj?locale=fr", consulte_le: 2026-10-12 }
+  - { id: europarl, type: page_officielle, titre: "Parlement européen — site officiel", url: "https://www.europarl.europa.eu/portal/fr", consulte_le: 2026-10-12 }
+  - { id: commission-europa, type: page_officielle, titre: "Commission européenne — site officiel", url: "https://commission.europa.eu/index_fr", consulte_le: 2026-10-12 }
+  - { id: cdj-conseil-europeen, type: etude, titre: "Le Club des juristes — Union européenne : ce que peut changer la cohabitation (qui siège au Conseil européen pour la France)", url: "https://www.leclubdesjuristes.com/politique/union-europeenne-ce-que-peut-changer-la-cohabitation-6434/", consulte_le: 2026-10-12 }
+  - { id: commission-budget-ue, type: page_officielle, titre: "Commission européenne — le cycle annuel du budget de l'Union : préparation, adoption, exécution", url: "https://commission.europa.eu/strategy-and-policy/eu-budget/how-it-works/annual-lifecycle/preparation_fr", consulte_le: 2026-10-12 }
+  - { id: curia, type: page_officielle, titre: "Cour de justice de l'Union européenne — curia", url: "https://curia.europa.eu/jcms/jcms/j_6/fr/", consulte_le: 2026-10-12 }
   - { id: wp-union-europeenne, type: wikipedia, titre: "Union européenne", url: "https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne", consulte_le: 2026-09-05 }
   - { id: wp-loi-notre, type: wikipedia, titre: "Loi NOTRe", url: "https://fr.wikipedia.org/wiki/Loi_NOTRe", consulte_le: 2026-09-05 }
   - { id: wp-cada, type: wikipedia, titre: "Commission d'accès aux documents administratifs", url: "https://fr.wikipedia.org/wiki/Commission_d%27acc%C3%A8s_aux_documents_administratifs", consulte_le: 2026-09-05 }

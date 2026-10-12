@@ -153,6 +153,17 @@ flux:
     verifie_le: 2026-10-08
     confiance: etabli
 
+  # Le droit de l'Union, de ceux qui l'adoptent à ceux qui l'appliquent.
+  - id: directives-a-transposer
+    nom: "Directives à transposer"
+    nature: obligation
+    de: conseil-ue
+    vers: [etat, gouvernement, assemblee-nationale, senat]
+    resume: "Une directive adoptée par le Parlement et le Conseil lie la France quant au résultat ; le Parlement français ou le Gouvernement choisit la forme et les moyens, dans le délai fixé."
+    liens: [traite-fue]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
   - id: rsa-verse
     nom: "RSA"
     nature: argent

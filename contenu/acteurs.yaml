@@ -591,6 +591,63 @@ acteurs:
     verifie_le: 2026-09-22
     confiance: etabli
 
+  # Les institutions de l'Union, d'après le traité sur l'Union européenne
+  # (articles 13 à 19) et le traité sur son fonctionnement (articles 258, 267,
+  # 288), vérifiés par recherche le 12 octobre 2026. « L'Union européenne »
+  # reste le nœud d'où partent les fonds et les normes ; celles-ci disent qui,
+  # en son sein, propose, adopte, oriente et juge.
+  - id: parlement-europeen
+    nom: "Le Parlement européen"
+    nom_court: "Parlement européen"
+    type: assemblee
+    echelon: union_europeenne
+    resume: "Élu au suffrage universel direct pour cinq ans, il adopte avec le Conseil les règlements, les directives et le budget de l'Union, et élit le président de la Commission."
+    liens: [wp-parlement-europeen, traite-ue, europarl]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: conseil-ue
+    nom: "Le Conseil de l'Union européenne"
+    nom_court: "Conseil de l'Union"
+    type: organe_collegial
+    echelon: union_europeenne
+    resume: "Un ministre par État membre, selon le sujet traité : il adopte avec le Parlement les règlements, les directives et le budget. Pour la France, c'est le ministre compétent qui siège et vote."
+    liens: [wp-conseil-ue, traite-ue]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: commission-europeenne
+    nom: "La Commission européenne"
+    nom_court: "Commission européenne"
+    type: organe_collegial
+    echelon: union_europeenne
+    resume: "Propose les textes européens, exécute le budget et veille à l'application du droit de l'Union, jusqu'à poursuivre devant la Cour un État qui ne le respecte pas."
+    liens: [wp-commission-europeenne, traite-ue, traite-fue, commission-europa]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: conseil-europeen
+    nom: "Le Conseil européen"
+    nom_court: "Conseil européen"
+    type: organe_collegial
+    echelon: union_europeenne
+    resume: "Les chefs d'État ou de gouvernement : il fixe les orientations et les priorités de l'Union, sans adopter de lois — le traité le dit en toutes lettres."
+    liens: [wp-conseil-europeen, traite-ue]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: cour-justice-ue
+    # Une juridiction, mais pas un pouvoir français : `scripts/valider.ts` ne lui
+    # demande pas de branche, et la page des pouvoirs ne la range pas parmi eux.
+    nom: "La Cour de justice de l'Union européenne"
+    nom_court: "Cour de justice (Union)"
+    type: juridiction
+    echelon: union_europeenne
+    resume: "Dit le droit de l'Union : un juge français peut lui poser une question d'interprétation — le dernier juge saisi le doit, en cas de doute —, et elle constate les manquements des États."
+    liens: [wp-cour-justice-ue, traite-ue, traite-fue, curia]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
   # --- Acteurs privés ---------------------------------------------------
   - id: delegataire-eau
     # Le contrôle sur le délégataire a un support écrit et annuel : le rapport du
