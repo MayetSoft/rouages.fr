@@ -4317,3 +4317,31 @@ chaque manque, la commune la plus proche qui l'a, avec la distance.
   communes, à vol d'oiseau — pas la route, ni l'adresse de l'équipement.
   La recherche reste en métropole pour une commune de métropole, dans le
   département pour une commune d'outre-mer.
+
+### La performance des programmes, à côté de leur argent (12 octobre 2026)
+
+Sous le chemin des crédits d'un programme, sur `/argent-public` : ses
+objectifs et ses indicateurs au dernier rapport annuel de performances (RAP
+2025, 144 programmes, 1 820 sous-indicateurs), avec le réalisé des trois
+dernières années, la cible et la cotation du ministère. Et, pour tous les
+programmes réunis, la part des cibles atteintes de 2007 à 2024, telle que
+le ministère la publie.
+
+- **La source** : les jeux « Performance de la dépense (RAP) » et
+  « Performance : atteinte de la cible générale du budget de l'État depuis
+  2007 » de data.economie.gouv.fr (`scripts/budget-performance-emettre.ts`,
+  un dossier `performance/` : un index, un fichier par programme chargé au
+  choix).
+- **Tel que publié** : les valeurs sont des textes (« 180,9 », « En
+  baisse », « Suivi », « Non déterminé ») et le restent ; la cotation —
+  « cible atteinte », « amélioration », « absence amélioration », « donnée
+  non renseignée », « donnée non retenue » — est celle du ministère.
+- **Pas d'agrégat de notre cru** : recalculée sur le RAP 2024, la part
+  nationale donne 38 / 15 / 28 / 20 % là où le ministère publie
+  38 / 15 / 27 / 20 %. La méthode exacte n'est pas écrite ; la page montre
+  donc la série du ministère et ne calcule pas celle de 2025, qu'il n'a pas
+  encore publiée. Les comptes par programme sont des comptes de cotations
+  publiées, pas des taux.
+- **Ce qui n'est pas repris** : les indicateurs de mission (qui reprennent
+  ceux des programmes), et le sens d'évolution du jeu (colonne
+  « evolution »), dont la définition n'est pas donnée.

@@ -45,6 +45,90 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, classe = '', texte = 
   return e;
 }
 
+type Sous = { libelle: string; unite: string; contexte: boolean; realise: string[]; cible: string; atteinte: string; cibleSuivante: string };
+type Performance = { numero: number; nom: string; objectifs: { code: string; libelle: string; indicateurs: { code: string; libelle: string; sous: Sous[] }[] }[] };
+
+/**
+ * Les objectifs et indicateurs du programme, au dernier rapport annuel de performances
+ * (`scripts/budget-performance-emettre.ts`) : tout tel que publié, la cotation comprise.
+ * `encore()` dit si le programme est toujours celui qu'on a choisi quand le fichier arrive.
+ */
+async function afficherPerformance(zone: HTMLElement, numero: number, encore: () => boolean): Promise<void> {
+  const rap = Number(zone.dataset.rap);
+  const annees = (zone.dataset.annees ?? '').split(',').filter(Boolean);
+  if (!rap) return;
+  let perf: Performance;
+  try {
+    const r = await fetch(`/territoires/performance/${numero}.json`);
+    if (!r.ok) return;
+    perf = (await r.json()) as Performance;
+  } catch {
+    return;
+  }
+  if (!encore()) return;
+  const toutes = perf.objectifs.flatMap((o) => o.indicateurs.flatMap((i) => i.sous));
+  const compte = (c: string) => toutes.filter((x) => x.atteinte === c).length;
+  const bloc = el('div', 'pe-perf');
+  bloc.append(el('h4', 'pe-perf-titre', `Ses objectifs et ses résultats, au rapport annuel de performances ${rap}`));
+  const parts = [
+    [compte('cible atteinte'), 'cible atteinte', 'cibles atteintes'],
+    [compte('amélioration'), 'en amélioration sans atteindre la cible', 'en amélioration sans atteindre la cible'],
+    [compte('absence amélioration'), 'sans amélioration', 'sans amélioration'],
+    [compte('donnée non renseignée') + compte('donnée non retenue'), 'non renseigné ou non retenu', 'non renseignés ou non retenus'],
+  ].filter(([n]) => (n as number) > 0).map(([n, un, plusieurs]) => `${n} ${(n as number) > 1 ? plusieurs : un}`);
+  bloc.append(
+    el(
+      'p',
+      'v-nature',
+      `${perf.objectifs.length} objectif${perf.objectifs.length > 1 ? 's' : ''}, ${toutes.length} sous-indicateur${toutes.length > 1 ? 's' : ''}` +
+        (parts.length ? ` ; d’après la cotation du ministère : ${parts.join(', ')}.` : '.'),
+    ),
+  );
+  for (const o of perf.objectifs) {
+    const details = el('details', 'pe-objectif');
+    details.append(el('summary', '', o.libelle));
+    const table = el('table', 'rq-table pe-perf-table');
+    const tete = el('tr');
+    for (const [t, nombre] of [['Indicateur', false], ['Unité', false], ...annees.map((a) => [`Réalisé ${a}`, true] as const), [`Cible ${rap}`, true], ['Cotation', false]] as const) {
+      const th = el('th', nombre ? 'rq-nombre' : '', t);
+      th.scope = 'col';
+      tete.append(th);
+    }
+    const thead = el('thead');
+    thead.append(tete);
+    const tbody = el('tbody');
+    const colonnes = 4 + annees.length;
+    for (const i of o.indicateurs) {
+      // Un indicateur à plusieurs sous-indicateurs prend une ligne d'en-tête : son libellé n'est pas répété.
+      const groupe = i.sous.length > 1 || i.sous[0]?.libelle !== i.libelle;
+      if (groupe) {
+        const tr = el('tr', 'pe-ind');
+        const th = el('th', '', i.libelle);
+        th.colSpan = colonnes;
+        th.scope = 'rowgroup';
+        tr.append(th);
+        tbody.append(tr);
+      }
+      for (const x of i.sous) {
+        const tr = el('tr', groupe ? 'pe-sous' : '');
+        const th = el('th', '', x.libelle);
+        th.scope = 'row';
+        tr.append(th, el('td', '', x.unite));
+        for (const v of x.realise) tr.append(el('td', 'rq-nombre', v || '—'));
+        tr.append(el('td', 'rq-nombre', x.cible || '—'));
+        tr.append(el('td', 'pe-cotation', [x.atteinte, x.contexte ? 'indicateur de contexte' : ''].filter(Boolean).join(' · ') || '—'));
+        tbody.append(tr);
+      }
+    }
+    table.append(thead, tbody);
+    const cadre = el('div', 'rq-cadre');
+    cadre.append(table);
+    details.append(cadre);
+    bloc.append(details);
+  }
+  zone.append(bloc);
+}
+
 export function brancherProgrammesExecution(): void {
   const choix = document.getElementById('pe-programme') as HTMLSelectElement | null;
   const zone = document.getElementById('pe-detail');
@@ -132,6 +216,7 @@ export function brancherProgrammesExecution(): void {
       annees.length < f.annees.length ? `Le programme n’apparaît pas dans toutes les années collectées (création, fusion ou changement de numéro).` : '',
     ].filter(Boolean);
     if (notes.length) zone.append(el('p', 'v-nature', notes.join(' ')));
+    await afficherPerformance(zone, p.numero, () => choix.value === cle);
     const url = new URL(location.href);
     url.searchParams.set('programme', cle);
     history.replaceState(null, '', url);

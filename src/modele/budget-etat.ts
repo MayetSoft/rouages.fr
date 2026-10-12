@@ -185,3 +185,38 @@ export interface BudgetProgrammes {
 
 /** Le voté et l'exécuté par programme, ou null s'il n'a pas encore été collecté. */
 export const budgetProgrammes = national<BudgetProgrammes>('budget-etat-programmes.json');
+
+/** Un sous-indicateur de performance, tel que le rapport annuel de performances le publie (textes, non recalculés). */
+export interface SousIndicateur {
+  libelle: string;
+  unite: string;
+  /** Un indicateur de contexte décrit une situation, sans cible à atteindre. */
+  contexte: boolean;
+  /** Le réalisé des années de `IndexPerformance.annees`. */
+  realise: string[];
+  cible: string;
+  /** La cotation du ministère : « cible atteinte », « amélioration », « absence amélioration »… */
+  atteinte: string;
+  cibleSuivante: string;
+}
+export interface PerformanceProgramme {
+  numero: number;
+  nom: string;
+  objectifs: { code: string; libelle: string; indicateurs: { code: string; libelle: string; sous: SousIndicateur[] }[] }[];
+}
+export interface IndexPerformance {
+  maj: string;
+  /** L'année du rapport annuel de performances. */
+  rap: number;
+  annees: number[];
+  jeu: string;
+  version: string | null;
+  cotations: string[];
+  /** La part des sous-indicateurs par cotation, d'après la série du ministère, de 0 à 1. */
+  serie: { rap: number; atteinte: number; amelioration: number; absence: number; nonRenseigne: number }[];
+  /** Par programme : le nombre de sous-indicateurs, et combien par cotation, dans l'ordre de `cotations`. */
+  programmes: Record<number, { sous: number; cotes: number[] }>;
+}
+
+/** L'index de la performance des programmes, ou null s'il n'a pas encore été collecté. */
+export const indexPerformance = national<IndexPerformance>('performance/index.json');

@@ -15,7 +15,7 @@
  * actions : une action de 2 Md€ fait la même longueur qu'une mission de 2 Md€.
  */
 import Base from '../layouts/Base.astro';
-import { budgetEtat, budgetExecution, budgetProgrammes, DANS_LE_RESEAU, montantBudget, type Montants } from '../modele/budget-etat.ts';
+import { budgetEtat, budgetExecution, budgetProgrammes, DANS_LE_RESEAU, indexPerformance, montantBudget, type Montants } from '../modele/budget-etat.ts';
 import { voteExecute } from '../vues/vote-execute.ts';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
 
@@ -44,6 +44,9 @@ const ecarts = bp && anneePlrg
       .slice(0, ECARTS_MONTRES)
   : [];
 const ecartMax = Math.max(1, ...ecarts.map((e) => Math.abs(e.ecart)));
+// Les objectifs et indicateurs des programmes, au dernier rapport annuel de performances.
+const perf = indexPerformance();
+const pc = (v: number) => `${Math.round(v * 100)} %`;
 const plrgDepuis = bp?.sources.find((x) => x.nature === 'PLRG')?.annee;
 const anneesSansSource = (bp?.annees ?? []).slice(0, -1).flatMap((a, i) => Array.from({ length: bp!.annees[i + 1] - a - 1 }, (_, k) => a + k + 1));
 // Les années où la situation mensuelle retire aussi les dégrèvements d'impôts locaux (programme 201).
@@ -439,7 +442,27 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
               </select>
             </div>
             <noscript><p class="c-vide">Le détail d’un programme a besoin de JavaScript : il se charge dans le navigateur.</p></noscript>
-            <div id="pe-detail" aria-live="polite"></div>
+            <div id="pe-detail" aria-live="polite" data-rap={perf?.rap ?? ""} data-annees={(perf?.annees ?? []).join(",")}></div>
+            {perf && perf.serie.length > 0 && (
+              <>
+                <h3 class="p-titre-echelon">Les cibles atteintes, tous programmes réunis</h3>
+                <p class="v-nature">
+                  {`Chaque programme se fixe des objectifs, mesurés par des indicateurs et des cibles ; le rapport annuel de performances dit, pour chacun, si la cible est atteinte. La part des cibles atteintes, rapport par rapport, telle que le ministère la publie, de ${perf.serie[0].rap} à ${perf.serie.at(-1)!.rap}.`}
+                </p>
+                <ul class="pe-serie">
+                  {perf.serie.map((x) => (
+                    <li title={`Rapport ${x.rap} — cible atteinte : ${pc(x.atteinte)} · amélioration sans atteindre la cible : ${pc(x.amelioration)} · absence d’amélioration : ${pc(x.absence)} · donnée non renseignée : ${pc(x.nonRenseigne)}`}>
+                      <span class="pe-serie-annee">{x.rap}</span>
+                      <span class="pe-serie-piste" aria-hidden="true"><i style={`--w:${(x.atteinte * 100).toFixed(1)}%`}></i></span>
+                      <span class="pe-serie-valeur">{pc(x.atteinte)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p class="v-nature">
+                  {`Le reste se partage entre une amélioration qui n’atteint pas la cible, une absence d’amélioration et une donnée non renseignée ; le survol d’une année donne les quatre parts.${perf.serie.at(-1)!.rap < perf.rap ? ` Le rapport ${perf.rap} est détaillé programme par programme ci-dessus ; sa part nationale n’est pas encore publiée, et Rouages ne la recalcule pas.` : ''}`}
+                </p>
+              </>
+            )}
             <ul class="mesure">
               <li>
                 <strong>Les crédits de paiement, titres réunis.</strong> Personnel et autres dépenses sont additionnés&nbsp;; les
@@ -455,6 +478,12 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
                 <li>
                   <strong>Les années manquantes.</strong>
                   {` ${anneesSansSource.length ? `${anneesSansSource.join(' et ')} ne sont pas publiés par programme en données ouvertes. ` : ''}Avant ${bp.annees[0]}, les projets de loi de règlement publiés donnent l’exécution sans le voté à côté. Les budgets annexes, que les annexes des PLRG ne portent pas, sont laissés de côté toutes les années, pour garder le même périmètre.`}
+                </li>
+              )}
+              {perf && (
+                <li>
+                  <strong>Les indicateurs, tels que publiés.</strong>
+                  {` Sous le chemin d’un programme, ses objectifs et indicateurs au rapport annuel de performances ${perf.rap} : le réalisé, la cible, et la cotation du ministère — « cible atteinte », « amélioration » (sans atteindre la cible), « absence amélioration », « donnée non renseignée », « donnée non retenue ». Les valeurs sont reprises comme le rapport les écrit, mots compris ; rien n’est recalculé. Un indicateur de contexte décrit une situation plutôt qu’un résultat attendu.`}
                 </li>
               )}
               <li>
@@ -508,6 +537,14 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
                 <>{i > 0 && ', '}<a href={`https://data.economie.gouv.fr/explore/dataset/${x.jeu}/`} target="_blank" rel="noopener">{`PLR ${x.annee}`}</a></>
               ))}
               {`, le voté et le dépensé de chaque programme, synthèse des rapports annuels de performances. Licence Ouverte 2.0, lus le ${formaterDate(new Date(bp.maj))}.`}
+            </li>
+          )}
+          {perf && (
+            <li>
+              <a href={`https://data.economie.gouv.fr/explore/dataset/${perf.jeu}/`} target="_blank" rel="noopener">{`Performance de la dépense (RAP) ${perf.rap}`}</a>
+              {' et '}
+              <a href="https://data.economie.gouv.fr/explore/dataset/performance-atteinte-de-la-cible-generale-du-budget-de-l-etat-depuis-2007/" target="_blank" rel="noopener">Performance : atteinte de la cible générale du budget de l’État depuis 2007</a>
+              {`, Licence Ouverte 2.0${perf.version ? `, mis à jour le ${formaterDate(new Date(perf.version))}` : ''}, lus le ${formaterDate(new Date(perf.maj))} : les objectifs, indicateurs, cibles et réalisations de chaque programme, et la part nationale des cibles atteintes.`}
             </li>
           )}
           {ex && (
