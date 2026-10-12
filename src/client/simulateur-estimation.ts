@@ -4,6 +4,7 @@
  * saisies, et le calcul poste par poste à chaque frappe.
  */
 import { aLieu } from '../modele/signalement.ts';
+import { brancherRapport, restaurerSaisie } from './rapport.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 
 /** Voir `Estimation` dans `scripts/estimation-emettre.ts`. */
@@ -34,6 +35,9 @@ export function brancherEstimation(): void {
   if (!$('se')) return;
   brancherChampLieu('se-lieu', LIEUX);
   const form = $<HTMLFormElement>('se-form');
+  // La saisie d'un lien de calcul ou d'un rapport n'est remise qu'une fois, au premier lieu chargé.
+  let restaure = false;
+  brancherRapport(form, $('se-resultat'), () => lieu?.nom ?? null);
   let lieu: Lieu | null = null;
   let f: Fichier;
   let e: Estimation;
@@ -141,6 +145,10 @@ export function brancherEstimation(): void {
     $('se-titre').textContent = `${aLieu(lieu.nom).replace(/^./, (x) => x.toUpperCase())}, ventes de ${f.annees[0]} à ${f.annees[f.annees.length - 1]}`;
     (form.elements.namedItem('part') as HTMLInputElement).value = String(Math.round(f.partActivite * 100));
     $('se-dpe-bloc').hidden = !(f.dpe && e[10]);
+    if (!restaure) {
+      restaurerSaisie(form);
+      restaure = true;
+    }
     form.hidden = false;
     calculer();
     (form.elements.namedItem('habitable') as HTMLInputElement).focus();

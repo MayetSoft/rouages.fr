@@ -7,6 +7,7 @@
 import { aLieu } from '../modele/signalement.ts';
 import { fraisAchat } from '../modele/bareme-achat.ts';
 import { finDeLocation } from '../modele/bareme-renovation.ts';
+import { brancherRapport, restaurerSaisie } from './rapport.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 
 type Loyer = [number, number, number, 0 | 1] | null;
@@ -34,6 +35,9 @@ export function brancherLocatif(): void {
   if (!$('sl')) return;
   brancherChampLieu('sl-lieu', LIEUX);
   const form = $<HTMLFormElement>('sl-form');
+  // La saisie d'un lien de calcul ou d'un rapport n'est remise qu'une fois, au premier lieu chargé.
+  let restaure = false;
+  brancherRapport(form, $('sl-resultat'), () => lieu?.nom ?? null);
   let lieu: Lieu | null = null;
   let dep = '';
   let f: Fichier;
@@ -159,6 +163,10 @@ export function brancherLocatif(): void {
     delete el('prix').dataset.saisi;
     delete el('loyer').dataset.saisi;
     $('sl-titre').textContent = aLieu(lieu.nom).replace(/^./, (x) => x.toUpperCase());
+    if (!restaure) {
+      restaurerSaisie(form);
+      restaure = true;
+    }
     form.hidden = false;
     preremplir();
     calculer();

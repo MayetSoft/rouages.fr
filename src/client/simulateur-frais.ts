@@ -5,6 +5,7 @@
  */
 import { aLieu } from '../modele/signalement.ts';
 import { FIN_HAUSSE, fraisAchat, SEUIL_COMMUNE } from '../modele/bareme-achat.ts';
+import { brancherRapport, restaurerSaisie } from './rapport.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 
 type CommuneJeu = [string, string, number, number, string[], string, (number | null)[]];
@@ -23,6 +24,9 @@ export function brancherFrais(): void {
   if (!$('sf')) return;
   brancherChampLieu('sf-lieu', LIEUX);
   const form = $<HTMLFormElement>('sf-form');
+  // La saisie d'un lien de calcul ou d'un rapport n'est remise qu'une fois, au premier lieu chargé.
+  let restaure = false;
+  brancherRapport(form, $('sf-resultat'), () => lieu?.nom ?? null);
   const recettes = JSON.parse($('sf-recettes').textContent ?? '{}') as Recettes;
   let lieu: Lieu | null = null;
   let dep = '';
@@ -113,6 +117,10 @@ export function brancherFrais(): void {
       $('sf-median').textContent = '';
     }
     $('sf-titre').textContent = aLieu(lieu.nom).replace(/^./, (x) => x.toUpperCase());
+    if (!restaure) {
+      restaurerSaisie(form);
+      restaure = true;
+    }
     form.hidden = false;
     calculer();
   };

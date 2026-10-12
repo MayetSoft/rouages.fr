@@ -1578,3 +1578,41 @@ a.p-sommaire-lien { text-decoration: none; }
   .frise-liste a { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; }
   .frise-texte { font-size: .8rem; line-height: 1.3; }
 }
+
+/* ------------------------------------------------------------------ *
+ * Le rapport d'un simulateur (`client/rapport.ts`) : à l'écran, un bouton ;
+ * à l'impression, une page sobre — en-tête, saisie, résultats, méthode,
+ * sources avec leurs adresses. Toujours en clair, même en thème sombre.
+ * ------------------------------------------------------------------ */
+.rapport-entete { display: none; }
+.rapport-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin: 0 0 1.6rem; max-width: var(--mesure); }
+.rapport-note { flex-basis: 100%; color: var(--encre-douce); font-size: .78rem; }
+@media print {
+  :root {
+    color-scheme: light;
+    --fond: #fff; --fond-carte: #fff; --fond-doux: #f3f3f1; --fond-bande: #fff;
+    --encre: #111; --encre-douce: #444; --encre-tres-douce: #555; --trait: #ccc; --trait-fort: #999;
+    --accent: #1e5f74; --accent-doux: #e4eef1; --barre-budget: #1676a0; --alerte: #8a4b12; --defavorable: #b3261e;
+  }
+  body { background: #fff; color: #111; font-size: 10.5pt; }
+  .bandeau, footer, .haut-de-page, .evitement, .rapport-actions, .cl-champ, .cm-exemple, .jeu-message, .jeu form, noscript, .badge a { display: none !important; }
+  .page, .page--etroite { max-width: none; padding: 0; margin: 0; }
+  .rapport-entete { display: block; margin: 0 0 1rem; }
+  .rapport-marque { font-size: 9pt; text-transform: uppercase; letter-spacing: .06em; color: #555; margin: 0; }
+  .rapport-titre { font-family: var(--titre); font-size: 16pt; margin: .2rem 0; }
+  .rapport-meta { font-size: 8.5pt; color: #444; margin: .2rem 0; }
+  .rapport-lien { word-break: break-all; }
+  /* Le rapport a son propre titre : celui de la page n'est pas répété. */
+  body:has(.rapport-entete) .page > p.badge, body:has(.rapport-entete) .page > h1, body:has(.rapport-entete) .page > .resume { display: none; }
+  .rapport-saisie { border-collapse: collapse; margin: .6rem 0; font-size: 9pt; width: 100%; }
+  .rapport-saisie caption { text-align: left; font-weight: 650; margin-bottom: .2rem; }
+  .rapport-saisie th, .rapport-saisie td { text-align: left; border-bottom: 1px solid #ddd; padding: .15rem .4rem .15rem 0; font-weight: 400; }
+  .rapport-saisie td { text-align: right; font-variant-numeric: tabular-nums; }
+  .jeu-carte { box-shadow: none; }
+  .sr-chiffres, .sf-postes li, .ce li, .rapport-saisie tr, .sr-conditions li { break-inside: avoid; }
+  h1 { font-size: 18pt; }
+  .resume { font-size: 10pt; }
+  .b-sources a::after { content: ' — ' attr(href); font-size: 8pt; color: #444; word-break: break-all; }
+  .ce-pieces, .sf-barre, .cc-echelle span, .jeu-progres li { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  @page { margin: 14mm 14mm 16mm; }
+}
