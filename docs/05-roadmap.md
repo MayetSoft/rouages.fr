@@ -3577,8 +3577,9 @@ Restent à faire :
 - le FEAMPA par commune : aucune liste nationale d'opérations trouvée en
   données ouvertes le 8 octobre 2026 (programme national géré par la DGAMPA,
   appels instruits par FranceAgriMer) ;
-- les institutions européennes elles-mêmes comme acteurs du réseau
-  (Commission, Parlement, Conseil), avec leurs liens aux compétences.
+- ~~les institutions européennes elles-mêmes comme acteurs du réseau
+  (Commission, Parlement, Conseil), avec leurs liens aux compétences~~ —
+  fait le 12 octobre 2026, voir plus bas.
 
 ### Les délibérations de Haute-Garonne, et le renvoi depuis la mairie (8 octobre 2026)
 
@@ -4345,3 +4346,41 @@ le ministère la publie.
 - **Ce qui n'est pas repris** : les indicateurs de mission (qui reprennent
   ceux des programmes), et le sens d'évolution du jeu (colonne
   « evolution »), dont la définition n'est pas donnée.
+
+### Les institutions européennes dans le réseau (12 octobre 2026)
+
+« L'Union européenne » était un nœud unique, d'où partaient les fonds et les
+normes. Cinq institutions la rejoignent, dans la même colonne : le Parlement
+européen, le Conseil de l'Union européenne, la Commission européenne, le
+Conseil européen et la Cour de justice de l'Union européenne. Chaque phrase
+vient du traité sur l'Union européenne (articles 10 et 13 à 19) ou du traité
+sur son fonctionnement (articles 258, 267, 288, 314), vérifiée par recherche
+le 12 octobre 2026.
+
+- **Trois compétences et un flux les relient au reste** :
+  - les lois européennes : la Commission propose, le Parlement et le Conseil
+    — où siègent les ministres du Gouvernement — adoptent ;
+  - le budget de l'Union : adopté par le Parlement et le Conseil, exécuté
+    par la Commission, et pour la cohésion par les autorités de gestion,
+    surtout les conseils régionaux ;
+  - les orientations de l'Union et la désignation de la Commission : le
+    Conseil européen, où la France est représentée par le président de la
+    République ;
+  - le respect et l'interprétation du droit de l'Union : la Commission peut
+    poursuivre un État, et les juges français posent leurs questions à la
+    Cour — le Conseil d'État et la Cour de cassation y sont tenus en cas de
+    doute ;
+  - le flux « Directives à transposer », du Conseil de l'Union vers l'État,
+    le Gouvernement et le Parlement.
+- **Les propriétés du réseau tiennent** : d'un seul tenant, diamètre 6,
+  66,8 % des paires à trois clics (68,8 % avant ; le plancher est 65 %). La
+  première version, avec six compétences distinctes, faisait monter le
+  diamètre à 8 : deux paires ont été fusionnées.
+- **La Cour de justice n'a pas de branche du pouvoir** : la page « Les
+  pouvoirs » décrit la séparation des pouvoirs en France, et
+  `scripts/valider.ts` n'exige plus de branche des institutions de l'Union.
+- **La suite** : les instances internationales (Nations unies, Organisation
+  mondiale de la santé…), à la demande du mainteneur.
+
+Au passage : dans le menu, « Fonctionnement » devient « Fonctionnement des
+institutions ».

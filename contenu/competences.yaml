@@ -326,6 +326,46 @@ competences:
     verifie_le: 2026-09-22
     confiance: etabli
 
+  - id: legislation-europeenne
+    nom: "Lois européennes : règlements et directives"
+    nom_court: "Lois européennes"
+    acteur: parlement-europeen
+    resume: "La Commission propose, le Parlement et le Conseil — où siègent les ministres du Gouvernement — adoptent. Un règlement s'applique tel quel en France ; une directive fixe un résultat que la loi française doit atteindre."
+    partagee_avec: [conseil-ue, commission-europeenne, gouvernement]
+    liens: [traite-ue, traite-fue, wp-parlement-europeen]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: orientations-europeennes
+    nom: "Orientations de l'Union, et désignation de la Commission"
+    nom_court: "Orientations de l'Union"
+    acteur: conseil-europeen
+    resume: "Le Conseil européen fixe les orientations de l'Union, sans légiférer, et propose au Parlement le président de la Commission. Les États y sont représentés par leur chef d'État ou de gouvernement : pour la France, le président de la République."
+    partagee_avec: [etat, president-republique, conseil-ue, parlement-europeen, commission-europeenne]
+    liens: [traite-ue, wp-conseil-europeen, cdj-conseil-europeen]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: controle-droit-union
+    nom: "Respect et interprétation du droit de l'Union"
+    nom_court: "Respect du droit européen"
+    acteur: cour-justice-ue
+    resume: "La Commission peut poursuivre devant la Cour un État qui manque au droit de l'Union. Un juge français peut demander à la Cour comment le lire ; le Conseil d'État et la Cour de cassation y sont tenus en cas de doute."
+    partagee_avec: [commission-europeenne, tribunal-administratif, tribunal-judiciaire, conseil-etat, cour-de-cassation]
+    liens: [traite-fue, curia, wp-cour-justice-ue]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: budget-union
+    nom: "Budget de l'Union"
+    nom_court: "Budget de l'Union"
+    acteur: commission-europeenne
+    resume: "La Commission propose le budget annuel, le Parlement et le Conseil l'adoptent, la Commission l'exécute ; les fonds de cohésion passent par des autorités de gestion, en France surtout les conseils régionaux."
+    partagee_avec: [parlement-europeen, conseil-ue, region]
+    liens: [traite-fue, traite-ue, commission-budget-ue, cl-fonds-europeens]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
   - id: acces-documents
     nom: "Accès aux documents administratifs"
     nom_court: "Accès aux documents"
