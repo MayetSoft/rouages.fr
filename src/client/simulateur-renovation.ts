@@ -24,7 +24,7 @@ type Fichier = { annees: number[]; dpe: EffetsDpe | null; c: Record<string, Esti
 const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
 const euros = (x: number) => `${Math.round(x).toLocaleString('fr-FR')} €`;
 const arrondi = (x: number) => Math.round(x / 500) * 500;
-const date = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+const date = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/^1 /, '1er ');
 /** La veille d'une date ISO : le dernier jour où la règle ne s'applique pas encore. */
 const veille = (iso: string) => new Date(Date.parse(`${iso}T12:00:00`) - 86_400_000).toISOString().slice(0, 10);
 
