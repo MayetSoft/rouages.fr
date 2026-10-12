@@ -212,6 +212,10 @@ const cachePlu = new Map<string, PluDep | null>();
 const cacheLogements = new Map<string, LogementsDep | null>();
 const cacheFiscalite = new Map<string, FiscaliteDep | null>();
 const cacheEquipements = new Map<string, EquipementsDep | null>();
+/** Pour chaque commune, les regroupements de proximité absents et la commune la plus proche qui les a (`scripts/proximite-emettre.ts`). */
+type ManquesDep = { maj: string; c: Record<string, [number, string, number][]> };
+const cacheManques = new Map<string, ManquesDep | null>();
+let nomsParCode: Map<string, string> | undefined;
 
 function enCache<T>(c: Map<string, T | null>, dep: string, f: string): T | null {
   if (!c.has(dep)) c.set(dep, lire<T>(f));
@@ -474,8 +478,11 @@ export interface Fiche {
     medianeProximite: number;
     /** Tout ce qui est présent, rangé par domaine, les plus fournis d'abord. */
     presents: { ou: string; liste: { nom: string; nombre: number }[] }[];
-    /** Ce qui manque, parmi la seule gamme de proximité. */
-    absents: string[];
+    /**
+     * Ce qui manque, parmi la seule gamme de proximité, et la commune la plus
+     * proche qui l'a : distance entre les centres, à vol d'oiseau.
+     */
+    absents: { nom: string; proche: { code: string; nom: string; km: number } | null }[];
     maj: string;
   } | null;
   /** Ce qui s'y construit réellement, une fois la règle écrite. */
@@ -749,9 +756,16 @@ function assemblerEquipements(c: CommuneIndex): Fiche['equipements'] {
         .map(([ou, liste]) => ({ ou, liste }))
         .sort((a, b) => b.liste.length - a.liste.length || a.ou.localeCompare(b.ou));
     })(),
-    absents: d.groupes
-      .filter(([, gamme, membres]) => gamme === 0 && !membres.some((i) => presence.has(i)))
-      .map(([nom]) => nom),
+    absents: (() => {
+      const manques = enCache(cacheManques, c.dep, `dep/${c.dep}-manques.json`)?.c[c.code] ?? [];
+      nomsParCode ??= new Map(communes().map((x) => [x.code, x.nom]));
+      return d.groupes.flatMap(([nom, gamme, membres], k) => {
+        if (gamme !== 0 || membres.some((i) => presence.has(i))) return [];
+        const m = manques.find(([g]) => g === k);
+        const proche = m && nomsParCode!.has(m[1]) ? { code: m[1], nom: nomsParCode!.get(m[1])!, km: m[2] / 10 } : null;
+        return [{ nom, proche }];
+      });
+    })(),
     maj: d.maj,
   };
 }

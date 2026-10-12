@@ -153,7 +153,14 @@ export const budgetExecution = national<BudgetExecution>('budget-etat-execution.
  * fongibilité asymétrique, crédits ouverts, dépenses constatées, modifications
  * d'ouvertures, annulations, reports sur l'année suivante.
  */
-export type CheminCredits = [number, number, number, number, number, number, number, number, number, number, number];
+/**
+ * Le chemin des crédits de paiement d'un programme, une année : LFI, LFR, reports, mouvements,
+ * fonds de concours, fongibilité, ouverts, dépensé, modifications d'ouverture, annulations,
+ * reports sur l'année suivante. Une étape que la source de l'année ne publie pas vaut null :
+ * les synthèses des rapports annuels de performances (2019, 2020) ne donnent que le voté et le
+ * dépensé.
+ */
+export type CheminCredits = [number, ...(number | null)[]];
 export interface ProgrammeExecution {
   numero: number;
   nom: string;
@@ -165,11 +172,51 @@ export interface ProgrammeExecution {
 export interface BudgetProgrammes {
   maj: string;
   annees: number[];
-  sources: { annee: number; jeu: string; version: string | null }[];
-  /** Les dépenses nettes du budget général selon les annexes, et selon la situation de décembre. */
-  controles: Record<number, { plrg: number; smb: number | null }>;
+  /** `PLRG` : le chemin complet, annexes du projet de loi ; `RAP` : le voté et le dépensé, synthèse des rapports annuels de performances. */
+  sources: { annee: number; jeu: string; version: string | null; nature: 'PLRG' | 'RAP' }[];
+  /**
+   * Les dépenses nettes du budget général d'après le fichier des programmes, et d'après la
+   * situation de décembre. `deduits` : les programmes de remboursements et dégrèvements que la
+   * situation mensuelle retire du budget général cette année-là.
+   */
+  controles: Record<number, { plrg: number; smb: number | null; deduits: number[] }>;
   programmes: ProgrammeExecution[];
 }
 
 /** Le voté et l'exécuté par programme, ou null s'il n'a pas encore été collecté. */
 export const budgetProgrammes = national<BudgetProgrammes>('budget-etat-programmes.json');
+
+/** Un sous-indicateur de performance, tel que le rapport annuel de performances le publie (textes, non recalculés). */
+export interface SousIndicateur {
+  libelle: string;
+  unite: string;
+  /** Un indicateur de contexte décrit une situation, sans cible à atteindre. */
+  contexte: boolean;
+  /** Le réalisé des années de `IndexPerformance.annees`. */
+  realise: string[];
+  cible: string;
+  /** La cotation du ministère : « cible atteinte », « amélioration », « absence amélioration »… */
+  atteinte: string;
+  cibleSuivante: string;
+}
+export interface PerformanceProgramme {
+  numero: number;
+  nom: string;
+  objectifs: { code: string; libelle: string; indicateurs: { code: string; libelle: string; sous: SousIndicateur[] }[] }[];
+}
+export interface IndexPerformance {
+  maj: string;
+  /** L'année du rapport annuel de performances. */
+  rap: number;
+  annees: number[];
+  jeu: string;
+  version: string | null;
+  cotations: string[];
+  /** La part des sous-indicateurs par cotation, d'après la série du ministère, de 0 à 1. */
+  serie: { rap: number; atteinte: number; amelioration: number; absence: number; nonRenseigne: number }[];
+  /** Par programme : le nombre de sous-indicateurs, et combien par cotation, dans l'ordre de `cotations`. */
+  programmes: Record<number, { sous: number; cotes: number[] }>;
+}
+
+/** L'index de la performance des programmes, ou null s'il n'a pas encore été collecté. */
+export const indexPerformance = national<IndexPerformance>('performance/index.json');

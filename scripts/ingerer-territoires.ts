@@ -851,6 +851,11 @@ async function principal() {
   );
   if (programmesEtat) ecrireProgrammes(SORTIE, programmesEtat);
 
+  // La performance des programmes : objectifs, indicateurs, cibles et réalisé, tels que publiés.
+  const { collecterPerformance, ecrirePerformance } = await import('./budget-performance-emettre.ts');
+  const performance = await tenter('Performance des programmes', () => collecterPerformance(lireJson, grise));
+  if (performance) ecrirePerformance(SORTIE, performance);
+
   const { collecterMairies, ecrireMairies } = await import('./mairies-emettre.ts');
   const mairies = await tenter('Mairies', () => collecterMairies(lireJson, grise));
   if (mairies) grise(`${ecrireMairies(SORTIE, mairies)} départements de mairies écrits.`);

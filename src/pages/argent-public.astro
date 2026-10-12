@@ -15,7 +15,7 @@
  * actions : une action de 2 Md€ fait la même longueur qu'une mission de 2 Md€.
  */
 import Base from '../layouts/Base.astro';
-import { budgetEtat, budgetExecution, budgetProgrammes, DANS_LE_RESEAU, montantBudget, type Montants } from '../modele/budget-etat.ts';
+import { budgetEtat, budgetExecution, budgetProgrammes, DANS_LE_RESEAU, indexPerformance, montantBudget, type Montants } from '../modele/budget-etat.ts';
 import { voteExecute } from '../vues/vote-execute.ts';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
 
@@ -29,7 +29,7 @@ const figures = (ex?.lignes ?? [])
 const groupesEx = [...new Set(figures.map((x) => `${x.l.categorie} — ${x.l.sousCategorie}`))];
 const premiere = ex?.annees[0];
 
-// Le voté et l'exécuté par programme, d'après les PLRG.
+// Le voté et l'exécuté par programme, d'après les PLRG (et les synthèses des RAP pour 2019 et 2020).
 const bp = budgetProgrammes();
 const anneePlrg = bp?.annees.at(-1);
 const ECARTS_MONTRES = 12;
@@ -38,12 +38,22 @@ const ecarts = bp && anneePlrg
       .filter((x) => x.categorie === 'Budget général' && x.annees[anneePlrg])
       .map((x) => {
         const c = x.annees[anneePlrg];
-        return { x, vote: c[0], depense: c[7], ecart: c[7] - c[0] };
+        return { x, vote: c[0], depense: c[7] ?? 0, ecart: (c[7] ?? 0) - c[0] };
       })
       .sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart))
       .slice(0, ECARTS_MONTRES)
   : [];
 const ecartMax = Math.max(1, ...ecarts.map((e) => Math.abs(e.ecart)));
+// Les objectifs et indicateurs des programmes, au dernier rapport annuel de performances.
+const perf = indexPerformance();
+const pc = (v: number) => `${Math.round(v * 100)} %`;
+const plrgDepuis = bp?.sources.find((x) => x.nature === 'PLRG')?.annee;
+const anneesSansSource = (bp?.annees ?? []).slice(0, -1).flatMap((a, i) => Array.from({ length: bp!.annees[i + 1] - a - 1 }, (_, k) => a + k + 1));
+// Les années où la situation mensuelle retire aussi les dégrèvements d'impôts locaux (programme 201).
+const avec201 = Object.entries(bp?.controles ?? {}).filter(([, c]) => c.deduits.includes(201)).map(([a]) => a);
+const deduitsTexte = avec201.length
+  ? `Celle-ci a changé de définition : en ${avec201.join(' et ')}, ses dépenses nettes retirent les remboursements et dégrèvements d’impôts d’État et d’impôts locaux (programmes 200 et 201) ; depuis ${plrgDepuis}, ceux d’impôts d’État seulement (programme 200). La collecte applique la définition de chaque année.`
+  : 'Ses dépenses nettes retirent les remboursements et dégrèvements d’impôts d’État (programme 200).';
 const programmesPlrg = new Set((bp?.programmes ?? []).filter((x) => x.categorie === 'Budget général').map((x) => x.numero));
 const parMissionPlrg = bp
   ? [...new Set(bp.programmes.map((x) => `${x.categorie} — ${x.mission}`))].map((g) => ({
@@ -403,7 +413,7 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
           <section id="par-programme" class="ve">
             <h2 class="badge">Le voté et l’exécuté, programme par programme</h2>
             <p class="mesure">
-              {`Entre le vote de la loi de finances et la fin de l’année, les crédits d’un programme bougent : une loi rectificative, des reports de l’année précédente, des virements, des fonds de concours ; puis une part est annulée ou reportée, et le reste est dépensé. Le chemin de chaque programme, de ${bp.annees[0]} à ${anneePlrg}, d’après les annexes des projets de loi relatifs aux résultats de la gestion (PLRG), qui arrêtent les comptes de l’année.`}
+              {`Entre le vote de la loi de finances et la fin de l’année, les crédits d’un programme bougent : une loi rectificative, des reports de l’année précédente, des virements, des fonds de concours ; puis une part est annulée ou reportée, et le reste est dépensé. Le chemin de chaque programme, de ${bp.annees[0]} à ${anneePlrg}, d’après les projets de loi qui arrêtent les comptes de l’année : leurs annexes donnent toutes les étapes depuis ${plrgDepuis} ; avant, la synthèse des rapports annuels de performances ne donne que le voté et le dépensé.`}
             </p>
             <h3 class="p-titre-echelon">{`Les ${ECARTS_MONTRES} plus gros écarts en ${anneePlrg}, au budget général`}</h3>
             <p class="v-nature">Dépensé moins voté : à droite, plus dépensé que voté ; à gauche, moins. Une seule échelle.</p>
@@ -432,7 +442,27 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
               </select>
             </div>
             <noscript><p class="c-vide">Le détail d’un programme a besoin de JavaScript : il se charge dans le navigateur.</p></noscript>
-            <div id="pe-detail" aria-live="polite"></div>
+            <div id="pe-detail" aria-live="polite" data-rap={perf?.rap ?? ""} data-annees={(perf?.annees ?? []).join(",")}></div>
+            {perf && perf.serie.length > 0 && (
+              <>
+                <h3 class="p-titre-echelon">Les cibles atteintes, tous programmes réunis</h3>
+                <p class="v-nature">
+                  {`Chaque programme se fixe des objectifs, mesurés par des indicateurs et des cibles ; le rapport annuel de performances dit, pour chacun, si la cible est atteinte. La part des cibles atteintes, rapport par rapport, telle que le ministère la publie, de ${perf.serie[0].rap} à ${perf.serie.at(-1)!.rap}.`}
+                </p>
+                <ul class="pe-serie">
+                  {perf.serie.map((x) => (
+                    <li title={`Rapport ${x.rap} — cible atteinte : ${pc(x.atteinte)} · amélioration sans atteindre la cible : ${pc(x.amelioration)} · absence d’amélioration : ${pc(x.absence)} · donnée non renseignée : ${pc(x.nonRenseigne)}`}>
+                      <span class="pe-serie-annee">{x.rap}</span>
+                      <span class="pe-serie-piste" aria-hidden="true"><i style={`--w:${(x.atteinte * 100).toFixed(1)}%`}></i></span>
+                      <span class="pe-serie-valeur">{pc(x.atteinte)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p class="v-nature">
+                  {`Le reste se partage entre une amélioration qui n’atteint pas la cible, une absence d’amélioration et une donnée non renseignée ; le survol d’une année donne les quatre parts.${perf.serie.at(-1)!.rap < perf.rap ? ` Le rapport ${perf.rap} est détaillé programme par programme ci-dessus ; sa part nationale n’est pas encore publiée, et Rouages ne la recalcule pas.` : ''}`}
+                </p>
+              </>
+            )}
             <ul class="mesure">
               <li>
                 <strong>Les crédits de paiement, titres réunis.</strong> Personnel et autres dépenses sont additionnés&nbsp;; les
@@ -441,9 +471,21 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
               <li>
                 <strong>Chaque chemin se referme.</strong> La collecte vérifie, ligne par ligne, que les crédits ouverts égalent le
                 voté et ses mouvements, et que le dépensé égale les ouverts moins les annulations et les reports. Elle recoupe le
-                total&nbsp;: les dépenses du budget général, hors remboursements et dégrèvements d’impôts d’État, égalent chaque
-                année au million près celles de la situation mensuelle de décembre.
+                total&nbsp;: le voté et le dépensé du budget général, hors remboursements et dégrèvements, égalent chaque année
+                au million près ceux de la situation mensuelle de décembre. {deduitsTexte}
               </li>
+              {(anneesSansSource.length > 0 || plrgDepuis !== bp.annees[0]) && (
+                <li>
+                  <strong>Les années manquantes.</strong>
+                  {` ${anneesSansSource.length ? `${anneesSansSource.join(' et ')} ne sont pas publiés par programme en données ouvertes. ` : ''}Avant ${bp.annees[0]}, les projets de loi de règlement publiés donnent l’exécution sans le voté à côté. Les budgets annexes, que les annexes des PLRG ne portent pas, sont laissés de côté toutes les années, pour garder le même périmètre.`}
+                </li>
+              )}
+              {perf && (
+                <li>
+                  <strong>Les indicateurs, tels que publiés.</strong>
+                  {` Sous le chemin d’un programme, ses objectifs et indicateurs au rapport annuel de performances ${perf.rap} : le réalisé, la cible, et la cotation du ministère — « cible atteinte », « amélioration » (sans atteindre la cible), « absence amélioration », « donnée non renseignée », « donnée non retenue ». Les valeurs sont reprises comme le rapport les écrit, mots compris ; rien n’est recalculé. Un indicateur de contexte décrit une situation plutôt qu’un résultat attendu.`}
+                </li>
+              )}
               <li>
                 <strong>Des crédits évaluatifs.</strong> Pour la charge de la dette, les remboursements et dégrèvements ou les
                 appels en garantie, la loi fixe une estimation, pas un plafond&nbsp;: un écart y dit une prévision, pas une
@@ -487,10 +529,22 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
           {bp && (
             <li>
               {'Projets de loi relatifs aux résultats de la gestion et portant approbation des comptes de l’année : '}
-              {bp.sources.map((x, i) => (
+              {bp.sources.filter((x) => x.nature === 'PLRG').map((x, i) => (
                 <>{i > 0 && ', '}<a href={`https://data.economie.gouv.fr/explore/dataset/${x.jeu}/`} target="_blank" rel="noopener">{`PLRG ${x.annee}`}</a></>
               ))}
-              {`, Licence Ouverte 2.0, lus le ${formaterDate(new Date(bp.maj))} : le chemin des crédits de paiement de chaque programme, annexes 1 et 2.`}
+              {', le chemin des crédits de paiement de chaque programme, annexes 1 et 2 ; projets de loi de règlement : '}
+              {bp.sources.filter((x) => x.nature === 'RAP').map((x, i) => (
+                <>{i > 0 && ', '}<a href={`https://data.economie.gouv.fr/explore/dataset/${x.jeu}/`} target="_blank" rel="noopener">{`PLR ${x.annee}`}</a></>
+              ))}
+              {`, le voté et le dépensé de chaque programme, synthèse des rapports annuels de performances. Licence Ouverte 2.0, lus le ${formaterDate(new Date(bp.maj))}.`}
+            </li>
+          )}
+          {perf && (
+            <li>
+              <a href={`https://data.economie.gouv.fr/explore/dataset/${perf.jeu}/`} target="_blank" rel="noopener">{`Performance de la dépense (RAP) ${perf.rap}`}</a>
+              {' et '}
+              <a href="https://data.economie.gouv.fr/explore/dataset/performance-atteinte-de-la-cible-generale-du-budget-de-l-etat-depuis-2007/" target="_blank" rel="noopener">Performance : atteinte de la cible générale du budget de l’État depuis 2007</a>
+              {`, Licence Ouverte 2.0${perf.version ? `, mis à jour le ${formaterDate(new Date(perf.version))}` : ''}, lus le ${formaterDate(new Date(perf.maj))} : les objectifs, indicateurs, cibles et réalisations de chaque programme, et la part nationale des cibles atteintes.`}
             </li>
           )}
           {ex && (

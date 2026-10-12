@@ -4253,7 +4253,7 @@ remboursements et dégrèvements —, une figure par ligne, au choix.
 La même section se prolonge au niveau des programmes, de 2023 à 2025, avec
 les annexes des projets de loi relatifs aux résultats de la gestion (PLRG,
 ex-lois de règlement) — `scripts/budget-programmes-emettre.ts`, un fichier
-national `budget-etat-programmes.json` (173 programmes, 77 Ko, chargé à la
+national `budget-etat-programmes.json` (206 programmes, 103 Ko, chargé à la
 demande).
 
 - **Le chemin des crédits de paiement** : voté, loi rectificative, reports,
@@ -4275,8 +4275,73 @@ demande).
   remboursements, appels en garantie) — la loi y fixe une estimation, pas un
   plafond. Un programme sans crédits votés en loi initiale (plan de relance)
   n'a pas de pourcentage d'écart.
-- **La suite** : les lois de règlement antérieures (des jeux existent pour
-  2019 et 2020, à examiner).
+- **2019 et 2020, ajoutés le même jour** : les projets de loi de règlement
+  de ces deux années joignent une synthèse des rapports annuels de
+  performances (`RAP_synthese_*.xls`) qui donne, par programme, la prévision
+  en loi de finances initiale et la consommation. Le voté et le dépensé,
+  donc, sans les étapes entre les deux : la table les marque « n. p. ». Les
+  budgets annexes, absents des annexes des PLRG, sont laissés de côté.
+- **Une définition qui change, trouvée au recoupement** : jusqu'en 2020, les
+  dépenses nettes du budget général de la situation mensuelle retirent les
+  remboursements et dégrèvements d'impôts d'État *et* d'impôts locaux
+  (programmes 200 et 201) ; depuis 2023, ceux d'impôts d'État seulement. Avec
+  la bonne définition, le voté et le dépensé recoupent au million près, les
+  cinq années. La collecte essaie les deux et garde celle qui tombe juste ;
+  la page le dit.
+- **Ce qui manque** : 2021 et 2022 ne sont publiés par programme ni sur
+  data.economie.gouv.fr ni sur data.gouv.fr ; avant 2019, les PLR publiés
+  (2010 à 2014, 2018) donnent l'exécution sans le voté à côté.
 
 Au passage : le logo du site, le même que le favicon, devant « Rouages »
 dans l'en-tête.
+
+### Ce qui manque ici, et où le trouver (12 octobre 2026)
+
+La page de commune disait déjà ce qui manque, parmi les regroupements de la
+gamme de proximité de l'INSEE, et ajoutait qu'« une commune sans équipement
+n'est pas une commune sans accès : le bourg voisin est parfois à trois
+kilomètres, ce que ce fichier ne dit pas ». Elle le dit maintenant : sous
+chaque manque, la commune la plus proche qui l'a, avec la distance.
+
+- **Le calcul** se fait à l'ingestion, dans `scripts/proximite-emettre.ts`,
+  avec les centres des communes et les présences par type déjà produits pour
+  « Le plus proche » : un fichier `dep/XX-manques.json` par département, lu
+  au build seulement. Une grille d'un dixième de degré : six secondes pour
+  les 484 000 absences de France. Vérifié contre un calcul exhaustif sur 834
+  cas tirés dans six départements, métropole, Corse et La Réunion : aucun
+  écart.
+- **La liste reste celle de l'INSEE** (gamme de proximité, par regroupement :
+  une école primaire ne fait pas manquer la maternelle), pas une liste
+  établie ici.
+- **La distance dite pour ce qu'elle est** : entre les centres des deux
+  communes, à vol d'oiseau — pas la route, ni l'adresse de l'équipement.
+  La recherche reste en métropole pour une commune de métropole, dans le
+  département pour une commune d'outre-mer.
+
+### La performance des programmes, à côté de leur argent (12 octobre 2026)
+
+Sous le chemin des crédits d'un programme, sur `/argent-public` : ses
+objectifs et ses indicateurs au dernier rapport annuel de performances (RAP
+2025, 144 programmes, 1 820 sous-indicateurs), avec le réalisé des trois
+dernières années, la cible et la cotation du ministère. Et, pour tous les
+programmes réunis, la part des cibles atteintes de 2007 à 2024, telle que
+le ministère la publie.
+
+- **La source** : les jeux « Performance de la dépense (RAP) » et
+  « Performance : atteinte de la cible générale du budget de l'État depuis
+  2007 » de data.economie.gouv.fr (`scripts/budget-performance-emettre.ts`,
+  un dossier `performance/` : un index, un fichier par programme chargé au
+  choix).
+- **Tel que publié** : les valeurs sont des textes (« 180,9 », « En
+  baisse », « Suivi », « Non déterminé ») et le restent ; la cotation —
+  « cible atteinte », « amélioration », « absence amélioration », « donnée
+  non renseignée », « donnée non retenue » — est celle du ministère.
+- **Pas d'agrégat de notre cru** : recalculée sur le RAP 2024, la part
+  nationale donne 38 / 15 / 28 / 20 % là où le ministère publie
+  38 / 15 / 27 / 20 %. La méthode exacte n'est pas écrite ; la page montre
+  donc la série du ministère et ne calcule pas celle de 2025, qu'il n'a pas
+  encore publiée. Les comptes par programme sont des comptes de cotations
+  publiées, pas des taux.
+- **Ce qui n'est pas repris** : les indicateurs de mission (qui reprennent
+  ceux des programmes), et le sens d'évolution du jeu (colonne
+  « evolution »), dont la définition n'est pas donnée.

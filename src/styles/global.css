@@ -660,7 +660,12 @@ main section[id] { scroll-margin-top: 9rem; }
 .p-fiscalite li, .p-equipements li { display: grid; grid-template-columns: 2.2rem 1fr; gap: .55rem; align-items: baseline; }
 .p-fiscalite li { grid-template-columns: 4.8rem 1fr; }
 .p-fiscalite .p-risque-nombre { white-space: nowrap; }
-.p-equipements .p-equipements-absents li { grid-template-columns: 1fr; }
+.p-equipements .p-equipements-absents li { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .8rem; }
+.p-manque-proche { color: var(--encre); font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) {
+  .p-equipements .p-equipements-absents li { grid-template-columns: 1fr; gap: 0; }
+  .p-manque-proche { padding-left: .8rem; }
+}
 .p-equipements .p-reperes, .p-fiscalite .p-reperes { margin-bottom: .8rem; }
 
 .p-marches { margin-top: 1.2rem; }
@@ -1564,6 +1569,22 @@ a.p-sommaire-lien { text-decoration: none; }
 .pe-table .pe-total th, .pe-table .pe-total td { font-weight: 650; border-top: 1px solid var(--trait-fort); }
 .pe-table .pe-ecart th, .pe-table .pe-ecart td { color: var(--encre-douce); }
 .pe-table tbody th { text-align: left; font-weight: 400; color: var(--encre); }
+.pe-table .pe-np { color: var(--encre-douce); font-size: .85em; }
+.pe-perf { margin-top: 1.4rem; }
+.pe-perf-titre { font-size: 1rem; margin: 0 0 .3rem; }
+.pe-objectif { border-top: 1px solid var(--trait); padding: .45rem 0; }
+.pe-objectif > summary { cursor: pointer; font-weight: 600; font-size: .93rem; }
+.pe-perf-table th[scope="row"] { font-weight: 400; min-width: 14rem; }
+.pe-perf-table .pe-ind th { font-weight: 600; font-size: .88rem; padding-top: .7rem; text-align: left; }
+.pe-perf-table .pe-sous th[scope="row"] { padding-left: 1rem; }
+@media (max-width: 640px) { .pe-perf-table th[scope="row"] { min-width: 10rem; } }
+.pe-cotation { font-size: .85rem; min-width: 8rem; }
+.pe-serie { list-style: none; margin: .4rem 0 .6rem; padding: 0; display: grid; gap: .2rem; max-width: 34rem; }
+.pe-serie li { display: grid; grid-template-columns: 3rem minmax(0, 1fr) 3rem; column-gap: .6rem; align-items: center; }
+.pe-serie-annee, .pe-serie-valeur { font-size: .85rem; font-variant-numeric: tabular-nums; }
+.pe-serie-valeur { text-align: right; font-weight: 600; }
+.pe-serie-piste { height: 10px; background: var(--trait); border-radius: 0 4px 4px 0; position: relative; }
+.pe-serie-piste i { position: absolute; left: 0; top: 0; bottom: 0; width: var(--w); background: var(--barre-budget); border-radius: 0 4px 4px 0; }
 @media (max-width: 640px) {
   .pe-ecarts li { grid-template-columns: minmax(0, 1fr) 7.5rem; row-gap: .25rem; }
   .pe-piste { grid-column: 1 / -1; grid-row: 2; }
