@@ -334,6 +334,15 @@ button.rond { width: 1.9rem; padding: .1rem 0; font-size: 1rem; line-height: 1.3
 
 /* --- bandes de colonnes : donnent sa structure à la carte --- */
 .c-bande { fill: var(--fond-bande); }
+/* Les boîtes de la carte : une entité et ses organes. Pleine pour l'entité,
+   en pointillés pour ce qui relève d'une autre colonne, plus discrète pour
+   les branches du pouvoir dans la boîte de l'État. */
+.c-boite { fill: var(--fond-bande); stroke: var(--trait-fort); stroke-width: 1.6; }
+.c-boite--local { fill: none; stroke-dasharray: 6 5; }
+.c-boite--branche { fill: var(--fond); stroke: var(--trait-fort); stroke-width: 1; }
+.c-boite-titre { fill: var(--encre-douce); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+.c-boite-titre--branche { font-size: 10.5px; font-weight: 600; letter-spacing: .02em; }
+.n--entete .n-nom { font-weight: 700; }
 .c-colonne { fill: var(--encre-douce); font-size: 11.5px; font-weight: 500; letter-spacing: .09em; text-transform: uppercase; }
 
 /* --- nœuds --- */
@@ -344,6 +353,7 @@ button.rond { width: 1.9rem; padding: .1rem 0; font-size: 1rem; line-height: 1.3
 }
 .n .n-marque { stroke: var(--trait-fort); stroke-width: 1.5; fill: none; }
 .n .n-nom { fill: var(--encre); font-size: 13px; font-weight: 500; }
+.n.n--entete .n-fond { stroke-width: 2.2; stroke: var(--encre-douce); }
 .n:hover .n-fond, .n:focus-visible .n-fond { fill: var(--fond-doux); stroke: var(--encre); }
 .n:focus { outline: none; }
 .n:focus-visible .n-fond { stroke-width: 2.5; }

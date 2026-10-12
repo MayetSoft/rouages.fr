@@ -325,28 +325,32 @@ function demarrer(reseau: Reseau) {
     const gAretes = el('g', { class: 'couche-aretes' });
     const gNoeuds = el('g', { class: 'couche-noeuds' });
 
-    // Une bande une colonne sur deux : l'œil retrouve les échelons sans qu'on
-    // ait à tracer des séparateurs, qui seraient de l'encre pour rien.
-    colonnes.forEach((col, i) => {
-      // La bande épouse la pile de sa colonne, pas la hauteur de la carte :
-      // une colonne courte ne traîne pas un rectangle vide derrière elle.
-      if (i % 2 === 1) {
-        const l = col.largeur + 26;
-        gBandes.append(
-          el('rect', {
-            class: 'c-bande',
-            x: col.x - l / 2,
-            y: col.haut - 30,
-            width: l,
-            height: col.bas - col.haut + 60,
-            rx: 16,
-          }),
-        );
+    // Les boîtes : une entité contient ses organes, et son nœud en est
+    // l'en-tête. Les pointillés disent « présent ici, mais relève d'ailleurs » ;
+    // les branches du pouvoir subdivisent la boîte de l'État.
+    for (const k of reseau.carte.boites) {
+      gBandes.append(
+        el('rect', {
+          class: `c-boite c-boite--${k.style}`,
+          x: k.x,
+          y: k.y,
+          width: k.l,
+          height: k.h,
+          rx: k.style === 'branche' ? 10 : 16,
+        }),
+      );
+      if (k.libelle) {
+        const t = el('text', { class: `c-boite-titre c-boite-titre--${k.style}`, x: k.x + k.l / 2, y: k.y + 20, 'text-anchor': 'middle' });
+        t.textContent = k.libelle;
+        gBandes.append(t);
       }
+    }
+    colonnes.forEach((col) => {
       const t = el('text', { class: 'c-colonne', x: col.x, y: hautNoeuds - 12, 'text-anchor': 'middle' });
       t.textContent = col.libelle;
       gBandes.append(t);
     });
+    const entetes = new Set(reseau.carte.boites.map((k) => k.entete).filter(Boolean));
 
     const boites = new Map<string, Boite>();
     for (const n of reseau.noeuds) {
@@ -377,7 +381,11 @@ function demarrer(reseau: Reseau) {
       gAretes.append(chemin);
     }
 
-    for (const b of boites.values()) gNoeuds.append(dessinerNoeud(b));
+    for (const b of boites.values()) {
+      const g = dessinerNoeud(b);
+      if (entetes.has(b.noeud.id)) g.classList.add('n--entete');
+      gNoeuds.append(g);
+    }
     toile.append(gBandes, gAretes, gNoeuds);
     retour?.setAttribute('hidden', '');
     ecrirePanneauAccueil();
@@ -777,7 +785,7 @@ function demarrer(reseau: Reseau) {
       ligne(
         'p',
         'p-intro',
-        'Chaque colonne est un échelon, chaque pastille un acteur. Survolez une famille de relations dans la légende pour ne garder qu’elle ; survolez un acteur pour ne garder que son voisinage.',
+        'Chaque colonne est un échelon, chaque pastille un acteur. Une boîte réunit une entité — la commune, la région, l’État, l’Union — et ses organes : l’en-tête est l’entité elle-même ; en pointillés, ce qui relève d’une autre colonne mais agit dans celle-ci. Survolez une famille de relations dans la légende pour ne garder qu’elle ; survolez un acteur pour ne garder que son voisinage.',
       ),
       ligne('p', 'p-intro', 'Cliquez sur un acteur pour déplier ses rouages.'),
     );

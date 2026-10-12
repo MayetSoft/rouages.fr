@@ -134,6 +134,18 @@ export const Acteur = z.object({
    * par `scripts/valider.ts`.
    */
   pouvoirs: z.array(z.enum(POUVOIRS)).min(1).optional(),
+  /**
+   * L'entité dont l'acteur est un organe, un service ou un établissement
+   * public : le conseil municipal relève de la commune, l'ARS de l'État.
+   *
+   * La colonne dit où l'acteur agit ; ce champ dit à qui il appartient. Les
+   * deux ne coïncident pas toujours — l'ARS agit en région et relève de
+   * l'État —, et la carte les confondait : l'entité y figurait à côté de ses
+   * propres organes. Elle devient la boîte qui les contient. Un acteur qui est
+   * une personne morale à part (un syndicat, une association, la CAF) n'en a
+   * pas. La règle est appliquée par `scripts/valider.ts`.
+   */
+  releve_de: Id.optional(),
   /** Une phrase, pas un paragraphe : le détail est sur les pages liées. */
   resume: z.string().min(10).max(280, 'une phrase suffit — le reste est sur les pages liées'),
   ...tracable,

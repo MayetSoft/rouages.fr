@@ -4384,3 +4384,21 @@ le 12 octobre 2026.
 
 Au passage : dans le menu, « Fonctionnement » devient « Fonctionnement des
 institutions ».
+
+### La carte en boîtes : une entité contient ses organes (12 octobre 2026)
+
+Sur la carte d'ensemble, la commune, l'intercommunalité, le département, la
+région, l'État et l'Union ne sont plus dessinés à côté de leurs propres
+organes : chacun devient une boîte dont il est l'en-tête. L'État se
+subdivise par branche du pouvoir ; l'ARS, la DREAL et la chambre régionale
+des comptes forment, dans la colonne Région, la boîte en pointillés
+« L'État en région ». Les acteurs qui sont des personnes morales à part
+(syndicats, associations, CAF, SDIS, MDPH) restent hors des boîtes.
+
+Le classement est une donnée — le champ `releve_de` de chaque acteur,
+validé —, la règle est écrite dans `docs/02-familles.md` (« La colonne et la
+boîte »). Le graphe ne change pas : 233 nœuds, diamètre 6, 66,8 % des paires
+à trois clics.
+
+Reste ouvert : ranger le préfet, la DDT et l'architecte des Bâtiments de
+France dans une boîte « L'État dans le département ».
