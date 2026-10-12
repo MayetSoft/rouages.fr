@@ -15,7 +15,7 @@
  * actions : une action de 2 Md€ fait la même longueur qu'une mission de 2 Md€.
  */
 import Base from '../layouts/Base.astro';
-import { budgetEtat, budgetExecution, DANS_LE_RESEAU, montantBudget, type Montants } from '../modele/budget-etat.ts';
+import { budgetEtat, budgetExecution, budgetProgrammes, DANS_LE_RESEAU, montantBudget, type Montants } from '../modele/budget-etat.ts';
 import { voteExecute } from '../vues/vote-execute.ts';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
 
@@ -28,6 +28,32 @@ const figures = (ex?.lignes ?? [])
   .filter((x) => x.f);
 const groupesEx = [...new Set(figures.map((x) => `${x.l.categorie} — ${x.l.sousCategorie}`))];
 const premiere = ex?.annees[0];
+
+// Le voté et l'exécuté par programme, d'après les PLRG.
+const bp = budgetProgrammes();
+const anneePlrg = bp?.annees.at(-1);
+const ECARTS_MONTRES = 12;
+const ecarts = bp && anneePlrg
+  ? bp.programmes
+      .filter((x) => x.categorie === 'Budget général' && x.annees[anneePlrg])
+      .map((x) => {
+        const c = x.annees[anneePlrg];
+        return { x, vote: c[0], depense: c[7], ecart: c[7] - c[0] };
+      })
+      .sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart))
+      .slice(0, ECARTS_MONTRES)
+  : [];
+const ecartMax = Math.max(1, ...ecarts.map((e) => Math.abs(e.ecart)));
+const programmesPlrg = new Set((bp?.programmes ?? []).filter((x) => x.categorie === 'Budget général').map((x) => x.numero));
+const parMissionPlrg = bp
+  ? [...new Set(bp.programmes.map((x) => `${x.categorie} — ${x.mission}`))].map((g) => ({
+      g,
+      liste: bp.programmes.filter((x) => `${x.categorie} — ${x.mission}` === g),
+    }))
+  : [];
+const programmeParDefaut = ecarts[0] ? `Budget général|${ecarts[0].x.numero}` : '';
+// Un programme sans crédits votés en loi initiale (des reports, un plan ouvert en cours d'année) n'a pas de pourcentage.
+const pct = (e: number, v: number) => (v ? `${e > 0 ? '+' : '−'}${Math.abs((e / v) * 100).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} %` : 'rien de voté');
 const derniere = ex?.annees.at(-1);
 const g = chargerGraphe();
 
@@ -206,6 +232,11 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
                               <p class="v-nature">
                                 {[p.ministere ? `Ministère : ${p.ministere}` : '', trois(p.v)].filter(Boolean).join(' · ')}
                               </p>
+                              {programmesPlrg.has(p.numero) && (
+                                <p class="v-nature">
+                                  <a href={`?programme=${encodeURIComponent(`Budget général|${p.numero}`)}#par-programme`}>{`Le voté et le dépensé de ce programme, de ${bp!.annees[0]} à ${anneePlrg}`}</a>
+                                </p>
+                              )}
                               {acteursDe(String(p.numero)).length > 0 && (
                                 <p class="v-nature">
                                   {'Dans le réseau : '}
@@ -368,6 +399,60 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
           </section>
         )}
 
+        {bp && anneePlrg && ecarts.length > 0 && (
+          <section id="par-programme" class="ve">
+            <h2 class="badge">Le voté et l’exécuté, programme par programme</h2>
+            <p class="mesure">
+              {`Entre le vote de la loi de finances et la fin de l’année, les crédits d’un programme bougent : une loi rectificative, des reports de l’année précédente, des virements, des fonds de concours ; puis une part est annulée ou reportée, et le reste est dépensé. Le chemin de chaque programme, de ${bp.annees[0]} à ${anneePlrg}, d’après les annexes des projets de loi relatifs aux résultats de la gestion (PLRG), qui arrêtent les comptes de l’année.`}
+            </p>
+            <h3 class="p-titre-echelon">{`Les ${ECARTS_MONTRES} plus gros écarts en ${anneePlrg}, au budget général`}</h3>
+            <p class="v-nature">Dépensé moins voté : à droite, plus dépensé que voté ; à gauche, moins. Une seule échelle.</p>
+            <ul class="pe-ecarts">
+              {ecarts.map((e) => (
+                <li title={`${e.x.nom} (${e.x.numero}) — voté : ${montantBudget(e.vote)} · dépensé : ${montantBudget(e.depense)} · écart : ${e.ecart > 0 ? '+' : '−'}${montantBudget(Math.abs(e.ecart))} (${pct(e.ecart, e.vote)})`}>
+                  <a class="pe-nom" href={`?programme=${encodeURIComponent(`Budget général|${e.x.numero}`)}#par-programme`}>{e.x.nom}<span class="b-numero">{` ${e.x.numero} · ${e.x.mission}`}</span></a>
+                  <span class="pe-piste" aria-hidden="true">
+                    <i class={e.ecart >= 0 ? 'pe-plus' : 'pe-moins'} style={`--w:${+((Math.abs(e.ecart) / ecartMax) * 50).toFixed(2)}%`}></i>
+                  </span>
+                  <span class="pe-valeur">{`${e.ecart > 0 ? '+' : '−'}${montantBudget(Math.abs(e.ecart))}`}<span class="ve-pct">{` ${pct(e.ecart, e.vote)}`}</span></span>
+                </li>
+              ))}
+            </ul>
+            <h3 class="p-titre-echelon">Un programme, étape par étape</h3>
+            <div class="ve-choix">
+              <label for="pe-programme">Programme</label>
+              <select id="pe-programme">
+                {parMissionPlrg.map(({ g, liste }) => (
+                  <optgroup label={g}>
+                    {liste.map((x) => (
+                      <option value={`${x.categorie}|${x.numero}`} selected={`${x.categorie}|${x.numero}` === programmeParDefaut}>{`${x.nom} (${x.numero})`}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+            <noscript><p class="c-vide">Le détail d’un programme a besoin de JavaScript : il se charge dans le navigateur.</p></noscript>
+            <div id="pe-detail" aria-live="polite"></div>
+            <ul class="mesure">
+              <li>
+                <strong>Les crédits de paiement, titres réunis.</strong> Personnel et autres dépenses sont additionnés&nbsp;; les
+                engagements pluriannuels (autorisations d’engagement) ne sont pas repris.
+              </li>
+              <li>
+                <strong>Chaque chemin se referme.</strong> La collecte vérifie, ligne par ligne, que les crédits ouverts égalent le
+                voté et ses mouvements, et que le dépensé égale les ouverts moins les annulations et les reports. Elle recoupe le
+                total&nbsp;: les dépenses du budget général, hors remboursements et dégrèvements d’impôts d’État, égalent chaque
+                année au million près celles de la situation mensuelle de décembre.
+              </li>
+              <li>
+                <strong>Des crédits évaluatifs.</strong> Pour la charge de la dette, les remboursements et dégrèvements ou les
+                appels en garantie, la loi fixe une estimation, pas un plafond&nbsp;: un écart y dit une prévision, pas une
+                décision de dépenser plus.
+              </li>
+            </ul>
+          </section>
+        )}
+
         <h2 class="badge" id="lire">Lire ces chiffres</h2>
         <ul class="mesure">
           <li>
@@ -399,6 +484,15 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
 
         <h2 class="badge" id="sources">Sources</h2>
         <ul class="mesure b-sources">
+          {bp && (
+            <li>
+              {'Projets de loi relatifs aux résultats de la gestion et portant approbation des comptes de l’année : '}
+              {bp.sources.map((x, i) => (
+                <>{i > 0 && ', '}<a href={`https://data.economie.gouv.fr/explore/dataset/${x.jeu}/`} target="_blank" rel="noopener">{`PLRG ${x.annee}`}</a></>
+              ))}
+              {`, Licence Ouverte 2.0, lus le ${formaterDate(new Date(bp.maj))} : le chemin des crédits de paiement de chaque programme, annexes 1 et 2.`}
+            </li>
+          )}
           {ex && (
             <li>
               <a href="https://data.economie.gouv.fr/explore/dataset/situations-mensuelles-budgetaires-series-longues/" target="_blank" rel="noopener">Situations mensuelles budgétaires de l’État, en série longue</a>
@@ -438,6 +532,9 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
   }
   addEventListener('hashchange', ouvrir);
   ouvrir();
+
+  import { brancherProgrammesExecution } from '../client/programmes-execution.ts';
+  brancherProgrammesExecution();
 
   // Le voté et l'exécuté : une figure par ligne, celle qu'on choisit.
   const choix = document.getElementById('ve-ligne') as HTMLSelectElement | null;

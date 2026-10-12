@@ -1551,6 +1551,24 @@ a.p-sommaire-lien { text-decoration: none; }
 .ve-cible { fill: transparent; }
 .ve-rang:hover .ve-cible { fill: var(--fond-doux); }
 @media (forced-colors: active) { .ve-vote { stroke: CanvasText; } .ve-execute { fill: CanvasText; } }
+
+/* Les plus gros écarts par programme : des barres de part et d'autre d'un axe, une seule échelle. */
+.pe-ecarts { list-style: none; margin: .4rem 0 1.2rem; padding: 0; }
+.pe-ecarts li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8rem, 1.1fr) 9.5rem; column-gap: .8rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid var(--trait); }
+.pe-nom { font-size: .9rem; }
+.pe-piste { position: relative; height: 10px; background: linear-gradient(var(--trait-fort), var(--trait-fort)) center / 1px 100% no-repeat; }
+.pe-piste i { position: absolute; top: 1px; bottom: 1px; width: var(--w); background: var(--barre-budget); }
+.pe-plus { left: 50%; border-radius: 0 4px 4px 0; }
+.pe-moins { right: 50%; border-radius: 4px 0 0 4px; }
+.pe-valeur { font-variant-numeric: tabular-nums; font-weight: 600; font-size: .88rem; text-align: right; white-space: nowrap; }
+.pe-table .pe-total th, .pe-table .pe-total td { font-weight: 650; border-top: 1px solid var(--trait-fort); }
+.pe-table .pe-ecart th, .pe-table .pe-ecart td { color: var(--encre-douce); }
+.pe-table tbody th { text-align: left; font-weight: 400; color: var(--encre); }
+@media (max-width: 640px) {
+  .pe-ecarts li { grid-template-columns: minmax(0, 1fr) 7.5rem; row-gap: .25rem; }
+  .pe-piste { grid-column: 1 / -1; grid-row: 2; }
+  .pe-valeur .ve-pct { display: block; }
+}
 @media (forced-colors: active) { .b-barre i { background: CanvasText; } .b-barre { border: 1px solid CanvasText; } }
 
 

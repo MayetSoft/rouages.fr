@@ -4245,9 +4245,38 @@ remboursements et dégrèvements —, une figure par ligne, au choix.
   (le contour du budget général change d'une année à l'autre) ; ces chiffres
   sont ceux de la comptabilité budgétaire, pas le périmètre des dépenses de
   l'État de l'explorateur, et ne s'additionnent pas avec lui.
-- **La suite** : le voté face à l'exécuté programme par programme, qui
-  demande les lois de règlement ; et l'exercice 2026 quand sa loi de
-  finances initiale entrera dans le fichier.
+- **La suite** : l'exercice 2026 quand sa loi de finances initiale entrera
+  dans le fichier.
+
+#### Programme par programme (12 octobre 2026)
+
+La même section se prolonge au niveau des programmes, de 2023 à 2025, avec
+les annexes des projets de loi relatifs aux résultats de la gestion (PLRG,
+ex-lois de règlement) — `scripts/budget-programmes-emettre.ts`, un fichier
+national `budget-etat-programmes.json` (173 programmes, 77 Ko, chargé à la
+demande).
+
+- **Le chemin des crédits de paiement** : voté, loi rectificative, reports,
+  mouvements, fonds de concours, fongibilité, crédits ouverts, annulés,
+  reportés, dépensé. Les titres sont réunis ; les autorisations
+  d'engagement ne sont pas reprises.
+- **Rien n'est publié qui ne se referme** : les deux égalités du chemin sont
+  vérifiées ligne par ligne (deux lignes du PLRG 2023, dont le programme
+  200, se referment à l'arrondi près, moins d'un million) ; et les dépenses
+  du budget général, hors programme 200, égalent au million près les
+  dépenses nettes de la situation mensuelle de décembre, les trois années.
+  Un écart arrête la collecte.
+- **La forme** : les douze plus gros écarts de la dernière année au budget
+  général, en barres divergentes sur une seule échelle ; puis un programme
+  au choix, son chemin en table, année par année, l'adresse gardant le
+  choix. L'explorateur renvoie au chemin d'un programme quand le PLRG le
+  donne.
+- **Une limite dite** : les crédits évaluatifs (charge de la dette,
+  remboursements, appels en garantie) — la loi y fixe une estimation, pas un
+  plafond. Un programme sans crédits votés en loi initiale (plan de relance)
+  n'a pas de pourcentage d'écart.
+- **La suite** : les lois de règlement antérieures (des jeux existent pour
+  2019 et 2020, à examiner).
 
 Au passage : le logo du site, le même que le favicon, devant « Rouages »
 dans l'en-tête.

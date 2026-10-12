@@ -844,6 +844,12 @@ async function principal() {
     collecterExecution(lireJson, async (url) => (await obstine(url)).arrayBuffer(), grise),
   );
   if (execution) ecrireExecution(SORTIE, execution);
+  // Par programme, d'après les PLRG : recoupé avec l'exécution qu'on vient d'écrire.
+  const { collecterProgrammes, ecrireProgrammes } = await import('./budget-programmes-emettre.ts');
+  const programmesEtat = await tenter('Budget voté et exécuté, par programme', () =>
+    collecterProgrammes(lireJson, async (url) => (await obstine(url)).arrayBuffer(), SORTIE, grise),
+  );
+  if (programmesEtat) ecrireProgrammes(SORTIE, programmesEtat);
 
   const { collecterMairies, ecrireMairies } = await import('./mairies-emettre.ts');
   const mairies = await tenter('Mairies', () => collecterMairies(lireJson, grise));
