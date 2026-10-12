@@ -1,0 +1,168 @@
+---
+/**
+ * Rénover sa maison : ce que les travaux coûtent après MaPrimeRénov', ce
+ * qu'ils changent à la valeur du bien d'après les ventes, et à la location.
+ * Les barèmes viennent de l'Anah et du décret sur la décence énergétique
+ * (`src/modele/bareme-renovation.ts`) ; l'effet de l'étiquette sur le prix,
+ * des ventes rapprochées d'un DPE (`scripts/estimation-emettre.ts`).
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import { ETIQUETTES, RELU, SOURCES } from '../../modele/bareme-renovation.ts';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+const relu = new Date(`${RELU}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base
+  titre="Rénover : ce que ça coûte, ce que ça rapporte"
+  description="Le reste à charge d’une rénovation énergétique après MaPrimeRénov’, le gain de valeur mesuré sur les ventes de votre région, et ce que change l’étiquette pour louer."
+  section="simulateurs"
+  image="/apercus/renovation.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/simulateurs">Simulateurs</a></p>
+    <h1>Rénover&nbsp;: ce que ça coûte, ce que ça rapporte</h1>
+    <p class="resume">
+      Vos devis, l’étiquette avant et après travaux, vos revenus&nbsp;: le simulateur calcule MaPrimeRénov’ au barème
+      de l’Anah, le reste à charge, et le gain de valeur que mesurent les ventes de maisons de votre région. Il ne
+      conseille rien&nbsp;: il pose les nombres côte à côte.
+    </p>
+
+    <div id="sr" class="jeu">
+      <ChampLieuJeu
+        id="sr-lieu"
+        etiquette="La commune du logement"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+      <p id="sr-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <form id="sr-form" class="jeu-carte sr-form" hidden>
+        <p class="jeu-question" id="sr-titre"></p>
+
+        <fieldset>
+          <legend>La maison</legend>
+          <div class="sr-champs">
+            <label>Surface habitable <span><input type="number" name="habitable" min="0" step="1" inputmode="numeric" value="100" /> m²</span></label>
+            <label>Terrain <span><input type="number" name="terrain" min="0" step="10" inputmode="numeric" value="800" /> m²</span></label>
+            <label>Ou sa valeur, si vous la connaissez <span><input type="number" name="valeur" min="0" step="1000" inputmode="numeric" placeholder="estimée" /> €</span><small id="sr-valeur-estimee"></small></label>
+          </div>
+          <div class="sr-champs">
+            <label>Étiquette avant travaux
+              <select name="avant">{ETIQUETTES.map((x) => <option selected={x === 'F'}>{x}</option>)}</select>
+            </label>
+            <label>Étiquette visée
+              <select name="apres">{ETIQUETTES.map((x) => <option selected={x === 'C'}>{x}</option>)}</select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Les travaux</legend>
+          <div class="sr-champs">
+            <label>Montant des devis, TTC <span><input type="number" name="ttc" min="0" step="500" inputmode="numeric" value="40000" /> €</span></label>
+            <label>TVA des travaux
+              <select name="tva">
+                <option value="0.055" selected>5,5 % (rénovation énergétique)</option>
+                <option value="0.1">10 %</option>
+                <option value="0.2">20 %</option>
+              </select>
+            </label>
+            <label>Accompagnateur Rénov’, TTC <span><input type="number" name="mar" min="0" step="100" inputmode="numeric" value="0" /> €</span><small>le prix de sa prestation, s’il est connu</small></label>
+          </div>
+          <div class="sr-cases">
+            <label><input type="checkbox" name="quinze" checked /> Construite il y a 15 ans ou plus</label>
+            <label><input type="checkbox" name="principale" checked /> Résidence principale</label>
+            <label><input type="checkbox" name="isolation" checked /> Deux gestes d’isolation au moins</label>
+            <label><input type="checkbox" name="decarbone" checked /> Ni gaz, ni fioul après travaux</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Le foyer</legend>
+          <div class="sr-champs">
+            <label>Personnes au foyer <span><input type="number" name="personnes" min="1" step="1" inputmode="numeric" value="2" /></span></label>
+            <label>Revenu fiscal de référence <span><input type="number" name="revenu" min="0" step="100" inputmode="numeric" value="30000" /> €</span><small>de l’avis d’impôt, sur les revenus de l’année passée</small></label>
+          </div>
+        </fieldset>
+      </form>
+
+      <section id="sr-resultat" class="sr-resultat" hidden aria-live="polite">
+        <div class="jeu-carte sr-bloc" id="sr-valeur" hidden>
+          <h2 class="sr-bloc-titre">La valeur de la maison</h2>
+          <div class="sr-chiffres">
+            <div><span class="chiffre" id="sr-avant"></span><span class="chiffre-legende">avant travaux</span></div>
+            <div><span class="chiffre" id="sr-apres"></span><span class="chiffre-legende">après travaux</span></div>
+            <div><span class="chiffre" id="sr-gain"></span><span class="chiffre-legende">gain de valeur mesuré</span></div>
+          </div>
+          <p class="jeu-contexte" id="sr-valeur-note"></p>
+        </div>
+
+        <div class="jeu-carte sr-bloc">
+          <h2 class="sr-bloc-titre">MaPrimeRénov’ pour une rénovation d’ampleur</h2>
+          <p class="jeu-contexte" id="sr-profil"></p>
+          <ul class="sr-conditions" id="sr-conditions"></ul>
+          <div class="sr-chiffres">
+            <div><span class="chiffre" id="sr-aide"></span><span class="chiffre-legende">aide estimée</span></div>
+            <div><span class="chiffre" id="sr-reste"></span><span class="chiffre-legende">reste à charge</span></div>
+          </div>
+          <p class="jeu-contexte" id="sr-aide-detail"></p>
+          <p class="jeu-verdict" id="sr-bilan" hidden></p>
+        </div>
+
+        <div class="jeu-carte sr-bloc">
+          <h2 class="sr-bloc-titre">Pour louer</h2>
+          <ul class="sr-conditions" id="sr-location"></ul>
+          <p class="jeu-contexte">Un logement qui ne respecte plus le niveau minimal n’est plus « décent » : il ne peut plus faire l’objet d’un nouveau bail ni d’un renouvellement.</p>
+        </div>
+      </section>
+      <noscript><p class="mesure">Le simulateur a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La méthode</h2>
+    <ul class="accueil-themes">
+      <li><strong>La valeur</strong>&nbsp;: celle du <a href="/simulateurs/estimation">simulateur d’estimation</a> — l’habitable et le terrain au prix des ventes de maisons autour de la commune — rapportée à l’étiquette d’avant travaux, ou celle que vous saisissez. Après travaux, elle suit l’écart de prix entre les deux étiquettes, mesuré dans la région sur les ventes rapprochées d’un DPE, à surface, terrain et commune égaux. C’est ce que les acheteurs ont payé en général, pas une promesse&nbsp;: une maison n’est pas la moyenne.</li>
+      <li><strong>L’aide</strong>&nbsp;: MaPrimeRénov’ pour une rénovation d’ampleur, au barème des dossiers déposés depuis le 1er septembre 2026 — 80, 60, 45 ou 10 % du montant hors taxes selon vos revenus, dans la limite de 30&nbsp;000&nbsp;€ HT pour un gain de deux classes, 40&nbsp;000&nbsp;€ pour trois ou plus, écrêtée à 100, 90, 80 ou 50 % du montant TTC. Les aides locales et les CEE ne sont pas comptées. Le dossier, l’audit énergétique et la décision restent ceux de l’Anah.</li>
+      <li><strong>La location</strong>&nbsp;: le niveau minimal de performance d’un logement décent — F depuis 2025, E en 2028, D en 2034 en métropole&nbsp;; F en 2028, E en 2031 outre-mer.</li>
+      <li><strong>Ce qui n’est pas calculé</strong>&nbsp;: les économies d’énergie, qui dépendent du logement, de ses occupants et des prix de l’énergie&nbsp;; le simulateur n’en donne pas plutôt que d’en inventer.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <ul class="mesure b-sources">
+      <li><a href={SOURCES.guideAnah.url} target="_blank" rel="noopener">{SOURCES.guideAnah.titre}</a>{' : les taux, les plafonds, l’écrêtement, les plafonds de ressources au 1er janvier 2026, l’accompagnement.'}</li>
+      <li><a href={SOURCES.deliberationAnah.url} target="_blank" rel="noopener">{SOURCES.deliberationAnah.titre}</a>{' : les mêmes taux et plafonds pour les ménages aux revenus modestes et très modestes, et la fin du gaz et du fioul en maison.'}</li>
+      <li><a href={SOURCES.decence.url} target="_blank" rel="noopener">{SOURCES.decence.titre}</a>{' : les classes minimales et leurs dates.'}</li>
+      <li><a href="https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres-geolocalisees" target="_blank" rel="noopener">Etalab — Demandes de valeurs foncières géolocalisées</a>{' et '}<a href="https://data.ademe.fr/datasets/dpe03existant" target="_blank" rel="noopener">ADEME — DPE des logements existants</a>{' : l’effet de l’étiquette sur le prix, région par région.'}</li>
+    </ul>
+    <p class="mesure">{`Barèmes relus le ${relu}. Pour un projet réel, le conseiller France Rénov’ de votre territoire est gratuit et neutre : `}<a href="https://france-renov.gouv.fr" target="_blank" rel="noopener">france-renov.gouv.fr</a>.</p>
+  </div>
+</Base>
+
+<script>
+  import { brancherRenovation } from '../../client/simulateur-renovation.ts';
+  brancherRenovation();
+</script>
+
+<style is:global>
+  .sr-form fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
+  .sr-form legend { font-family: var(--titre); font-weight: 620; font-size: 1.05rem; margin-bottom: .4rem; }
+  .sr-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .7rem 1rem; margin: 0 0 .7rem; }
+  .sr-champs label { display: flex; flex-direction: column; gap: .2rem; font-size: .9rem; }
+  .sr-champs span { display: inline-flex; align-items: center; gap: .4rem; color: var(--encre-douce); }
+  .sr-champs small { color: var(--encre-douce); font-size: .76rem; }
+  .sr-champs input, .sr-champs select {
+    font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait);
+    border-radius: var(--rayon); padding: .35rem .5rem; width: 8.5rem; max-width: 100%; font-variant-numeric: tabular-nums;
+  }
+  .sr-champs select { width: auto; }
+  .sr-cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .3rem 1rem; font-size: .88rem; }
+  .sr-cases input { accent-color: var(--accent); }
+  .sr-bloc-titre { font-family: var(--titre); font-weight: 620; font-size: 1.15rem; margin: 0 0 .6rem; }
+  .sr-chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: .8rem; margin: .4rem 0 .8rem; }
+  .sr-conditions { list-style: none; padding: 0; margin: .3rem 0 .8rem; font-size: .88rem; display: grid; gap: .2rem; }
+  .sr-conditions .oui { color: var(--encre); }
+  .sr-conditions .non { color: var(--defavorable); }
+  .sr-conditions .bientot { color: var(--alerte); }
+</style>

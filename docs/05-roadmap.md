@@ -4168,6 +4168,17 @@ de la commune. Le rapprochement ne regarde que les DPE de la bande de
 latitude de la vente : les 17 minutes de la collecte DVF, estimation et
 mesure régionale comprises, tiennent sur la France entière.
 
+**Rénover : ce que ça coûte, ce que ça rapporte (12 octobre 2026).** Un
+second simulateur, `/simulateurs/renovation` : la valeur de la maison avant
+et après travaux, d'après l'effet de l'étiquette mesuré dans la région ;
+MaPrimeRénov' pour une rénovation d'ampleur au barème des dossiers déposés
+depuis le 1er septembre 2026 (guide de l'Anah, édition septembre 2026, et
+délibération n° 2026-23) ; la décence énergétique pour louer (décret
+n° 2023-796). Les barèmes sont dans `src/modele/bareme-renovation.ts`, avec
+leurs textes et leur date de relecture : à relire à chaque changement de
+l'Anah. Ni économies d'énergie, ni coût des travaux estimé : aucune source
+publique ne les mesure logement par logement, le simulateur part des devis.
+
 **La suite** : une vraie mesure de la précision des terrains ; d'autres
 simulateurs. La vente par une agence ou de particulier à particulier ne se
 mesure pas : aucune donnée publique ne le dit, DVF pas davantage.
