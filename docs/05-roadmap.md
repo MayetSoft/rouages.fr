@@ -4179,6 +4179,18 @@ leurs textes et leur date de relecture : à relire à chaque changement de
 l'Anah. Ni économies d'énergie, ni coût des travaux estimé : aucune source
 publique ne les mesure logement par logement, le simulateur part des devis.
 
+**Frais d'achat : qui touche quoi (12 octobre 2026).** Un troisième
+simulateur, `/simulateurs/frais-achat` : les « frais de notaire » d'un achat,
+poste par poste et bénéficiaire par bénéficiaire — le département au taux
+qu'il a voté (tableau de la DGFiP au 1er juin 2026 : 89 départements sur 101
+à 5 %), la taxe communale et son destinataire (la commune au-delà de 5 000
+habitants, sinon le fonds départemental de péréquation), l'État, le
+notaire ; le surcoût de la hausse votée, l'exonération des primo-accédants,
+le neuf ; et ce que ces droits rapportent au département. Ce que le
+calculateur des notaires ne dit pas : à qui va l'argent, et qui en décide.
+Les taux sont dans `src/modele/bareme-achat.ts`, à mettre à jour à chaque
+tableau de la DGFiP (1er juin et 1er janvier).
+
 **La suite** : une vraie mesure de la précision des terrains ; d'autres
 simulateurs. La vente par une agence ou de particulier à particulier ne se
 mesure pas : aucune donnée publique ne le dit, DVF pas davantage.

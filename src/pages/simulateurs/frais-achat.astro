@@ -1,0 +1,111 @@
+---
+/**
+ * Les frais d'un achat immobilier, et surtout qui les touche : ce qu'on
+ * appelle « frais de notaire » est pour l'essentiel un impôt, voté par le
+ * département. Les taux sont dans `src/modele/bareme-achat.ts`, d'après le
+ * tableau de la DGFiP au 1er juin 2026.
+ */
+import { readFileSync } from 'node:fs';
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import { RELU, SOURCES, TAUX_DEPARTEMENT } from '../../modele/bareme-achat.ts';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+const relu = new Date(`${RELU}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+const majores = Object.values(TAUX_DEPARTEMENT).filter(([m]) => m !== null).length;
+
+// Ce que les droits de mutation rapportent à chaque département, la dernière année publiée : quelques nombres par département, posés dans la page.
+const dmto = JSON.parse(readFileSync('public/territoires/dmto.json', 'utf8')) as { annees: number[]; d: Record<string, { dep: (number | null)[]; com: (number | null)[] }> };
+const i = dmto.annees.length - 1;
+const recettes = { annee: dmto.annees[i], d: Object.fromEntries(Object.entries(dmto.d).map(([k, v]) => [k, { dep: v.dep[i], com: v.com[i] }])) };
+---
+<Base
+  titre="Frais d’achat : qui touche quoi"
+  description="Les « frais de notaire » d’un achat immobilier, poste par poste : ce que touchent le département, les communes, l’État et le notaire, au taux que votre département a voté."
+  section="simulateurs"
+  image="/apercus/frais-achat.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/simulateurs">Simulateurs</a></p>
+    <h1>Frais d’achat&nbsp;: qui touche quoi</h1>
+    <p class="resume">
+      Ce qu’on appelle « frais de notaire » est surtout un impôt&nbsp;: le notaire le collecte, le département
+      en vote le taux. {`${majores} départements sur ${Object.keys(TAUX_DEPARTEMENT).length} l’ont relevé à 5 % depuis 2025.`}
+      Le simulateur dit combien vous paierez, et à qui.
+    </p>
+
+    <div id="sf" class="jeu">
+      <ChampLieuJeu
+        id="sf-lieu"
+        etiquette="La commune du logement"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+
+      <form id="sf-form" class="jeu-carte sf-form" hidden>
+        <p class="jeu-question" id="sf-titre"></p>
+        <label class="sf-prix">Prix d’achat, hors frais <span><input type="number" name="prix" min="0" step="1000" inputmode="numeric" value="150000" /> €</span><small id="sf-median"></small></label>
+        <div class="sf-cases">
+          <label><input type="checkbox" name="primo" /> Premier achat de ma résidence principale (pas propriétaire de ma résidence principale depuis deux ans)</label>
+          <label><input type="checkbox" name="neuf" /> Logement neuf, vendu avec TVA</label>
+        </div>
+      </form>
+
+      <section id="sf-resultat" class="jeu-carte" hidden aria-live="polite">
+        <span class="chiffre" id="sf-total"></span>
+        <span class="chiffre-legende" id="sf-part"></span>
+        <h2 class="sf-titre-postes">Qui touche quoi</h2>
+        <ul class="sf-postes" id="sf-postes"></ul>
+        <p class="jeu-contexte" id="sf-hausse"></p>
+        <p class="jeu-contexte" id="sf-recettes-texte"></p>
+        <p class="jeu-contexte">Non comptés&nbsp;: les débours et les formalités que le notaire avance pour le dossier, et une éventuelle remise sur ses émoluments — à lui demander.</p>
+      </section>
+      <script type="application/json" id="sf-recettes" set:html={JSON.stringify(recettes)} />
+      <noscript><p class="mesure">Le simulateur a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La méthode</h2>
+    <ul class="accueil-themes">
+      <li><strong>Le département</strong>&nbsp;: son taux voté au 1er juin 2026, d’après le tableau de la DGFiP. La loi de finances pour 2025 lui permet de passer de 4,50 à 5 % pour les actes signés du 1er avril 2025 au 31 mars 2028, sauf pour un primo-accédant qui achète sa résidence principale. La Savoie réduit le taux à 4 % pour une première propriété.</li>
+      <li><strong>La commune</strong>&nbsp;: 1,20 % du prix. Une commune de plus de 5&nbsp;000 habitants, ou classée station de tourisme, la perçoit elle-même&nbsp;; pour les autres, elle va au fonds départemental de péréquation, que le conseil départemental répartit entre elles.</li>
+      <li><strong>L’État</strong>&nbsp;: 2,37 % de la part du département pour les frais d’assiette et de recouvrement, et la contribution de sécurité immobilière — 0,10 % du prix, 15&nbsp;€ au moins.</li>
+      <li><strong>Le notaire</strong>&nbsp;: ses émoluments au tarif réglementé — 3,870 % jusqu’à 6&nbsp;500&nbsp;€, 1,596 % jusqu’à 17&nbsp;000&nbsp;€, 1,064 % jusqu’à 60&nbsp;000&nbsp;€, 0,799 % au-delà —, plus 20 % de TVA.</li>
+      <li><strong>Dans le neuf</strong>&nbsp;: 0,70 % pour le département, 2,14 % de frais d’assiette sur cette part, pas de taxe communale&nbsp;; la TVA est dans le prix.</li>
+      <li><strong>En Île-de-France</strong>&nbsp;: la taxe régionale de 0,6 % ne vise que les bureaux, les commerces et les locaux de stockage, pas les logements.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <ul class="mesure b-sources">
+      {Object.values(SOURCES).map((s) => <li><a href={s.url} target="_blank" rel="noopener">{s.titre}</a></li>)}
+      <li><a href="https://data.economie.gouv.fr/explore/dataset/dmto_attrib/" target="_blank" rel="noopener">DGFiP — Droits de mutation attribués aux départements et aux communes</a>{' : ce que ces droits leur rapportent chaque année.'}</li>
+    </ul>
+    <p class="mesure">{`Taux relus le ${relu}. Le notaire reste seul à arrêter le décompte d’un acte.`}</p>
+  </div>
+</Base>
+
+<script>
+  import { brancherFrais } from '../../client/simulateur-frais.ts';
+  brancherFrais();
+</script>
+
+<style is:global>
+  .sf-prix { display: flex; flex-direction: column; gap: .2rem; font-size: .9rem; margin: 0 0 .8rem; }
+  .sf-prix span { display: inline-flex; align-items: center; gap: .4rem; color: var(--encre-douce); }
+  .sf-prix input { font: inherit; font-size: 1.1rem; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .4rem .6rem; width: 10rem; font-variant-numeric: tabular-nums; }
+  .sf-prix small { color: var(--encre-douce); font-size: .8rem; }
+  .sf-cases { display: grid; gap: .35rem; font-size: .88rem; }
+  .sf-cases input { accent-color: var(--accent); }
+  .sf-titre-postes { font-family: var(--titre); font-weight: 620; font-size: 1.1rem; margin: 1.1rem 0 .5rem; }
+  .sf-postes { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .7rem; }
+  .sf-tete { display: flex; align-items: center; gap: .5rem; }
+  .sf-tete strong { margin-left: auto; white-space: nowrap; font-family: var(--titre); font-weight: 650; font-variant-numeric: lining-nums tabular-nums; }
+  .sf-tete .icone { color: var(--encre-douce); }
+  .sf-barre { display: block; height: .45rem; margin: .3rem 0 .2rem; border-radius: 999px; width: calc(var(--part) * 1%); min-width: .45rem; background: var(--barre-budget); }
+  .sf-postes small { display: block; color: var(--encre-douce); font-size: .8rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes sf-remplir { from { width: 0; } }
+    .sf-barre { animation: sf-remplir .7s cubic-bezier(.2, 0, .2, 1) both; }
+  }
+</style>
