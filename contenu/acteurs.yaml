@@ -28,6 +28,7 @@ acteurs:
     nom_court: "Conseil municipal"
     type: assemblee
     echelon: commune
+    releve_de: commune
     resume: "Vote le budget, les délibérations et le PLU. Ses séances sont publiques et ses délibérations communicables."
     liens: [wp-conseil-municipal, cgct, od-rne]
     verifie_le: 2026-09-05
@@ -38,6 +39,7 @@ acteurs:
     nom_court: "Maire"
     type: mandat_electif
     echelon: commune
+    releve_de: commune
     resume: "Exécutif de la commune et, pour certaines missions, agent de l'État : deux casquettes qui changent qui est responsable."
     liens: [wp-maire, cgct, od-rne]
     verifie_le: 2026-09-05
@@ -48,6 +50,9 @@ acteurs:
     nom_court: "Service urbanisme"
     type: service_administratif
     echelon: commune
+    # Rangé sous la commune, qui signe : mutualisé ou assuré par l'État, il
+    # instruit pour elle (voir la réserve de la compétence).
+    releve_de: commune
     resume: "Instruit les demandes d'autorisation. Municipal, mutualisé à l'intercommunalité, ou assuré par l'État selon la taille de la commune."
     liens: [cu-r423-19, od-banatic]
     verifie_le: 2026-09-05
@@ -58,6 +63,7 @@ acteurs:
     nom_court: "Police municipale"
     type: service_administratif
     echelon: commune
+    releve_de: commune
     resume: "Placée sous l'autorité du maire, aux pouvoirs distincts de ceux de la police nationale ou de la gendarmerie."
     liens: [code-securite-interieure, cgct, csi-l511-1]
     verifie_le: 2026-09-22
@@ -79,6 +85,7 @@ acteurs:
     nom_court: "Conseil communautaire"
     type: assemblee
     echelon: epci
+    releve_de: epci
     resume: "Composé d'élus municipaux, il décide sur les compétences transférées — souvent celles qui pèsent le plus sur la facture."
     liens: [wp-intercommunalite, cgct, od-rne]
     verifie_le: 2026-09-05
@@ -110,6 +117,7 @@ acteurs:
     nom_court: "Conseil dép."
     type: assemblee
     echelon: departement
+    releve_de: departement
     resume: "Assemblée élue par canton, qui vote un budget dont l'action sociale représente la plus grosse part."
     liens: [wp-conseil-departemental, od-rne, od-ofgl]
     verifie_le: 2026-09-05
@@ -120,6 +128,8 @@ acteurs:
     nom_court: "Pompiers"
     type: service_administratif
     echelon: departement
+    # Pas de « releve_de » : un établissement public à part, que le département
+    # et les communes financent et administrent ensemble.
     # « Dirigé par le préfet » était faux d'une moitié des interventions : le
     # service agit sous l'autorité du maire ou du préfet selon le pouvoir de
     # police en cause (art. L1424-3 et L1424-4). C'est le maire qu'on trouve
@@ -145,6 +155,7 @@ acteurs:
     nom_court: "Conseil régional"
     type: assemblee
     echelon: region
+    releve_de: region
     resume: "Assemblée élue au scrutin de liste régional. Elle adopte le schéma régional d'aménagement, que le préfet approuve, et elle seule définit les aides aux entreprises dans la région."
     liens: [wp-conseil-regional, od-rne, cgct-l4251-7, cgct-l1511-2]
     verifie_le: 2026-09-23
@@ -156,6 +167,9 @@ acteurs:
     type: service_deconcentre
     echelon: region
     pouvoirs: [executif]
+    # Un établissement public de l'État (code de la santé publique, L. 1432-1) :
+    # il agit en région et relève de l'État — la boîte « L'État en région ».
+    releve_de: etat
     resume: "Pilote l'offre de soins dans la région : autorisations d'activité, hôpitaux, prévention."
     liens: [wp-ars, ars-gouv, od-finess]
     verifie_le: 2026-09-05
@@ -179,6 +193,7 @@ acteurs:
     type: mandat_electif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Représentant de l'État dans le département : ordre public, gestion de crise, et contrôle de légalité des actes des collectivités."
     liens: [wp-prefet, cgct, prefectures]
     verifie_le: 2026-09-05
@@ -190,6 +205,7 @@ acteurs:
     type: service_deconcentre
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Services de l'Éducation nationale : enseignants, programmes, ouvertures et fermetures de classes."
     liens: [wp-rectorat, code-education, education-gouv]
     verifie_le: 2026-09-05
@@ -205,6 +221,7 @@ acteurs:
     type: service_deconcentre
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Rend un avis, parfois conforme, sur les projets situés en périmètre de protection du patrimoine."
     liens: [wp-abf, code-patrimoine, cpat-l632-2, cpat-l621-30]
     verifie_le: 2026-09-22
@@ -218,6 +235,8 @@ acteurs:
     nom_court: "CAF"
     type: service_administratif
     echelon: etat
+    # Pas de « releve_de » : un organisme de sécurité sociale de droit privé,
+    # chargé d'un service public sous la tutelle de l'État, n'est pas l'État.
     pouvoirs: [executif]
     resume: "Verse les prestations familiales et sociales, dont le RSA financé par le département."
     liens: [wp-caf, caf-fr, code-action-sociale, caf-rsa]
@@ -230,6 +249,8 @@ acteurs:
     type: service_administratif
     echelon: etat
     pouvoirs: [executif]
+    # Un établissement public de l'État, sous la tutelle du ministre de l'écologie.
+    releve_de: etat
     resume: "Établissement de bassin qui perçoit des redevances sur l'eau et subventionne les travaux des collectivités."
     liens: [wp-agence-eau, code-environnement, eaufrance, ce-l213-8]
     verifie_le: 2026-09-22
@@ -241,6 +262,7 @@ acteurs:
     type: juridiction
     echelon: etat
     pouvoirs: [judiciaire]
+    releve_de: etat
     resume: "Juge les litiges entre les particuliers et l'administration, dont les recours contre les autorisations d'urbanisme."
     liens: [wp-tribunal-administratif, sp-recours-urbanisme]
     verifie_le: 2026-09-05
@@ -253,6 +275,7 @@ acteurs:
     type: assemblee
     echelon: etat
     pouvoirs: [legislatif]
+    releve_de: etat
     resume: "577 députés élus au suffrage universel direct : ils votent la loi et le budget de l'État, et peuvent renverser le Gouvernement."
     liens: [wp-assemblee-nationale, an-fr, vp-parlement, od-nosdeputes]
     verifie_le: 2026-09-06
@@ -264,6 +287,7 @@ acteurs:
     type: assemblee
     echelon: etat
     pouvoirs: [legislatif]
+    releve_de: etat
     resume: "348 sénateurs élus par des grands électeurs très majoritairement issus des conseils municipaux ; la Constitution lui confie la représentation des collectivités territoriales."
     liens: [wp-senat, senat-fr, constitution, od-senat]
     verifie_le: 2026-09-06
@@ -275,6 +299,7 @@ acteurs:
     type: mandat_electif
     echelon: etat
     pouvoirs: [legislatif]
+    releve_de: etat
     resume: "Élu d'une circonscription pour cinq ans : il vote la loi, contrôle le Gouvernement, et reste le relais national des communes de son territoire."
     liens: [wp-depute, an-fr, od-nosdeputes]
     verifie_le: 2026-09-06
@@ -286,6 +311,7 @@ acteurs:
     type: mandat_electif
     echelon: etat
     pouvoirs: [legislatif]
+    releve_de: etat
     resume: "Élu pour six ans par les grands électeurs du département ; les textes portant sur l'organisation des collectivités territoriales lui sont soumis en premier."
     liens: [wp-senateur, senat-fr, constitution]
     verifie_le: 2026-09-06
@@ -298,6 +324,7 @@ acteurs:
     type: mandat_electif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Élu pour cinq ans au suffrage universel direct : il nomme le Premier ministre, promulgue les lois et peut dissoudre l'Assemblée nationale."
     liens: [wp-president-republique, elysee-fr, constitution]
     verifie_le: 2026-09-06
@@ -309,6 +336,7 @@ acteurs:
     type: organe_collegial
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Le Premier ministre et les ministres : ils déterminent et conduisent la politique de la nation, et disposent de l'administration pour l'appliquer."
     liens: [wp-gouvernement, gouvernement-fr, constitution]
     verifie_le: 2026-09-06
@@ -320,6 +348,7 @@ acteurs:
     type: service_administratif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Les directions des ministères : elles préparent les textes, répartissent les crédits et pilotent les services déconcentrés qui appliquent la règle sur le terrain."
     liens: [wp-gouvernement, gouvernement-fr, od-annuaire-administration, charte-deconcentration]
     verifie_le: 2026-09-22
@@ -335,6 +364,7 @@ acteurs:
     type: juridiction
     echelon: etat
     pouvoirs: [judiciaire, executif]
+    releve_de: etat
     resume: "Deux fonctions à la fois : conseil juridique obligatoire du Gouvernement sur les projets de loi et d'ordonnance, et juge suprême de l'ordre administratif."
     liens: [wp-conseil-etat, conseil-etat-fr, code-justice-administrative, constitution]
     verifie_le: 2026-09-06
@@ -349,6 +379,7 @@ acteurs:
     type: juridiction
     echelon: etat
     pouvoirs: [judiciaire]
+    releve_de: etat
     resume: "La plus haute juridiction de l'ordre judiciaire. Elle ne rejuge pas les faits : elle vérifie que la loi a été correctement appliquée, et filtre les questions de constitutionnalité posées devant les juges judiciaires."
     liens: [justice-cour-cassation, cc-qpc-questions, code-organisation-judiciaire]
     verifie_le: 2026-09-23
@@ -360,6 +391,7 @@ acteurs:
     type: juridiction
     echelon: etat
     pouvoirs: [judiciaire]
+    releve_de: etat
     resume: "Réexamine les jugements des tribunaux administratifs, dont ceux rendus sur les autorisations d'urbanisme, avant un éventuel pourvoi au Conseil d'État."
     liens: [wp-cour-administrative-appel, code-justice-administrative, conseil-etat-fr]
     verifie_le: 2026-09-06
@@ -371,6 +403,7 @@ acteurs:
     type: juridiction
     echelon: etat
     pouvoirs: [judiciaire]
+    releve_de: etat
     resume: "Juge les litiges entre personnes privées et les infractions pénales : l'autre ordre de juridiction, distinct de celui qui juge l'administration."
     liens: [wp-tribunal-judiciaire, code-organisation-judiciaire, justice-fr, wp-ordres-juridiction]
     verifie_le: 2026-09-06
@@ -382,6 +415,7 @@ acteurs:
     type: juridiction
     echelon: etat
     pouvoirs: [judiciaire]
+    releve_de: etat
     resume: "Juge les comptes publics et contrôle l'emploi des fonds, en assistant le Parlement comme le Gouvernement ; les chambres régionales font ce travail pour les collectivités."
     liens: [wp-cour-comptes, ccomptes, code-juridictions-financieres, constitution]
     verifie_le: 2026-09-06
@@ -393,6 +427,7 @@ acteurs:
     type: juridiction
     echelon: etat
     pouvoirs: [judiciaire]
+    releve_de: etat
     resume: "Contrôle la conformité des lois à la Constitution, avant promulgation ou sur question prioritaire de constitutionnalité ; il n'appartient à aucun des deux ordres de juridiction."
     liens: [wp-conseil-constitutionnel, conseil-constitutionnel-fr, constitution]
     verifie_le: 2026-09-06
@@ -408,6 +443,7 @@ acteurs:
     type: autorite_independante
     echelon: etat
     pouvoirs: [independant]
+    releve_de: etat
     resume: "Autorité inscrite dans la Constitution, que toute personne peut saisir gratuitement en cas de litige avec un service public ou de discrimination."
     liens: [wp-defenseur-droits, defenseur-droits, constitution]
     verifie_le: 2026-09-06
@@ -419,6 +455,7 @@ acteurs:
     type: autorite_independante
     echelon: etat
     pouvoirs: [independant]
+    releve_de: etat
     resume: "Contrôle l'usage des données personnelles, y compris par les administrations et les collectivités, et peut être saisie par toute personne concernée."
     liens: [wp-cnil, cnil-fr, loi-aai, wp-aai]
     verifie_le: 2026-09-06
@@ -445,6 +482,7 @@ acteurs:
     type: service_deconcentre
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Compétente en zone rurale et périurbaine, soit environ la moitié de la population et la quasi-totalité du territoire ; on y dépose plainte comme au commissariat."
     liens: [wp-gendarmerie, annuaire-gendarmerie, sp-porter-plainte]
     verifie_le: 2026-09-11
@@ -456,6 +494,7 @@ acteurs:
     type: service_deconcentre
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Compétente en zone urbaine, où elle remplace la gendarmerie ; distincte de la police municipale, qui dépend du maire et n'a pas les mêmes pouvoirs."
     liens: [wp-police-nationale, annuaire-police, sp-porter-plainte]
     verifie_le: 2026-09-11
@@ -468,6 +507,7 @@ acteurs:
     type: service_deconcentre
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     # Le critère n'est pas l'absence de document d'urbanisme, comme cette fiche
     # le disait, mais la population : sous dix mille habitants et hors d'une
     # intercommunalité qui les atteint, la commune peut demander gratuitement
@@ -484,6 +524,7 @@ acteurs:
     type: service_deconcentre
     echelon: region
     pouvoirs: [executif]
+    releve_de: etat
     # C'est le préfet qui autorise une installation classée, pas la DREAL :
     # elle en instruit le dossier et l'inspecte ensuite. La distinction compte
     # pour qui cherche à qui s'adresser — on écrit au préfet, on est contrôlé
@@ -503,6 +544,7 @@ acteurs:
     type: service_deconcentre
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Calcule et recouvre l'impôt, et tient les comptes de la commune : le maire engage la dépense, le comptable public la paie — la séparation est la règle."
     liens: [wp-dgfip, impots-gouv, cgct, decret-gbcp]
     verifie_le: 2026-09-22
@@ -525,6 +567,7 @@ acteurs:
     type: autorite_independante
     echelon: etat
     pouvoirs: [independant]
+    releve_de: etat
     resume: "Autorité indépendante saisie gratuitement pour un litige avec un fournisseur d'électricité ou de gaz, après une réclamation restée sans réponse."
     liens: [wp-mediateur-energie, mediateur-energie-fr, code-energie]
     verifie_le: 2026-09-11
@@ -537,6 +580,7 @@ acteurs:
     type: service_administratif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Finance la rénovation des logements privés — énergie, adaptation au grand âge, habitat dégradé — sous conditions de ressources."
     liens: [wp-anah, anah-fr, code-construction, anah-aides]
     verifie_le: 2026-09-22
@@ -548,6 +592,7 @@ acteurs:
     type: service_administratif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Apporte de l'ingénierie aux collectivités qui n'en ont pas les moyens : c'est l'interlocuteur des petites communes sans bureau d'études."
     liens: [wp-anct, anct-fr, anct-ingenierie]
     verifie_le: 2026-09-22
@@ -559,6 +604,7 @@ acteurs:
     type: service_administratif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Subventionne et conseille les projets de transition écologique, des collectivités comme des entreprises."
     liens: [wp-ademe, ademe-fr, code-environnement, ademe-aides]
     verifie_le: 2026-09-22
@@ -601,6 +647,7 @@ acteurs:
     nom_court: "Parlement européen"
     type: assemblee
     echelon: union_europeenne
+    releve_de: union-europeenne
     resume: "Élu au suffrage universel direct pour cinq ans, il adopte avec le Conseil les règlements, les directives et le budget de l'Union, et élit le président de la Commission."
     liens: [wp-parlement-europeen, traite-ue, europarl]
     verifie_le: 2026-10-12
@@ -611,6 +658,7 @@ acteurs:
     nom_court: "Conseil de l'Union"
     type: organe_collegial
     echelon: union_europeenne
+    releve_de: union-europeenne
     resume: "Un ministre par État membre, selon le sujet traité : il adopte avec le Parlement les règlements, les directives et le budget. Pour la France, c'est le ministre compétent qui siège et vote."
     liens: [wp-conseil-ue, traite-ue]
     verifie_le: 2026-10-12
@@ -621,6 +669,7 @@ acteurs:
     nom_court: "Commission européenne"
     type: organe_collegial
     echelon: union_europeenne
+    releve_de: union-europeenne
     resume: "Propose les textes européens, exécute le budget et veille à l'application du droit de l'Union, jusqu'à poursuivre devant la Cour un État qui ne le respecte pas."
     liens: [wp-commission-europeenne, traite-ue, traite-fue, commission-europa]
     verifie_le: 2026-10-12
@@ -631,6 +680,7 @@ acteurs:
     nom_court: "Conseil européen"
     type: organe_collegial
     echelon: union_europeenne
+    releve_de: union-europeenne
     resume: "Les chefs d'État ou de gouvernement : il fixe les orientations et les priorités de l'Union, sans adopter de lois — le traité le dit en toutes lettres."
     liens: [wp-conseil-europeen, traite-ue]
     verifie_le: 2026-10-12
@@ -643,6 +693,7 @@ acteurs:
     nom_court: "Cour de justice (Union)"
     type: juridiction
     echelon: union_europeenne
+    releve_de: union-europeenne
     resume: "Dit le droit de l'Union : un juge français peut lui poser une question d'interprétation — le dernier juge saisi le doit, en cas de doute —, et elle constate les manquements des États."
     liens: [wp-cour-justice-ue, traite-ue, traite-fue, curia]
     verifie_le: 2026-10-12
@@ -692,6 +743,7 @@ acteurs:
     type: autorite_independante
     echelon: etat
     pouvoirs: [independant]
+    releve_de: etat
     resume: "Autorité que l'on saisit gratuitement quand une administration refuse de communiquer un document ; elle rend un avis."
     liens: [wp-cada, cada, crpa, vp-aai]
     verifie_le: 2026-09-05
@@ -720,6 +772,9 @@ acteurs:
     nom_court: "CCAS"
     type: service_administratif
     echelon: commune
+    # Un établissement public administratif communal, présidé par le maire :
+    # il a sa personnalité juridique, mais il est la commune qui agit en social.
+    releve_de: commune
     resume: "Établissement public distinct de la commune, obligatoire au-dessus de 1 500 habitants : il mène l’aide sociale de proximité et participe à l’instruction des demandes d’aide légale, que le département décide."
     liens: [wp-ccas, code-action-sociale, unccas, casf-l123-4, casf-l123-5, od-ofgl-ccas]
     verifie_le: 2026-09-22
@@ -731,6 +786,8 @@ acteurs:
     type: juridiction
     echelon: region
     pouvoirs: [judiciaire]
+    # Une juridiction financière de l'État, qui siège en région.
+    releve_de: etat
     resume: "Contrôle les comptes et la gestion des collectivités, examine leurs budgets à la demande du préfet, évalue des politiques publiques depuis 2022, et publie ses rapports. Elle ne juge plus seule les comptables publics depuis 2023."
     liens: [wp-crc, code-juridictions-financieres, ccomptes, cc-participation-crtc, ordonnance-gestionnaires-publics]
     verifie_le: 2026-09-23
@@ -878,6 +935,7 @@ acteurs:
     nom_court: "Président du département"
     type: mandat_electif
     echelon: departement
+    releve_de: departement
     resume: "Élu par les conseillers départementaux, il dirige l'exécutif : c'est lui qui signe les décisions d'aide sociale et qui ordonne les dépenses."
     liens: [wp-conseil-departemental, cgct, cl-gouv, cgct-l3221-1]
     verifie_le: 2026-09-22
@@ -891,6 +949,7 @@ acteurs:
     nom_court: "MDPH"
     type: service_administratif
     echelon: departement
+    # Pas de « releve_de » : un groupement d'intérêt public, personne morale à part.
     resume: "Guichet unique du handicap : c'est là que se dépose une demande, et une commission y décide des droits et des orientations."
     liens: [wp-mdph, code-action-sociale, casf-l146-3]
     verifie_le: 2026-09-22
@@ -901,6 +960,7 @@ acteurs:
     nom_court: "PMI"
     type: service_administratif
     echelon: departement
+    releve_de: departement
     resume: "Consultations gratuites pour les femmes enceintes et les enfants de moins de six ans, et contrôle des assistantes maternelles et des crèches."
     liens: [wp-pmi, code-action-sociale, csp-l2112-2, casf-l421-3]
     verifie_le: 2026-09-22
@@ -911,6 +971,7 @@ acteurs:
     nom_court: "Président de région"
     type: mandat_electif
     echelon: region
+    releve_de: region
     resume: "Élu par les conseillers régionaux, il dirige l'exécutif de la région : lycées, trains régionaux, formation professionnelle, fonds européens."
     liens: [wp-conseil-regional, cgct, cl-gouv, cgct-l4231-1]
     verifie_le: 2026-09-22
@@ -925,6 +986,7 @@ acteurs:
     type: service_administratif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Ex-Pôle emploi : inscription, indemnisation et accompagnement. Depuis 2025, les allocataires du revenu de solidarité active y sont inscrits, puis orientés vers la structure qui les suivra — France Travail, le département ou la mission locale."
     liens: [wp-france-travail, france-travail-fr, code-travail, ft-inscription-2025]
     verifie_le: 2026-09-22
@@ -954,6 +1016,7 @@ acteurs:
     type: service_administratif
     echelon: etat
     pouvoirs: [executif]
+    releve_de: etat
     resume: "Établissement public sous tutelle du ministère de l'Agriculture : il instruit les appellations d'origine et les indications géographiques que demandent les organismes de défense et de gestion, délimite leurs aires et contrôle le respect des cahiers des charges."
     liens: [wp-inao, inao-gouv, od-inao-aires]
     verifie_le: 2026-10-01

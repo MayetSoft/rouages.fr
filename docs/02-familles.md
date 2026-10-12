@@ -173,6 +173,58 @@ dataient du socle : le tribunal administratif et la chambre régionale des
 comptes étaient tous deux déclarés `service_deconcentre`. Un service déconcentré
 est un bras de l'exécutif, ce qu'une juridiction n'est précisément pas.
 
+## La colonne et la boîte : où l'on agit, à qui l'on appartient
+
+Décision du 12 octobre 2026, à la demande du mainteneur, qui avait relevé que
+la carte montrait « L'Union européenne » à côté de ses propres institutions.
+
+**Deux axes étaient confondus.** La colonne dit *où* un acteur agit — commune,
+intercommunalité, département, région, État, Union. Mais chaque colonne
+mêlait trois choses : l'entité elle-même (la commune, la région, l'État,
+l'Union, qui sont des personnes morales), ses organes (le conseil, l'exécutif,
+les services), et des acteurs rangés là par géographie qui n'en font pas
+partie — l'ARS et la DREAL agissent en région et relèvent de l'État ; le CAUE
+est une association, le SDIS un établissement public à part.
+
+**L'entité n'est pas un faux nœud.** Elle reçoit des impôts, verse des
+dotations, porte des compétences : la retirer du graphe ferait mentir les
+flux. C'est son *dessin* qui était faux — une pastille parmi ses propres
+parties.
+
+**La règle** :
+
+- chaque acteur qui est un organe, un service ou un établissement public d'une
+  entité le déclare dans `releve_de` ; `scripts/valider.ts` vérifie que
+  l'entité existe, qu'elle est une collectivité au sens large (l'État et
+  l'Union compris) et qu'elle ne relève elle-même de personne — un seul
+  niveau ;
+- un acteur qui est une personne morale à part n'a pas de `releve_de` : les
+  syndicats, les associations, la CAF (organisme de sécurité sociale de droit
+  privé), le SDIS, la MDPH (groupement d'intérêt public). La raison est écrite
+  en commentaire dans `contenu/acteurs.yaml` quand elle n'est pas évidente ;
+- un établissement public rattaché à une entité en relève quand il est
+  l'entité qui agit — le CCAS est la commune en matière sociale, l'ARS l'État
+  en matière de santé.
+
+**Le dessin** (`src/modele/reseau.ts`, `disposerCarte`) :
+
+- dans chaque colonne, une boîte par entité ; son nœud en est l'en-tête,
+  cliquable comme les autres, et ses liens partent de lui ; ses organes sont
+  dedans ;
+- la boîte de l'État se subdivise par branche du pouvoir (`pouvoirs`, la
+  première déclarée) ;
+- les organes d'une entité qui agissent dans une autre colonne y forment une
+  boîte en pointillés : « L'État en région » ;
+- les acteurs qui ne relèvent de personne viennent en dessous, sans boîte.
+
+Le graphe, lui, ne change pas : mêmes nœuds, mêmes arêtes, mêmes propriétés
+(`npm run verifier-reseau`). Seul le dessin de la carte d'ensemble change.
+
+**Ce qui reste ouvert** : le préfet, la DDT, l'architecte des Bâtiments de
+France agissent dans le département, et restent rangés dans la colonne de
+l'État ; les déplacer dans une boîte « L'État dans le département » est une
+décision de contenu à prendre à part.
+
 ## Quand la loi répond avant le registre
 
 BANATIC enregistre les transferts *déclarés*. Il en manque beaucoup : **54 %

@@ -195,6 +195,19 @@ for (const a of g.acteurs.values()) {
   }
 }
 
+// À qui appartient un acteur : une entité qui existe, qui est une collectivité
+// (au sens large : l'État et l'Union compris), et qui n'appartient elle-même à
+// personne. Un niveau, pas une arborescence : la carte dessine une boîte par
+// entité, et une boîte dans une boîte d'une autre colonne ne se dessine pas.
+for (const a of g.acteurs.values()) {
+  if (!a.releve_de) continue;
+  const p = g.acteurs.get(a.releve_de);
+  if (!p) erreurs.push(`acteur « ${a.id} » : relève d'une entité inconnue « ${a.releve_de} »`);
+  else if (p.id === a.id) erreurs.push(`acteur « ${a.id} » : ne peut relever de lui-même`);
+  else if (p.type !== 'collectivite') erreurs.push(`acteur « ${a.id} » : relève de « ${p.id} », qui n'est pas une collectivité`);
+  else if (p.releve_de) erreurs.push(`acteur « ${a.id} » : relève de « ${p.id} », qui relève lui-même de « ${p.releve_de} » — un seul niveau`);
+}
+
 // Mécanismes, jamais de personnes — dans tout le contenu, plus seulement dans
 // la famille « influence ».
 //
