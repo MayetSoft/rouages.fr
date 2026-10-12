@@ -26,6 +26,7 @@ const IMAGES = [
   ['argent', 'Rouages · Jeux', 'Où va l’argent ?', 'Cinq missions du budget de l’État, de la plus grosse à la plus petite.', ['vert', 'jaune', 'vert', 'rouge', 'vert']],
   ['simulateurs', 'Rouages · Simulateurs', 'Simulateurs', 'Un calcul sur les données publiques, à partir de ce que vous saisissez — avec sa précision mesurée.', []],
   ['estimation', 'Rouages · Simulateurs', 'Estimer un bien ou un terrain', 'L’habitable, le terrain, les terres, les bois : chaque part au prix des ventes réelles autour de chez vous.', []],
+  ['renovation', 'Rouages · Simulateurs', 'Rénover : ce que ça coûte, ce que ça rapporte', 'MaPrimeRénov’, le reste à charge, et le gain de valeur mesuré sur les ventes de votre région.', []],
 ];
 const COULEUR = { vert: '#2e9e5b', jaune: '#e6b422', orange: '#e8762c', rouge: '#cf3b2f' };
 
