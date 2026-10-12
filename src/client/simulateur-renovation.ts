@@ -21,6 +21,19 @@ import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type Op
 type Estimation = [number | null, number | null, ...unknown[]];
 type EffetsDpe = { multiplicateurs: Record<string, number>; ventes: number; ecart: [number, number]; portee: string };
 type Fichier = { annees: number[]; dpe: EffetsDpe | null; c: Record<string, Estimation> };
+/** Voir `src/pages/simulateurs/aides-locales/[dep].json.ts`. */
+type AideVue = {
+  intitule: string;
+  porteur: string;
+  montant: string | null;
+  etat: 'ouverte' | 'a_confirmer' | 'a_reverifier';
+  demarche: string | null;
+  avant: boolean | null;
+  /** 1 : une aide aux propriétaires occupants pour rénover, le cas du simulateur. */
+  pour: 0 | 1;
+};
+type FichierAides = { aides: Record<string, AideVue>; c: Record<string, [string[], string[]]> };
+const LIBELLE_ETAT = { ouverte: 'en vigueur', a_confirmer: 'à confirmer auprès du guichet', a_reverifier: 'à revérifier' } as const;
 
 const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
 const euros = (x: number) => `${Math.round(x).toLocaleString('fr-FR')} €`;
@@ -149,6 +162,58 @@ export function brancherRenovation(): void {
 
   form.addEventListener('input', calculer);
 
+  /** Les aides locales de la commune, s'il y en a au registre pour ce département. */
+  const montrerAidesLocales = async (cle: string) => {
+    const bloc = $('sr-locales');
+    bloc.hidden = true;
+    let fa: FichierAides;
+    try {
+      const r = await fetch(`/simulateurs/aides-locales/${dep}.json`);
+      if (!r.ok) return;
+      fa = (await r.json()) as FichierAides;
+    } catch {
+      return;
+    }
+    const [ici, hors] = fa.c[cle.slice(4)] ?? [[], []];
+    if (ici.length + hors.length === 0) return;
+    const liste = $('sr-locales-liste');
+    liste.innerHTML = '';
+    const el = (tag: string, cls: string, texte = '') => Object.assign(document.createElement(tag), { className: cls, textContent: texte });
+    // En bref : le détail, les conditions et les sources sont sur la page de la commune.
+    const rang = { ouverte: 0, a_reverifier: 1, a_confirmer: 2 } as const;
+    const pertinentes = ici.filter((id) => fa.aides[id].pour === 1);
+    for (const id of pertinentes.sort((x, y) => rang[fa.aides[x].etat] - rang[fa.aides[y].etat])) {
+      const a = fa.aides[id];
+      const li = el('li', 'al-aide');
+      const tete = el('p', 'al-tete');
+      tete.append(el('strong', '', a.intitule), el('span', `al-etat al-etat--${a.etat}`, LIBELLE_ETAT[a.etat]));
+      li.append(tete, el('p', 'al-qui', a.porteur));
+      li.append(a.montant ? el('p', 'al-montant', a.montant) : el('p', 'al-montant al-montant--inconnu', 'Montant non publié : à demander au guichet.'));
+      if (a.avant || a.demarche) {
+        const d = el('p', 'al-demarche', a.avant ? 'À demander avant tout début de travaux. ' : '');
+        if (a.demarche) d.append(Object.assign(document.createElement('a'), { href: a.demarche, textContent: 'Comment la demander' }));
+        li.append(d);
+      }
+      liste.append(li);
+    }
+    const autres = ici.length - pertinentes.length;
+    const detail = el(
+      'p',
+      'al-note',
+      `${autres > 0 ? `${autres} autre${autres > 1 ? 's' : ''} aide${autres > 1 ? 's' : ''} locale${autres > 1 ? 's' : ''} ici — pour les bailleurs, l’adaptation, la vacance, les façades… ` : ''}Le périmètre, le guichet, les conditions et les sources de chaque aide : `,
+    );
+    detail.append(Object.assign(document.createElement('a'), { href: `/commune/${cle.slice(2)}#aides-locales`, textContent: 'la page de la commune' }), '.');
+    liste.after(detail);
+    $('sr-locales').querySelectorAll('.al-note').forEach((n, i, t) => i < t.length - 1 && n.remove());
+    const p = $('sr-locales-hors');
+    p.hidden = hors.length === 0;
+    p.textContent = hors.length
+      ? `Ne valent pas ici, la commune étant hors de leur périmètre : ${hors.map((id) => `${fa.aides[id].intitule} (${fa.aides[id].porteur})`).join(' ; ')}.`
+      : '';
+    if (pertinentes.length === 0) liste.append(el('li', 'al-montant--inconnu', 'Aucune aide locale à la rénovation des propriétaires occupants n’est recensée pour cette commune.'));
+    bloc.hidden = false;
+  };
+
   const preparer = async (cle: string) => {
     lieu = await resoudre(cle, LIEUX).catch(() => null);
     if (!lieu) return message('Cherchez la commune du logement par son nom ou son code postal.');
@@ -168,6 +233,7 @@ export function brancherRenovation(): void {
         : `L’effet de l’étiquette sur les prix n’est pas mesuré ${aLieu(lieu.nom)} — trop peu de ventes rapprochées d’un DPE dans la région : seules l’aide et la location sont calculées.`,
     );
     $('sr-titre').textContent = aLieu(lieu.nom).replace(/^./, (x) => x.toUpperCase());
+    void montrerAidesLocales(lieu.cle);
     if (!restaure) {
       restaurerSaisie(form);
       restaure = true;
