@@ -4191,6 +4191,27 @@ calculateur des notaires ne dit pas : à qui va l'argent, et qui en décide.
 Les taux sont dans `src/modele/bareme-achat.ts`, à mettre à jour à chaque
 tableau de la DGFiP (1er juin et 1er janvier).
 
+**Louer : ce que ça rapporte (12 octobre 2026).** Un quatrième simulateur,
+`/simulateurs/locatif` : le rendement brut et net, avant impôt, d'un
+logement mis en location. Le prix est prérempli avec le prix médian au m²
+des ventes de la commune (ou du département), le loyer avec la carte des
+loyers (charges comprises, avec sa fourchette) ; les frais d'achat suivent
+le taux voté par le département ; l'étiquette énergétique dit jusqu'à quand
+le logement peut être loué ; un crédit facultatif donne la mensualité et ce
+qui reste chaque mois. Les données viennent de
+`/simulateurs/locatif/XX.json`, produit au build depuis les fichiers que
+publient déjà les pages de commune. Ni fiscalité, ni encadrement des loyers.
+
+**Le rapport d'un simulateur (12 octobre 2026).** Chaque simulateur porte un
+bouton « Télécharger le rapport (PDF) » : la page imprimée par le
+navigateur, avec une mise en page dédiée — titre, date, référence, la saisie
+en tableau, les résultats, la méthode, les sources avec leurs adresses, et le
+lien qui refait le même calcul (la saisie est mise dans l'adresse ; « Copier
+le lien de ce calcul » la donne aussi). Rien ne part d'ici : le rapport se
+fabrique sur l'appareil. C'est la base d'une offre professionnelle — rapport
+daté et sourcé à remettre à une banque ou un notaire ; un rapport signé ou
+horodaté par un tiers demanderait un serveur, que le site n'a pas.
+
 **La suite** : une vraie mesure de la précision des terrains ; d'autres
 simulateurs. La vente par une agence ou de particulier à particulier ne se
 mesure pas : aucune donnée publique ne le dit, DVF pas davantage.

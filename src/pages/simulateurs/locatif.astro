@@ -1,0 +1,131 @@
+---
+/**
+ * La rentabilité d'un logement mis en location : le prix et le loyer
+ * préremplis d'après les ventes et la carte des loyers, les frais d'achat au
+ * taux voté par le département, et l'étiquette énergétique au regard de la
+ * décence — avant impôt, sans rien supposer de la fiscalité de chacun.
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import { ETIQUETTES, SOURCES as SR } from '../../modele/bareme-renovation.ts';
+import { SOURCES as SA } from '../../modele/bareme-achat.ts';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Louer : ce que ça rapporte"
+  description="Le rendement d’un logement mis en location : prix et loyer d’après les ventes et la carte des loyers de votre commune, frais d’achat au taux du département, et ce que l’étiquette énergétique permet encore."
+  section="simulateurs"
+  image="/apercus/locatif.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/simulateurs">Simulateurs</a></p>
+    <h1>Louer&nbsp;: ce que ça rapporte</h1>
+    <p class="resume">
+      Le prix et le loyer sont préremplis d’après les ventes et les annonces de votre commune&nbsp;; les frais
+      d’achat suivent le taux voté par le département&nbsp;; l’étiquette énergétique dit jusqu’à quand le logement
+      peut être loué. Le rendement est donné avant impôt&nbsp;: la fiscalité dépend de chacun.
+    </p>
+
+    <div id="sl" class="jeu">
+      <ChampLieuJeu
+        id="sl-lieu"
+        etiquette="La commune du logement"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+      <p id="sl-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <form id="sl-form" class="jeu-carte sr-form" hidden>
+        <p class="jeu-question" id="sl-titre"></p>
+        <fieldset>
+          <legend>Le logement</legend>
+          <div class="sr-champs">
+            <label>Type
+              <select name="type"><option value="appartement">Appartement</option><option value="maison">Maison</option></select>
+            </label>
+            <label>Surface habitable <span><input type="number" name="surface" min="0" step="1" inputmode="numeric" value="52" /> m²</span></label>
+            <label>Étiquette énergétique
+              <select name="dpe"><option value="">Je ne sais pas</option>{ETIQUETTES.map((x) => <option>{x}</option>)}</select>
+            </label>
+          </div>
+          <p class="jeu-contexte" id="sl-references"></p>
+        </fieldset>
+        <fieldset>
+          <legend>L’achat et la location</legend>
+          <div class="sr-champs">
+            <label>Prix d’achat <span><input type="number" name="prix" min="0" step="1000" inputmode="numeric" /> €</span></label>
+            <label>Travaux <span><input type="number" name="travaux" min="0" step="500" inputmode="numeric" value="0" /> €</span></label>
+            <label>Loyer mensuel, charges comprises <span><input type="number" name="loyer" min="0" step="10" inputmode="numeric" /> €</span></label>
+            <label>Mois vacants par an <span><input type="number" name="vacance" min="0" max="12" step="0.5" inputmode="decimal" value="0" /></span></label>
+            <label>Gestion par une agence <span><input type="number" name="gestion" min="0" max="100" step="0.5" inputmode="decimal" value="0" /> % des loyers</span></label>
+            <label>Charges, assurance et taxe foncière <span><input type="number" name="charges" min="0" step="50" inputmode="numeric" value="0" /> € par an</span><small>tout ce que vous payez, charges récupérables comprises : le loyer de la carte les inclut</small></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Le crédit, s’il y en a un</legend>
+          <div class="sr-champs">
+            <label>Apport <span><input type="number" name="apport" min="0" step="1000" inputmode="numeric" value="0" /> €</span></label>
+            <label>Taux <span><input type="number" name="taux" min="0" step="0.05" inputmode="decimal" placeholder="votre offre" /> %</span></label>
+            <label>Durée <span><input type="number" name="duree" min="0" step="1" inputmode="numeric" value="0" /> ans</span></label>
+          </div>
+        </fieldset>
+      </form>
+
+      <section id="sl-resultat" class="sr-resultat" hidden aria-live="polite">
+        <div class="jeu-carte sr-bloc">
+          <div class="sr-chiffres">
+            <div><span class="chiffre" id="sl-cout"></span><span class="chiffre-legende">coût de l’opération</span></div>
+            <div><span class="chiffre" id="sl-brut"></span><span class="chiffre-legende">rendement brut</span></div>
+            <div><span class="chiffre" id="sl-net"></span><span class="chiffre-legende">rendement net, avant impôt</span></div>
+          </div>
+          <p class="jeu-contexte" id="sl-cout-detail"></p>
+          <p class="jeu-contexte" id="sl-net-detail"></p>
+          <p class="jeu-contexte" id="sl-fourchette"></p>
+        </div>
+        <div class="jeu-carte sr-bloc" id="sl-credit" hidden>
+          <div class="sr-chiffres">
+            <div><span class="chiffre" id="sl-mensualite"></span><span class="chiffre-legende">mensualité</span></div>
+            <div><span class="chiffre" id="sl-flux"></span><span class="chiffre-legende">reste chaque mois</span></div>
+          </div>
+          <p class="jeu-contexte" id="sl-flux-detail"></p>
+        </div>
+        <div class="jeu-carte sr-bloc">
+          <h2 class="sr-bloc-titre">Pour louer</h2>
+          <p class="jeu-contexte" id="sl-dpe"></p>
+        </div>
+      </section>
+      <noscript><p class="mesure">Le simulateur a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La méthode</h2>
+    <ul class="accueil-themes">
+      <li><strong>Le prix</strong>&nbsp;: la surface multipliée par le prix médian au mètre carré des ventes de la commune, ou du département quand elle en compte trop peu. À remplacer par le prix réel.</li>
+      <li><strong>Le loyer</strong>&nbsp;: le loyer d’annonce estimé par la carte des loyers du ministère chargé du logement, charges comprises, pour un logement de ce type. C’est un loyer demandé, pas un loyer signé. La fourchette de la carte donne celle du rendement.</li>
+      <li><strong>Les frais d’achat</strong>&nbsp;: ceux du <a href="/simulateurs/frais-achat">simulateur des frais d’achat</a>, au taux voté par le département, sans l’exonération des primo-accédants, qui ne vaut que pour une résidence principale.</li>
+      <li><strong>Le rendement</strong>&nbsp;: brut, le loyer d’une année sur le coût de l’opération&nbsp;; net, après la vacance, la gestion, les charges et la taxe foncière que vous indiquez. Avant impôt sur le revenu et prélèvements sociaux, qui dépendent du régime choisi et de chaque foyer.</li>
+      <li><strong>La location</strong>&nbsp;: la classe minimale d’un logement décent — F depuis 2025, E en 2028, D en 2034 en métropole.</li>
+      <li><strong>Ce qui n’est pas compté</strong>&nbsp;: l’encadrement des loyers là où il s’applique, la revalorisation des loyers et des prix, l’assurance du prêt.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <ul class="mesure b-sources">
+      <li><a href="https://www.data.gouv.fr/datasets/?q=carte+des+loyers" target="_blank" rel="noopener">Ministère chargé du logement — carte des loyers</a>{' : estimations de l’ANIL, d’après les annonces du Groupe SeLoger et de leboncoin.'}</li>
+      <li><a href="https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres-geolocalisees" target="_blank" rel="noopener">Etalab — Demandes de valeurs foncières géolocalisées</a>{' : les prix au mètre carré.'}</li>
+      <li><a href={SA.taux.url} target="_blank" rel="noopener">{SA.taux.titre}</a></li>
+      <li><a href={SR.decence.url} target="_blank" rel="noopener">{SR.decence.titre}</a></li>
+    </ul>
+  </div>
+</Base>
+
+<script>
+  import { brancherLocatif } from '../../client/simulateur-locatif.ts';
+  brancherLocatif();
+</script>
+
+<style is:global>
+  .sl-non { color: var(--defavorable); }
+  .sl-bientot { color: var(--alerte); }
+</style>

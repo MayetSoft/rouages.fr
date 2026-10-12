@@ -14,6 +14,7 @@ import {
   plafondsFoyer,
   profilDe,
 } from '../modele/bareme-renovation.ts';
+import { brancherRapport, restaurerSaisie } from './rapport.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 
 /** Voir `Estimation` dans `scripts/estimation-emettre.ts` : on n'en lit que l'habitable, le terrain et le mélange d'étiquettes. */
@@ -24,7 +25,7 @@ type Fichier = { annees: number[]; dpe: EffetsDpe | null; c: Record<string, Esti
 const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
 const euros = (x: number) => `${Math.round(x).toLocaleString('fr-FR')} €`;
 const arrondi = (x: number) => Math.round(x / 500) * 500;
-const date = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+const date = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/^1 /, '1er ');
 /** La veille d'une date ISO : le dernier jour où la règle ne s'applique pas encore. */
 const veille = (iso: string) => new Date(Date.parse(`${iso}T12:00:00`) - 86_400_000).toISOString().slice(0, 10);
 
@@ -33,6 +34,9 @@ export function brancherRenovation(): void {
   if (!$('sr')) return;
   brancherChampLieu('sr-lieu', LIEUX);
   const form = $<HTMLFormElement>('sr-form');
+  // La saisie d'un lien de calcul ou d'un rapport n'est remise qu'une fois, au premier lieu chargé.
+  let restaure = false;
+  brancherRapport(form, $('sr-resultat'), () => lieu?.nom ?? null);
   let lieu: Lieu | null = null;
   let f: Fichier;
   let e: Estimation;
@@ -164,6 +168,10 @@ export function brancherRenovation(): void {
         : `L’effet de l’étiquette sur les prix n’est pas mesuré ${aLieu(lieu.nom)} — trop peu de ventes rapprochées d’un DPE dans la région : seules l’aide et la location sont calculées.`,
     );
     $('sr-titre').textContent = aLieu(lieu.nom).replace(/^./, (x) => x.toUpperCase());
+    if (!restaure) {
+      restaurerSaisie(form);
+      restaure = true;
+    }
     form.hidden = false;
     calculer();
     (form.elements.namedItem('habitable') as HTMLInputElement).focus();

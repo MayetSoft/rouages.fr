@@ -144,25 +144,3 @@ const relu = new Date(`${RELU}T12:00:00`).toLocaleDateString('fr-FR', { day: 'nu
   import { brancherRenovation } from '../../client/simulateur-renovation.ts';
   brancherRenovation();
 </script>
-
-<style is:global>
-  .sr-form fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
-  .sr-form legend { font-family: var(--titre); font-weight: 620; font-size: 1.05rem; margin-bottom: .4rem; }
-  .sr-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .7rem 1rem; margin: 0 0 .7rem; }
-  .sr-champs label { display: flex; flex-direction: column; gap: .2rem; font-size: .9rem; }
-  .sr-champs span { display: inline-flex; align-items: center; gap: .4rem; color: var(--encre-douce); }
-  .sr-champs small { color: var(--encre-douce); font-size: .76rem; }
-  .sr-champs input, .sr-champs select {
-    font: inherit; color: var(--encre); background: var(--fond-carte); border: 1px solid var(--trait);
-    border-radius: var(--rayon); padding: .35rem .5rem; width: 8.5rem; max-width: 100%; font-variant-numeric: tabular-nums;
-  }
-  .sr-champs select { width: auto; }
-  .sr-cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .3rem 1rem; font-size: .88rem; }
-  .sr-cases input { accent-color: var(--accent); }
-  .sr-bloc-titre { font-family: var(--titre); font-weight: 620; font-size: 1.15rem; margin: 0 0 .6rem; }
-  .sr-chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: .8rem; margin: .4rem 0 .8rem; }
-  .sr-conditions { list-style: none; padding: 0; margin: .3rem 0 .8rem; font-size: .88rem; display: grid; gap: .2rem; }
-  .sr-conditions .oui { color: var(--encre); }
-  .sr-conditions .non { color: var(--defavorable); }
-  .sr-conditions .bientot { color: var(--alerte); }
-</style>
