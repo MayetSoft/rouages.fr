@@ -1564,6 +1564,7 @@ a.p-sommaire-lien { text-decoration: none; }
 .pe-table .pe-total th, .pe-table .pe-total td { font-weight: 650; border-top: 1px solid var(--trait-fort); }
 .pe-table .pe-ecart th, .pe-table .pe-ecart td { color: var(--encre-douce); }
 .pe-table tbody th { text-align: left; font-weight: 400; color: var(--encre); }
+.pe-table .pe-np { color: var(--encre-douce); font-size: .85em; }
 @media (max-width: 640px) {
   .pe-ecarts li { grid-template-columns: minmax(0, 1fr) 7.5rem; row-gap: .25rem; }
   .pe-piste { grid-column: 1 / -1; grid-row: 2; }

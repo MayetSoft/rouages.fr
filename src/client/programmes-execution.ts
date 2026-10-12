@@ -4,9 +4,10 @@
  * Le fichier n'est chargé qu'à la première demande ; l'adresse garde le
  * programme choisi, `?programme=152#par-programme`.
  */
-type Chemin = [number, number, number, number, number, number, number, number, number, number, number];
+/** Une étape que la source de l'année ne publie pas vaut null (synthèses des RAP : le voté et le dépensé seulement). */
+type Chemin = [number, ...(number | null)[]];
 type Programme = { numero: number; nom: string; mission: string; categorie: string; annees: Record<string, Chemin> };
-type Fichier = { annees: number[]; programmes: Programme[] };
+type Fichier = { annees: number[]; sources: { annee: number; nature: 'PLRG' | 'RAP' }[]; programmes: Programme[] };
 
 /** Les étapes du chemin, dans l'ordre où l'argent passe, et ce qu'elles font au total. */
 const ETAPES: { i: number; nom: string; signe: boolean; total?: boolean }[] = [
@@ -26,7 +27,14 @@ const ETAPES: { i: number; nom: string; signe: boolean; total?: boolean }[] = [
 const md = (v: number, signe = false) => {
   if (v === 0) return '—';
   const a = Math.abs(v);
-  const t = a >= 1e9 ? `${(a / 1e9).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} Md€` : `${(a / 1e6).toLocaleString('fr-FR', { maximumFractionDigits: a < 1e7 ? 1 : 0 })} M€`;
+  const t =
+    a >= 1e9
+      ? `${(a / 1e9).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} Md€`
+      : a >= 1e6
+        ? `${(a / 1e6).toLocaleString('fr-FR', { maximumFractionDigits: a < 1e7 ? 1 : 0 })} M€`
+        : a >= 1e3
+          ? `${Math.round(a / 1e3).toLocaleString('fr-FR')} k€`
+          : `${Math.round(a).toLocaleString('fr-FR')} €`;
   return v < 0 ? `−${t}` : signe ? `+${t}` : t;
 };
 
@@ -61,11 +69,12 @@ export function brancherProgrammesExecution(): void {
     const annees = f.annees.filter((a) => p.annees[a]);
     const derniere = annees.at(-1)!;
     const c = p.annees[derniere];
-    const ecart = c[7] - c[0];
+    const depense = c[7] ?? 0;
+    const ecart = depense - c[0];
     const phrase = el(
       'p',
       'mesure',
-      `En ${derniere}, le programme « ${p.nom} » (${p.numero}, mission ${p.mission}) a dépensé ${md(c[7])}, ` +
+      `En ${derniere}, le programme « ${p.nom} » (${p.numero}, mission ${p.mission}) a dépensé ${md(depense)}, ` +
         (ecart === 0
           ? 'exactement ce qui était voté.'
           : c[0] === 0
@@ -86,12 +95,19 @@ export function brancherProgrammesExecution(): void {
     for (const e of ETAPES) {
       // Une étape vide toutes les années n'apporte rien : on la tait.
       if (!e.total && annees.every((a) => !p.annees[a][e.i])) continue;
+      if (e.i === 6 && annees.every((a) => p.annees[a][6] === null)) continue;
       const tr = el('tr', e.total ? 'pe-total' : '');
       const th = el('th', '', e.nom);
       th.scope = 'row';
       tr.append(th);
       for (const a of annees) {
         const v = p.annees[a][e.i];
+        if (v === null || v === undefined) {
+          const td = el('td', 'rq-nombre pe-np', 'n. p.');
+          td.title = 'Étape non publiée pour cette année';
+          tr.append(td);
+          continue;
+        }
         // Les annulations et les reports sortent du chemin : ils se lisent en moins.
         tr.append(el('td', 'rq-nombre', md(e.i === 9 || e.i === 10 ? -v : v, e.signe)));
       }
@@ -101,12 +117,21 @@ export function brancherProgrammesExecution(): void {
     const th = el('th', '', 'Écart : dépensé moins voté');
     th.scope = 'row';
     tr.append(th);
-    for (const a of annees) tr.append(el('td', 'rq-nombre', md(p.annees[a][7] - p.annees[a][0], true)));
+    for (const a of annees) tr.append(el('td', 'rq-nombre', md((p.annees[a][7] ?? 0) - p.annees[a][0], true)));
     tbody.append(tr);
     table.append(thead, tbody);
     const cadre = el('div', 'rq-cadre');
     cadre.append(table);
     zone.append(phrase, cadre);
+    // Ce que la table ne montre pas : les années sans source, et celles qui n'ont que deux étapes.
+    const absentes = annees.slice(0, -1).flatMap((a, i) => Array.from({ length: annees[i + 1] - a - 1 }, (_, k) => a + k + 1));
+    const partielles = annees.filter((a) => f.sources.find((x) => x.annee === a)?.nature === 'RAP');
+    const notes = [
+      partielles.length ? `${partielles.join(' et ')} : le voté et le dépensé seulement, d’après la synthèse des rapports annuels de performances ; « n. p. », étape non publiée.` : '',
+      absentes.length ? `${absentes.join(' et ')} : pas publiés par programme en données ouvertes.` : '',
+      annees.length < f.annees.length ? `Le programme n’apparaît pas dans toutes les années collectées (création, fusion ou changement de numéro).` : '',
+    ].filter(Boolean);
+    if (notes.length) zone.append(el('p', 'v-nature', notes.join(' ')));
     const url = new URL(location.href);
     url.searchParams.set('programme', cle);
     history.replaceState(null, '', url);

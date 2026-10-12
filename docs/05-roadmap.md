@@ -4253,7 +4253,7 @@ remboursements et dégrèvements —, une figure par ligne, au choix.
 La même section se prolonge au niveau des programmes, de 2023 à 2025, avec
 les annexes des projets de loi relatifs aux résultats de la gestion (PLRG,
 ex-lois de règlement) — `scripts/budget-programmes-emettre.ts`, un fichier
-national `budget-etat-programmes.json` (173 programmes, 77 Ko, chargé à la
+national `budget-etat-programmes.json` (206 programmes, 103 Ko, chargé à la
 demande).
 
 - **Le chemin des crédits de paiement** : voté, loi rectificative, reports,
@@ -4275,8 +4275,22 @@ demande).
   remboursements, appels en garantie) — la loi y fixe une estimation, pas un
   plafond. Un programme sans crédits votés en loi initiale (plan de relance)
   n'a pas de pourcentage d'écart.
-- **La suite** : les lois de règlement antérieures (des jeux existent pour
-  2019 et 2020, à examiner).
+- **2019 et 2020, ajoutés le même jour** : les projets de loi de règlement
+  de ces deux années joignent une synthèse des rapports annuels de
+  performances (`RAP_synthese_*.xls`) qui donne, par programme, la prévision
+  en loi de finances initiale et la consommation. Le voté et le dépensé,
+  donc, sans les étapes entre les deux : la table les marque « n. p. ». Les
+  budgets annexes, absents des annexes des PLRG, sont laissés de côté.
+- **Une définition qui change, trouvée au recoupement** : jusqu'en 2020, les
+  dépenses nettes du budget général de la situation mensuelle retirent les
+  remboursements et dégrèvements d'impôts d'État *et* d'impôts locaux
+  (programmes 200 et 201) ; depuis 2023, ceux d'impôts d'État seulement. Avec
+  la bonne définition, le voté et le dépensé recoupent au million près, les
+  cinq années. La collecte essaie les deux et garde celle qui tombe juste ;
+  la page le dit.
+- **Ce qui manque** : 2021 et 2022 ne sont publiés par programme ni sur
+  data.economie.gouv.fr ni sur data.gouv.fr ; avant 2019, les PLR publiés
+  (2010 à 2014, 2018) donnent l'exécution sans le voté à côté.
 
 Au passage : le logo du site, le même que le favicon, devant « Rouages »
 dans l'en-tête.
