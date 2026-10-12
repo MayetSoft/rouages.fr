@@ -1,14 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Un pignon — les rouages — et, découpée dedans, une maison avec sa porte : la commune.
+       Pas de trou au centre ni de forme dressée devant : la version précédente, un pignon percé
+       et un clocher pointu, se lisait tout autrement à seize pixels. -->
   <style>
     .t { fill: #1e5f74; }
     @media (prefers-color-scheme: dark) { .t { fill: #7cc4d8; } }
   </style>
-  <defs>
-    <mask id="m">
-      <rect width="32" height="32" fill="#fff"/>
-      <path d="M0.5,31.5 V24 L5,19.5 L9.5,24 V31.5Z M12.5,31.5 V21 L16,13 L19.5,21 V31.5Z M22.5,31.5 V24 L27,19.5 L31.5,24 V31.5Z" fill="#000" stroke="#000" stroke-width="3.4" stroke-linejoin="round"/>
-    </mask>
-  </defs>
-  <path class="t" fill-rule="evenodd" d="M23.91,12.69 L26.23,13.87 L24.91,17.06 L22.44,16.25 L20.75,17.94 L21.56,20.41 L18.37,21.73 L17.19,19.41 L14.81,19.41 L13.63,21.73 L10.44,20.41 L11.25,17.94 L9.56,16.25 L7.09,17.06 L5.77,13.87 L8.09,12.69 L8.09,10.31 L5.77,9.13 L7.09,5.94 L9.56,6.75 L11.25,5.06 L10.44,2.59 L13.63,1.27 L14.81,3.59 L17.19,3.59 L18.37,1.27 L21.56,2.59 L20.75,5.06 L22.44,6.75 L24.91,5.94 L26.23,9.13 L23.91,10.31Z M19.40,11.50 a3.4,3.4 0 1,0 -6.80,0 a3.4,3.4 0 1,0 6.80,0Z" mask="url(#m)"/>
-  <path class="t" d="M0.5,31.5 V24 L5,19.5 L9.5,24 V31.5Z M12.5,31.5 V21 L16,13 L19.5,21 V31.5Z M22.5,31.5 V24 L27,19.5 L31.5,24 V31.5Z"/>
+  <path class="t" fill-rule="evenodd" d="M13.01,3.97 L13.22,0.75 L18.78,0.75 L18.99,3.97 L22.40,5.38 L24.81,3.25 L28.75,7.19 L26.62,9.60 L28.03,13.01 L31.25,13.22 L31.25,18.78 L28.03,18.99 L26.62,22.40 L28.75,24.81 L24.81,28.75 L22.40,26.62 L18.99,28.03 L18.78,31.25 L13.22,31.25 L13.01,28.03 L9.60,26.62 L7.19,28.75 L3.25,24.81 L5.38,22.40 L3.97,18.99 L0.75,18.78 L0.75,13.22 L3.97,13.01 L5.38,9.60 L3.25,7.19 L7.19,3.25 L9.60,5.38Z M16,8.6 L24.2,15.6 L22.4,15.6 L22.4,23.2 L9.6,23.2 L9.6,15.6 L7.8,15.6Z"/>
+  <path class="t" d="M14.3,23.2 V19 H17.7 V23.2Z"/>
 </svg>
