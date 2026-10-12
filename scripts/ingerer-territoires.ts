@@ -839,6 +839,11 @@ async function principal() {
   const { collecterBudgetEtat, ecrireBudgetEtat } = await import('./budget-etat-emettre.ts');
   const budgetEtat = await tenter('Budget de l’État', () => collecterBudgetEtat(lireJson, grise));
   if (budgetEtat) ecrireBudgetEtat(SORTIE, budgetEtat);
+  const { collecterExecution, ecrireExecution } = await import('./budget-execution-emettre.ts');
+  const execution = await tenter('Budget voté et exécuté', () =>
+    collecterExecution(lireJson, async (url) => (await obstine(url)).arrayBuffer(), grise),
+  );
+  if (execution) ecrireExecution(SORTIE, execution);
 
   const { collecterMairies, ecrireMairies } = await import('./mairies-emettre.ts');
   const mairies = await tenter('Mairies', () => collecterMairies(lireJson, grise));

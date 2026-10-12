@@ -15,10 +15,20 @@
  * actions : une action de 2 Md€ fait la même longueur qu'une mission de 2 Md€.
  */
 import Base from '../layouts/Base.astro';
-import { budgetEtat, DANS_LE_RESEAU, montantBudget, type Montants } from '../modele/budget-etat.ts';
+import { budgetEtat, budgetExecution, DANS_LE_RESEAU, montantBudget, type Montants } from '../modele/budget-etat.ts';
+import { voteExecute } from '../vues/vote-execute.ts';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
 
 const b = budgetEtat();
+// Le voté face à l'exécuté, une figure par ligne de la situation budgétaire.
+const ex = budgetExecution();
+const PAR_DEFAUT_EX = 'Total dépenses nettes du budget général';
+const figures = (ex?.lignes ?? [])
+  .map((l, i) => ({ id: `ve-${i}`, l, f: voteExecute(l, ex!.annees) }))
+  .filter((x) => x.f);
+const groupesEx = [...new Set(figures.map((x) => `${x.l.categorie} — ${x.l.sousCategorie}`))];
+const premiere = ex?.annees[0];
+const derniere = ex?.annees.at(-1);
 const g = chargerGraphe();
 
 /** Les trois exercices, dans l'ordre du fichier. */
@@ -133,6 +143,8 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
           n’y sont pas, sauf ce que l’État leur verse.
         </p>
 
+        {/* La barre « Montrer » ne colle qu’à l’explorateur : crédits, taxes affectées, dépenses fiscales. */}
+        <div class="b-explorateur">
         <fieldset class="b-choix">
           <legend>Montrer</legend>
           {EXERCICES.map((e, i) => (
@@ -301,6 +313,61 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
           ))}
         </ul>
 
+        </div>
+
+        {ex && figures.length > 0 && (
+          <section id="vote-execute" class="ve">
+            <h2 class="badge">Le voté et l’exécuté, année par année</h2>
+            <p class="mesure">
+              {`Ce que la loi de finances initiale prévoyait, et ce que l’État a réellement dépensé ou perçu, de ${premiere} à ${derniere}, d’après les situations mensuelles budgétaires de l’État. Ce sont les chiffres de sa comptabilité budgétaire — le solde, les dépenses nettes du budget général par nature, les prélèvements sur recettes, les recettes par impôt —, pas le périmètre des dépenses présenté plus haut : ils ne s’additionnent pas avec les montants par mission.`}
+            </p>
+            <div class="ve-choix">
+              <label for="ve-ligne">Ligne</label>
+              <select id="ve-ligne">
+                {groupesEx.map((g) => (
+                  <optgroup label={g}>
+                    {figures.filter((x) => `${x.l.categorie} — ${x.l.sousCategorie}` === g).map((x) => (
+                      <option value={x.id} selected={x.l.ligne === PAR_DEFAUT_EX}>{x.l.ligne}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+            <ul class="ve-legende" aria-label="Légende">
+              <li><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle class="ve-vote" cx="7" cy="7" r="5" /></svg> voté — loi de finances initiale</li>
+              <li><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle class="ve-execute" cx="7" cy="7" r="5" /></svg> exécuté</li>
+              <li><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><line class="ve-lfr" x1="7" x2="7" y1="1" y2="13" /></svg> dernière loi rectificative ou de fin de gestion, pour les lignes de total</li>
+            </ul>
+            {figures.map((x) => (
+              <figure class="ve-figure" data-ve={x.id} hidden={x.l.ligne !== PAR_DEFAUT_EX}>
+                <figcaption class="ve-titre">{`${x.l.ligne}, en milliards d’euros`}</figcaption>
+                <div class="ve-cadre" set:html={x.f!.svg} />
+                <details class="equivalent">
+                  <summary>Le même en tableau</summary>
+                  <div class="rq-cadre" set:html={x.f!.tableau} />
+                </details>
+              </figure>
+            ))}
+            <ul class="mesure">
+              <li>
+                <strong>Chaque année se compare à elle-même.</strong> D’une année sur l’autre, le budget général change de
+                contour — transferts, dépenses budgétisées ou sorties du budget —&nbsp;: la page ne trace pas de tendance.
+              </li>
+              <li>
+                <strong>L’écart est l’exécuté moins le voté.</strong> Sur le solde, un écart négatif est un déficit plus
+                profond que prévu&nbsp;; sur une recette, un écart négatif est une recette moindre. Le survol d’une année
+                donne ses trois chiffres.
+              </li>
+              {ex.corrections.length > 0 && (
+                <li>
+                  <strong>Une erreur de la source, corrigée.</strong>
+                  {` Le fichier des textes législatifs donne, pour ${[...new Set(ex.corrections.map((c) => c.ligne.toLowerCase()))].join(', ')} en ${ex.corrections.map((c) => c.annee).join(', ')}, l’exécution de l’année précédente. La page prend celle de la situation de décembre, que le jeu dit définitive, et qui égale la somme des dépenses par nature du même fichier.`}
+                </li>
+              )}
+            </ul>
+          </section>
+        )}
+
         <h2 class="badge" id="lire">Lire ces chiffres</h2>
         <ul class="mesure">
           <li>
@@ -321,8 +388,8 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
           </li>
           <li>
             <strong>Ce qui n’y est pas.</strong> La charge de la dette, les remboursements et dégrèvements
-            d’impôts, les budgets de la Sécurité sociale et des collectivités. L’écart entre ce qui a été voté et
-            ce qui a été dépensé pour une même année viendra ensuite, avec les comptes de l’État.
+            d’impôts, les budgets de la Sécurité sociale et des collectivités. Le voté et l’exécuté d’une même
+            année sont plus haut, sur l’autre périmètre de la comptabilité budgétaire.
           </li>
           <li>
             <strong>Une seule échelle.</strong> Toutes les barres de la page se mesurent à la même règle, des
@@ -332,6 +399,12 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
 
         <h2 class="badge" id="sources">Sources</h2>
         <ul class="mesure b-sources">
+          {ex && (
+            <li>
+              <a href="https://data.economie.gouv.fr/explore/dataset/situations-mensuelles-budgetaires-series-longues/" target="_blank" rel="noopener">Situations mensuelles budgétaires de l’État, en série longue</a>
+              {`, Licence Ouverte 2.0${ex.version ? `, mis à jour le ${formaterDate(new Date(ex.version))}` : ''}, lu le ${formaterDate(new Date(ex.maj))} : le voté (loi de finances initiale, dernière loi rectificative) et l’exécuté, année par année, d’après les fichiers des textes législatifs et la série mensuelle.`}
+            </li>
+          )}
           <li>
             <a href="https://data.economie.gouv.fr/explore/dataset/plf-2026-budget-vert/" target="_blank" rel="noopener">Direction du Budget — PLF 2026, budget vert</a>
             {`, Licence Ouverte 2.0${b.version ? `, mis à jour le ${formaterDate(new Date(b.version))}` : ''}, lu le ${formaterDate(new Date(b.maj))} : les montants, au « périmètre des dépenses de l’État ». Le jeu sert au rapport sur l’impact environnemental du budget ; ses cotations ne sont pas reprises ici.`}
@@ -365,4 +438,10 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
   }
   addEventListener('hashchange', ouvrir);
   ouvrir();
+
+  // Le voté et l'exécuté : une figure par ligne, celle qu'on choisit.
+  const choix = document.getElementById('ve-ligne') as HTMLSelectElement | null;
+  choix?.addEventListener('change', () => {
+    for (const f of document.querySelectorAll<HTMLElement>('.ve-figure')) f.hidden = f.dataset.ve !== choix.value;
+  });
 </script>

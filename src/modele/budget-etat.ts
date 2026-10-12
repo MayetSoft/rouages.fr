@@ -121,3 +121,27 @@ export function lignesDuBudget(acteur: string): { ancre: string; libelle: string
   }
   return lignes;
 }
+
+/** Une ligne de la situation budgétaire : trois chiffres par exercice, en euros. */
+export interface LigneExecution {
+  categorie: string;
+  sousCategorie: string;
+  ligne: string;
+  /** La loi de finances initiale. */
+  lfi: Record<number, number>;
+  /** La dernière loi de finances rectificative ou de fin de gestion, pour les seules lignes de total. */
+  lfr: Record<number, number>;
+  /** L'exécution, arrêtée par la situation de décembre. */
+  execution: Record<number, number>;
+}
+export interface BudgetExecution {
+  maj: string;
+  version: string | null;
+  annees: number[];
+  lignes: LigneExecution[];
+  /** Les exécutions où le fichier des textes législatifs diffère de la série de décembre, qui fait foi. */
+  corrections: { ligne: string; annee: number; textes: number; serie: number }[];
+}
+
+/** Le voté face à l'exécuté, ou null s'il n'a pas encore été collecté. */
+export const budgetExecution = national<BudgetExecution>('budget-etat-execution.json');

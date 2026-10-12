@@ -70,6 +70,8 @@
   /* Les barres du budget de l'État : l'accent, plus saturé pour ne pas se lire
      gris (vérifié au validateur de palette, contre la surface claire). */
   --barre-budget: #1676a0;
+  /* Le voté, face à l'exécuté (--barre-budget) : paire vérifiée au validateur de palette. */
+  --budget-vote: #eb6834;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -102,6 +104,7 @@
     --nature-inventaire: #b77a2e;
     --sur-accent: #15171a;
     --barre-budget: #3a9fc8;
+    --budget-vote: #d95926;
 
     --rel-pouvoir: #3987e5;
     --rel-partage: #d95926;
@@ -173,7 +176,9 @@ h1, .titre-voix { font-family: var(--titre); font-weight: 640; letter-spacing: -
 
 .bandeau { border-bottom: 1px solid var(--trait); background: var(--fond-carte); }
 .bandeau-int { display: flex; align-items: center; gap: 1rem; padding: .7rem 1.1rem; flex-wrap: wrap; }
-.marque { font-weight: 680; text-decoration: none; color: var(--encre); letter-spacing: -0.02em; }
+.marque { font-weight: 680; text-decoration: none; color: var(--encre); letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: .4rem; }
+/* Le même dessin que le favicon (public/favicon.svg), aux couleurs du thème. */
+.marque-logo { width: 1.45em; height: 1.45em; flex: none; fill: var(--accent); }
 .baseline { color: var(--encre-douce); font-size: .82rem; }
 .bandeau nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .85rem; }
 .bandeau nav a[aria-current="page"] { color: var(--encre); font-weight: 600; text-decoration: none; }
@@ -1523,6 +1528,29 @@ a.p-sommaire-lien { text-decoration: none; }
 .b-vue:has(#b-col-0:checked) .b-tuile-0,
 .b-vue:has(#b-col-2:checked) .b-tuile-2 { opacity: 1; border-color: var(--trait-fort); }
 @media (prefers-reduced-motion: reduce) { .b-barre i, .b-ligne > summary .b-nom::before { transition: none; } }
+
+/* Le voté et l'exécuté : un haltère par année. */
+.ve-choix { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .8rem 0 .4rem; }
+.ve-choix label { font-weight: 600; }
+.ve-choix select { font: inherit; padding: .35rem .5rem; border: 1px solid var(--trait-fort); border-radius: 4px; background: var(--fond-carte); color: var(--encre); max-width: 100%; }
+.ve-legende { list-style: none; display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; margin: .4rem 0 .6rem; padding: 0; font-size: .85rem; color: var(--encre-douce); }
+.ve-legende li { display: inline-flex; align-items: center; gap: .35rem; }
+.ve-figure { margin: 0 0 1rem; }
+.ve-titre { font-weight: 600; margin-bottom: .3rem; }
+.ve-cadre { overflow-x: auto; }
+.ve-svg { display: block; width: 100%; min-width: 30rem; height: auto; font-family: var(--sans); }
+.ve-grille { stroke: var(--trait); stroke-width: 1; }
+.ve-zero { stroke: var(--trait-fort); }
+.ve-tick, .ve-annee { font-size: 11px; fill: var(--encre-douce); font-variant-numeric: tabular-nums; }
+.ve-valeur { font-size: 12px; fill: var(--encre); font-variant-numeric: tabular-nums; font-weight: 600; }
+.ve-pct { fill: var(--encre-douce); font-weight: 400; }
+.ve-ecart { stroke: var(--trait-fort); stroke-width: 2; }
+.ve-lfr { stroke: var(--encre-douce); stroke-width: 2; }
+.ve-vote { fill: var(--fond-carte); stroke: var(--budget-vote); stroke-width: 2.5; }
+.ve-execute { fill: var(--barre-budget); stroke: var(--fond-carte); stroke-width: 2; }
+.ve-cible { fill: transparent; }
+.ve-rang:hover .ve-cible { fill: var(--fond-doux); }
+@media (forced-colors: active) { .ve-vote { stroke: CanvasText; } .ve-execute { fill: CanvasText; } }
 @media (forced-colors: active) { .b-barre i { background: CanvasText; } .b-barre { border: 1px solid CanvasText; } }
 
 

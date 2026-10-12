@@ -822,6 +822,19 @@ surveillances:
     attendu: 1816
     lien: od-budget-vert-2026
 
+  # Vingt-six lignes, chacune une série : le nombre ne bouge pas quand un mois
+  # s'ajoute. On surveille que le jeu répond ; ses pièces jointes portent les
+  # fichiers des textes législatifs, que la collecte relit à chaque fois.
+  - id: situations-mensuelles-etat
+    nom: "Situations mensuelles budgétaires de l'État, en série longue"
+    alimente: "la page « L'argent public » : le voté et l'exécuté, année par année"
+    type: opendatasoft-total
+    licence: licence-ouverte-2.0
+    url: "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/situations-mensuelles-budgetaires-series-longues"
+    # Relevé au 12 octobre 2026, pas estimé.
+    attendu: 26
+    lien: od-situations-mensuelles-etat
+
   - id: kohesio-2021-2027
     nom: "Commission européenne — Kohesio, projets de la politique de cohésion 2021-2027 (API de la plateforme)"
     alimente: "les projets européens 2021-2027 localisés dans la commune"

@@ -4215,3 +4215,39 @@ horodaté par un tiers demanderait un serveur, que le site n'a pas.
 **La suite** : une vraie mesure de la précision des terrains ; d'autres
 simulateurs. La vente par une agence ou de particulier à particulier ne se
 mesure pas : aucune donnée publique ne le dit, DVF pas davantage.
+
+### L'argent public : le voté et l'exécuté, année par année (12 octobre 2026)
+
+Le souhait du mainteneur depuis la première phase : contraster le budget
+voté et le résultat. Une section de `/argent-public` le montre de 2013 à
+2025, pour vingt-six lignes — le solde, les dépenses nettes du budget général
+par nature, les prélèvements sur recettes, les recettes par impôt, les
+remboursements et dégrèvements —, une figure par ligne, au choix.
+
+- **La source** : les situations mensuelles budgétaires de l'État, en série
+  longue (`scripts/budget-execution-emettre.ts`, un fichier national
+  `budget-etat-execution.json`). Leurs pièces jointes « textes législatifs »
+  donnent, pour chaque exercice, la loi de finances initiale, la dernière loi
+  rectificative ou de fin de gestion (pour les lignes de total), et
+  l'exécution.
+- **Une erreur de la source, trouvée et corrigée** : pour les dépenses
+  nettes du budget général de 2019, 2020 et 2021, le fichier des textes
+  donnait l'exécution de l'année précédente. La série mensuelle de décembre,
+  que le jeu dit définitive, et la somme des dépenses par nature du même
+  fichier concordent entre elles : la collecte prend la série, garde la trace
+  de chaque écart, et la page le dit. À signaler au producteur.
+- **La forme** : un haltère par année, du voté (cercle creux, orange) à
+  l'exécuté (point plein, bleu), la dernière loi rectificative en trait ;
+  l'écart écrit en bout de ligne, en milliards et en pourcentage ; une table
+  sous chaque figure. Paire de couleurs vérifiée au validateur, en clair et
+  en sombre.
+- **Les limites, dites sur la page** : chaque année se compare à elle-même
+  (le contour du budget général change d'une année à l'autre) ; ces chiffres
+  sont ceux de la comptabilité budgétaire, pas le périmètre des dépenses de
+  l'État de l'explorateur, et ne s'additionnent pas avec lui.
+- **La suite** : le voté face à l'exécuté programme par programme, qui
+  demande les lois de règlement ; et l'exercice 2026 quand sa loi de
+  finances initiale entrera dans le fichier.
+
+Au passage : le logo du site, le même que le favicon, devant « Rouages »
+dans l'en-tête.
