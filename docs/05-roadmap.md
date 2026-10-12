@@ -4294,3 +4294,26 @@ demande).
 
 Au passage : le logo du site, le même que le favicon, devant « Rouages »
 dans l'en-tête.
+
+### Ce qui manque ici, et où le trouver (12 octobre 2026)
+
+La page de commune disait déjà ce qui manque, parmi les regroupements de la
+gamme de proximité de l'INSEE, et ajoutait qu'« une commune sans équipement
+n'est pas une commune sans accès : le bourg voisin est parfois à trois
+kilomètres, ce que ce fichier ne dit pas ». Elle le dit maintenant : sous
+chaque manque, la commune la plus proche qui l'a, avec la distance.
+
+- **Le calcul** se fait à l'ingestion, dans `scripts/proximite-emettre.ts`,
+  avec les centres des communes et les présences par type déjà produits pour
+  « Le plus proche » : un fichier `dep/XX-manques.json` par département, lu
+  au build seulement. Une grille d'un dixième de degré : six secondes pour
+  les 484 000 absences de France. Vérifié contre un calcul exhaustif sur 834
+  cas tirés dans six départements, métropole, Corse et La Réunion : aucun
+  écart.
+- **La liste reste celle de l'INSEE** (gamme de proximité, par regroupement :
+  une école primaire ne fait pas manquer la maternelle), pas une liste
+  établie ici.
+- **La distance dite pour ce qu'elle est** : entre les centres des deux
+  communes, à vol d'oiseau — pas la route, ni l'adresse de l'équipement.
+  La recherche reste en métropole pour une commune de métropole, dans le
+  département pour une commune d'outre-mer.

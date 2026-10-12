@@ -5,7 +5,8 @@
  * Le bloc des services nomme les établissements publics ; celui-ci compte tout
  * ce qui est ouvert au public, commerces compris. L'absence est ici aussi
  * informative que la présence, et c'est la seule liste du site où l'on affiche
- * explicitement ce qui manque.
+ * explicitement ce qui manque — et, pour chaque manque, la commune la plus
+ * proche qui l'a (`scripts/proximite-emettre.ts`).
  */
 import type { Fiche } from '../../modele/territoires.ts';
 import Repere from './Repere.astro';
@@ -44,9 +45,18 @@ const ouPlutotQue = (nom: string) => {
 ))}
 {e.absents.length > 0 && (
   <div class="p-risque-groupe p-equipements-absents">
-    <span class="p-service-famille">Ce qui manque, dans la gamme de proximité</span>
-    <ul>
-      {e.absents.map((nom) => <li class="p-risque-nom">{ouPlutotQue(nom)}</li>)}
+    <span class="p-service-famille">Ce qui manque, dans la gamme de proximité, et le plus proche</span>
+    <ul class="p-manques">
+      {e.absents.map(({ nom, proche }) => (
+        <li>
+          <span class="p-risque-nom">{ouPlutotQue(nom)}</span>
+          {proche && (
+            <span class="p-manque-proche">
+              <a href={`/commune/${proche.code}`}>{proche.nom}</a>{`, ${proche.km < 1 ? 'moins d’un kilomètre' : `${proche.km.toLocaleString('fr-FR', { maximumFractionDigits: proche.km < 10 ? 1 : 0 })} km`}`}
+            </span>
+          )}
+        </li>
+      ))}
     </ul>
   </div>
 )}
@@ -55,5 +65,6 @@ const ouPlutotQue = (nom: string) => {
     'La gamme de proximité est celle que l’INSEE publie, non une liste établie ici. Ce sont des ' +
     'équipements ouverts au public, marchands compris — le bloc « Les services » nomme, lui, les ' +
     'seuls établissements publics. Une commune sans équipement n’est pas une commune sans accès : ' +
-    'le bourg voisin est parfois à trois kilomètres, ce que ce fichier ne dit pas.'}
+    'pour chaque manque, la commune la plus proche qui l’a, et la distance entre les centres des deux ' +
+    'communes, à vol d’oiseau — pas la route, ni l’adresse de l’équipement.'}
 </p>

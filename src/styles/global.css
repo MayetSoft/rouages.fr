@@ -660,7 +660,12 @@ main section[id] { scroll-margin-top: 9rem; }
 .p-fiscalite li, .p-equipements li { display: grid; grid-template-columns: 2.2rem 1fr; gap: .55rem; align-items: baseline; }
 .p-fiscalite li { grid-template-columns: 4.8rem 1fr; }
 .p-fiscalite .p-risque-nombre { white-space: nowrap; }
-.p-equipements .p-equipements-absents li { grid-template-columns: 1fr; }
+.p-equipements .p-equipements-absents li { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .8rem; }
+.p-manque-proche { color: var(--encre); font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) {
+  .p-equipements .p-equipements-absents li { grid-template-columns: 1fr; gap: 0; }
+  .p-manque-proche { padding-left: .8rem; }
+}
 .p-equipements .p-reperes, .p-fiscalite .p-reperes { margin-bottom: .8rem; }
 
 .p-marches { margin-top: 1.2rem; }

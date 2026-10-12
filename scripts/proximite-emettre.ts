@@ -18,6 +18,12 @@
  * - `proximite/associations/<n>.json` : pour le domaine n du répertoire, les
  *   communes où au moins une association existante le déclare, et combien.
  * - `proximite/index.json` : les types, les domaines, les millésimes.
+ * - `dep/XX-manques.json` : pour chaque commune, chaque regroupement de la
+ *   gamme de proximité de l'INSEE qu'elle n'a pas, et la commune la plus
+ *   proche qui l'a, avec la distance entre les deux centres, en hectomètres.
+ *   Calculé ici une fois pour toutes, lu par la page de commune au build.
+ *   La recherche reste dans l'Hexagone et la Corse pour une commune de
+ *   métropole, dans le département pour une commune d'outre-mer.
  *
  * Les communes sont désignées par leur rang dans `index.json`, écrit en écart
  * au précédent : les fichiers restent petits.
@@ -31,7 +37,7 @@ import { fileURLToPath } from 'node:url';
 
 type Index = { maj: string; c: [string, string, string, string, number][] };
 type ContoursDep = { millesime: string; c: Record<string, [number[][], string[], number[][]]> };
-type EquipementsDep = { maj: string; millesime: string; types: [string, number, string][]; c: Record<string, [number, number][]> };
+type EquipementsDep = { maj: string; millesime: string; types: [string, number, string][]; groupes: [string, number, number[]][]; c: Record<string, [number, number][]> };
 type Existante = [string, string, number, number, string];
 type AssociationsDep = { maj: string; domaines: string[]; c: Record<string, { x?: Existante[] }> };
 
@@ -74,6 +80,96 @@ function ecarts(rangs: number[]): number[] {
   return out;
 }
 
+/** Distance à vol d'oiseau entre deux centres, en kilomètres (millièmes de degré en entrée). */
+function km(x1: number, y1: number, x2: number, y2: number): number {
+  const rad = Math.PI / 180000;
+  const dlat = (y2 - y1) * rad;
+  const dlon = (x2 - x1) * rad;
+  const a = Math.sin(dlat / 2) ** 2 + Math.cos(y1 * rad) * Math.cos(y2 * rad) * Math.sin(dlon / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(a));
+}
+
+/** Un dixième de degré par case : 11 km en latitude, au moins 7 km en longitude jusqu'au nord de la France. */
+const CASE = 100;
+const KM_PAR_CASE = 7;
+
+function emettreManques(
+  sortie: string,
+  index: Index,
+  centres: (number | null)[],
+  groupes: [string, number, number[]][],
+  parType: Map<number, [number, number][]>,
+): number {
+  const zone = (i: number) => (index.c[i][3].startsWith('97') ? index.c[i][3] : 'métropole');
+  const proximite = groupes.map((g, k) => ({ k, membres: g[2] })).filter((_, k) => groupes[k][1] === 0);
+  // Pour chaque regroupement, les communes qui l'ont, rangées par case et par zone.
+  const grilles = proximite.map(({ membres }) => {
+    const ont = new Set<number>();
+    for (const t of membres) for (const [i] of parType.get(t) ?? []) ont.add(i);
+    const cases = new Map<string, number[]>();
+    for (const i of ont) {
+      const x = centres[2 * i];
+      const y = centres[2 * i + 1];
+      if (x === null || y === null) continue;
+      const cle = `${zone(i)}|${Math.floor(x / CASE)}|${Math.floor(y / CASE)}`;
+      if (!cases.has(cle)) cases.set(cle, []);
+      cases.get(cle)!.push(i);
+    }
+    return { ont, cases };
+  });
+  const plusProche = (g: (typeof grilles)[number], i: number): [number, number] | null => {
+    const x = centres[2 * i]!;
+    const y = centres[2 * i + 1]!;
+    const cx = Math.floor(x / CASE);
+    const cy = Math.floor(y / CASE);
+    const z = zone(i);
+    let meilleur: [number, number] | null = null;
+    for (let r = 0; r <= 60; r++) {
+      for (let dx = -r; dx <= r; dx++) {
+        for (let dy = -r; dy <= r; dy++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          for (const j of g.cases.get(`${z}|${cx + dx}|${cy + dy}`) ?? []) {
+            const d = km(x, y, centres[2 * j]!, centres[2 * j + 1]!);
+            if (!meilleur || d < meilleur[1]) meilleur = [j, d];
+          }
+        }
+      }
+      // Tout ce qui reste hors des r premiers anneaux est à plus de r cases.
+      if (meilleur && meilleur[1] <= r * KM_PAR_CASE) break;
+    }
+    return meilleur;
+  };
+
+  const parDep = new Map<string, Record<string, [number, string, number][]>>();
+  let situes = 0;
+  for (const c of index.c) if (!parDep.has(c[3])) parDep.set(c[3], {});
+  const fichierEquipements = new Map<string, Set<string>>();
+  for (let i = 0; i < index.c.length; i++) {
+    const [code, , , dep] = index.c[i];
+    if (centres[2 * i] === null) continue;
+    // Une commune absente de la base des équipements n'a pas de « manque » : on ne sait rien d'elle.
+    if (!fichierEquipements.has(dep)) {
+      const d = lire<EquipementsDep>(join(sortie, 'dep', `${dep}-equipements.json`));
+      fichierEquipements.set(dep, new Set(Object.keys(d?.c ?? {})));
+    }
+    if (!fichierEquipements.get(dep)!.has(code)) continue;
+    const liste: [number, string, number][] = [];
+    proximite.forEach(({ k }, n) => {
+      const g = grilles[n];
+      if (g.ont.has(i)) return;
+      const p = plusProche(g, i);
+      if (!p) return;
+      liste.push([k, index.c[p[0]][0], Math.round(p[1] * 10)]);
+      situes++;
+    });
+    if (liste.length) parDep.get(dep)![code] = liste;
+  }
+  for (const [dep, c] of parDep) {
+    writeFileSync(join(sortie, 'dep', `${dep}-manques.json`), JSON.stringify({ maj: index.maj, c }));
+  }
+  return situes;
+}
+
 export function emettreProximite(sortie: string, dire: (m: string) => void = console.log): void {
   const index = lire<Index>(join(sortie, 'index.json'));
   if (!index) throw new Error('index.json absent');
@@ -108,6 +204,7 @@ export function emettreProximite(sortie: string, dire: (m: string) => void = con
 
   // Les équipements, type par type.
   let types: [string, number, string][] | null = null;
+  let groupes: [string, number, number[]][] = [];
   let millesimeEquipements = '';
   let majEquipements = '';
   const parType = new Map<number, [number, number][]>();
@@ -116,6 +213,7 @@ export function emettreProximite(sortie: string, dire: (m: string) => void = con
     if (!d) continue;
     if (!types) {
       types = d.types;
+      groupes = d.groupes ?? [];
       millesimeEquipements = d.millesime;
       majEquipements = d.maj;
     } else if (JSON.stringify(types) !== JSON.stringify(d.types)) {
@@ -135,6 +233,9 @@ export function emettreProximite(sortie: string, dire: (m: string) => void = con
     l.sort((a, b) => a[0] - b[0]);
     writeFileSync(join(dossier, 'equipements', `${t}.json`), JSON.stringify({ r: ecarts(l.map(([i]) => i)), n: l.map(([, n]) => n) }));
   }
+
+  // Ce qui manque, et où le trouver : la commune la plus proche qui a chaque regroupement absent.
+  const manques = emettreManques(sortie, index, centres, groupes, parType);
 
   // Les associations, domaine par domaine : la liste du département et la suite, s'il y en a une.
   let domaines: string[] = [];
@@ -185,7 +286,8 @@ export function emettreProximite(sortie: string, dire: (m: string) => void = con
   );
   dire(
     `Proximité : ${places.toLocaleString('fr-FR')} centres de communes, ` +
-      `${parType.size} types d'équipements, ${parDomaine.size} domaines d'associations.`,
+      `${parType.size} types d'équipements, ${parDomaine.size} domaines d'associations, ` +
+      `${manques.toLocaleString('fr-FR')} absences situées par rapport à la commune la plus proche.`,
   );
 }
 
