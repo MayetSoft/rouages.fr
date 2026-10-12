@@ -36,6 +36,8 @@ const RACINE_GARDEE = new Set([
   'jeux',
   'proximite',
   'simulateurs',
+  // Le chemin des crédits de chaque programme, que « L'argent public » charge au choix.
+  'budget-etat-programmes.json',
 ]);
 
 /** Par département : les groupements (`03.json`) et le prix de l'eau (`03-eau.json`). */

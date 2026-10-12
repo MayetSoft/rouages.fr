@@ -121,3 +121,55 @@ export function lignesDuBudget(acteur: string): { ancre: string; libelle: string
   }
   return lignes;
 }
+
+/** Une ligne de la situation budgétaire : trois chiffres par exercice, en euros. */
+export interface LigneExecution {
+  categorie: string;
+  sousCategorie: string;
+  ligne: string;
+  /** La loi de finances initiale. */
+  lfi: Record<number, number>;
+  /** La dernière loi de finances rectificative ou de fin de gestion, pour les seules lignes de total. */
+  lfr: Record<number, number>;
+  /** L'exécution, arrêtée par la situation de décembre. */
+  execution: Record<number, number>;
+}
+export interface BudgetExecution {
+  maj: string;
+  version: string | null;
+  annees: number[];
+  lignes: LigneExecution[];
+  /** Les exécutions où le fichier des textes législatifs diffère de la série de décembre, qui fait foi. */
+  corrections: { ligne: string; annee: number; textes: number; serie: number }[];
+}
+
+/** Le voté face à l'exécuté, ou null s'il n'a pas encore été collecté. */
+export const budgetExecution = national<BudgetExecution>('budget-etat-execution.json');
+
+/**
+ * Le chemin des crédits de paiement d'un programme, pour une année, en euros :
+ * loi de finances initiale, loi rectificative, reports de l'année précédente,
+ * mouvements réglementaires, fonds de concours et attributions de produits,
+ * fongibilité asymétrique, crédits ouverts, dépenses constatées, modifications
+ * d'ouvertures, annulations, reports sur l'année suivante.
+ */
+export type CheminCredits = [number, number, number, number, number, number, number, number, number, number, number];
+export interface ProgrammeExecution {
+  numero: number;
+  nom: string;
+  mission: string;
+  /** « Budget général », ou la catégorie de compte spécial ou de budget annexe. */
+  categorie: string;
+  annees: Record<number, CheminCredits>;
+}
+export interface BudgetProgrammes {
+  maj: string;
+  annees: number[];
+  sources: { annee: number; jeu: string; version: string | null }[];
+  /** Les dépenses nettes du budget général selon les annexes, et selon la situation de décembre. */
+  controles: Record<number, { plrg: number; smb: number | null }>;
+  programmes: ProgrammeExecution[];
+}
+
+/** Le voté et l'exécuté par programme, ou null s'il n'a pas encore été collecté. */
+export const budgetProgrammes = national<BudgetProgrammes>('budget-etat-programmes.json');

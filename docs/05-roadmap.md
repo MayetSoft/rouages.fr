@@ -4215,3 +4215,68 @@ horodaté par un tiers demanderait un serveur, que le site n'a pas.
 **La suite** : une vraie mesure de la précision des terrains ; d'autres
 simulateurs. La vente par une agence ou de particulier à particulier ne se
 mesure pas : aucune donnée publique ne le dit, DVF pas davantage.
+
+### L'argent public : le voté et l'exécuté, année par année (12 octobre 2026)
+
+Le souhait du mainteneur depuis la première phase : contraster le budget
+voté et le résultat. Une section de `/argent-public` le montre de 2013 à
+2025, pour vingt-six lignes — le solde, les dépenses nettes du budget général
+par nature, les prélèvements sur recettes, les recettes par impôt, les
+remboursements et dégrèvements —, une figure par ligne, au choix.
+
+- **La source** : les situations mensuelles budgétaires de l'État, en série
+  longue (`scripts/budget-execution-emettre.ts`, un fichier national
+  `budget-etat-execution.json`). Leurs pièces jointes « textes législatifs »
+  donnent, pour chaque exercice, la loi de finances initiale, la dernière loi
+  rectificative ou de fin de gestion (pour les lignes de total), et
+  l'exécution.
+- **Une erreur de la source, trouvée et corrigée** : pour les dépenses
+  nettes du budget général de 2019, 2020 et 2021, le fichier des textes
+  donnait l'exécution de l'année précédente. La série mensuelle de décembre,
+  que le jeu dit définitive, et la somme des dépenses par nature du même
+  fichier concordent entre elles : la collecte prend la série, garde la trace
+  de chaque écart, et la page le dit. À signaler au producteur.
+- **La forme** : un haltère par année, du voté (cercle creux, orange) à
+  l'exécuté (point plein, bleu), la dernière loi rectificative en trait ;
+  l'écart écrit en bout de ligne, en milliards et en pourcentage ; une table
+  sous chaque figure. Paire de couleurs vérifiée au validateur, en clair et
+  en sombre.
+- **Les limites, dites sur la page** : chaque année se compare à elle-même
+  (le contour du budget général change d'une année à l'autre) ; ces chiffres
+  sont ceux de la comptabilité budgétaire, pas le périmètre des dépenses de
+  l'État de l'explorateur, et ne s'additionnent pas avec lui.
+- **La suite** : l'exercice 2026 quand sa loi de finances initiale entrera
+  dans le fichier.
+
+#### Programme par programme (12 octobre 2026)
+
+La même section se prolonge au niveau des programmes, de 2023 à 2025, avec
+les annexes des projets de loi relatifs aux résultats de la gestion (PLRG,
+ex-lois de règlement) — `scripts/budget-programmes-emettre.ts`, un fichier
+national `budget-etat-programmes.json` (173 programmes, 77 Ko, chargé à la
+demande).
+
+- **Le chemin des crédits de paiement** : voté, loi rectificative, reports,
+  mouvements, fonds de concours, fongibilité, crédits ouverts, annulés,
+  reportés, dépensé. Les titres sont réunis ; les autorisations
+  d'engagement ne sont pas reprises.
+- **Rien n'est publié qui ne se referme** : les deux égalités du chemin sont
+  vérifiées ligne par ligne (deux lignes du PLRG 2023, dont le programme
+  200, se referment à l'arrondi près, moins d'un million) ; et les dépenses
+  du budget général, hors programme 200, égalent au million près les
+  dépenses nettes de la situation mensuelle de décembre, les trois années.
+  Un écart arrête la collecte.
+- **La forme** : les douze plus gros écarts de la dernière année au budget
+  général, en barres divergentes sur une seule échelle ; puis un programme
+  au choix, son chemin en table, année par année, l'adresse gardant le
+  choix. L'explorateur renvoie au chemin d'un programme quand le PLRG le
+  donne.
+- **Une limite dite** : les crédits évaluatifs (charge de la dette,
+  remboursements, appels en garantie) — la loi y fixe une estimation, pas un
+  plafond. Un programme sans crédits votés en loi initiale (plan de relance)
+  n'a pas de pourcentage d'écart.
+- **La suite** : les lois de règlement antérieures (des jeux existent pour
+  2019 et 2020, à examiner).
+
+Au passage : le logo du site, le même que le favicon, devant « Rouages »
+dans l'en-tête.
