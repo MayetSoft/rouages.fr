@@ -647,17 +647,24 @@ main section[id] { scroll-margin-top: 9rem; }
    elle mérite l'encre d'alerte, le simple déficit non. */
 .p-sru { margin-top: 1.2rem; }
 /* Les aides locales à la rénovation (`composants/commune/AidesLocales.astro`). */
-.al-liste { list-style: none; padding: 0; margin: .4rem 0 1rem; display: grid; gap: .8rem; }
-.al-aide { background: var(--fond-carte); border: 1px solid var(--trait); border-radius: .5rem; padding: .7rem .9rem; }
-.al-aide p { margin: .2rem 0; }
+.al-intro { max-width: var(--mesure); }
+.al-porteur { font-size: 1rem; margin: 1rem 0 .4rem; }
+.al-liste { list-style: none; padding: 0; margin: .3rem 0 .8rem; display: grid; gap: .5rem; }
+.al-aide { background: var(--fond-carte); border: 1px solid var(--trait); border-radius: .5rem; padding: .55rem .8rem; }
+.al-aide summary { cursor: pointer; display: grid; gap: .2rem; list-style: none; }
+.al-aide summary::-webkit-details-marker { display: none; }
+.al-aide summary::after { content: 'Détails, guichet et sources'; font-size: .78rem; color: var(--accent); }
+.al-aide details[open] summary::after { content: 'Replier'; }
+.al-aide p { margin: .35rem 0 0; }
 .al-tete { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .2rem .8rem; }
-.al-etat { font-size: .78rem; font-weight: 600; padding: 0 .45rem; border-radius: 1rem; border: 1px solid currentColor; white-space: nowrap; }
+.al-etat { font-size: .74rem; font-weight: 600; padding: 0 .45rem; border-radius: 1rem; border: 1px solid currentColor; white-space: nowrap; }
 .al-etat--ouverte { color: var(--accent); }
 .al-etat--a_confirmer, .al-etat--a_reverifier { color: var(--alerte); }
-.al-qui, .al-sources, .al-perimetre { font-size: .85rem; color: var(--encre-douce); }
-.al-montant { font-weight: 600; }
-.al-montant--inconnu { font-weight: 400; font-style: italic; color: var(--encre-douce); }
+.al-qui, .al-perimetre, .al-verifie { font-size: .85rem; color: var(--encre-douce); }
+.al-montant { font-size: .92rem; }
+.al-montant--inconnu { font-style: italic; color: var(--encre-douce); }
 .al-demarche { font-size: .9rem; }
+.al-sources { font-size: .82rem; margin: .35rem 0 0; padding-left: 1.1rem; overflow-wrap: anywhere; }
 .al-hors, .al-note { font-size: .88rem; color: var(--encre-douce); max-width: var(--mesure); }
 .al-fermees { font-size: .85rem; color: var(--encre-douce); margin: .4rem 0; }
 

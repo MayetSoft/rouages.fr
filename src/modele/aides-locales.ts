@@ -233,8 +233,14 @@ export function controlerAidesLocales(registre = aidesLocales(), jour = aujourdh
     });
     // Pas de chiffre sans le texte qui le fixe.
     if (a.montant && !a.conditions.some((c) => c.citation)) err('un montant sans citation de sa source');
-    if (a.montant && /\d/.test(a.montant) && !a.conditions.some((c) => /\d/.test(c.citation))) {
-      err('le montant porte un chiffre qu’aucune citation ne porte');
+    // Chaque nombre du montant figure dans une citation : un maximum calculé n'est pas un chiffre du texte.
+    if (a.montant) {
+      const cite = a.conditions.map((c) => c.citation.replace(/[\s\u00a0\u202f]/g, '')).join(' ');
+      for (const n of a.montant.match(/\d+(?:[\s\u00a0\u202f.]\d{3})*(?:,\d+)?/g) ?? []) {
+        // Une année est une date, pas un montant.
+        if (/^(19|20)\d\d$/.test(n)) continue;
+        if (!cite.includes(n.replace(/[\s\u00a0\u202f]/g, ''))) err(`le montant porte « ${n} », qu’aucune citation ne porte`);
+      }
     }
 
     if (a.demarche?.url && !https(a.demarche.url)) err('démarche : adresse https attendue');

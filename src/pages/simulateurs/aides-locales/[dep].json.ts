@@ -9,6 +9,7 @@ import type { APIRoute, GetStaticPaths } from 'astro';
 import { aidesDeCommune, aidesHorsPerimetre, aidesLocales, etatAide, type AideLocale } from '../../../modele/aides-locales.ts';
 import { communes } from '../../../modele/territoires.ts';
 
+const RENOVER = new Set(['energie', 'isolation', 'chauffage', 'indigne', 'toiture']);
 const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
 const enDep = (dep: string) => communes().filter((c) => c.dep === dep);
 
@@ -20,21 +21,16 @@ export const getStaticPaths: GetStaticPaths = () => {
     .map((dep) => ({ params: { dep } }));
 };
 
+/** Ce que le simulateur montre d'une aide ; le reste est sur la page de la commune. */
 const vue = (a: AideLocale) => ({
   intitule: a.intitule,
   porteur: a.porteur.nom,
-  travaux: a.travaux,
-  beneficiaires: a.beneficiaires,
-  ressources: a.ressources,
   montant: a.montant,
-  precision: a.perimetre.communes === null ? null : a.perimetre.precision,
   etat: etatAide(a),
-  guichet: a.demarche.guichet,
   demarche: a.demarche.url,
   avant: a.demarche.avant_travaux,
-  sources: a.sources.map((s) => ({ titre: s.titre, url: s.url, date: s.date_texte ?? null })),
-  anil: a.anil,
-  verifie: a.verifie_le,
+  // Ce que le simulateur calcule : un propriétaire occupant qui rénove son logement.
+  pour: a.beneficiaires.includes('proprietaire-occupant') && a.travaux.some((t) => RENOVER.has(t)) ? 1 : 0,
 });
 
 export const GET: APIRoute = ({ params }) => {

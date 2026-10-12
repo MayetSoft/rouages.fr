@@ -25,15 +25,12 @@ type Fichier = { annees: number[]; dpe: EffetsDpe | null; c: Record<string, Esti
 type AideVue = {
   intitule: string;
   porteur: string;
-  ressources: string | null;
   montant: string | null;
-  precision: string | null;
   etat: 'ouverte' | 'a_confirmer' | 'a_reverifier';
-  guichet: string | null;
   demarche: string | null;
   avant: boolean | null;
-  sources: { titre: string; url: string }[];
-  anil: string | null;
+  /** 1 : une aide aux propriétaires occupants pour rénover, le cas du simulateur. */
+  pour: 0 | 1;
 };
 type FichierAides = { aides: Record<string, AideVue>; c: Record<string, [string[], string[]]> };
 const LIBELLE_ETAT = { ouverte: 'en vigueur', a_confirmer: 'à confirmer auprès du guichet', a_reverifier: 'à revérifier' } as const;
@@ -182,31 +179,38 @@ export function brancherRenovation(): void {
     const liste = $('sr-locales-liste');
     liste.innerHTML = '';
     const el = (tag: string, cls: string, texte = '') => Object.assign(document.createElement(tag), { className: cls, textContent: texte });
-    for (const id of ici) {
+    // En bref : le détail, les conditions et les sources sont sur la page de la commune.
+    const rang = { ouverte: 0, a_reverifier: 1, a_confirmer: 2 } as const;
+    const pertinentes = ici.filter((id) => fa.aides[id].pour === 1);
+    for (const id of pertinentes.sort((x, y) => rang[fa.aides[x].etat] - rang[fa.aides[y].etat])) {
       const a = fa.aides[id];
       const li = el('li', 'al-aide');
       const tete = el('p', 'al-tete');
       tete.append(el('strong', '', a.intitule), el('span', `al-etat al-etat--${a.etat}`, LIBELLE_ETAT[a.etat]));
-      li.append(tete, el('p', 'al-qui', `${a.porteur}${a.ressources ? ` · ${a.ressources}` : ''}`));
+      li.append(tete, el('p', 'al-qui', a.porteur));
       li.append(a.montant ? el('p', 'al-montant', a.montant) : el('p', 'al-montant al-montant--inconnu', 'Montant non publié : à demander au guichet.'));
-      if (a.precision) li.append(el('p', 'al-perimetre', `Ici seulement : ${a.precision}.`));
-      const d = el('p', 'al-demarche', `${a.avant ? 'À demander avant tout début de travaux. ' : ''}${a.guichet ? `${a.guichet}. ` : ''}`);
-      if (a.demarche) d.append(Object.assign(document.createElement('a'), { href: a.demarche, textContent: 'Comment la demander' }));
-      li.append(d);
-      const s = el('p', 'al-sources');
-      [...a.sources.map((x) => [x.titre, x.url]), ...(a.anil ? [['la fiche de l’ANIL', a.anil]] : [])].forEach(([t, u], i) => {
-        if (i > 0) s.append(' · ');
-        s.append(Object.assign(document.createElement('a'), { href: u, textContent: t }));
-      });
-      li.append(s);
+      if (a.avant || a.demarche) {
+        const d = el('p', 'al-demarche', a.avant ? 'À demander avant tout début de travaux. ' : '');
+        if (a.demarche) d.append(Object.assign(document.createElement('a'), { href: a.demarche, textContent: 'Comment la demander' }));
+        li.append(d);
+      }
       liste.append(li);
     }
+    const autres = ici.length - pertinentes.length;
+    const detail = el(
+      'p',
+      'al-note',
+      `${autres > 0 ? `${autres} autre${autres > 1 ? 's' : ''} aide${autres > 1 ? 's' : ''} locale${autres > 1 ? 's' : ''} ici — pour les bailleurs, l’adaptation, la vacance, les façades… ` : ''}Le périmètre, le guichet, les conditions et les sources de chaque aide : `,
+    );
+    detail.append(Object.assign(document.createElement('a'), { href: `/commune/${cle.slice(2)}#aides-locales`, textContent: 'la page de la commune' }), '.');
+    liste.after(detail);
+    $('sr-locales').querySelectorAll('.al-note').forEach((n, i, t) => i < t.length - 1 && n.remove());
     const p = $('sr-locales-hors');
     p.hidden = hors.length === 0;
     p.textContent = hors.length
-      ? `Ne valent pas ici, la commune étant hors de leur périmètre : ${hors.map((id) => `${fa.aides[id].intitule} (${fa.aides[id].porteur}${fa.aides[id].precision ? ` — ${fa.aides[id].precision}` : ''})`).join(' ; ')}.`
+      ? `Ne valent pas ici, la commune étant hors de leur périmètre : ${hors.map((id) => `${fa.aides[id].intitule} (${fa.aides[id].porteur})`).join(' ; ')}.`
       : '';
-    if (ici.length === 0) liste.append(el('li', 'al-montant--inconnu', 'Aucune aide locale en vigueur n’est recensée pour cette commune.'));
+    if (pertinentes.length === 0) liste.append(el('li', 'al-montant--inconnu', 'Aucune aide locale à la rénovation des propriétaires occupants n’est recensée pour cette commune.'));
     bloc.hidden = false;
   };
 
