@@ -4405,3 +4405,29 @@ l'architecte des Bâtiments de France passent dans la colonne Département,
 boîte en pointillés « L'État dans le département ». Le préfet, typé à tort
 « mandat électif », devient un service déconcentré. Le graphe ne change pas
 (diamètre 6, 66,8 % à trois clics).
+
+### La colonne International (12 octobre 2026)
+
+Une colonne à gauche de l'Union européenne, rangée par domaine d'action.
+Premier lot, chaque mécanisme vérifié par recherche :
+
+- **Droits et démocratie locale** : le Conseil de l'Europe, avec dans sa
+  boîte la Cour européenne des droits de l'homme (saisie après épuisement des
+  recours français, arrêts auxquels la France s'engage à se conformer) et le
+  Congrès des pouvoirs locaux et régionaux (qui contrôle la Charte
+  européenne de l'autonomie locale, ratifiée par la France le 17 janvier
+  2007) ;
+- **Paix et sécurité** : les Nations unies, avec l'Assemblée générale (qui
+  répartit les dépenses entre les États) et le Conseil de sécurité (où la
+  France est membre permanent) ;
+- **Santé** : l'OMS et le Règlement sanitaire international, mis en œuvre
+  par l'État, les agences régionales de santé et les points d'entrée ;
+- **Travail** : l'OIT, tripartite, et ses conventions ratifiées ;
+- **Culture et patrimoine** : l'UNESCO et le patrimoine mondial — zone
+  tampon et plan de gestion élaborés par l'État et les collectivités,
+  pris en compte par le SCoT et le PLU.
+
+Un flux « Contributions des États membres » relie l'État aux cinq
+organisations. Le réseau tient : 249 nœuds, diamètre 6, 65,5 % des paires à
+trois clics (plancher 65 %). Les ajouts suivants devront se relier aux nœuds
+centraux. Règles dans `docs/02-familles.md`, « La colonne International ».

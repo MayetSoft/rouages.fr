@@ -336,7 +336,7 @@ function demarrer(reseau: Reseau) {
           y: k.y,
           width: k.l,
           height: k.h,
-          rx: k.style === 'branche' ? 10 : 16,
+          rx: k.style === 'branche' || (k.style === 'entite' && k.l < 220) ? 10 : 16,
         }),
       );
       if (k.libelle) {

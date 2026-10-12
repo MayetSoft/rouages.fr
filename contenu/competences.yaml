@@ -366,6 +366,76 @@ competences:
     verifie_le: 2026-10-12
     confiance: etabli
 
+  - id: autonomie-locale-europeenne
+    nom: "Charte européenne de l'autonomie locale"
+    nom_court: "Autonomie locale (Charte)"
+    acteur: congres-pouvoirs-locaux
+    resume: "Ratifiée par la France le 17 janvier 2007, la Charte garantit aux collectivités des compétences et des ressources propres ; le Congrès des pouvoirs locaux et régionaux en contrôle le respect par des visites et des recommandations."
+    partagee_avec: [commune, departement, region, etat]
+    liens: [coe-charte-ratification-france, coe-suivi-france]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: droits-convention-europeenne
+    nom: "Droits de la Convention européenne"
+    nom_court: "Droits de la Convention"
+    acteur: cour-europeenne-droits-homme
+    resume: "Une personne qui a épuisé les recours devant les juges français peut saisir la Cour ; la France s'engage à se conformer à ses arrêts définitifs, et le Comité des ministres du Conseil de l'Europe en surveille l'exécution."
+    partagee_avec: [citoyen, conseil-etat, cour-de-cassation, etat]
+    liens: [convention-edh, coe-execution-arrets]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: paix-securite-internationales
+    nom: "Paix et sécurité internationales"
+    nom_court: "Paix et sécurité"
+    acteur: conseil-securite-onu
+    resume: "Le Conseil de sécurité décide pour le maintien de la paix ; la France y siège en membre permanent, et son vote contraire suffit à bloquer une décision de fond."
+    partagee_avec: [president-republique, gouvernement]
+    liens: [charte-onu, wp-conseil-securite-onu]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: budget-onu
+    nom: "Budget des Nations unies"
+    nom_court: "Budget de l'ONU"
+    acteur: assemblee-generale-onu
+    resume: "L'Assemblée générale vote le budget et fixe la part que chaque État membre supporte : « les dépenses de l'Organisation sont supportées par les Membres selon la répartition fixée par l'Assemblée générale »."
+    partagee_avec: [etat]
+    liens: [charte-onu, cij-depenses-onu]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: reglement-sanitaire-international
+    nom: "Règlement sanitaire international"
+    nom_court: "Règlement sanitaire intern."
+    acteur: oms
+    resume: "Adopté à l'OMS en 2005, il oblige la France à détecter et signaler les urgences sanitaires et à équiper ses points d'entrée ; un décret de 2013 répartit sa mise en œuvre entre l'État, les agences régionales de santé et les gestionnaires de ports et d'aéroports."
+    partagee_avec: [etat, ars, administration-centrale]
+    liens: [rsi-application-france, rsi-guide-dgs]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: patrimoine-mondial
+    nom: "Patrimoine mondial"
+    nom_court: "Patrimoine mondial"
+    acteur: unesco
+    resume: "L'UNESCO inscrit des biens sur la liste du patrimoine mondial ; en France, chaque bien a une zone tampon et un plan de gestion élaboré par l'État et les collectivités, arrêté par le préfet de région, et pris en compte par le SCoT et le PLU."
+    partagee_avec: [etat, commune, epci]
+    liens: [culture-patrimoine-mondial, code-patrimoine-l612-1]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: conventions-travail
+    nom: "Conventions internationales du travail"
+    nom_court: "Conventions du travail"
+    acteur: oit
+    resume: "Gouvernements, employeurs et travailleurs les adoptent ensemble à la Conférence internationale du travail ; une convention ratifiée oblige la France à l'appliquer, en droit et en pratique, et à faire rapport sur son application."
+    partagee_avec: [gouvernement, employeur]
+    liens: [fo-oit-normes, an-oit-ratifications]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
   - id: acces-documents
     nom: "Accès aux documents administratifs"
     nom_court: "Accès aux documents"

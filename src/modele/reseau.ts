@@ -14,7 +14,7 @@
  * Les positions de la carte sont calculées ici, au build : le même graphe donne
  * toujours la même image, ce qui permet de la citer et de la comparer.
  */
-import { LIBELLE_ECHELON, LIBELLE_POUVOIR, ECHELONS, POUVOIRS, type Echelon, type Pouvoir, type Sigle } from './schemas.ts';
+import { DOMAINES, LIBELLE_DOMAINE, LIBELLE_ECHELON, LIBELLE_POUVOIR, ECHELONS, POUVOIRS, type Domaine, type Echelon, type Pouvoir, type Sigle } from './schemas.ts';
 import { chargerGraphe, type Graphe } from './graphe.ts';
 import { largeurPastille } from '../vues/formes.ts';
 
@@ -44,6 +44,8 @@ export interface Noeud {
   releveDe?: string;
   /** Sa première branche du pouvoir, qui le range dans la boîte de l'État. */
   pouvoir?: Pouvoir;
+  /** Le domaine d'action d'une organisation internationale. */
+  domaine?: Domaine;
   /** Position sur la carte d'ensemble (acteurs uniquement). */
   x?: number;
   y?: number;
@@ -53,10 +55,11 @@ export interface Noeud {
  * Une boîte de la carte d'ensemble. `entite` : une collectivité et ses organes,
  * l'en-tête étant le nœud de l'entité elle-même ; `local` : les organes d'une
  * entité d'une autre colonne qui agissent dans celle-ci (« L'État en région »),
- * en pointillés ; `branche` : une branche du pouvoir, dans la boîte de l'État.
+ * en pointillés ; `branche` : une branche du pouvoir, dans la boîte de l'État ;
+ * `domaine` : un domaine d'action, dans la colonne « International ».
  */
 export interface BoiteCarte {
-  style: 'entite' | 'local' | 'branche';
+  style: 'entite' | 'local' | 'branche' | 'domaine';
   x: number;
   y: number;
   l: number;
@@ -141,6 +144,7 @@ const ECART_BOITES = 30;
 /** « L'État en région », « L'État dans le département » : l'intitulé d'une boîte `local`. */
 const ARTICLE_ENTITE: Record<string, string> = { etat: 'L’État', 'union-europeenne': 'L’Union européenne' };
 const DANS_ECHELON: Record<Echelon, string> = {
+  international: 'à l’international',
   union_europeenne: 'dans l’Union',
   etat: 'au niveau national',
   region: 'en région',
@@ -177,6 +181,7 @@ export function construireReseau(g: Graphe = chargerGraphe()): Reseau {
       liens: liensDe(a.liens),
       ...(a.releve_de ? { releveDe: a.releve_de } : {}),
       ...(a.pouvoirs ? { pouvoir: a.pouvoirs[0] } : {}),
+      ...(a.domaine ? { domaine: a.domaine } : {}),
     });
   }
   for (const c of g.competences.values()) {
@@ -263,12 +268,31 @@ function disposerCarte(noeuds: Map<string, Noeud>, aretes: Arete[]): Reseau['car
   const parents = new Set(acteurs.map((a) => a.releveDe).filter((p): p is string => !!p));
   const trier = (l: Noeud[]) => l.sort((a, b) => b.degre - a.degre || a.nom.localeCompare(b.nom, 'fr'));
 
-  type Sous = { libelle?: string; membres: Noeud[] };
-  type Bloc = { style: 'entite' | 'local' | 'libre'; entete?: Noeud; libelle?: string; sous: Sous[] };
+  type Sous = { libelle?: string; entete?: Noeud; membres: Noeud[] };
+  type Bloc = { style: 'entite' | 'local' | 'libre' | 'domaine'; entete?: Noeud; libelle?: string; sous: Sous[] };
 
   const contenus = presents.map((echelon) => {
     const dans = acteurs.filter((a) => a.echelon === echelon);
     const blocs: Bloc[] = [];
+    // La colonne « International » se range par domaine d'action ; dans chaque
+    // domaine, une organisation qui a des organes forme sa propre boîte.
+    if (echelon === 'international') {
+      const largeurPile = Math.max(104, ...dans.map((a) => largeurPastille(a.court)));
+      for (const d of DOMAINES) {
+        const tetes = trier(dans.filter((a) => !a.releveDe && a.domaine === d));
+        if (!tetes.length) continue;
+        const sous: Sous[] = [];
+        const seules: Noeud[] = [];
+        for (const t of tetes) {
+          const organes = trier(dans.filter((a) => a.releveDe === t.id));
+          if (organes.length) sous.push({ entete: t, membres: [t, ...organes] });
+          else seules.push(t);
+        }
+        if (seules.length) sous.push({ membres: seules });
+        blocs.push({ style: 'domaine', libelle: LIBELLE_DOMAINE[d], sous });
+      }
+      return { echelon, blocs, largeurPile };
+    }
     for (const e of trier(dans.filter((a) => parents.has(a.id)))) {
       const membres = trier(dans.filter((a) => a.releveDe === e.id));
       const sous: Sous[] =
@@ -323,11 +347,13 @@ function disposerCarte(noeuds: Map<string, Noeud>, aretes: Arete[]): Reseau['car
         const par = Math.ceil(s.membres.length / n);
         for (let p = 0; p < n; p++) piles.push({ sous: k, membres: s.membres.slice(p * par, (p + 1) * par) });
       });
-      const avecBranches = b.sous.some((s) => s.libelle);
+      const avecBranches = b.sous.some((s) => s.libelle || s.entete);
+      // La place d'un intitulé de branche, seulement s'il y en a un.
+      const bandeau = b.sous.some((s) => s.libelle);
       let largeurBloc = 0;
       for (let debut = 0; debut < piles.length; debut += PILES_PAR_LIGNE) {
         const ligne = piles.slice(debut, debut + PILES_PAR_LIGNE);
-        const haut = y + (avecBranches ? HAUTEUR_INTITULE : 0);
+        const haut = y + (bandeau ? HAUTEUR_INTITULE : avecBranches ? 10 : 0);
         const rangs = Math.max(...ligne.map((p) => p.membres.length));
         ligne.forEach((p, k) => {
           const x = marge + k * (pile + ECART_PILES) + pile / 2;
@@ -340,12 +366,14 @@ function disposerCarte(noeuds: Map<string, Noeud>, aretes: Arete[]): Reseau['car
             const n0 = idx[0];
             const n1 = idx[idx.length - 1];
             const lignes = Math.max(...idx.map((n) => ligne[n].membres.length));
+            if (!b.sous[k].libelle && !b.sous[k].entete) continue;
             cadres.push({
-              style: 'branche',
+              style: b.sous[k].entete ? 'entite' : 'branche',
+              entete: b.sous[k].entete?.id,
               x: marge + n0 * (pile + ECART_PILES) - 6,
               y: y,
               l: (n1 - n0 + 1) * pile + (n1 - n0) * ECART_PILES + 12,
-              h: HAUTEUR_INTITULE + (lignes - 1) * HAUTEUR_LIGNE * 0.78 + 40,
+              h: haut - y + (lignes - 1) * HAUTEUR_LIGNE * 0.78 + 40,
               libelle: b.sous[k].libelle,
               bloc: nb,
             });
@@ -357,7 +385,7 @@ function disposerCarte(noeuds: Map<string, Noeud>, aretes: Arete[]): Reseau['car
       largeurBloc += 2 * marge;
       if (b.entete) places.find((p) => p.noeud === b.entete)!.x = largeurBloc / 2;
       y += marge;
-      if (encadre) cadres.push({ style: b.style as 'entite' | 'local', x: 0, y: yBloc, l: largeurBloc, h: y - yBloc, libelle: b.libelle, entete: b.entete?.id, bloc: nb });
+      if (encadre) cadres.push({ style: b.style as 'entite' | 'local' | 'domaine', x: 0, y: yBloc, l: largeurBloc, h: y - yBloc, libelle: b.libelle, entete: b.entete?.id, bloc: nb });
       largeursBlocs.push(largeurBloc);
       largeur = Math.max(largeur, largeurBloc);
       y += ECART_BOITES;
@@ -401,8 +429,8 @@ function disposerCarte(noeuds: Map<string, Noeud>, aretes: Arete[]): Reseau['car
       bas: Math.round(dy + c.hauteur),
     };
   });
-  // Les boîtes d'entité d'abord, les branches par-dessus.
-  boites.sort((a, b) => (a.style === 'branche' ? 1 : 0) - (b.style === 'branche' ? 1 : 0));
+  // Les grandes boîtes d'abord : celles qu'elles contiennent se dessinent par-dessus.
+  boites.sort((a, b) => a.l * a.h < b.l * b.h ? 1 : a.l * a.h > b.l * b.h ? -1 : 0);
 
   const LARGEUR_CARTE = Math.round(curseur);
   const hauteur = MARGE_HAUT + hauteurMax;
