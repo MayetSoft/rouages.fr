@@ -462,6 +462,7 @@ export const Surveillance = z.object({
     'paquet-npm',
     'melodi-periode',
     'opendatasoft-fraicheur',
+    'opendatasoft-catalogue',
   ]),
   url: z.string().min(3),
   /**
@@ -490,7 +491,8 @@ export const Surveillance = z.object({
    */
   echelon: z.enum(['commune', 'groupement']).default('commune'),
   /**
-   * Pour `datagouv-ressource` et `opendatasoft-pieces` : le motif que doit
+   * Pour `opendatasoft-catalogue`, le motif que doit porter le titre d'un jeu,
+   * l'année entre parenthèses ; pour `datagouv-ressource` et `opendatasoft-pieces`, le motif que doit
    * porter le nom de la ressource suivie. Un jeu de données en publie souvent
    * plusieurs, dont des notices PDF ; sans motif, on comparerait n'importe quoi.
    */

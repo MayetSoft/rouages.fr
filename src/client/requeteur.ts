@@ -5,7 +5,9 @@
  *
  * Rien n'est calculé qui ne soit déjà publié : la population vient de l'index
  * des communes, les équipements de la base permanente des équipements de
- * l'INSEE, les associations du répertoire national, tels que
+ * l'INSEE, les associations du répertoire national, les indicateurs — taux de
+ * foncier bâti, logements vacants, âges, catastrophes reconnues — des fichiers
+ * que la page de commune affiche déjà, tels que
  * `scripts/proximite-emettre.ts` les range, un fichier par type ou par
  * domaine, chargé seulement quand le critère est choisi. Tout se passe dans le
  * navigateur ; l'adresse garde la recherche, qui se partage comme un lien.
@@ -13,12 +15,18 @@
 import { chargerIndex, type CommuneBreve } from './recherche-commune.ts';
 
 type Fichier = { r: number[]; n: number[] };
+/** Clé, libellé, unité, millésime, nombre de communes renseignées. */
+type Indicateur = [string, string, string, string, number];
 type IndexProximite = {
   equipements: { millesime: string; types: [string, number, string, number][] };
   associations: { domaines: [string, number][] };
+  indicateurs?: Indicateur[];
 };
-/** `e60` : le type 60 de la base ; `d9` : le domaine 9 du répertoire. */
-type Critere = { cle: string; mode: 'au-moins' | 'aucun'; n: number };
+/**
+ * `e60` : le type 60 de la base ; `d9` : le domaine 9 du répertoire ;
+ * `ifb` : l'indicateur `fb`, comparé à un seuil (« au moins » ou « au plus »).
+ */
+type Critere = { cle: string; mode: 'au-moins' | 'au-plus' | 'aucun'; n: number };
 
 const PAGE = 100;
 
@@ -36,9 +44,21 @@ const json = async <T,>(url: string): Promise<T> => {
   return (await r.json()) as T;
 };
 
-/** Le nombre, par rang de commune dans l'index, pour un critère. */
+/** Le nombre, par rang de commune dans l'index, pour un critère ; pour un indicateur, sa valeur quand elle est publiée. */
 const cache = new Map<string, Promise<Map<number, number>>>();
 function compte(cle: string): Promise<Map<number, number>> {
+  if (!cache.has(cle) && cle.startsWith('i')) {
+    cache.set(
+      cle,
+      json<{ v: (number | null)[] }>(`/territoires/proximite/indicateurs/${cle.slice(1)}.json`).then((f) => {
+        const m = new Map<number, number>();
+        f.v.forEach((x, rang) => {
+          if (x !== null) m.set(rang, x);
+        });
+        return m;
+      }),
+    );
+  }
   if (!cache.has(cle)) {
     const url = cle.startsWith('e') ? `/territoires/proximite/equipements/${cle.slice(1)}.json` : `/territoires/proximite/associations/${cle.slice(1)}.json`;
     cache.set(
@@ -77,8 +97,11 @@ export function brancherRequeteur(): void {
   let ip: IndexProximite | null = null;
   const criteres: Critere[] = [];
   let tour = 0;
+  const indicateur = (cle: string) => (cle.startsWith('i') ? ip?.indicateurs?.find(([k]) => k === cle.slice(1)) : undefined);
   const libelle = (cle: string) => {
     if (!ip) return cle;
+    const ind = indicateur(cle);
+    if (ind) return `${ind[1]}${ind[2] ? ` (${ind[2]})` : ''}`;
     if (cle.startsWith('e')) {
       const nom = ip.equipements.types[Number(cle.slice(1))]?.[0] ?? cle;
       return nom.charAt(0).toUpperCase() + nom.slice(1);
@@ -87,14 +110,25 @@ export function brancherRequeteur(): void {
   };
   const valide = (cle: string) =>
     !!ip &&
-    ((cle.startsWith('e') && !!ip.equipements.types[Number(cle.slice(1))]) || (cle.startsWith('d') && !!ip.associations.domaines[Number(cle.slice(1))]));
+    ((cle.startsWith('e') && !!ip.equipements.types[Number(cle.slice(1))]) ||
+      (cle.startsWith('d') && !!ip.associations.domaines[Number(cle.slice(1))]) ||
+      !!indicateur(cle));
+  const decimal = (x: number) => x.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+  /** Ce que la case affiche : un compte vaut 0 quand la commune n'a rien ; un indicateur absent n'est pas un zéro. */
+  const valeur = (cle: string, m: Map<number, number>, r: number) => {
+    const x = m.get(r);
+    if (cle.startsWith('i')) return x === undefined ? '—' : decimal(x);
+    return String(x ?? 0);
+  };
 
   const ecrireAdresse = () => {
     const p = new URLSearchParams();
     if (pmin.value) p.set('pmin', pmin.value);
     if (pmax.value) p.set('pmax', pmax.value);
     if (dep.value) p.set('dep', dep.value);
-    if (criteres.length) p.set('c', criteres.map((c) => `${c.cle}:${c.mode === 'aucun' ? 0 : c.n}`).join(','));
+    // Un indicateur s'écrit `ifb:min40` ou `ifb:max40` ; un compte, `e60:2`, et 0 pour « aucun ».
+    const morceau = (c: Critere) => (c.cle.startsWith('i') ? `${c.cle}:${c.mode === 'au-plus' ? 'max' : 'min'}${c.n}` : `${c.cle}:${c.mode === 'aucun' ? 0 : c.n}`);
+    if (criteres.length) p.set('c', criteres.map(morceau).join(','));
     history.replaceState(null, '', p.size ? `?${p}` : location.pathname);
   };
 
@@ -104,7 +138,9 @@ export function brancherRequeteur(): void {
       const li = el('li', 'rq-critere');
       const mode = el('select');
       mode.setAttribute('aria-label', `Condition sur ${libelle(c.cle)}`);
-      for (const [v, t] of [['au-moins', 'au moins'], ['aucun', 'aucun']] as const) {
+      const ind = indicateur(c.cle);
+      const modes = ind ? ([['au-moins', 'au moins'], ['au-plus', 'au plus']] as const) : ([['au-moins', 'au moins'], ['aucun', 'aucun']] as const);
+      for (const [v, t] of modes) {
         const o = el('option', '', t);
         o.value = v;
         o.selected = c.mode === v;
@@ -112,11 +148,13 @@ export function brancherRequeteur(): void {
       }
       const n = el('input');
       n.type = 'number';
-      n.min = '1';
+      n.min = ind ? '0' : '1';
+      if (ind) n.step = ind[2] === '%' ? '0.1' : '1';
       n.value = String(c.n);
       n.hidden = c.mode === 'aucun';
-      n.setAttribute('aria-label', `Nombre minimum de ${libelle(c.cle)}`);
+      n.setAttribute('aria-label', ind ? `Seuil pour ${libelle(c.cle)}` : `Nombre minimum de ${libelle(c.cle)}`);
       const nom = el('span', 'rq-critere-nom', libelle(c.cle));
+      if (ind) nom.title = `${ind[3] ? `Millésime ${ind[3]} · ` : ''}${ind[4].toLocaleString('fr-FR')} communes renseignées ; les autres sont écartées par ce critère.`;
       const retirer = el('button', 'comparer-retirer', '×');
       retirer.type = 'button';
       retirer.setAttribute('aria-label', `Retirer le critère ${libelle(c.cle)}`);
@@ -126,7 +164,7 @@ export function brancherRequeteur(): void {
         void calculer();
       });
       n.addEventListener('change', () => {
-        c.n = Math.max(1, Math.round(Number(n.value) || 1));
+        c.n = ind ? Math.max(0, Math.round((Number(n.value.replace(',', '.')) || 0) * 10) / 10) : Math.max(1, Math.round(Number(n.value) || 1));
         n.value = String(c.n);
         void calculer();
       });
@@ -143,7 +181,7 @@ export function brancherRequeteur(): void {
   const csv = (communes: CommuneBreve[], comptes: Map<number, number>[], rangs: number[]) => {
     const esc = (s: string) => (/[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
     const tete = ['code INSEE', 'commune', 'département', 'population', ...criteres.map((c) => libelle(c.cle))];
-    const corps = rangs.map((r) => [communes[r].code, communes[r].nom, communes[r].depNom, String(communes[r].population), ...comptes.map((m) => String(m.get(r) ?? 0))]);
+    const corps = rangs.map((r) => [communes[r].code, communes[r].nom, communes[r].depNom, String(communes[r].population), ...comptes.map((m, k) => valeur(criteres[k].cle, m, r))]);
     const texte = '﻿' + [tete, ...corps].map((l) => l.map(esc).join(';')).join('\n');
     return URL.createObjectURL(new Blob([texte], { type: 'text/csv;charset=utf-8' }));
   };
@@ -172,8 +210,11 @@ export function brancherRequeteur(): void {
       if (c.population < min || c.population > max) return;
       if (dep.value && c.dep !== dep.value) return;
       for (let k = 0; k < criteres.length; k++) {
+        const c = criteres[k];
+        // Une commune dont l'indicateur n'est pas publié ne répond pas : on ne sait pas.
+        if (c.cle.startsWith('i') && !comptes[k].has(r)) return;
         const n = comptes[k].get(r) ?? 0;
-        if (criteres[k].mode === 'aucun' ? n > 0 : n < criteres[k].n) return;
+        if (c.mode === 'aucun' ? n > 0 : c.mode === 'au-plus' ? n > c.n : n < c.n) return;
       }
       rangs.push(r);
     });
@@ -212,7 +253,7 @@ export function brancherRequeteur(): void {
         a.href = `/commune/${c.code}`;
         td.append(a);
         ligne.append(td, el('td', '', c.depNom), el('td', 'rq-nombre', c.population.toLocaleString('fr-FR')));
-        for (const m of comptes) ligne.append(el('td', 'rq-nombre', String(m.get(r) ?? 0)));
+        comptes.forEach((m, k) => ligne.append(el('td', 'rq-nombre', valeur(criteres[k].cle, m, r))));
         tbody.append(ligne);
       }
       montres = Math.min(rangs.length, montres + PAGE);
@@ -258,15 +299,29 @@ export function brancherRequeteur(): void {
       ga.append(o);
     });
     ajout.append(ga);
+    if (ip.indicateurs?.length) {
+      const gi = el('optgroup');
+      gi.label = 'Indicateurs';
+      for (const [cle, nom, unite, millesime, n] of ip.indicateurs) {
+        if (!n) continue;
+        const o = el('option', '', `${nom}${unite ? ` (${unite})` : ''}${millesime ? ` — ${/^\d{4}$/.test(millesime) ? millesime : `au ${millesime.split('-').reverse().join('/')}`}` : ''}`);
+        o.value = `i${cle}`;
+        gi.append(o);
+      }
+      if (gi.children.length) ajout.append(gi);
+    }
 
     const p = new URLSearchParams(location.search);
     pmin.value = p.get('pmin') ?? '';
     pmax.value = p.get('pmax') ?? '';
     if (p.get('dep') && [...dep.options].some((o) => o.value === p.get('dep'))) dep.value = p.get('dep')!;
     for (const morceau of (p.get('c') ?? '').split(',').filter(Boolean)) {
-      const [cle, n] = morceau.split(':');
+      const [cle, n = ''] = morceau.split(':');
       if (!valide(cle) || criteres.some((c) => c.cle === cle)) continue;
-      criteres.push({ cle, mode: n === '0' ? 'aucun' : 'au-moins', n: Math.max(1, Number(n) || 1) });
+      if (cle.startsWith('i')) {
+        const seuil = /^(min|max)(\d+(?:\.\d+)?)$/.exec(n);
+        criteres.push({ cle, mode: seuil?.[1] === 'max' ? 'au-plus' : 'au-moins', n: seuil ? Number(seuil[2]) : 0 });
+      } else criteres.push({ cle, mode: n === '0' ? 'aucun' : 'au-moins', n: Math.max(1, Number(n) || 1) });
     }
     dessinerCriteres();
 
@@ -274,7 +329,7 @@ export function brancherRequeteur(): void {
       const cle = ajout.value;
       ajout.value = '';
       if (!cle || criteres.some((c) => c.cle === cle)) return;
-      criteres.push({ cle, mode: 'au-moins', n: 1 });
+      criteres.push({ cle, mode: 'au-moins', n: cle.startsWith('i') ? 0 : 1 });
       dessinerCriteres();
       void calculer();
     });

@@ -446,6 +446,26 @@ competences:
     verifie_le: 2026-10-13
     confiance: etabli
 
+  - id: sites-ramsar
+    nom: "Sites Ramsar"
+    nom_court: "Sites Ramsar"
+    acteur: convention-ramsar
+    resume: "En France, le ministère chargé de l'écologie demande l'inscription des sites et veille à leur gestion ; une circulaire du 24 décembre 2009 encadre leur désignation, leur gouvernance et leur suivi. La page de chaque commune dit si elle en touche un."
+    partagee_avec: [etat, commune]
+    liens: [ramsar-france-mise-en-oeuvre, circulaire-ramsar-2009]
+    verifie_le: 2026-10-13
+    confiance: etabli
+
+  - id: seuils-marches-publics
+    nom: "Seuils des marchés publics"
+    nom_court: "Seuils des marchés publics"
+    acteur: omc
+    resume: "Tous les deux ans, la Commission européenne aligne les seuils des directives sur ceux de l'accord de l'OMC sur les marchés publics ; le code de la commande publique les reprend, et au-delà un acheteur public, une commune comprise, suit une procédure formalisée."
+    partagee_avec: [commission-europeenne, etat, commune]
+    liens: [directive-2014-24-seuils, weka-seuils-europeens]
+    verifie_le: 2026-10-13
+    confiance: etabli
+
   - id: acces-documents
     nom: "Accès aux documents administratifs"
     nom_court: "Accès aux documents"

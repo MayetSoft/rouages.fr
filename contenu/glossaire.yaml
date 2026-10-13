@@ -623,3 +623,9 @@ sigles:
     definition: "La réunion des États parties à une convention internationale ; la COP sur le climat se tient chaque année et a adopté l'accord de Paris en 2015."
     noeud: cop-climat
     liens: [wp-cop-climat]
+  - id: sigle-omc
+    sigle: OMC
+    developpe: "Organisation mondiale du commerce"
+    definition: "Organisation des règles du commerce entre États ; son accord sur les marchés publics fixe les seuils repris par les directives européennes."
+    noeud: omc
+    liens: [wp-omc]

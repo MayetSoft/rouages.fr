@@ -8,7 +8,7 @@ import Base from '../layouts/Base.astro';
 ---
 <Base
   titre="Trouver des communes"
-  description="Les communes qui répondent à vos critères : une population, un département, des équipements sportifs, des écoles, des services de santé, des associations."
+  description="Les communes qui répondent à vos critères : une population, un département, des équipements sportifs, des écoles, des services de santé, des associations, un taux de foncier bâti, une part de logements vacants ou de 65 ans et plus."
   section="chez-moi"
 >
   <div class="page page--comparer">
@@ -16,8 +16,10 @@ import Base from '../layouts/Base.astro';
     <h1>Trouver des communes</h1>
     <p class="resume">
       Les villages de moins de 500 habitants qui ont encore une école, les communes avec une piscine et un médecin,
-      celles qui n’ont pas de pharmacie&nbsp;: des critères qu’on combine, et la liste des communes qui y répondent
-      toutes. Rien n’est recalculé&nbsp;: ce sont les chiffres publiés sur leurs pages.
+      celles qui n’ont pas de pharmacie, celles où le foncier bâti dépasse 50&nbsp;% ou où plus d’un logement sur
+      cinq est vacant&nbsp;: des critères qu’on combine, et la liste des communes qui y répondent
+      toutes. Rien n’est estimé&nbsp;: ce sont les chiffres publiés sur leurs pages, et une part n’est que le rapport
+      de deux d’entre eux.
     </p>
 
     <div class="rq-filtres">
@@ -32,10 +34,10 @@ import Base from '../layouts/Base.astro';
         <select id="rq-dep"><option value="">Toute la France</option></select>
       </fieldset>
       <fieldset class="rq-bloc rq-bloc-large">
-        <legend>Ce qu’elles ont, ou n’ont pas</legend>
+        <legend>Ce qu’elles ont, ou n’ont pas, et ce qu’on y mesure</legend>
         <ul id="rq-criteres" class="rq-criteres"></ul>
         <label class="visuellement-cache" for="rq-ajout">Ajouter un critère</label>
-        <select id="rq-ajout"><option value="">+ ajouter un critère : un équipement, une école, un service de santé…</option></select>
+        <select id="rq-ajout"><option value="">+ ajouter un critère : un équipement, une école, un service de santé, un indicateur…</option></select>
       </fieldset>
     </div>
 
@@ -61,11 +63,27 @@ import Base from '../layouts/Base.astro';
         prendre de patients&nbsp;; la page de chaque commune dit, quand la donnée existe, l’accessibilité aux médecins
         mesurée par la DREES.
       </li>
+      <li>
+        <strong>Un indicateur absent n’est pas un zéro.</strong> Une commune dont le fichier source ne donne pas la
+        valeur — le recensement ne publie pas tout pour les plus petites — est écartée par le critère, et sa case
+        affiche un tiret.
+      </li>
+      <li>
+        <strong>Le taux de foncier bâti est celui que votent ensemble</strong> la commune, l’intercommunalité, les
+        syndicats, avec les taxes spéciales d’équipement et la taxe pour la gestion des milieux aquatiques. Il ne dit
+        pas ce que paie un propriétaire, qui dépend aussi de la valeur locative.
+      </li>
+      <li>
+        <strong>Une catastrophe reconnue est un arrêté, pas un sinistre.</strong> Il faut que la commune demande la
+        reconnaissance&nbsp;; une commune qui n’en compte aucune n’a pas forcément été épargnée.
+      </li>
     </ul>
     <p class="p-strate">
       D’après l’index des communes, dont la population vient du découpage administratif publié par Etalab, la base permanente des équipements de l’INSEE et le
       répertoire national des associations, sous Licence Ouverte. Les associations sont comptées par le premier domaine de
-      leur objet social.
+      leur objet social. Les indicateurs viennent du recensement des éléments d’imposition de la DGFiP, du recensement de
+      l’INSEE (logements et âges, estimations) et de la base GASPAR du ministère de la Transition écologique&nbsp;; le
+      millésime de chacun est dans la liste des critères.
     </p>
   </div>
 </Base>

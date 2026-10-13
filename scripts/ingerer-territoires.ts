@@ -851,6 +851,11 @@ async function principal() {
   );
   if (programmesEtat) ecrireProgrammes(SORTIE, programmesEtat);
 
+  // Les plans climat-air-énergie des intercommunalités, d'après le registre de l'ADEME (sans noms de personnes).
+  const { collecterPcaet, ecrirePcaet } = await import('./pcaet-emettre.ts');
+  const plansClimat = await tenter('Plans climat-air-énergie', () => collecterPcaet(lireJson, grise));
+  if (plansClimat) ecrirePcaet(SORTIE, plansClimat);
+
   // La performance des programmes : objectifs, indicateurs, cibles et réalisé, tels que publiés.
   const { collecterPerformance, ecrirePerformance } = await import('./budget-performance-emettre.ts');
   const performance = await tenter('Performance des programmes', () => collecterPerformance(lireJson, grise));

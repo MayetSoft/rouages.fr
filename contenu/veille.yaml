@@ -101,6 +101,21 @@ surveillances:
     attendu: 704853
     lien: od-decp-bercy
 
+  # Le budget vert du projet de loi de finances paraît chaque automne sous un
+  # nouvel identifiant : on guette son titre au catalogue. Quand l'année
+  # change, il faut repointer `JEU_BUDGET` et les trois colonnes de
+  # `scripts/budget-etat-emettre.ts`. Le PLF 2027, déposé le 1er octobre 2026,
+  # n'y était pas le 13 octobre ; la fiche du jeu 2026 est datée du 13 novembre 2025.
+  # Licence relevée sur la fiche du jeu 2026, le 13 octobre 2026.
+  - id: budget-vert-plf
+    nom: "Direction du Budget — budget vert du projet de loi de finances"
+    alimente: "les crédits de l'État par mission, programme et action, sur /argent-public"
+    type: opendatasoft-catalogue
+    licence: licence-ouverte-2.0
+    url: "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets?where=search(%22Budget%20vert%22)&select=title&limit=100"
+    ressource: "^PLF (\\d{4})\\s*-?\\s*Budget vert$"
+    lien: od-budget-vert-2026
+
   # Les avis de marché du BOAMP, quotidiens : c'est la date de la dernière
   # parution qu'on regarde. La fiche Opendatasoft ne dit pas la licence ; la
   # fiche « BOAMP » de data.gouv.fr, publiée par le Premier ministre (DILA), la

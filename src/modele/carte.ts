@@ -82,7 +82,7 @@ type EspacesDep = {
 const espacesDep = parDepartement<EspacesDep>('espaces');
 
 export interface ZoneNaturelle {
-  /** Rang de la nature : 0 à 3 protections, 4 et 5 Natura 2000, 6 et 7 ZNIEFF, 8 et 9 parcs. */
+  /** Rang de la nature : 0 à 3 protections, 4 et 5 Natura 2000, 6 et 7 ZNIEFF, 8 et 9 parcs, 10 à 12 désignations internationales (Ramsar, biosphère, patrimoine mondial). */
   rang: number;
   nature: string;
   nom: string;

@@ -427,6 +427,25 @@ const controles: Record<
     };
   },
 
+  /**
+   * Un jeu qui change d'identifiant à chaque millésime : le budget vert du
+   * projet de loi de finances paraît chaque automne sous un nouveau nom
+   * (`plf25-budget-vert`, `plf-2026-budget-vert`). On cherche donc dans le
+   * catalogue le titre le plus récent qui porte le motif ; l'empreinte est
+   * l'année, et son changement est le signal qu'un nouveau projet est publié.
+   */
+  async 'opendatasoft-catalogue'(s) {
+    const r = (await (await obstine(s.url)).json()) as { results?: { title?: string; metas?: { default?: { title?: string } } }[] };
+    const motif = new RegExp(s.ressource ?? '(\\d{4})', 'i');
+    const annees = (r.results ?? [])
+      .map((x) => motif.exec(x.title ?? x.metas?.default?.title ?? '')?.[1])
+      .filter((x): x is string => !!x)
+      .map(Number);
+    if (annees.length === 0) return { gravite: 'alerte', message: 'aucun jeu du catalogue ne porte le motif : les titres ont changé de forme' };
+    const dernier = Math.max(...annees);
+    return { gravite: 'ok', message: `dernier millésime au catalogue : ${dernier}`, empreinte: String(dernier), millesime: dernier };
+  },
+
   async 'paquet-npm'(s) {
     const r = (await (await obstine(`https://registry.npmjs.org/${s.url}/latest`)).json()) as {
       version: string;
