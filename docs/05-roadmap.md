@@ -4527,3 +4527,30 @@ Plutôt que d'attendre à la main, la veille guette le titre au catalogue
 (`budget-vert-plf`, nouveau type `opendatasoft-catalogue`) : quand l'année
 change, il faut repointer `JEU_BUDGET` et les trois colonnes de
 `scripts/budget-etat-emettre.ts`, dont les noms portent les années.
+
+### Frais d'achat : le notaire, ligne par ligne (13 octobre 2026)
+
+Le simulateur détaille ce que touche le notaire, d'après le tarif lui-même :
+le code de commerce consolidé au 1er octobre 2026, lu sur codes.droit.org
+(Légifrance refuse cet environnement).
+
+- **L'acte** : l'émolument de la vente, tranche par tranche (art. A444-91).
+  Pour 200 000 €, 251,55 + 167,58 + 457,52 + 1 118,60 = 1 995,25 € HT,
+  l'exemple que donne service-public.fr.
+- **Les formalités** : des montants fixes (art. A444-169 à A444-173-1). Pour
+  toute vente de logement, le forfait d'un acte publié au fichier immobilier
+  (n° 194, 339,58 €), la réquisition de publication (n° 188, 18,87 €), la
+  vérification du casier judiciaire de l'acquéreur, que l'article L551-1 du
+  code de la construction impose pour tout logement (n° 181, 37,73 €), la
+  transmission au Conseil supérieur du notariat (n° 195, 15,31 €). Deux cases
+  ajoutent la copropriété (n° 182 et 220) et la purge d'un droit de
+  préemption (n° 187). Les pièces que le notaire obtient selon le dossier
+  sont dites par pièce, sans être comptées : leur nombre ne se devine pas.
+- **L'écrêtement** à 10 % du prix, 90 € au moins (art. R444-9, A444-175), et
+  **la remise** possible, 20 % au plus de l'émolument calculé au-delà de
+  100 000 € (art. A444-174), affichée comme un plafond, pas déduite.
+- **La publication** : la contribution de sécurité immobilière est rattachée
+  à la publication au fichier immobilier.
+
+Le total compte désormais les formalités : environ 410 € HT de plus pour une
+maison, ce que le simulateur locatif reprend aussi.

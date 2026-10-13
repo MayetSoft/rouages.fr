@@ -4,7 +4,7 @@
  * le notaire. Voir `src/modele/bareme-achat.ts`.
  */
 import { aLieu } from '../modele/signalement.ts';
-import { FIN_HAUSSE, fraisAchat, SEUIL_COMMUNE } from '../modele/bareme-achat.ts';
+import { ECRETEMENT, FIN_HAUSSE, FORMALITES_PAR_PIECE, fraisAchat, REMISE, SEUIL_COMMUNE, type Frais } from '../modele/bareme-achat.ts';
 import { brancherRapport, restaurerSaisie } from './rapport.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 
@@ -15,6 +15,55 @@ type Recettes = { annee: number; d: Record<string, { dep: number | null; com: nu
 
 const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
 const euros = (x: number) => `${Math.round(x).toLocaleString('fr-FR')} €`;
+const centimes = (x: number) => `${x.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+const taux = (x: number) => `${x.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %`;
+
+/** Le détail du notaire : l'acte tranche par tranche, chaque formalité, l'écrêtement, la TVA, la remise possible. */
+function detailNotaire(f: Frais, prix: number): HTMLElement {
+  const details = document.createElement('details');
+  details.className = 'sf-detail';
+  const resume = document.createElement('summary');
+  resume.textContent = 'Le détail, ligne par ligne';
+  const table = document.createElement('table');
+  const ligne = (libelle: string, montant: string, classe = '') => {
+    const tr = document.createElement('tr');
+    if (classe) tr.className = classe;
+    const th = document.createElement('th');
+    th.scope = 'row';
+    th.textContent = libelle;
+    const td = document.createElement('td');
+    td.textContent = montant;
+    tr.append(th, td);
+    table.append(tr);
+  };
+  const tete = (texte: string) => ligne(texte, '', 'sf-detail-tete');
+  tete('L’acte de vente — émolument proportionnel (art. A444-91)');
+  for (const t of f.tranches) {
+    const borne = Number.isFinite(t.a) ? `de ${euros(t.de)} à ${euros(t.a)}` : `au-delà de ${euros(t.de)}`;
+    ligne(`${taux(t.taux)} ${borne}, sur ${euros(t.assiette)}`, centimes(t.montant));
+  }
+  ligne('Sous-total de l’acte', centimes(f.acte), 'sf-detail-total');
+  tete('Les formalités — montants fixes (art. A444-169 à A444-173-1)');
+  for (const x of f.formalites) ligne(`${x.libelle} (n° ${x.numero})`, centimes(x.montant));
+  ligne('Sous-total des formalités', centimes(f.formalitesHt), 'sf-detail-total');
+  if (f.ecretement > 0) ligne(`Écrêtement : le total ne peut dépasser ${ECRETEMENT.taux} % du prix, ni descendre sous ${ECRETEMENT.minimum} €`, `− ${centimes(f.ecretement)}`);
+  ligne('Émoluments hors taxes', centimes(f.emolumentsHt), 'sf-detail-total');
+  ligne('TVA à 20 %, versée à l’État', centimes(f.tva));
+  ligne('Émoluments TTC', centimes(f.emolumentsHt + f.tva), 'sf-detail-total');
+  const notes = document.createElement('ul');
+  const note = (t: string) => notes.append(Object.assign(document.createElement('li'), { textContent: t }));
+  note(
+    `Selon les pièces que le notaire obtient lui-même, d’autres montants fixes s’ajoutent : ${centimes(FORMALITES_PAR_PIECE.document)} HT par document nécessaire à l’acte et non tarifé ailleurs, ${centimes(FORMALITES_PAR_PIECE.diagnostic)} HT par diagnostic du dossier technique qu’il obtient et vérifie.`,
+  );
+  note(
+    f.remiseMaximale > 0
+      ? `Remise possible : le notaire peut réduire jusqu’à ${REMISE.taux} % l’émolument calculé sur la part du prix au-delà de ${euros(REMISE.seuil)}, soit ${centimes(f.remiseMaximale)} HT au plus ici. Il l’applique au même taux à tous ses clients : demandez-lui s’il la pratique.`
+      : `Remise : le tarif n’en prévoit que sur la part du prix au-delà de ${euros(REMISE.seuil)} ; à ${euros(prix)}, il n’y en a pas.`,
+  );
+  note('Les débours — les sommes que le notaire avance pour vous à d’autres, comme un service de l’État ou un syndic — sont remboursés à leur coût et ne figurent pas ici, à part la contribution de sécurité immobilière, comptée avec l’État.');
+  details.append(resume, table, notes);
+  return details;
+}
 const pc = (x: number) => `${x.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
 const millions = (milliers: number) => `${(milliers / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} millions d’euros`;
 const date = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -39,7 +88,7 @@ export function brancherFrais(): void {
     const prix = champ('prix');
     const neuf = coche('neuf');
     const primo = coche('primo');
-    const f = prix > 0 ? fraisAchat(prix, dep, primo, neuf) : null;
+    const f = prix > 0 ? fraisAchat(prix, dep, primo, neuf, { copro: coche('copro'), preemption: coche('preemption') }) : null;
     $('sf-resultat').hidden = !f;
     if (!f || !lieu) return;
     $('sf-total').textContent = euros(f.total);
@@ -57,8 +106,15 @@ export function brancherFrais(): void {
           : '1,20 % du prix, versés au fonds départemental de péréquation et répartis entre les communes de moins de 5 000 habitants (sauf stations de tourisme, qui la perçoivent elles-mêmes)',
         lien: `/commune/${lieu.cle.slice(2)}`,
       },
-      { qui: 'L’État', icone: 'justice', montant: f.etatAssiette + f.csi, detail: `${euros(f.etatAssiette)} de frais d’assiette et de recouvrement, ${euros(f.csi)} de contribution de sécurité immobilière`, lien: null },
-      { qui: 'Le notaire', icone: 'deliberations', montant: f.emolumentsHt, detail: 'émoluments au tarif réglementé, hors taxes', lien: null },
+      { qui: 'L’État', icone: 'justice', montant: f.etatAssiette + f.csi, detail: `${euros(f.etatAssiette)} de frais d’assiette et de recouvrement, ${euros(f.csi)} de contribution de sécurité immobilière, perçue pour la publication de la vente au fichier immobilier`, lien: null },
+      {
+        qui: 'Le notaire',
+        icone: 'deliberations',
+        montant: f.emolumentsHt,
+        detail: `au tarif réglementé, hors taxes : ${euros(f.acte)} pour la rédaction de l’acte, ${euros(f.formalitesHt)} pour les formalités${f.ecretement > 0 ? `, écrêtés de ${euros(f.ecretement)}` : ''}`,
+        lien: null,
+        detailNotaire: true,
+      },
       { qui: 'La TVA sur les émoluments', icone: 'argent', montant: f.tva, detail: '20 % des émoluments, pour l’État', lien: null },
     ].filter((p) => p.montant > 0);
     const ul = $('sf-postes');
@@ -72,6 +128,14 @@ export function brancherFrais(): void {
       tete.innerHTML = `<svg class="icone" width="24" height="24" aria-hidden="true"><use href="/icones.svg#${p.icone}"/></svg>`;
       tete.append(nom, Object.assign(document.createElement('strong'), { textContent: euros(p.montant) }));
       li.append(tete, Object.assign(document.createElement('span'), { className: 'sf-barre' }), Object.assign(document.createElement('small'), { textContent: p.detail }));
+      if ('detailNotaire' in p) {
+        // Le volet garde son état d'ouverture d'un calcul à l'autre.
+        const avant = ul.dataset.ouvert === '1';
+        const d = detailNotaire(f, prix);
+        d.open = avant;
+        d.addEventListener('toggle', () => (ul.dataset.ouvert = d.open ? '1' : ''));
+        li.append(d);
+      }
       ul.append(li);
     }
 
