@@ -14,6 +14,7 @@ import { construireReseau } from '../src/modele/reseau.ts';
 import { ATTENTE_EDITEUR } from '../src/modele/schemas.ts';
 import { nommeUnePersonne } from '../src/modele/civilites.ts';
 import { aidesDeCommune, aidesLocales, controlerAidesLocales } from '../src/modele/aides-locales.ts';
+import { controlerJeuxClasse } from '../src/modele/jeux-classe.ts';
 import { existsSync, readFileSync } from 'node:fs';
 
 const args = new Set(process.argv.slice(2));
@@ -361,6 +362,9 @@ if (existsSync(META)) {
     }
   }
 }
+
+// Les jeux pour les plus jeunes : chaque bonne réponse est celle de sa fiche.
+erreurs.push(...controlerJeuxClasse());
 
 /* ------------------------------------------------------------------ *
  * Liens (réseau, sur demande)

@@ -1,0 +1,174 @@
+# Le contenu des jeux pour les plus jeunes — voir src/modele/jeux-classe.ts.
+#
+# Chaque scène, chaque paire, chaque affirmation s'appuie sur une compétence
+# du réseau (`contenu/competences.yaml`), dont la fiche porte les sources. La
+# validation vérifie que la compétence existe, qu'elle est établie, et que la
+# bonne réponse est bien celle de la fiche : la porte d'une scène doit être
+# l'échelon de l'acteur qui détient la compétence.
+#
+# Le texte s'adresse à un enfant de huit à douze ans : des phrases courtes, des
+# mots du quotidien, aucun sigle sans explication, aucune personne nommée.
+
+# « À qui je demande ? » — une scène, cinq portes.
+scenes:
+  - id: toit-ecole
+    emoji: "🏫"
+    texte: "Il pleut dans la classe : le toit de l’école fuit. Qui doit le réparer ?"
+    porte: commune
+    competence: ecoles-primaires
+    explication: "La commune possède le bâtiment de l’école maternelle et élémentaire, et l’entretient."
+  - id: maitresse
+    emoji: "🧑‍🏫"
+    texte: "Il y a trop d’élèves : il faudrait ouvrir une nouvelle classe. Qui le décide ?"
+    porte: etat
+    competence: carte-scolaire
+    explication: "Ce n’est pas le maire : c’est l’Éducation nationale, donc l’État, qui ouvre ou ferme une classe."
+  - id: naissance
+    emoji: "👶"
+    texte: "Ta petite sœur vient de naître. Où ses parents déclarent-ils sa naissance ?"
+    porte: commune
+    competence: etat-civil
+    explication: "À la mairie : c’est elle qui tient le registre des naissances, des mariages et des décès."
+  - id: trou-rue
+    emoji: "🕳️"
+    texte: "Un gros trou s’est formé dans la petite rue devant chez toi. Qui la répare ?"
+    porte: commune
+    competence: voirie-communale
+    explication: "Les rues et les chemins de la commune sont entretenus par la commune. Attention : une grande route peut appartenir au département."
+  - id: route-villages
+    emoji: "🛣️"
+    texte: "La route qui va d’un village à l’autre est abîmée. Qui l’entretient, le plus souvent ?"
+    porte: departement
+    competence: routes-departementales
+    explication: "La plupart des routes entre les villages sont des routes départementales : le département s’en occupe."
+  - id: bruit-nuit
+    emoji: "🔊"
+    texte: "Une fête fait beaucoup de bruit toute la nuit dans la rue. Qui peut l’interdire ?"
+    porte: commune
+    competence: police-tranquillite
+    explication: "Le maire a le pouvoir de faire respecter le calme dans la commune."
+  - id: poubelles
+    emoji: "🗑️"
+    texte: "Qui organise le ramassage des poubelles ?"
+    porte: interco
+    competence: dechets-menagers
+    explication: "Presque partout, c’est l’intercommunalité : les communes voisines se sont regroupées pour le faire ensemble."
+  - id: college
+    emoji: "🎒"
+    texte: "Ton grand frère entre au collège. Qui construit et entretient le collège ?"
+    porte: departement
+    competence: colleges
+    explication: "Le département s’occupe des bâtiments du collège. Les professeurs, eux, sont payés par l’État."
+  - id: lycee
+    emoji: "🎓"
+    texte: "Ta grande cousine va au lycée. Qui construit et entretient le lycée ?"
+    porte: region
+    competence: lycees
+    explication: "La région s’occupe des bâtiments du lycée. Les professeurs, eux, sont payés par l’État."
+  - id: train
+    emoji: "🚆"
+    texte: "Qui décide des horaires du train régional, le TER ?"
+    porte: region
+    competence: transport-regional
+    explication: "La région choisit les lignes, les horaires et les prix des trains régionaux."
+  - id: mamie
+    emoji: "👵"
+    texte: "Ta grand-mère a besoin d’aide pour continuer à vivre chez elle. Qui peut l’aider à payer cette aide ?"
+    porte: departement
+    competence: apa
+    explication: "Le département verse une aide aux personnes âgées qui ont besoin d’aide pour vivre chez elles."
+  - id: gendarmes
+    emoji: "👮"
+    texte: "Qui envoie les gendarmes et les policiers ?"
+    porte: etat
+    competence: securite-publique-etat
+    explication: "La gendarmerie et la police nationale dépendent de l’État."
+  - id: gymnase
+    emoji: "🏀"
+    texte: "La commune voudrait construire un gymnase pour les clubs de sport. Qui décide de le faire ?"
+    porte: commune
+    competence: equipements-culturels-sportifs
+    explication: "Gymnase, piscine, bibliothèque : souvent, c’est la commune qui décide de les construire et les fait fonctionner."
+  - id: budget-commune
+    emoji: "💶"
+    texte: "Qui vote le budget de la commune, c’est-à-dire ce qu’elle va dépenser dans l’année ?"
+    porte: commune
+    competence: vote-du-budget
+    explication: "C’est le conseil municipal, tous les conseillers ensemble, qui vote le budget. Pas le maire tout seul."
+
+# « Qui s'en occupe ? » — des paires : un objet du quotidien et qui en a la charge.
+# Une partie tire un objet par porte : cinq paires, jamais deux pour la même porte.
+paires:
+  - { id: ecole, emoji: "🏫", objet: "L’école", porte: commune, competence: ecoles-primaires }
+  - { id: mairie-naissance, emoji: "📜", objet: "Les actes de naissance", porte: commune, competence: etat-civil }
+  - { id: rue, emoji: "🚧", objet: "La rue du village", porte: commune, competence: voirie-communale }
+  - { id: poubelles, emoji: "🗑️", objet: "Les poubelles", porte: interco, competence: dechets-menagers }
+  - { id: college, emoji: "🎒", objet: "Le collège", porte: departement, competence: colleges }
+  - { id: route, emoji: "🛣️", objet: "La route départementale", porte: departement, competence: routes-departementales }
+  - { id: lycee, emoji: "🎓", objet: "Le lycée", porte: region, competence: lycees }
+  - { id: ter, emoji: "🚆", objet: "Le train régional", porte: region, competence: transport-regional }
+  - { id: gendarmerie, emoji: "👮", objet: "La gendarmerie", porte: etat, competence: securite-publique-etat }
+  - { id: classe, emoji: "🧑‍🏫", objet: "L’ouverture d’une classe", porte: etat, competence: carte-scolaire }
+
+# « Vrai ou faux : le maire peut-il… ? »
+vrai_faux:
+  - id: fermer-classe
+    affirmation: "Le maire peut décider seul de fermer une classe de l’école."
+    reponse: false
+    competence: carte-scolaire
+    explication: "Faux. C’est l’Éducation nationale qui ouvre et ferme les classes. Le maire est seulement prévenu."
+  - id: permis
+    affirmation: "Le maire signe les permis de construire."
+    reponse: true
+    competence: delivrance-autorisation-urbanisme
+    explication: "Vrai. C’est le maire qui signe le permis de construire une maison, après l’examen du dossier."
+  - id: bruit
+    affirmation: "Le maire peut prendre des règles contre le bruit la nuit dans sa commune."
+    reponse: true
+    competence: police-tranquillite
+    explication: "Vrai. Le maire doit faire respecter le calme : il peut prendre un arrêté, c’est-à-dire une règle pour la commune."
+  - id: budget-seul
+    affirmation: "Le maire décide tout seul de ce que la commune va dépenser."
+    reponse: false
+    competence: vote-du-budget
+    explication: "Faux. Le budget est voté par le conseil municipal, tous les conseillers ensemble."
+  - id: entretenir-college
+    affirmation: "C’est la mairie qui répare le collège."
+    reponse: false
+    competence: colleges
+    explication: "Faux. Le collège appartient au département : c’est lui qui l’entretient."
+  - id: liste-electorale
+    affirmation: "C’est le maire qui inscrit les habitants sur la liste pour voter."
+    reponse: true
+    competence: listes-electorales
+    explication: "Vrai. Le maire décide des inscriptions sur la liste électorale de la commune."
+  - id: naissances
+    affirmation: "La mairie enregistre les naissances."
+    reponse: true
+    competence: etat-civil
+    explication: "Vrai. La mairie tient l’état civil : naissances, mariages, décès."
+  - id: horaires-train
+    affirmation: "Le maire choisit les horaires du train régional qui passe dans sa commune."
+    reponse: false
+    competence: transport-regional
+    explication: "Faux. Ce sont la région et son conseil qui décident des lignes et des horaires des trains régionaux."
+  - id: entretenir-ecole
+    affirmation: "La commune entretient le bâtiment de l’école élémentaire."
+    reponse: true
+    competence: ecoles-primaires
+    explication: "Vrai. L’école maternelle et élémentaire appartient à la commune, qui l’entretient et paie ses agents."
+  - id: payer-enseignants
+    affirmation: "La commune paie les maîtresses et les maîtres de l’école."
+    reponse: false
+    competence: ecoles-primaires
+    explication: "Faux. Les enseignants sont recrutés et payés par l’État. La commune paie les autres agents de l’école."
+  - id: route-bourg
+    affirmation: "Une route départementale qui traverse le village est toujours entretenue par la commune."
+    reponse: false
+    competence: routes-departementales
+    explication: "Faux. Même dans le village, une route départementale reste au département."
+  - id: poubelles-maire
+    affirmation: "Dans presque toutes les communes, c’est l’intercommunalité qui organise le ramassage des poubelles."
+    reponse: true
+    competence: dechets-menagers
+    explication: "Vrai. Les communes voisines se sont regroupées en intercommunalité pour s’en occuper ensemble."

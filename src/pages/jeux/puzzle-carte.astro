@@ -1,0 +1,161 @@
+---
+/**
+ * Le puzzle de la carte : la carte d'une région, ses départements sans leur
+ * nom ; « Où est l'Allier ? » — on clique. Cinq questions. Les contours sont
+ * ceux d'Admin Express (IGN), lus dans `/jeux/carte/XX.json`.
+ */
+import Base from '../../layouts/Base.astro';
+import QuizJeu from '../../composants/jeux/QuizJeu.astro';
+import { national } from '../../modele/fiche-commune.ts';
+import { metaTerritoires } from '../../modele/territoires.ts';
+import '../../styles/jeux.css';
+
+const silhouettes = national<{ d: Record<string, number[][]> }>('contours-departements.json');
+const m = metaTerritoires();
+const parRegion = new Map<string, { nom: string; deps: string[] }>();
+for (const [dep, reg] of Object.entries(m?.codesRegion ?? {})) {
+  if (!silhouettes()?.d[dep]) continue;
+  const r = parRegion.get(reg) ?? { nom: m?.regions?.[dep] ?? reg, deps: [] };
+  r.deps.push(dep);
+  parRegion.set(reg, r);
+}
+/** [code, nom] des régions de trois départements ou plus ; et la région de chaque département. */
+const regions = [...parRegion].filter(([, r]) => r.deps.length >= 3).map(([code, r]) => [code, r.nom]).sort((a, b) => a[1].localeCompare(b[1], 'fr'));
+const regionDe = Object.fromEntries([...parRegion].flatMap(([code, r]) => r.deps.map((d) => [d, code])));
+---
+<Base
+  titre="Le puzzle de la carte"
+  description="Où est l’Allier ? Où est le Cantal ? La carte de ta région, sans les noms : clique sur le bon département. Dès 8 ans."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Découvrir · dès 8 ans</p>
+    <h1>Le puzzle de la carte</h1>
+    <p class="resume">
+      La carte de ta région, sans les noms. On te dit un département&nbsp;: clique dessus&nbsp;! Cinq questions.
+    </p>
+
+    <p class="carte-region">
+      <label>
+        Ta région
+        <select id="jc-region">
+          {regions.map(([code, nom]) => <option value={code} selected={code === '84'}>{nom}</option>)}
+        </select>
+      </label>
+    </p>
+
+    <QuizJeu id="jc" invite="Cinq départements à retrouver, les mêmes pour tout le monde aujourd’hui dans chaque région." autre="Cinq autres départements" />
+
+    <h2 class="badge">Pour les grands</h2>
+    <p class="mesure">
+      Les contours des départements sont ceux de la base Admin Express de l’IGN, simplifiés pour le dessin. Chaque
+      département a sa page sur Rouages&nbsp;: elle s’ouvre après chaque réponse. Les régions d’outre-mer, qui
+      n’ont qu’un département, et la Corse, qui en a deux, ne sont pas dans le jeu.
+    </p>
+  </div>
+</Base>
+
+<script type="application/json" is:inline id="jc-donnees" set:html={JSON.stringify({ regionDe })} />
+<script>
+  import { brancherQuiz } from '../../client/jeux-quiz.ts';
+  import { melanger } from '../../client/jeux-commun.ts';
+  import { quandLieu } from '../../client/jeux-lieu.ts';
+
+  type Fichier = { nom: string; d: Record<string, [string, string, number[][]]> };
+  const { regionDe } = JSON.parse(document.getElementById('jc-donnees')?.textContent ?? '{}') as { regionDe: Record<string, string> };
+  const choix = document.getElementById('jc-region') as HTMLSelectElement;
+  const fichiers = new Map<string, Promise<Fichier>>();
+  const charger = (r: string) => {
+    if (!fichiers.has(r)) fichiers.set(r, fetch(`/jeux/carte/${r}.json`).then((x) => x.json() as Promise<Fichier>));
+    return fichiers.get(r)!;
+  };
+
+  // La région du lieu commun aux jeux, s'il y en a un.
+  quandLieu({ source: '/jeux/territoires.json', genres: ['departement'] }, null, (cle) => {
+    const r = regionDe[cle.slice(2)];
+    if (r && [...choix.options].some((o) => o.value === r)) choix.value = r;
+  });
+
+  const decoder = (r: number[]) => {
+    const pts: [number, number][] = [];
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i + 1 < r.length; i += 2) {
+      x += r[i];
+      y += r[i + 1];
+      pts.push([x, y]);
+    }
+    return pts;
+  };
+
+  /** La carte de la région : un chemin par département, cliquable, sans nom. */
+  function carte(f: Fichier, codes: string[], repondre: (i: number) => void) {
+    const anneaux = codes.map((c) => f.d[c][2].map(decoder));
+    const tous = anneaux.flat(2);
+    const lat = (tous.reduce((s, p) => s + p[1], 0) / tous.length / 1e4) * (Math.PI / 180);
+    const k = Math.cos(lat);
+    const xs = tous.map((p) => p[0] * k);
+    const ys = tous.map((p) => p[1]);
+    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `${x0} ${-y1} ${x1 - x0} ${y1 - y0}`);
+    svg.setAttribute('class', 'carte-puzzle');
+    svg.setAttribute('role', 'group');
+    svg.setAttribute('aria-label', 'La carte des départements de la région');
+    const chemins = codes.map((c, i) => {
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', anneaux[i].map((a) => `M${a.map(([x, y]) => `${x * k},${-y}`).join('L')}Z`).join(''));
+      p.setAttribute('tabindex', '0');
+      p.setAttribute('role', 'button');
+      p.setAttribute('aria-label', `Département ${i + 1}`);
+      p.addEventListener('click', () => repondre(i));
+      p.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), repondre(i)));
+      svg.append(p);
+      return p;
+    });
+    return { svg, chemins };
+  }
+
+  brancherQuiz({
+    prefixe: 'jc',
+    cle: 'carte',
+    jeu: 'Le puzzle de la carte',
+    embleme: '🗺️',
+    tirer: async (alea) => {
+      const f = await charger(choix.value);
+      const codes = Object.keys(f.d);
+      return melanger(codes, alea)
+        .slice(0, Math.min(5, codes.length))
+        .map((cible) => {
+          const [nom, avecArticle] = f.d[cible];
+          return {
+            question: `Où est ${avecArticle} ?`,
+            sous: `Clique sur le département, dans la carte de la région ${f.nom}.`,
+            options: codes.map((c) => ({ texte: f.d[c][0], juste: c === cible })),
+            explication: `${avecArticle.replace(/^./, (x) => x.toUpperCase())}, c’est le département numéro ${cible}.`,
+            lien: { href: `/departement/${cible}`, texte: `La page du département : ${nom}` },
+            recap: `${nom} (${cible})`,
+            rendu: (zone, repondre) => {
+              const { svg, chemins } = carte(f, codes, repondre);
+              zone.append(svg);
+              return {
+                montrer: (i: number) => {
+                  chemins.forEach((p, k) => {
+                    p.removeAttribute('tabindex');
+                    if (codes[k] === cible) p.classList.add('juste');
+                    else if (k === i) p.classList.add('faux');
+                    // Une fois la réponse donnée, chaque département dit son nom.
+                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    t.textContent = `${f.d[codes[k]][0]} (${codes[k]})`;
+                    p.append(t);
+                  });
+                },
+              };
+            },
+          };
+        });
+    },
+    bravo: (n, t) => (n === t ? 'Parfait ! Tu connais ta région par cœur.' : n >= t - 1 ? 'Très bien !' : 'Rejoue : tu peux aussi choisir une autre région.'),
+  });
+</script>

@@ -844,7 +844,7 @@ function lignesDe(
   });
 }
 
-function assemblerFinances(commune: CommuneFiche, population: number): Finances | null {
+export function assemblerFinances(commune: CommuneFiche, population: number): Finances | null {
   const m = metaFichier()?.finances;
   const dep = financesDep.get(commune.dep);
   if (!m || !dep) return null;

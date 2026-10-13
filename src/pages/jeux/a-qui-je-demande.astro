@@ -1,0 +1,79 @@
+---
+/**
+ * À qui je demande ? Le premier jeu des plus jeunes : une scène de la vie de
+ * tous les jours, cinq portes — la mairie, l'intercommunalité, le
+ * département, la région, l'État. Les scènes sont dans
+ * `contenu/jeux-classe.yaml`, chacune rattachée à la fiche de la compétence
+ * qui donne la réponse ; la validation vérifie que les deux s'accordent.
+ */
+import Base from '../../layouts/Base.astro';
+import QuizJeu from '../../composants/jeux/QuizJeu.astro';
+import { jeuxClasse, PORTES } from '../../modele/jeux-classe.ts';
+import { chargerGraphe } from '../../modele/graphe.ts';
+import '../../styles/jeux.css';
+
+const g = chargerGraphe();
+/** [emoji, texte, porte, compétence, nom de la fiche, explication] */
+const scenes = jeuxClasse().scenes.map((s) => [s.emoji, s.texte, s.porte, s.competence, g.competences.get(s.competence)?.nom ?? s.competence, s.explication]);
+const portes = Object.entries(PORTES).map(([cle, p]) => [cle, p.nom, p.detail, p.emoji]);
+---
+<Base
+  titre="À qui je demande ?"
+  description="Un trou dans la rue, le toit de l’école, le car, les poubelles : qui s’en occupe ? La mairie, le département, la région, l’État ? Un jeu dès 8 ans."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Découvrir · dès 8 ans</p>
+    <h1>À qui je demande&nbsp;?</h1>
+    <p class="resume">
+      Il pleut dans la classe, un trou dans la rue, le train qui passe&nbsp;: qui s’en occupe&nbsp;? Cinq scènes,
+      cinq portes. Choisis la bonne&nbsp;!
+    </p>
+
+    <QuizJeu id="jd" invite="Cinq scènes de tous les jours, les mêmes pour tout le monde aujourd’hui." autre="Cinq autres scènes" />
+
+    <h2 class="badge">Les cinq portes</h2>
+    <ul class="accueil-themes">
+      {portes.map(([, nom, detail, emoji]) => <li>{`${emoji} ${nom} — ${detail}.`}</li>)}
+    </ul>
+
+    <h2 class="badge">Pour les grands</h2>
+    <p class="mesure">
+      Chaque réponse est celle de la fiche de la compétence dans le réseau de Rouages, avec ses sources&nbsp;: la loi,
+      les sites officiels. La vraie vie a ses exceptions — une route peut changer de propriétaire, une
+      intercommunalité peut construire la piscine —, et la fiche les dit. Pour aller plus loin&nbsp;:{' '}
+      <a href="/jeux/qui-decide">Qui décide&nbsp;?</a>, le même jeu pour votre commune.
+    </p>
+  </div>
+</Base>
+
+<script type="application/json" is:inline id="jd-donnees" set:html={JSON.stringify({ scenes, portes })} />
+<script>
+  import { brancherQuiz } from '../../client/jeux-quiz.ts';
+  import { melanger } from '../../client/jeux-commun.ts';
+
+  type Scene = [string, string, string, string, string, string];
+  const { scenes, portes } = JSON.parse(document.getElementById('jd-donnees')?.textContent ?? '{}') as {
+    scenes: Scene[];
+    portes: [string, string, string, string][];
+  };
+  brancherQuiz({
+    prefixe: 'jd',
+    cle: 'demande',
+    jeu: 'À qui je demande ?',
+    embleme: '🚪',
+    tirer: (alea) =>
+      melanger(scenes, alea)
+        .slice(0, 5)
+        .map(([emoji, texte, porte, competence, nom, explication]) => ({
+          emoji,
+          question: texte,
+          options: portes.map(([cle, p, detail, e]) => ({ texte: p, detail, emoji: e, juste: cle === porte })),
+          explication,
+          lien: { href: `/n/${competence}`, texte: `La fiche « ${nom} »` },
+          recap: `${texte.replace(/ ?Qui[^?]*\?$/, '').trim() || texte} → ${portes.find(([cle]) => cle === porte)![1]}`,
+        })),
+    bravo: (n, t) => (n === t ? 'Parfait ! Tu sais à qui t’adresser.' : n >= t - 1 ? 'Très bien ! Presque tout juste.' : 'Rejoue : les scènes changent à chaque partie libre.'),
+  });
+</script>

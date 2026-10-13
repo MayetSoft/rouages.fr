@@ -1,0 +1,82 @@
+---
+/**
+ * Le budget de ma commune : répartir 100 jetons entre six postes — payer les
+ * agents, acheter, construire et réparer, aider, rembourser, le reste —, puis
+ * voir comment la commune dépense vraiment 100 €. Les vrais chiffres sont
+ * ceux de la page de la commune (OFGL), lus dans `/jeux/budget/XX.json`.
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Le budget de ma commune"
+  description="Ta commune dépense 100 € : combien pour payer les agents, pour construire, pour aider ? Devine, puis découvre les vrais chiffres. Dès 10 ans."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Comprendre · dès 10 ans</p>
+    <h1>Le budget de ma commune</h1>
+    <p class="resume">
+      Imagine que ta commune dépense 100 €. Combien pour payer les agents, pour construire, pour aider les
+      autres&nbsp;? Répartis tes 100 jetons, puis découvre les vrais chiffres.
+    </p>
+
+    <div id="jb" class="jeu">
+      <ChampLieuJeu
+        id="jb-lieu"
+        etiquette="Ta commune"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+      <p id="jb-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <section id="jb-manche" class="jeu-carte" hidden>
+        <p class="jeu-compteur" id="jb-compteur"></p>
+        <p class="jeu-question" id="jb-titre"></p>
+        <p class="jeu-details">Utilise les boutons − et + : il faut placer les 100 jetons.</p>
+        <ul class="budget-postes" id="jb-postes"></ul>
+        <p class="budget-reste" id="jb-reste" aria-live="polite"></p>
+        <button class="bouton jeu-bouton" type="button" id="jb-valider" disabled>Voir les vrais chiffres</button>
+      </section>
+
+      <section id="jb-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="jb-score"></span> <span id="jb-cases" class="jeu-cases"></span></p>
+        <p class="quiz-bravo" id="jb-bravo"></p>
+        <ul class="budget-postes budget-compare" id="jb-compare"></ul>
+        <p class="jeu-contexte" id="jb-contexte"></p>
+        <PartageJeu id="jb" />
+        <button class="plat" type="button" id="jb-rejouer">Rejouer</button>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Tu as 100 jetons, comme 100 €. Place-les dans les six postes, puis compare avec ta commune.</li>
+      <li>Une case par poste&nbsp;: 🟩 à 5 jetons près, 🟨 à 10, 🟧 à 20, 🟥 au-delà.</li>
+      <li>Ton résultat et ta commune restent dans ton navigateur. Le partage montre la commune, les cases et le score.</li>
+    </ul>
+
+    <h2 class="badge">Pour les grands</h2>
+    <p class="mesure">
+      Les vrais chiffres sont ceux des comptes de la commune, tels que l’Observatoire des finances et de la gestion
+      publique locales (OFGL) les publie, ramenés à cent euros&nbsp;: les mêmes que le bloc «&nbsp;Sur 100&nbsp;€&nbsp;» de la
+      page de la commune. Les postes sont regroupés pour les plus jeunes&nbsp;: «&nbsp;payer les agents&nbsp;», ce sont les
+      frais de personnel&nbsp;; «&nbsp;acheter&nbsp;», les achats et charges externes&nbsp;; «&nbsp;construire et réparer&nbsp;», les
+      dépenses et subventions d’équipement&nbsp;; «&nbsp;aider et participer&nbsp;», les dépenses d’intervention
+      (subventions, contributions aux syndicats, aux pompiers…)&nbsp;; «&nbsp;rembourser les emprunts&nbsp;», la dette et ses
+      intérêts.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import { brancherBudget } from '../../client/jeu-budget.ts';
+  brancherBudget();
+</script>

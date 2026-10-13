@@ -1,0 +1,69 @@
+---
+/**
+ * Vrai ou faux : le maire peut-il… ? Six affirmations sur ce que fait la
+ * mairie — et ce qu'elle ne fait pas. Chacune s'appuie sur la fiche d'une
+ * compétence du réseau (`contenu/jeux-classe.yaml`).
+ */
+import Base from '../../layouts/Base.astro';
+import QuizJeu from '../../composants/jeux/QuizJeu.astro';
+import { jeuxClasse } from '../../modele/jeux-classe.ts';
+import { chargerGraphe } from '../../modele/graphe.ts';
+import '../../styles/jeux.css';
+
+const g = chargerGraphe();
+/** [affirmation, réponse (1 vrai, 0 faux), compétence, nom de la fiche, explication] */
+const affirmations = jeuxClasse().vrai_faux.map((v) => [v.affirmation, v.reponse ? 1 : 0, v.competence, g.competences.get(v.competence)?.nom ?? v.competence, v.explication]);
+---
+<Base
+  titre="Vrai ou faux : le maire peut-il… ?"
+  description="Le maire peut-il fermer une classe, signer un permis de construire, choisir les horaires du train ? Vrai ou faux, dès 10 ans."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Découvrir · dès 10 ans</p>
+    <h1>Vrai ou faux&nbsp;: le maire peut-il…&nbsp;?</h1>
+    <p class="resume">
+      Le maire décide de beaucoup de choses dans la commune… mais pas de tout. Six affirmations&nbsp;: vrai ou faux&nbsp;?
+    </p>
+
+    <QuizJeu id="jv" invite="Six affirmations, les mêmes pour tout le monde aujourd’hui." autre="Six autres affirmations" />
+
+    <h2 class="badge">Pour les grands</h2>
+    <p class="mesure">
+      Chaque réponse s’appuie sur la fiche d’une compétence du réseau de Rouages, qui cite la loi et les sites
+      officiels. Le maire porte deux casquettes&nbsp;: il dirige la commune, et il agit aussi au nom de l’État — pour
+      l’état civil, par exemple. La <a href="/n/maire">fiche du maire</a> le détaille.
+    </p>
+  </div>
+</Base>
+
+<script type="application/json" is:inline id="jv-donnees" set:html={JSON.stringify(affirmations)} />
+<script>
+  import { brancherQuiz } from '../../client/jeux-quiz.ts';
+  import { melanger } from '../../client/jeux-commun.ts';
+
+  type Affirmation = [string, 0 | 1, string, string, string];
+  const affirmations = JSON.parse(document.getElementById('jv-donnees')?.textContent ?? '[]') as Affirmation[];
+  brancherQuiz({
+    prefixe: 'jv',
+    cle: 'vraifaux',
+    jeu: 'Vrai ou faux : le maire peut-il… ?',
+    embleme: '⚖️',
+    tirer: (alea) =>
+      melanger(affirmations, alea)
+        .slice(0, 6)
+        .map(([affirmation, vrai, competence, nom, explication]) => ({
+          emoji: '🏛️',
+          question: affirmation,
+          options: [
+            { texte: 'Vrai', emoji: '👍', juste: vrai === 1 },
+            { texte: 'Faux', emoji: '👎', juste: vrai === 0 },
+          ],
+          explication: explication.replace(/^(Vrai|Faux)\.\s*/, ''),
+          lien: { href: `/n/${competence}`, texte: `La fiche « ${nom} »` },
+          recap: `${affirmation} — ${vrai ? 'vrai' : 'faux'}`,
+        })),
+    bravo: (n, t) => (n === t ? 'Parfait ! Tu connais bien ta mairie.' : n >= t - 1 ? 'Très bien !' : 'Rejoue : d’autres affirmations t’attendent.'),
+  });
+</script>
