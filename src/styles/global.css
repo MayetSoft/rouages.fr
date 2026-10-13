@@ -340,6 +340,7 @@ button.rond { width: 1.9rem; padding: .1rem 0; font-size: 1rem; line-height: 1.3
 .c-boite { fill: var(--fond-bande); stroke: var(--trait-fort); stroke-width: 1.6; }
 .c-boite--local { fill: none; stroke-dasharray: 6 5; }
 .c-boite--branche { fill: var(--fond); stroke: var(--trait-fort); stroke-width: 1; }
+.c-boite--domaine { fill: none; stroke: var(--trait-fort); stroke-width: 1; }
 .c-boite-titre { fill: var(--encre-douce); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
 .c-boite-titre--branche { font-size: 10.5px; font-weight: 600; letter-spacing: .02em; }
 .n--entete .n-nom { font-weight: 700; }

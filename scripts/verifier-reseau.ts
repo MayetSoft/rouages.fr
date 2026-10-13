@@ -12,9 +12,15 @@
  *   — **« sans impasse » est un invariant**. Un nœud qu'aucune arête ne touche
  *     est une page morte sur un site qui *est* un réseau, et le graphe doit
  *     rester d'un seul tenant. Toute régression est un échec ;
- *   — **« trois clics » est un cliquet**. À 196 nœuds, l'exiger de toutes les
- *     paires reviendrait à demander un graphe presque complet. On mesure, on
- *     retient le plancher atteint, et on refuse de redescendre.
+ *   — **« trois clics » est une mesure, pas une contrainte**. À 196 nœuds,
+ *     l'exiger de toutes les paires reviendrait à demander un graphe presque
+ *     complet. Elle a d'abord été tenue comme un cliquet — un plancher qu'on
+ *     refusait de redescendre —, et le cliquet poussait à relier des nœuds
+ *     pour le chiffre. Décision du 13 octobre 2026 : **un lien existe parce
+ *     qu'une source le dit, jamais pour une mesure**. Le diamètre et la part
+ *     à trois clics sont affichés, et signalés quand ils passent les repères,
+ *     sans faire échouer le build ; une baisse dit qu'un ajout est en marge
+ *     du réseau, ce qui peut être vrai.
  *
  * Le degré des documents est compté à part, faute de quoi le tableau ne dirait
  * rien : un document n'est relié qu'au processus qui le produit
@@ -29,7 +35,7 @@ const ROUGE = '\x1b[31m', VERT = '\x1b[32m', JAUNE = '\x1b[33m', GRIS = '\x1b[90
 let echecs = 0;
 
 /**
- * Le plancher, deux points sous la dernière mesure.
+ * Le repère, deux points sous une mesure passée — plus un plancher (voir en tête).
  *
  * Relevé à 62,0 % à la première mesure, à 64,5 % une fois l'échelon État
  * densifié, à 66,2 % avec les démarches du département et de la région, puis à
@@ -49,6 +55,11 @@ const DIAMETRE_MAX = 6;
 function attendre(quoi: string, ok: boolean, detail: string) {
   if (!ok) echecs++;
   console.log(`${ok ? VERT + '  ok  ' : ROUGE + 'ÉCHEC '}${RAZ}${quoi}\n      ${GRIS}${detail}${RAZ}`);
+}
+
+/** Une mesure : affichée, signalée sous son repère, jamais bloquante. */
+function mesurer(quoi: string, ok: boolean, detail: string) {
+  console.log(`${ok ? VERT + '  ok  ' : JAUNE + 'repère'}${RAZ}${quoi}\n      ${GRIS}${detail}${RAZ}`);
 }
 
 /** Les arêtes sont orientées ; un visiteur, lui, clique dans les deux sens. */
@@ -114,18 +125,17 @@ attendre(
     ' — un îlot séparé serait un site dans le site',
 );
 
-attendre(
+mesurer(
   `diamètre ${diametre}`,
   diametre <= DIAMETRE_MAX,
   `le plus long des plus courts chemins ; au-delà de ${DIAMETRE_MAX}, deux nœuds du réseau` +
     ' n’appartiennent plus vraiment à la même carte',
 );
 
-attendre(
+mesurer(
   `${part.toFixed(1).replace('.', ',')} % des paires à trois clics ou moins`,
   part >= PLANCHER_TROIS_CLICS,
-  `plancher ${PLANCHER_TROIS_CLICS} % — le critère de la phase 2, tenu comme un cliquet` +
-    ' plutôt que comme un absolu',
+  `repère ${PLANCHER_TROIS_CLICS} % — le critère de la phase 2 ; une mesure, jamais une raison d'ajouter un lien`,
 );
 
 // Les démarches que la page de commune cite sous ses blocs : toutes doivent

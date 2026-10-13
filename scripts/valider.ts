@@ -175,9 +175,11 @@ for (const a of g.acteurs.values()) {
   // l'adresse — la première version de cette règle ne regardait que l'échelon
   // et refusait la DREAL.
   // La séparation des pouvoirs décrite ici est celle de la France : une
-  // institution de l'Union, la Cour de justice comprise, n'y a pas de branche.
+  // institution de l'Union ou une organisation internationale, une cour
+  // comprise, n'y a pas de branche.
   const concerne =
     a.echelon !== 'union_europeenne' &&
+    a.echelon !== 'international' &&
     ((a.echelon === 'etat' && a.type !== 'personne') ||
       // Ce qui relève de l'État déclare sa branche, où qu'il agisse : le préfet
       // agit dans le département et reste un organe de l'exécutif.
@@ -208,8 +210,17 @@ for (const a of g.acteurs.values()) {
   const p = g.acteurs.get(a.releve_de);
   if (!p) erreurs.push(`acteur « ${a.id} » : relève d'une entité inconnue « ${a.releve_de} »`);
   else if (p.id === a.id) erreurs.push(`acteur « ${a.id} » : ne peut relever de lui-même`);
-  else if (p.type !== 'collectivite') erreurs.push(`acteur « ${a.id} » : relève de « ${p.id} », qui n'est pas une collectivité`);
+  else if (p.type !== 'collectivite' && p.type !== 'organisation_internationale') erreurs.push(`acteur « ${a.id} » : relève de « ${p.id} », qui n'est ni une collectivité ni une organisation internationale`);
   else if (p.releve_de) erreurs.push(`acteur « ${a.id} » : relève de « ${p.id} », qui relève lui-même de « ${p.releve_de} » — un seul niveau`);
+}
+
+// Le domaine d'action range la colonne « International » : exigé de toute
+// organisation internationale qui ne relève de personne, refusé ailleurs —
+// un organe prend celui de son entité.
+for (const a of g.acteurs.values()) {
+  const attendu = a.echelon === 'international' && !a.releve_de;
+  if (attendu && !a.domaine) erreurs.push(`acteur « ${a.id} » : organisation internationale sans « domaine »`);
+  if (!attendu && a.domaine) erreurs.push(`acteur « ${a.id} » : « domaine » réservé aux organisations internationales qui ne relèvent de personne`);
 }
 
 // Mécanismes, jamais de personnes — dans tout le contenu, plus seulement dans

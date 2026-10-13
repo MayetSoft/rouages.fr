@@ -625,6 +625,122 @@ acteurs:
     verifie_le: 2026-09-22
     confiance: etabli
 
+  # --- International -----------------------------------------------------
+  # Une organisation n'entre que si un mécanisme sourcé la relie au réseau
+  # français (docs/02-familles.md, « La colonne International »). Le domaine
+  # range la colonne ; « releve_de » ne vaut que pour de vrais organes : l'OMS,
+  # l'UNESCO et l'OIT ne sont pas des organes de l'ONU, mais des organisations
+  # à part, liées à elle par des accords. Vérifié par recherche le 12 octobre 2026.
+  - id: conseil-de-l-europe
+    nom: "Le Conseil de l'Europe"
+    nom_court: "Conseil de l'Europe"
+    type: organisation_internationale
+    echelon: international
+    domaine: droits
+    resume: "Organisation des États européens, distincte de l'Union, pour les droits de l'homme et la démocratie : c'est sous son égide que la France a ratifié la Convention européenne des droits de l'homme et la Charte de l'autonomie locale."
+    liens: [wp-conseil-de-l-europe, coe-portail]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: cour-europeenne-droits-homme
+    nom: "La Cour européenne des droits de l'homme"
+    nom_court: "Cour européenne (droits)"
+    type: juridiction
+    echelon: international
+    releve_de: conseil-de-l-europe
+    resume: "Saisie par toute personne qui a épuisé les recours devant les juges français, elle dit si la France a violé la Convention ; la France s'engage à se conformer à ses arrêts définitifs."
+    liens: [wp-cour-europeenne-droits-homme, convention-edh]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: congres-pouvoirs-locaux
+    nom: "Le Congrès des pouvoirs locaux et régionaux"
+    nom_court: "Congrès pouvoirs locaux"
+    type: assemblee
+    echelon: international
+    releve_de: conseil-de-l-europe
+    resume: "L'assemblée des élus locaux et régionaux du Conseil de l'Europe : elle vérifie, pays par pays, que la Charte européenne de l'autonomie locale est respectée, et adresse ses recommandations à la France."
+    liens: [wp-congres-pouvoirs-locaux, coe-suivi-france]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: onu
+    nom: "L'Organisation des Nations unies"
+    nom_court: "Nations unies"
+    type: organisation_internationale
+    echelon: international
+    domaine: paix
+    resume: "L'organisation mondiale des États, pour la paix et la sécurité internationales ; ses dépenses sont supportées par les États membres, dont la France, selon la répartition que fixe l'Assemblée générale."
+    liens: [wp-onu, charte-onu, cij-depenses-onu]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: assemblee-generale-onu
+    nom: "L'Assemblée générale des Nations unies"
+    nom_court: "Assemblée générale (ONU)"
+    type: assemblee
+    echelon: international
+    releve_de: onu
+    resume: "Tous les États membres y siègent, une voix chacun ; elle vote le budget de l'organisation et répartit ses dépenses entre eux."
+    liens: [wp-assemblee-generale-onu, charte-onu, cij-depenses-onu]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: conseil-securite-onu
+    nom: "Le Conseil de sécurité des Nations unies"
+    nom_court: "Conseil de sécurité"
+    type: organe_collegial
+    echelon: international
+    releve_de: onu
+    resume: "Quinze États, dont cinq membres permanents — la France en est un, avec un droit de veto sur les questions de fond : il décide au nom de l'organisation pour le maintien de la paix."
+    liens: [wp-conseil-securite-onu, charte-onu]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: oms
+    nom: "L'Organisation mondiale de la santé"
+    nom_court: "OMS"
+    type: organisation_internationale
+    echelon: international
+    domaine: sante
+    resume: "Une organisation à part, liée aux Nations unies : son Règlement sanitaire international oblige la France à surveiller et signaler les urgences sanitaires, et à contrôler ses ports et aéroports."
+    liens: [wp-oms, rsi-application-france]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: unesco
+    nom: "L'UNESCO"
+    nom_court: "UNESCO"
+    type: organisation_internationale
+    echelon: international
+    domaine: culture
+    resume: "Une organisation à part, liée aux Nations unies : elle tient la liste du patrimoine mondial, où des biens français sont inscrits, avec une zone tampon et un plan de gestion que l'État et les collectivités élaborent ensemble."
+    liens: [wp-unesco, culture-patrimoine-mondial]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: oit
+    nom: "L'Organisation internationale du travail"
+    nom_court: "OIT"
+    type: organisation_internationale
+    echelon: international
+    domaine: travail
+    resume: "Une organisation à part, liée aux Nations unies, et tripartite : gouvernements, employeurs et travailleurs adoptent les conventions du travail ; une convention ratifiée oblige la France à l'appliquer et à en rendre compte."
+    liens: [wp-oit, fo-oit-normes]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
+  - id: cop-climat
+    nom: "La Conférence des parties sur le climat"
+    nom_court: "COP climat"
+    type: organe_collegial
+    echelon: international
+    domaine: environnement
+    resume: "La réunion annuelle des États parties à la convention-cadre des Nations unies sur les changements climatiques : c'est elle qui a adopté l'accord de Paris, le 12 décembre 2015."
+    liens: [wp-cop-climat, wp-accord-de-paris]
+    verifie_le: 2026-10-13
+    confiance: etabli
+
   # --- Union européenne -------------------------------------------------
   - id: union-europeenne
     # Les deux moitiés de la phrase ont été vérifiées séparément : les directives

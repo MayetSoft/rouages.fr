@@ -18,6 +18,7 @@ import { z } from 'zod';
 /** Identifiant stable, en minuscules. Jamais réutilisé pour autre chose. */
 /** Les colonnes de la carte d'ensemble, du plus lointain au plus proche. */
 export const ECHELONS = [
+  'international',
   'union_europeenne',
   'etat',
   'region',
@@ -30,6 +31,7 @@ export const ECHELONS = [
 export type Echelon = (typeof ECHELONS)[number];
 
 export const LIBELLE_ECHELON: Record<Echelon, string> = {
+  international: 'International',
   union_europeenne: 'Union européenne',
   etat: 'État',
   region: 'Région',
@@ -106,6 +108,24 @@ export const LIBELLE_POUVOIR: Record<Pouvoir, string> = {
   independant: 'Autorités indépendantes',
 };
 
+/**
+ * Le domaine d'action d'une organisation internationale. Il range la colonne
+ * « International » comme les branches du pouvoir rangent celle de l'État —
+ * sans dire à qui l'on appartient : l'OMS n'est pas un organe de l'ONU, et
+ * la mettre dans sa boîte serait faux.
+ */
+export const DOMAINES = ['droits', 'paix', 'sante', 'travail', 'culture', 'environnement', 'economie'] as const;
+export type Domaine = (typeof DOMAINES)[number];
+export const LIBELLE_DOMAINE: Record<Domaine, string> = {
+  droits: 'Droits et démocratie locale',
+  paix: 'Paix et sécurité',
+  sante: 'Santé',
+  travail: 'Travail',
+  culture: 'Culture et patrimoine',
+  environnement: 'Environnement',
+  economie: 'Économie et commerce',
+};
+
 export const Acteur = z.object({
   id: Id,
   nom: z.string().min(2),
@@ -121,6 +141,7 @@ export const Acteur = z.object({
     'juridiction',
     'autorite_independante',
     'organe_collegial',
+    'organisation_internationale',
     'entreprise',
     'association',
     'metier',
@@ -146,6 +167,12 @@ export const Acteur = z.object({
    * pas. La règle est appliquée par `scripts/valider.ts`.
    */
   releve_de: Id.optional(),
+  /**
+   * Pour une organisation internationale qui ne relève de personne : son
+   * domaine d'action. Ses organes le partagent. Exigé dans la colonne
+   * « International », refusé ailleurs (`scripts/valider.ts`).
+   */
+  domaine: z.enum(DOMAINES).optional(),
   /** Une phrase, pas un paragraphe : le détail est sur les pages liées. */
   resume: z.string().min(10).max(280, 'une phrase suffit — le reste est sur les pages liées'),
   ...tracable,
