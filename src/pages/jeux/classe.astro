@@ -1,0 +1,192 @@
+---
+/**
+ * Pour la classe : les jeux de Rouages rangés par notion, avec pour chacun ce
+ * qu'un enseignant veut savoir avant de le projeter — l'objectif, la durée,
+ * une façon de le jouer en classe, ce qu'on en retient, et d'où viennent les
+ * réponses. Aucun compte, aucune donnée sur les élèves : tout se joue dans
+ * le navigateur.
+ */
+import Base from '../../layouts/Base.astro';
+
+const NOTIONS: {
+  titre: string;
+  chapo: string;
+  jeux: { titre: string; url: string; age: string; duree: string; objectif: string; enClasse: string; retenir: string; sources: string }[];
+}[] = [
+  {
+    titre: 'Qui fait quoi : la commune, le département, la région, l’État',
+    chapo: 'Les élèves voient la mairie partout. Ces jeux montrent qu’elle partage le travail avec d’autres.',
+    jeux: [
+      {
+        titre: 'À qui je demande ?',
+        url: '/jeux/a-qui-je-demande',
+        age: 'dès 8 ans',
+        duree: '5 à 10 min',
+        objectif: 'Associer un problème de tous les jours à la collectivité qui s’en occupe.',
+        enClasse: 'Projeter le défi du jour ; la classe vote à main levée pour une porte avant de cliquer. Puis une partie libre par groupe.',
+        retenir: 'L’école élémentaire est à la commune, le collège au département, le lycée à la région ; les classes et les enseignants relèvent de l’État.',
+        sources: 'Chaque scène renvoie à la fiche de sa compétence, qui cite la loi et les sites officiels.',
+      },
+      {
+        titre: 'Qui s’en occupe ?',
+        url: '/jeux/qui-s-en-occupe',
+        age: 'dès 8 ans',
+        duree: '5 min',
+        objectif: 'Mémoriser cinq couples objet–responsable.',
+        enClasse: 'En binômes, sur tablette ou au tableau interactif : le moins de coups gagne.',
+        retenir: 'Une chose par échelon : l’école et la mairie, les poubelles et l’intercommunalité, le collège et le département, le lycée et la région, la gendarmerie et l’État.',
+        sources: 'Chaque paire renvoie à la fiche de sa compétence.',
+      },
+      {
+        titre: 'Vrai ou faux : le maire peut-il… ?',
+        url: '/jeux/vrai-ou-faux',
+        age: 'dès 10 ans',
+        duree: '10 min',
+        objectif: 'Distinguer ce que décide le maire, le conseil municipal, et ce qui lui échappe.',
+        enClasse: 'Lire chaque affirmation à voix haute ; débattre une minute avant de répondre.',
+        retenir: 'Le maire signe les permis et fait respecter le calme, mais il ne vote pas seul le budget et ne ferme pas une classe.',
+        sources: 'Chaque affirmation renvoie à la fiche de sa compétence.',
+      },
+      {
+        titre: 'Qui décide ?',
+        url: '/jeux/qui-decide',
+        age: 'dès 12 ans',
+        duree: '10 min',
+        objectif: 'Découvrir qui exerce l’eau, les déchets, la mobilité dans sa propre commune.',
+        enClasse: 'Choisir la commune de l’école ; comparer avec une commune voisine en partie libre.',
+        retenir: 'D’une commune à l’autre, la même compétence n’est pas exercée par le même échelon.',
+        sources: 'Le registre national BANATIC, comme sur chaque page de commune.',
+      },
+    ],
+  },
+  {
+    titre: 'L’argent public',
+    chapo: 'D’où vient l’argent d’une commune, et où il va : avec les vrais comptes de la commune de l’école.',
+    jeux: [
+      {
+        titre: 'Le budget de ma commune',
+        url: '/jeux/budget',
+        age: 'dès 10 ans',
+        duree: '10 min',
+        objectif: 'Se représenter comment une commune dépense 100 €.',
+        enClasse: 'Chaque groupe répartit ses 100 jetons, puis on compare les propositions avec les vrais chiffres.',
+        retenir: 'Les agents de la commune — cantine, entretien, secrétariat — sont souvent la plus grosse dépense ; les travaux viennent ensuite.',
+        sources: 'Les comptes de la commune publiés par l’OFGL, ramenés à 100 €.',
+      },
+      {
+        titre: 'Où va l’argent ?',
+        url: '/jeux/argent',
+        age: 'dès 12 ans',
+        duree: '5 min',
+        objectif: 'Ordonner les grandes missions du budget de l’État.',
+        enClasse: 'Faire deviner l’ordre au tableau avant de jouer.',
+        retenir: 'L’enseignement scolaire est l’une des plus grosses missions du budget de l’État.',
+        sources: 'Les crédits votés, d’après la direction du Budget.',
+      },
+    ],
+  },
+  {
+    titre: 'La carte et le territoire',
+    chapo: 'Se repérer dans sa région, puis autour de sa commune.',
+    jeux: [
+      {
+        titre: 'Le puzzle de la carte',
+        url: '/jeux/puzzle-carte',
+        age: 'dès 8 ans',
+        duree: '5 min',
+        objectif: 'Situer les départements de sa région.',
+        enClasse: 'Au tableau interactif, un élève clique, la classe valide ; puis une autre région en partie libre.',
+        retenir: 'Chaque département a un nom et un numéro ; les codes postaux de ses communes commencent le plus souvent par ce numéro.',
+        sources: 'Les contours de la base Admin Express de l’IGN.',
+      },
+      {
+        titre: 'La commune mystère',
+        url: '/jeux/commune-mystere',
+        age: 'dès 12 ans',
+        duree: '10 à 15 min',
+        objectif: 'Raisonner avec des indices chiffrés et des directions.',
+        enClasse: 'Par équipes, chacune propose une commune à tour de rôle.',
+        retenir: 'Une distance et une direction suffisent pour se rapprocher d’un lieu.',
+        sources: 'Les contours d’Admin Express et les chiffres des pages de commune.',
+      },
+    ],
+  },
+  {
+    titre: 'Voter et décider',
+    chapo: 'Comment des voix deviennent des sièges, et comment une décision se prend.',
+    jeux: [
+      {
+        titre: 'L’élection de la classe',
+        url: '/jeux/election',
+        age: 'dès 11 ans',
+        duree: '15 à 20 min',
+        objectif: 'Comprendre qu’un même vote peut donner des conseils différents selon la façon de compter.',
+        enClasse: 'Faire voter vraiment la classe pour trois projets, entrer les voix, et comparer les trois règles.',
+        retenir: 'Au conseil municipal, la liste en tête reçoit la moitié des sièges, puis sa part du reste : elle a la majorité, et les autres listes ont des élus.',
+        sources: 'Le code électoral, article L262, et la loi du 21 mai 2025.',
+      },
+      {
+        titre: 'Le bon ordre',
+        url: '/jeux/ordre',
+        age: 'ados et adultes',
+        duree: '10 min',
+        objectif: 'Remettre dans l’ordre les étapes d’une démarche publique.',
+        enClasse: 'Avec des collégiens : la démarche du jour, discutée étape par étape.',
+        retenir: 'Une décision publique suit des étapes, des délais, et laisse des recours.',
+        sources: 'Les fiches de démarche de Rouages, avec leurs références.',
+      },
+    ],
+  },
+];
+---
+<Base
+  titre="Pour la classe"
+  description="Les jeux de Rouages par notion — qui fait quoi, l’argent public, la carte, voter — avec pour chacun l’objectif, la durée, une façon de jouer en classe et ce qu’on retient."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a></p>
+    <h1>Pour la classe</h1>
+    <p class="resume">
+      Les jeux de Rouages, rangés par notion, avec pour chacun l’objectif, la durée, une façon de le jouer en classe
+      et ce qu’on en retient. Gratuits, sans compte ni publicité, et aucune donnée sur les élèves&nbsp;: tout se joue
+      dans le navigateur.
+    </p>
+
+    {NOTIONS.map((n) => (
+      <section class="classe-notion">
+        <h2 class="badge">{n.titre}</h2>
+        <p class="mesure">{n.chapo}</p>
+        {n.jeux.map((j) => (
+          <article class="classe-fiche">
+            <h3><a href={j.url}>{j.titre}</a> <small>{`${j.age} · ${j.duree}`}</small></h3>
+            <dl>
+              <dt>Objectif</dt><dd>{j.objectif}</dd>
+              <dt>En classe</dt><dd>{j.enClasse}</dd>
+              <dt>À retenir</dt><dd>{j.retenir}</dd>
+              <dt>Les réponses</dt><dd>{j.sources}</dd>
+            </dl>
+          </article>
+        ))}
+      </section>
+    ))}
+
+    <h2 class="badge">Bon à savoir</h2>
+    <ul class="accueil-themes">
+      <li>Le défi du jour est le même pour toute la classe&nbsp;: pratique pour comparer les scores. Les parties libres changent à chaque fois.</li>
+      <li>Les jeux qui demandent une commune proposent le Mayet-de-Montagne en exemple&nbsp;; tapez le nom ou le code postal de celle de l’école.</li>
+      <li>Une erreur, une idée de jeu&nbsp;? <a href="/signaler">Écrivez-nous</a>.</li>
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .classe-fiche { background: var(--fond-carte); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .8rem 1rem; margin: 0 0 .8rem; max-width: var(--mesure); }
+  .classe-fiche h3 { margin: 0 0 .4rem; font-family: var(--titre); font-size: 1.15rem; }
+  .classe-fiche h3 small { font-family: inherit; font-size: .8rem; font-weight: 400; color: var(--encre-douce); }
+  .classe-fiche dl { display: grid; grid-template-columns: 7.5rem 1fr; gap: .25rem .8rem; margin: 0; font-size: .93rem; }
+  .classe-fiche dt { color: var(--encre-douce); }
+  .classe-fiche dd { margin: 0; }
+  @media (max-width: 30rem) { .classe-fiche dl { grid-template-columns: 1fr; } .classe-fiche dd { margin-bottom: .4rem; } }
+</style>

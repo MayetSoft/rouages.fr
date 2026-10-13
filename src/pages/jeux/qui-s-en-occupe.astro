@@ -1,0 +1,72 @@
+---
+/**
+ * Qui s'en occupe ? Un jeu de paires : cinq objets du quotidien — l'école,
+ * les poubelles, le collège, le lycée, la gendarmerie… — et cinq
+ * responsables. Retourner deux cartes ; une paire trouvée reste visible.
+ * Chaque partie tire un objet par responsable dans `contenu/jeux-classe.yaml`.
+ */
+import Base from '../../layouts/Base.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import { jeuxClasse, PORTES } from '../../modele/jeux-classe.ts';
+import { chargerGraphe } from '../../modele/graphe.ts';
+import '../../styles/jeux.css';
+
+const g = chargerGraphe();
+/** [id, emoji, objet, porte, compétence, nom de la fiche] */
+const paires = jeuxClasse().paires.map((p) => [p.id, p.emoji, p.objet, p.porte, p.competence, g.competences.get(p.competence)?.nom ?? p.competence]);
+const portes = Object.fromEntries(Object.entries(PORTES).map(([cle, p]) => [cle, [p.nom, p.emoji]]));
+---
+<Base
+  titre="Qui s’en occupe ?"
+  description="Un jeu de paires : l’école et la mairie, le collège et le département, le lycée et la région… Dès 8 ans."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Découvrir · dès 8 ans</p>
+    <h1>Qui s’en occupe&nbsp;?</h1>
+    <p class="resume">
+      Retourne deux cartes&nbsp;: une chose de tous les jours et celui qui s’en occupe. L’école va avec la mairie,
+      le lycée avec la région… Trouve les cinq paires en le moins de coups possible&nbsp;!
+    </p>
+
+    <div id="jp" class="jeu">
+      <div id="jp-debut" class="jeu-choix">
+        <p>Cinq paires, les mêmes pour tout le monde aujourd’hui.</p>
+        <button class="bouton jeu-bouton" type="button" id="jp-jouer">Jouer le défi du jour</button>
+      </div>
+      <section id="jp-manche" class="jeu-carte" hidden>
+        <p class="jeu-compteur" id="jp-compteur" aria-live="polite"></p>
+        <ul class="paires" id="jp-cartes"></ul>
+        <p class="jeu-contexte" id="jp-dernier" aria-live="polite"></p>
+      </section>
+      <section id="jp-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="jp-score"></span> <span id="jp-cases" class="jeu-cases"></span></p>
+        <h3 class="jeu-compteur">Les cinq paires</h3>
+        <ol class="jeu-recap" id="jp-recap"></ol>
+        <PartageJeu id="jp" />
+        <button class="plat" type="button" id="jp-libre">Cinq autres paires</button>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Retourne deux cartes. Si elles vont ensemble, elles restent visibles&nbsp;; sinon, elles se retournent.</li>
+      <li>Une case par paire&nbsp;: 🟩 trouvée sans te tromper, 🟨 une ou deux erreurs, 🟧 trois ou quatre, 🟥 plus.</li>
+      <li>Ton résultat reste dans ton navigateur. Le partage montre les cases et le nombre de coups, rien d’autre.</li>
+    </ul>
+
+    <h2 class="badge">Pour les grands</h2>
+    <p class="mesure">
+      Chaque paire s’appuie sur la fiche d’une compétence du réseau de Rouages, avec ses sources. Le récapitulatif de
+      fin y mène.
+    </p>
+  </div>
+</Base>
+
+<script type="application/json" is:inline id="jp-donnees" set:html={JSON.stringify({ paires, portes })} />
+<script>
+  import { brancherPaires } from '../../client/jeu-paires.ts';
+  brancherPaires();
+</script>

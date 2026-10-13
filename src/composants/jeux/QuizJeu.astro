@@ -1,0 +1,47 @@
+---
+/**
+ * Le balisage d'un quiz (`src/client/jeux-quiz.ts`) : le bouton du défi du
+ * jour, la question avec son grand emoji, les réponses, l'explication, puis
+ * le score, le récapitulatif et le partage. Les identifiants sont préfixés.
+ */
+import PartageJeu from './PartageJeu.astro';
+
+interface Props {
+  id: string;
+  /** Ce que dit le premier écran, avant de jouer. */
+  invite: string;
+  /** Le libellé du bouton des parties libres. */
+  autre: string;
+}
+const { id, invite, autre } = Astro.props;
+---
+<div id={id} class="jeu quiz">
+  <div id={`${id}-debut`} class="jeu-choix">
+    <p>{invite}</p>
+    <button class="bouton jeu-bouton" type="button" id={`${id}-jouer`}>Jouer le défi du jour</button>
+  </div>
+
+  <section id={`${id}-manche`} class="jeu-carte" hidden aria-live="polite">
+    <p class="jeu-compteur" id={`${id}-compteur`}></p>
+    <p class="quiz-emoji" id={`${id}-emoji`} aria-hidden="true" hidden></p>
+    <p class="jeu-question" id={`${id}-question`}></p>
+    <p class="jeu-details" id={`${id}-sous`} hidden></p>
+    <ul class="jeu-options quiz-options" id={`${id}-options`}></ul>
+    <div class="quiz-zone" id={`${id}-zone`} hidden></div>
+    <div id={`${id}-reponse`} hidden>
+      <p class="jeu-verdict" id={`${id}-verdict`}></p>
+      <p class="jeu-contexte" id={`${id}-contexte`}></p>
+      <button class="bouton jeu-bouton" type="button" id={`${id}-suivante`}>Question suivante</button>
+    </div>
+  </section>
+
+  <section id={`${id}-fin`} class="jeu-carte" hidden aria-live="polite">
+    <p class="jeu-score"><span id={`${id}-score`}></span> <span id={`${id}-cases`} class="jeu-cases"></span></p>
+    <p class="quiz-bravo" id={`${id}-bravo`}></p>
+    <h3 class="jeu-compteur">Ce qu’il fallait savoir</h3>
+    <ol class="jeu-recap" id={`${id}-recap`}></ol>
+    <PartageJeu id={id} />
+    <button class="plat" type="button" id={`${id}-libre`}>{autre}</button>
+  </section>
+  <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+</div>

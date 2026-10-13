@@ -1,0 +1,76 @@
+---
+/**
+ * L'élection de la classe : vingt-cinq élèves votent pour trois listes, sept
+ * sièges à pourvoir — et trois façons de compter les mêmes voix. La
+ * troisième est celle du conseil municipal (code électoral, art. L262) : la
+ * liste en tête reçoit la moitié des sièges, le reste se partage à la
+ * proportionnelle entre les listes qui ont au moins 5 % des voix. Une
+ * simulation, sans score : on change les voix et on regarde.
+ */
+import Base from '../../layouts/Base.astro';
+import { chargerGraphe } from '../../modele/graphe.ts';
+import '../../styles/jeux.css';
+
+const g = chargerGraphe();
+const sources = ['loi-scrutin-liste', 'vp-scrutin-liste', 'interieur-scrutin-liste'].map((id) => g.sources.get(id)).filter((s) => !!s);
+---
+<Base
+  titre="L’élection de la classe"
+  description="Vingt-cinq élèves, trois listes, sept sièges : selon la façon de compter, le même vote ne donne pas le même conseil. Comme pour le conseil municipal. Dès 11 ans."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Comprendre · dès 11 ans</p>
+    <h1>L’élection de la classe</h1>
+    <p class="resume">
+      La classe élit son conseil&nbsp;: sept sièges, trois listes. Les mêmes voix, trois façons de compter… et trois
+      conseils différents. Change les voix et regarde ce qui se passe.
+    </p>
+
+    <div id="je" class="jeu">
+      <section class="jeu-carte">
+        <p class="jeu-question">Les voix des 25 élèves</p>
+        <ul class="election-listes" id="je-listes"></ul>
+        <p class="budget-reste" id="je-reste" aria-live="polite"></p>
+        <p class="election-exemples">
+          Essaie&nbsp;:
+          <button class="plat" type="button" data-exemple="13,8,4">une liste en tête</button>
+          <button class="plat" type="button" data-exemple="9,8,8">trois listes au coude-à-coude</button>
+          <button class="plat" type="button" data-exemple="12,12,1">une toute petite liste</button>
+        </p>
+      </section>
+      <section class="jeu-carte" aria-live="polite">
+        <ol class="election-regles" id="je-regles"></ol>
+        <p class="jeu-contexte" id="je-note"></p>
+      </section>
+      <noscript><p class="mesure">La simulation a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">Ce qu’il faut retenir</h2>
+    <ul class="accueil-themes">
+      <li><strong>La liste en tête prend tout</strong>&nbsp;: simple, mais ceux qui ont voté pour les autres listes n’ont personne au conseil.</li>
+      <li><strong>La proportionnelle</strong>&nbsp;: chaque liste a des sièges selon ses voix, mais parfois aucune n’a la majorité pour décider.</li>
+      <li><strong>Le conseil municipal</strong> mélange les deux&nbsp;: la liste en tête reçoit d’office la moitié des sièges, puis sa part du reste. Elle a toujours la majorité, et les autres listes ont quand même des élus.</li>
+    </ul>
+
+    <h2 class="badge">Pour les grands</h2>
+    <p class="mesure">
+      La troisième règle est celle du code électoral pour les conseils municipaux (article L262)&nbsp;: une prime de la
+      moitié des sièges, arrondie à l’entier supérieur quand il y a plus de quatre sièges, puis la répartition des
+      autres à la plus forte moyenne entre les listes qui ont au moins 5&nbsp;% des suffrages exprimés. Elle s’applique
+      au premier tour à une liste qui a la majorité absolue, sinon au second tour à la liste arrivée en tête. Depuis les
+      élections de mars 2026, toutes les communes votent ainsi, y compris celles de moins de 1&nbsp;000 habitants.
+      La page de chaque commune montre comment son conseil a été élu.
+    </p>
+    <ul class="mesure b-sources">
+      <li><a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006353609" target="_blank" rel="noopener">Code électoral, article L262</a></li>
+      {sources.map((s) => <li><a href={s!.url} target="_blank" rel="noopener">{s!.titre}</a></li>)}
+    </ul>
+  </div>
+</Base>
+
+<script>
+  import { brancherElection } from '../../client/jeu-election.ts';
+  brancherElection();
+</script>

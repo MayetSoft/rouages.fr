@@ -11,6 +11,7 @@
  */
 import Base from '../layouts/Base.astro';
 import Icone from '../composants/Icone.astro';
+import type { NomIcone } from '../modele/icones.ts';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
 import type { Jeu } from '../modele/schemas.ts';
 
@@ -22,13 +23,37 @@ const GENRES: { genre: Jeu['genre']; titre: string; chapo: string }[] = [
   { genre: 'contribution', titre: 'Contribuer en jouant', chapo: 'Chaque réponse améliore la base de données elle-même.' },
   { genre: 'simulation', titre: 'Décider', chapo: 'Prendre une décision publique et en voir les effets.' },
 ];
+/**
+ * Les jeux de Rouages, par niveau. L'âge est un repère, pas une barrière : un
+ * adulte s'amuse au puzzle de la carte, un collégien au jeu des prix.
+ */
+const NIVEAUX = [
+  { id: 'decouvrir', emoji: '🌱', nom: 'Découvrir', age: 'dès 8 ans', chapo: 'Des parties courtes, beaucoup d’images, peu de texte : qui s’occupe de quoi, où sont les départements.' },
+  { id: 'comprendre', emoji: '🔎', nom: 'Comprendre', age: 'dès 11 ans', chapo: 'Le budget de sa commune, une élection, qui décide vraiment : avec les vrais chiffres de chez soi.' },
+  { id: 'approfondir', emoji: '🎓', nom: 'Approfondir', age: 'ados et adultes', chapo: 'Les prix de l’immobilier, les étapes d’une démarche : pour qui veut aller au fond des choses.' },
+] as const;
+type Carte = { cle: string | null; url: string; titre: string; icone: NomIcone; couleur: string; niveau: (typeof NIVEAUX)[number]['id']; age: string; duree: string; texte: string };
+const NOTRES: Carte[] = [
+  { cle: 'demande', url: '/jeux/a-qui-je-demande', titre: 'À qui je demande ?', icone: 'decide', couleur: 'decide', niveau: 'decouvrir', age: 'dès 8 ans', duree: '5 min', texte: 'Le toit de l’école, les poubelles, le train : cinq scènes, cinq portes. La mairie, le département, la région, l’État ?' },
+  { cle: 'paires', url: '/jeux/qui-s-en-occupe', titre: 'Qui s’en occupe ?', icone: 'habitants', couleur: 'habitants', niveau: 'decouvrir', age: 'dès 8 ans', duree: '5 min', texte: 'Un jeu de paires : l’école et la mairie, le collège et le département, le lycée et la région.' },
+  { cle: 'carte', url: '/jeux/puzzle-carte', titre: 'Le puzzle de la carte', icone: 'carte', couleur: 'nature', niveau: 'decouvrir', age: 'dès 8 ans', duree: '5 min', texte: 'La carte de ta région, sans les noms : où est l’Allier ? Clique sur le bon département.' },
+  { cle: 'vraifaux', url: '/jeux/vrai-ou-faux', titre: 'Vrai ou faux : le maire peut-il… ?', icone: 'deliberations', couleur: 'suivre', niveau: 'decouvrir', age: 'dès 10 ans', duree: '5 min', texte: 'Fermer une classe, signer un permis, choisir les horaires du train : le maire peut-il tout faire ?' },
+  { cle: 'plus', url: '/jeux/plus-ou-moins', titre: 'Plus ou moins', icone: 'habitants', couleur: 'habitants', niveau: 'decouvrir', age: 'dès 10 ans', duree: '5 min', texte: 'Deux communes face à face : laquelle a le plus d’habitants, la maison la plus chère, la gare la plus proche ?' },
+  { cle: 'budget', url: '/jeux/budget', titre: 'Le budget de ma commune', icone: 'argent', couleur: 'argent', niveau: 'comprendre', age: 'dès 10 ans', duree: '5 min', texte: 'Ta commune dépense 100 € : combien pour les agents, pour construire, pour aider ? Devine, puis compare.' },
+  { cle: null, url: '/jeux/election', titre: 'L’élection de la classe', icone: 'decide', couleur: 'decide', niveau: 'comprendre', age: 'dès 11 ans', duree: '10 min', texte: 'Vingt-cinq élèves, trois listes, sept sièges : trois façons de compter les mêmes voix, comme au conseil municipal.' },
+  { cle: 'qui', url: '/jeux/qui-decide', titre: 'Qui décide ?', icone: 'decide', couleur: 'decide', niveau: 'comprendre', age: 'dès 12 ans', duree: '5 min', texte: 'L’eau, les déchets, la mobilité : dans votre commune, qui s’en occupe ? La réponse de sa page.' },
+  { cle: 'argent', url: '/jeux/argent', titre: 'Où va l’argent ?', icone: 'argent', couleur: 'argent', niveau: 'comprendre', age: 'dès 12 ans', duree: '5 min', texte: 'Cinq missions du budget de l’État, à ranger de la plus grosse à la plus petite.' },
+  { cle: 'mystere', url: '/jeux/commune-mystere', titre: 'La commune mystère', icone: 'carte', couleur: 'nature', niveau: 'comprendre', age: 'dès 12 ans', duree: '10 min', texte: 'Une commune se cache près de chez vous : retrouvez-la, indice après indice, avec la distance et la direction.' },
+  { cle: 'prix', url: '/jeux/prix', titre: 'À combien s’est-elle vendue ?', icone: 'logement', couleur: 'logement', niveau: 'approfondir', age: 'ados et adultes', duree: '5 min', texte: 'Cinq vraies ventes de maisons et d’appartements autour de chez vous : devinez le prix.' },
+  { cle: 'ordre', url: '/jeux/ordre', titre: 'Le bon ordre', icone: 'deliberations', couleur: 'suivre', niveau: 'approfondir', age: 'ados et adultes', duree: '5 min', texte: 'Les étapes d’une démarche, mélangées : le permis de construire, le budget communal, l’inscription électorale…' },
+];
 const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === x.genre) })).filter(
   (x) => x.jeux.length > 0,
 );
 ---
 <Base
   titre="Jeux"
-  description="Des jeux bâtis sur les données ouvertes : deviner le prix d’une vraie vente immobilière, et les jeux qui existent ailleurs."
+  description="Des jeux sur les données publiques, dès 8 ans : qui s’occupe de l’école, le puzzle de la carte, le budget de ma commune, l’élection de la classe, le prix des maisons."
   section="jeux"
   image="/apercus/jeux.png"
 >
@@ -36,58 +61,39 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
     <p class="badge">Jeux</p>
     <h1>Jouer avec les données publiques</h1>
     <p class="resume">
-      Deviner un lieu d’après ses données, ou améliorer les données en jouant. D’autres ont déjà fait de
-      très bons jeux à partir de données ouvertes&nbsp;: Rouages les recense et y renvoie, à côté des siens.
+      Qui s’occupe de l’école, combien coûte une maison, comment se compte une élection&nbsp;: des jeux bâtis sur les
+      vraies données de chez vous, du plus simple — dès 8 ans — au plus pointu. Et ceux que d’autres ont faits,
+      plus bas.
     </p>
 
-    <h2 class="badge">Sur Rouages</h2>
-    <ul class="jeux-liste">
-      <li data-jeu="qui" data-theme-couleur="decide">
-        <span class="pastille"><Icone nom="decide" /></span>
-        <a href="/jeux/qui-decide">Qui décide&nbsp;?</a>
-        <span class="jeux-etat" hidden></span>
-        <p>L’eau, les déchets, la mobilité&nbsp;: dans votre commune, qui s’en occupe&nbsp;? Cinq questions, et la réponse de sa page.</p>
-        <p class="jeux-meta">Données&nbsp;: le registre national BANATIC et la loi, comme sur chaque page de commune.</p>
-      </li>
-      <li data-jeu="mystere" data-theme-couleur="nature">
-        <span class="pastille"><Icone nom="carte" /></span>
-        <a href="/jeux/commune-mystere">La commune mystère</a>
-        <span class="jeux-etat" hidden></span>
-        <p>Une commune se cache dans votre code postal, votre intercommunalité ou votre département&nbsp;: retrouvez-la, indice après indice, avec la distance et la direction à chaque essai.</p>
-        <p class="jeux-meta">Données&nbsp;: les contours d’Admin Express, et les chiffres des pages de commune.</p>
-      </li>
-      <li data-jeu="plus" data-theme-couleur="habitants">
-        <span class="pastille"><Icone nom="habitants" /></span>
-        <a href="/jeux/plus-ou-moins">Plus ou moins</a>
-        <span class="jeux-etat" hidden></span>
-        <p>Deux communes face à face&nbsp;: laquelle a le plus d’habitants, la maison la plus chère, la gare la plus proche&nbsp;?</p>
-        <p class="jeux-meta">Données&nbsp;: INSEE, DGFiP, SNCF, Éducation nationale, avec leur année.</p>
-      </li>
-      <li data-jeu="prix" data-theme-couleur="logement">
-        <span class="pastille"><Icone nom="logement" /></span>
-        <a href="/jeux/prix">À combien s’est-elle vendue&nbsp;?</a>
-        <span class="jeux-etat" hidden></span>
-        <p>Cinq vraies ventes de maisons et d’appartements, autour de chez vous&nbsp;: devinez le prix.</p>
-        <p class="jeux-meta">Données&nbsp;: les demandes de valeurs foncières de la DGFiP, les trois dernières années publiées.</p>
-      </li>
-      <li data-jeu="ordre" data-theme-couleur="suivre">
-        <span class="pastille"><Icone nom="deliberations" /></span>
-        <a href="/jeux/ordre">Le bon ordre</a>
-        <span class="jeux-etat" hidden></span>
-        <p>Les étapes d’une démarche publique, mélangées&nbsp;: le permis de construire, le budget communal, l’inscription électorale…</p>
-        <p class="jeux-meta">Données&nbsp;: les fiches de démarche de Rouages.</p>
-      </li>
-      <li data-jeu="argent" data-theme-couleur="argent">
-        <span class="pastille"><Icone nom="argent" /></span>
-        <a href="/jeux/argent">Où va l’argent&nbsp;?</a>
-        <span class="jeux-etat" hidden></span>
-        <p>Cinq missions du budget de l’État, à ranger de la plus grosse à la plus petite.</p>
-        <p class="jeux-meta">Données&nbsp;: les crédits votés pour 2025, d’après la direction du Budget.</p>
-      </li>
-    </ul>
+    <nav class="jeux-niveaux-nav" aria-label="Les niveaux">
+      {NIVEAUX.map((n) => <a href={`#${n.id}`}>{`${n.emoji} ${n.nom}`}<small>{n.age}</small></a>)}
+      <a href="/jeux/classe">🏫 Pour la classe<small>fiches pour l’enseignant</small></a>
+    </nav>
+
+    {NIVEAUX.map((n) => (
+      <section class={`jeux-niveau jeux-niveau--${n.id}`} id={n.id}>
+        <h2 class="jeux-niveau-titre">{`${n.emoji} ${n.nom}`} <small>{n.age}</small></h2>
+        <p class="jeux-niveau-chapo">{n.chapo}</p>
+        <ul class="jeux-cartes">
+          {NOTRES.filter((j) => j.niveau === n.id).map((j) => (
+            <li data-jeu={j.cle} data-theme-couleur={j.couleur}>
+              <a class="jeux-carte" href={j.url}>
+                <span class="pastille"><Icone nom={j.icone} /></span>
+                <span class="jeux-carte-titre">{j.titre}</span>
+                <span class="jeux-carte-texte">{j.texte}</span>
+                <span class="jeux-carte-meta">{`${j.age} · ${j.duree}${j.cle ? ' · défi du jour' : ''}`}</span>
+                {j.cle && <span class="jeux-etat" hidden></span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
     <p class="mesure">
       Chaque jeu a son défi du jour, le même pour tout le monde, et se partage — le score, jamais les
-      données d’une personne.
+      données d’une personne. Chaque réponse renvoie à sa fiche et à ses sources. Pour jouer en classe&nbsp;:{' '}
+      <a href="/jeux/classe">les jeux par notion, avec une fiche pour l’enseignant</a>.
     </p>
 
     <h2 class="badge">Ailleurs</h2>
@@ -121,7 +127,7 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
 
   // L'état du défi du jour de chaque jeu, d'après la mémoire du navigateur.
   const jour = jourDeParis();
-  for (const li of document.querySelectorAll<HTMLElement>('li[data-jeu]')) {
+  for (const li of document.querySelectorAll<HTMLElement>('li[data-jeu]:not([data-jeu=""])')) {
     const cle = li.dataset.jeu as CleJeu;
     const etat = li.querySelector<HTMLElement>('.jeux-etat');
     if (!etat) continue;
@@ -141,17 +147,44 @@ const groupes = GENRES.map((x) => ({ ...x, jeux: jeux.filter((j) => j.genre === 
   .jeux-liste { list-style: none; padding: 0; margin: 0 0 1.4rem; max-width: var(--mesure); }
   .jeux-liste li { padding: .6rem 0; border-top: 1px solid var(--trait); }
   .jeux-liste a { font-weight: 600; }
-  /* Les jeux de Rouages : leur icône à gauche, le reste en colonne. */
-  .jeux-liste li[data-theme-couleur] { display: grid; grid-template-columns: 2.4rem 1fr; column-gap: .9rem; align-items: start; padding: .85rem 0; }
-  .jeux-liste li[data-theme-couleur] > .pastille { grid-row: 1 / span 4; margin-top: .1rem; }
-  .jeux-liste li[data-theme-couleur] > :not(.pastille) { grid-column: 2; }
-  .jeux-liste li[data-theme-couleur] > a { font-family: var(--titre); font-size: 1.2rem; font-weight: 620; justify-self: start; }
-  .jeux-liste li[data-theme-couleur] > .jeux-etat { justify-self: start; margin: .2rem 0 0; }
+  .jeux-liste p { margin: .25rem 0 0; }
+  .jeux-support, .jeux-meta { color: var(--encre-douce); font-size: .88rem; }
+
+  /* Les niveaux : un raccourci vers chacun, puis une boîte par niveau. */
+  .jeux-niveaux-nav { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem 0 1.4rem; }
+  .jeux-niveaux-nav a {
+    display: grid; padding: .45rem .8rem; border-radius: var(--rayon); border: 1px solid var(--trait);
+    background: var(--fond-carte); text-decoration: none; color: var(--encre); font-weight: 600;
+  }
+  .jeux-niveaux-nav a:hover { border-color: var(--accent); }
+  .jeux-niveaux-nav small { font-weight: 400; font-size: .78rem; color: var(--encre-douce); }
+  .jeux-niveau { border-radius: calc(var(--rayon) * 2); padding: 1rem 1rem .4rem; margin: 0 0 1.4rem; background: var(--fond-doux); scroll-margin-top: 1rem; }
+  .jeux-niveau--decouvrir { background: color-mix(in srgb, #2e9e5b 9%, var(--fond)); }
+  .jeux-niveau--comprendre { background: color-mix(in srgb, #3a6ea5 9%, var(--fond)); }
+  .jeux-niveau--approfondir { background: color-mix(in srgb, #8a4b12 8%, var(--fond)); }
+  .jeux-niveau-titre { font-family: var(--titre); font-size: 1.45rem; margin: 0; }
+  .jeux-niveau-titre small { font-family: var(--texte, inherit); font-size: .85rem; font-weight: 400; color: var(--encre-douce); }
+  .jeux-niveau-chapo { margin: .2rem 0 .8rem; max-width: var(--mesure); color: var(--encre-douce); }
+  .jeux-cartes { list-style: none; padding: 0; margin: 0 0 .6rem; display: grid; gap: .7rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
+  .jeux-carte {
+    height: 100%; display: grid; grid-template-columns: 2.4rem 1fr; column-gap: .75rem; row-gap: .25rem; align-content: start;
+    padding: .8rem .9rem; border-radius: var(--rayon); background: var(--fond-carte); border: 1px solid var(--trait);
+    text-decoration: none; color: var(--encre); transition: border-color var(--transition), transform var(--transition);
+  }
+  .jeux-carte:hover, .jeux-carte:focus-visible { border-color: var(--accent); transform: translateY(-1px); }
+  .jeux-carte > .pastille { grid-row: 1 / span 4; }
+  .jeux-carte > :not(.pastille) { grid-column: 2; }
+  .jeux-carte-titre { font-family: var(--titre); font-size: 1.15rem; font-weight: 620; line-height: 1.25; }
+  .jeux-carte-texte { font-size: .92rem; color: var(--encre-douce); }
+  .jeux-carte-meta { font-size: .8rem; color: var(--encre-douce); }
   .jeux-etat {
-    display: inline-block; margin-left: .5rem; padding: .05rem .5rem; border-radius: 999px; font-size: .78rem;
+    justify-self: start; padding: .05rem .5rem; border-radius: 999px; font-size: .76rem;
     background: var(--accent-doux); color: var(--accent);
   }
   .jeux-etat.fait { background: var(--fond-doux); color: var(--encre-douce); }
-  .jeux-liste p { margin: .25rem 0 0; }
-  .jeux-support, .jeux-meta { color: var(--encre-douce); font-size: .88rem; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .jeux-niveau--decouvrir { background: color-mix(in srgb, #2e9e5b 14%, var(--fond)); }
+    :root:not([data-theme="light"]) .jeux-niveau--comprendre { background: color-mix(in srgb, #3a6ea5 16%, var(--fond)); }
+    :root:not([data-theme="light"]) .jeux-niveau--approfondir { background: color-mix(in srgb, #c98a4a 12%, var(--fond)); }
+  }
 </style>

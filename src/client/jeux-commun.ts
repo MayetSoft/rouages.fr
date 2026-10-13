@@ -74,6 +74,11 @@ export const JEUX = {
   prix: { nom: 'À combien s’est-elle vendue ?', adresse: '/jeux/prix' },
   ordre: { nom: 'Le bon ordre', adresse: '/jeux/ordre' },
   argent: { nom: 'Où va l’argent ?', adresse: '/jeux/argent' },
+  demande: { nom: 'À qui je demande ?', adresse: '/jeux/a-qui-je-demande' },
+  paires: { nom: 'Qui s’en occupe ?', adresse: '/jeux/qui-s-en-occupe' },
+  vraifaux: { nom: 'Vrai ou faux : le maire peut-il… ?', adresse: '/jeux/vrai-ou-faux' },
+  carte: { nom: 'Le puzzle de la carte', adresse: '/jeux/puzzle-carte' },
+  budget: { nom: 'Le budget de ma commune', adresse: '/jeux/budget' },
 } as const;
 export type CleJeu = keyof typeof JEUX;
 
