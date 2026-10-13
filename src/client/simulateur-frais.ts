@@ -19,7 +19,7 @@ const centimes = (x: number) => `${x.toLocaleString('fr-FR', { minimumFractionDi
 const taux = (x: number) => `${x.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %`;
 
 /** Le détail du notaire : l'acte tranche par tranche, chaque formalité, l'écrêtement, la TVA, la remise possible. */
-function detailNotaire(f: Frais, prix: number): HTMLElement {
+function detailNotaire(f: Frais, prix: number): HTMLDetailsElement {
   const details = document.createElement('details');
   details.className = 'sf-detail';
   const resume = document.createElement('summary');
