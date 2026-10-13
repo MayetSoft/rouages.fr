@@ -4406,6 +4406,31 @@ boîte en pointillés « L'État dans le département ». Le préfet, typé à t
 « mandat électif », devient un service déconcentré. Le graphe ne change pas
 (diamètre 6, 66,8 % à trois clics).
 
+### Les aides locales à la rénovation : l'Allier (12 octobre 2026) ✔
+
+Un registre écrit à la main, `contenu/aides-locales.yaml` : 81 aides de
+14 porteurs de l'Allier, chacune depuis le texte de la collectivité, avec
+la citation de chaque montant, le périmètre en communes, le guichet et la
+démarche. Affiché sur la page de commune et dans le simulateur de
+rénovation. La base de l'ANIL sert à savoir quels textes lire ; rien n'en
+est repris (voir `src/modele/aides-locales.ts`).
+
+**Plus tard : les autres départements.** Département par département, de la
+même façon :
+- relever les porteurs et leurs dispositifs (les fiches de l'ANIL comme
+  pistes, sans rien en reprendre) ;
+- lire les textes primaires, écrire les entrées avec leurs citations, les
+  vérifier sur pièces — les documents scannés se relisent sur l'image ;
+- `npm run valider`, puis un cas de référence que le mainteneur ou un
+  relecteur local connaît.
+
+L'Allier a demandé une demi-journée de recherche en cinq lots parallèles,
+puis la relecture. Ordre proposé : les départements voisins (Puy-de-Dôme,
+Loire, Saône-et-Loire, Nièvre, Cher, Creuse), puis le reste de la région.
+Une réponse favorable de l'ANIL — accord de réutilisation ou export —
+changerait l'échelle : le registre se pré-remplirait, la vérification
+restant la nôtre.
+
 ### La colonne International (12 octobre 2026)
 
 Une colonne à gauche de l'Union européenne, rangée par domaine d'action.
