@@ -593,3 +593,33 @@ sigles:
     developpe: "Observatoire national interministériel de la sécurité routière"
     definition: "Service statistique de la sécurité routière, qui publie chaque année les bases des accidents corporels de la circulation."
     liens: [od-onisr-baac]
+  - id: sigle-onu
+    sigle: ONU
+    developpe: "Organisation des Nations unies"
+    definition: "L'organisation mondiale des États, pour la paix et la sécurité internationales."
+    noeud: onu
+    liens: [wp-onu, charte-onu]
+  - id: sigle-oms
+    sigle: OMS
+    developpe: "Organisation mondiale de la santé"
+    definition: "Organisation internationale à part, liée aux Nations unies ; elle a adopté le Règlement sanitaire international."
+    noeud: oms
+    liens: [wp-oms]
+  - id: sigle-unesco
+    sigle: UNESCO
+    developpe: "Organisation des Nations unies pour l'éducation, la science et la culture"
+    definition: "Organisation internationale à part, liée aux Nations unies ; elle tient la liste du patrimoine mondial."
+    noeud: unesco
+    liens: [wp-unesco]
+  - id: sigle-oit
+    sigle: OIT
+    developpe: "Organisation internationale du travail"
+    definition: "Organisation internationale tripartite — gouvernements, employeurs, travailleurs — qui adopte les conventions du travail."
+    noeud: oit
+    liens: [wp-oit]
+  - id: sigle-cop
+    sigle: COP
+    developpe: "Conférence des parties"
+    definition: "La réunion des États parties à une convention internationale ; la COP sur le climat se tient chaque année et a adopté l'accord de Paris en 2015."
+    noeud: cop-climat
+    liens: [wp-cop-climat]

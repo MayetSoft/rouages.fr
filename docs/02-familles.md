@@ -227,6 +227,35 @@ validation l'exige de tout ce qui relève de l'État, où qu'il agisse. Au
 passage, le préfet était typé « mandat électif » : il est nommé en conseil des
 ministres, et dirige un service déconcentré.
 
+## La colonne International
+
+Décision du 12 octobre 2026 : une colonne à part, à gauche de l'Union
+européenne, rangée par **domaine d'action** (`domaine`) — droits et démocratie
+locale, paix et sécurité, santé, travail, culture et patrimoine,
+environnement, économie et commerce.
+
+- **Le domaine range, il ne dit pas à qui l'on appartient.** L'OMS, l'UNESCO
+  et l'OIT sont des organisations à part, liées aux Nations unies par des
+  accords : les mettre dans une boîte « ONU » serait faux. `releve_de` ne vaut
+  que pour de vrais organes — la Cour européenne des droits de l'homme et le
+  Congrès des pouvoirs locaux et régionaux relèvent du Conseil de l'Europe,
+  l'Assemblée générale et le Conseil de sécurité de l'ONU. Une organisation
+  qui a des organes forme sa boîte dans son domaine.
+- **Le critère d'admission** : une organisation n'entre que si un mécanisme
+  sourcé la relie au réseau français — une charte ratifiée, une liste qui
+  protège des biens sur des communes, un règlement appliqué par l'État et les
+  agences régionales de santé, des arrêts qui s'imposent à la France. Elles
+  peuvent être nombreuses ; un nœud sans prise sur la France allongerait les
+  chemins du réseau sans rien dire au lecteur.
+- **Une organisation internationale n'a pas de branche du pouvoir**, une cour
+  comprise : la page « Les pouvoirs » décrit la France.
+- **Les liens sont vrais avant tout** (décision du 13 octobre 2026) : le
+  diamètre et la part des paires à trois clics sont mesurés et affichés par
+  `npm run verifier-reseau`, mais ne font plus échouer le build. Un lien
+  existe parce qu'une source le dit, jamais pour remonter une mesure ; une
+  organisation en marge du réseau peut l'être réellement. Seuls restent
+  bloquants l'absence de nœud isolé et le graphe d'un seul tenant.
+
 ## Quand la loi répond avant le registre
 
 BANATIC enregistre les transferts *déclarés*. Il en manque beaucoup : **54 %

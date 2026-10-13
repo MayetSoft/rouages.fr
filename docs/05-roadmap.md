@@ -4430,3 +4430,41 @@ Loire, Saône-et-Loire, Nièvre, Cher, Creuse), puis le reste de la région.
 Une réponse favorable de l'ANIL — accord de réutilisation ou export —
 changerait l'échelle : le registre se pré-remplirait, la vérification
 restant la nôtre.
+
+### La colonne International (12 octobre 2026)
+
+Une colonne à gauche de l'Union européenne, rangée par domaine d'action.
+Premier lot, chaque mécanisme vérifié par recherche :
+
+- **Droits et démocratie locale** : le Conseil de l'Europe, avec dans sa
+  boîte la Cour européenne des droits de l'homme (saisie après épuisement des
+  recours français, arrêts auxquels la France s'engage à se conformer) et le
+  Congrès des pouvoirs locaux et régionaux (qui contrôle la Charte
+  européenne de l'autonomie locale, ratifiée par la France le 17 janvier
+  2007) ;
+- **Paix et sécurité** : les Nations unies, avec l'Assemblée générale (qui
+  répartit les dépenses entre les États) et le Conseil de sécurité (où la
+  France est membre permanent) ;
+- **Santé** : l'OMS et le Règlement sanitaire international, mis en œuvre
+  par l'État, les agences régionales de santé et les points d'entrée ;
+- **Travail** : l'OIT, tripartite, et ses conventions ratifiées ;
+- **Culture et patrimoine** : l'UNESCO et le patrimoine mondial — zone
+  tampon et plan de gestion élaborés par l'État et les collectivités,
+  pris en compte par le SCoT et le PLU.
+
+Un flux « Contributions des États membres » relie l'État aux cinq
+organisations. Règles dans `docs/02-familles.md`, « La colonne International ».
+
+Le 13 octobre, à la demande du mainteneur :
+
+- **Environnement** : la Conférence des parties sur le climat (COP) et
+  l'accord de Paris — ratifié par la loi du 15 juin 2016, décliné par la
+  stratégie nationale bas-carbone, que chaque intercommunalité de plus de
+  20 000 habitants prend en compte dans son plan climat-air-énergie
+  territorial ;
+- **Les liens sont vrais avant tout** : le diamètre et la part des paires à
+  trois clics ne font plus échouer le build — ils sont affichés, et signalés
+  sous leur repère. Le cliquet poussait à relier des nœuds pour le chiffre ;
+  un lien existe parce qu'une source le dit. Restent bloquants : aucun nœud
+  isolé, un graphe d'un seul tenant. Mesure du jour : 251 nœuds, diamètre 6,
+  65,2 % des paires à trois clics.

@@ -164,6 +164,16 @@ flux:
     verifie_le: 2026-10-12
     confiance: etabli
 
+  - id: contributions-internationales
+    nom: "Contributions des États membres"
+    nature: argent
+    de: etat
+    vers: [onu, oms, unesco, oit, conseil-de-l-europe]
+    resume: "Comme chaque État membre, la France finance les organisations dont elle est membre ; aux Nations unies, la part de chacun est fixée par l'Assemblée générale."
+    liens: [charte-onu, cij-depenses-onu]
+    verifie_le: 2026-10-12
+    confiance: etabli
+
   - id: rsa-verse
     nom: "RSA"
     nature: argent
