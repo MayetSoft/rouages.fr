@@ -19,9 +19,11 @@
  *   communes où au moins une association existante le déclare, et combien.
  * - `proximite/indicateurs/<clé>.json` : pour le requêteur, une valeur par
  *   commune (dans l'ordre de `index.json`, null quand le fichier source ne la
- *   donne pas) — le taux de foncier bâti voté, la part de logements vacants,
- *   la part des 65 ans et plus et des moins de 20 ans, le nombre d'arrêtés de
- *   catastrophe naturelle. Rien n'est estimé : chaque valeur se lit dans les
+ *   donne pas) — le taux de foncier bâti voté, la part de logements vacants
+ *   et de résidences secondaires, la part des 65 ans et plus et des moins de
+ *   20 ans, le nombre de reconnaissances de catastrophe naturelle, le prix
+ *   médian au mètre carré des maisons et des appartements, le niveau de vie
+ *   médian et le taux de pauvreté. Rien n'est estimé : chaque valeur se lit dans les
  *   fichiers que la page de commune affiche déjà.
  * - `proximite/index.json` : les types, les domaines, les indicateurs, les millésimes.
  * - `dep/XX-manques.json` : pour chaque commune, chaque regroupement de la
@@ -188,6 +190,11 @@ function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], do
     plus65: new Array(n).fill(null),
     moins20: new Array(n).fill(null),
     catnat: new Array(n).fill(null),
+    secondaires: new Array(n).fill(null),
+    m2maison: new Array(n).fill(null),
+    m2appart: new Array(n).fill(null),
+    niveauvie: new Array(n).fill(null),
+    pauvrete: new Array(n).fill(null),
   };
   const millesimes: Record<string, string> = {};
   const arrondi = (x: number) => Math.round(x * 10) / 10;
@@ -203,11 +210,34 @@ function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], do
     } else if (f.endsWith('-parc.json')) {
       const d = lire<{ millesimes: number[]; c: Record<string, (number | null)[][]> }>(join(sortie, 'dep', f));
       if (!d) continue;
-      millesimes.vacants = String(d.millesimes[0]);
+      millesimes.vacants = millesimes.secondaires = String(d.millesimes[0]);
       for (const [code, v] of Object.entries(d.c)) {
         const i = rang.get(code);
-        const [logements, , , vacants] = v[0] ?? [];
-        if (i !== undefined && logements && vacants !== null && vacants !== undefined) valeurs.vacants[i] = arrondi((100 * vacants) / logements);
+        const [logements, , secondaires, vacants] = v[0] ?? [];
+        if (i === undefined || !logements) continue;
+        if (vacants !== null && vacants !== undefined) valeurs.vacants[i] = arrondi((100 * vacants) / logements);
+        if (secondaires !== null && secondaires !== undefined) valeurs.secondaires[i] = arrondi((100 * secondaires) / logements);
+      }
+    } else if (f.endsWith('-dvf.json')) {
+      // [maisons vendues, prix médian au m² des maisons, prix médian, appartements vendus, prix médian au m² des appartements, …]
+      const d = lire<{ annees: number[]; c: Record<string, (number | null)[]> }>(join(sortie, 'dep', f));
+      if (!d) continue;
+      millesimes.m2maison = millesimes.m2appart = `${d.annees[0]}-${d.annees.at(-1)}`;
+      for (const [code, v] of Object.entries(d.c)) {
+        const i = rang.get(code);
+        if (i === undefined) continue;
+        if (typeof v[1] === 'number') valeurs.m2maison[i] = v[1];
+        if (typeof v[4] === 'number') valeurs.m2appart[i] = v[4];
+      }
+    } else if (f.endsWith('-revenus.json')) {
+      const d = lire<{ millesime: number; c: Record<string, [number | null, number | null]> }>(join(sortie, 'dep', f));
+      if (!d) continue;
+      millesimes.niveauvie = millesimes.pauvrete = String(d.millesime);
+      for (const [code, [mediane, pauvrete]] of Object.entries(d.c)) {
+        const i = rang.get(code);
+        if (i === undefined) continue;
+        if (mediane !== null) valeurs.niveauvie[i] = mediane;
+        if (pauvrete !== null) valeurs.pauvrete[i] = pauvrete;
       }
     } else if (f.endsWith('-ages.json')) {
       const d = lire<{ millesime: number; tranches: number[]; c: Record<string, number[][]> }>(join(sortie, 'dep', f));
@@ -239,6 +269,11 @@ function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], do
   return [
     ['fb', 'Taxe foncière sur le bâti, taux cumulé des percepteurs', '%', millesimes.fb ?? '', compte('fb')],
     ['vacants', 'Part des logements vacants', '%', millesimes.vacants ?? '', compte('vacants')],
+    ['secondaires', 'Part des résidences secondaires', '%', millesimes.secondaires ?? '', compte('secondaires')],
+    ['m2maison', 'Prix médian d’une maison au mètre carré', '€/m²', millesimes.m2maison ?? '', compte('m2maison')],
+    ['m2appart', 'Prix médian d’un appartement au mètre carré', '€/m²', millesimes.m2appart ?? '', compte('m2appart')],
+    ['niveauvie', 'Niveau de vie médian', '€ par an', millesimes.niveauvie ?? '', compte('niveauvie')],
+    ['pauvrete', 'Taux de pauvreté', '%', millesimes.pauvrete ?? '', compte('pauvrete')],
     ['plus65', 'Part des 65 ans et plus', '%', millesimes.plus65 ?? '', compte('plus65')],
     ['moins20', 'Part des moins de 20 ans', '%', millesimes.moins20 ?? '', compte('moins20')],
     ['catnat', 'Reconnaissances de catastrophe naturelle depuis 1982', '', millesimes.catnat ?? '', compte('catnat')],

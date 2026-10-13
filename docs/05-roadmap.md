@@ -4567,3 +4567,14 @@ du projet (`plf`) et l'identifiant du jeu (`jeu`), et `/argent-public`, le
 jeu « Où va l'argent ? » et les fiches du réseau en tirent leurs années et
 leur lien. Le jour où le budget vert du PLF 2027 paraît, la réingestion le
 prend ; la veille (`budget-vert-plf`) le signale pour qu'on relise la page.
+
+### Trouver des communes : prix, résidences secondaires, niveau de vie (13 octobre 2026)
+
+Cinq indicateurs de plus, lus comme les autres dans les fichiers par
+département : la part des résidences secondaires (recensement 2023), le prix
+médian au mètre carré des maisons et des appartements (DVF, ventes
+2023-2025 d'un seul logement, cinq ventes au moins), le niveau de vie médian
+et le taux de pauvreté (Filosofi 2023, là où le secret statistique le
+permet : 30 794 et 5 242 communes). Au Mayet-de-Montagne : 11,5 % de
+résidences secondaires, 671 €/m² pour une maison, 22 680 € de niveau de vie
+médian ; ni prix d'appartement ni taux de pauvreté publiés.

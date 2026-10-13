@@ -304,7 +304,7 @@ export function brancherRequeteur(): void {
       gi.label = 'Indicateurs';
       for (const [cle, nom, unite, millesime, n] of ip.indicateurs) {
         if (!n) continue;
-        const o = el('option', '', `${nom}${unite ? ` (${unite})` : ''}${millesime ? ` — ${/^\d{4}$/.test(millesime) ? millesime : `au ${millesime.split('-').reverse().join('/')}`}` : ''}`);
+        const o = el('option', '', `${nom}${unite ? ` (${unite})` : ''}${millesime ? ` — ${/^\d{4}-\d{2}-\d{2}$/.test(millesime) ? `au ${millesime.split('-').reverse().join('/')}` : millesime.replace('-', ' à ')}` : ''}`);
         o.value = `i${cle}`;
         gi.append(o);
       }
