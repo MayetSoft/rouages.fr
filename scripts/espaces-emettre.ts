@@ -47,6 +47,13 @@ export const NATURES = [
   'ZNIEFF de type II',
   'Parc naturel régional',
   'Aire d’adhésion de parc national',
+  // Les désignations internationales, ajoutées en fin de liste pour ne pas
+  // décaler les rangs déjà écrits : la convention de Ramsar, et deux
+  // programmes de l'UNESCO — l'INPN n'a que les biens naturels du patrimoine
+  // mondial, pas les biens culturels.
+  'Site Ramsar',
+  'Réserve de biosphère (UNESCO)',
+  'Bien naturel du patrimoine mondial (UNESCO)',
 ] as const;
 const DESSINEES = new Set([0, 1, 2, 3, 4, 5, 6, 7]);
 
@@ -60,6 +67,9 @@ const COUCHES: { couche: string; nature: (p: Proprietes) => number }[] = [
   { couche: 'patrinat_znieff1:znieff1', nature: () => 6 },
   { couche: 'patrinat_znieff2:znieff2', nature: () => 7 },
   { couche: 'patrinat_pnr:pnr', nature: () => 8 },
+  { couche: 'patrinat_ramsar:ramsar', nature: () => 10 },
+  { couche: 'patrinat_bios:bios', nature: () => 11 },
+  { couche: 'patrinat_bpm:Bien_patrimoine_mondial_UNESCO', nature: () => 12 },
 ];
 
 type Proprietes = { nom_site?: string; id_mnhn?: string; cd_sig?: string; zone?: string; area_sig?: number };
@@ -419,7 +429,7 @@ export async function collecterEspaces(sortie: string, cache: string, dire: (m: 
         if (coeur[k]) nCoeur++;
       });
       let part = Math.round((100 * n) / points.length);
-      if (z.nature >= 8) {
+      if (z.nature === 8 || z.nature === 9) {
         // Un parc : la commune y adhère tout entière, ou pas. Une part faible est un liseré.
         if (part < 50) continue;
       } else if (nCoeur === 0) {

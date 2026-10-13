@@ -97,6 +97,8 @@ import Frise, { type Jalon } from '../../composants/commune/Frise.astro';
 import type { NomIcone } from '../../modele/icones.ts';
 import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
+import International from '../../composants/commune/International.astro';
+import { pcaet } from '../../modele/pcaet.ts';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import SolsPollues from '../../composants/commune/SolsPollues.astro';
@@ -154,6 +156,10 @@ const rapprochementsMarches = parTitulaire([...rapprochementsParElu.values()].fl
 const vie = complementsVie(commune);
 const carte = carteDeSituation(commune);
 const espaces = espacesNaturels(commune);
+// Ce qui s'applique ici depuis l'international : le plan climat de l'intercommunalité, les désignations internationales.
+const plansClimat = pcaet();
+const planClimat = epciFp ? plansClimat?.c[epciFp.siren] ?? null : null;
+const designations = (espaces?.zones ?? []).filter((z) => z.rang >= 10);
 
 const nomDe = new Map(reseau.noeuds.map((n) => [n.id, n]));
 /**
@@ -1112,6 +1118,19 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="nature">
         <h2 class="badge">Les espaces naturels</h2>
         <EspacesNaturels e={espaces} nom={commune.nom} />
+      </section>
+    )}
+
+    {(epciFp || designations.length > 0) && (
+      <section id="international">
+        <h2 class="badge">Ce qui s’applique ici depuis l’international</h2>
+        <International
+          nom={commune.nom}
+          epci={epciFp ? { siren: epciFp.siren, nom: epciFp.nom } : null}
+          plan={planClimat}
+          majPlans={plansClimat?.maj ?? null}
+          designations={designations}
+        />
       </section>
     )}
 

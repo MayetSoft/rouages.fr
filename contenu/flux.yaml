@@ -168,7 +168,7 @@ flux:
     nom: "Contributions des États membres"
     nature: argent
     de: etat
-    vers: [onu, oms, unesco, oit, conseil-de-l-europe]
+    vers: [onu, oms, unesco, oit, conseil-de-l-europe, omc]
     resume: "Comme chaque État membre, la France finance les organisations dont elle est membre ; aux Nations unies, la part de chacun est fixée par l'Assemblée générale."
     liens: [charte-onu, cij-depenses-onu]
     verifie_le: 2026-10-12

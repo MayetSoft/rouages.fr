@@ -1,0 +1,65 @@
+---
+/**
+ * Ce qui s'applique ici depuis l'international : le bout local des
+ * engagements que la colonne « International » du réseau décrit.
+ *
+ * - le plan climat-air-énergie de l'intercommunalité — l'accord de Paris,
+ *   décliné par la stratégie nationale bas-carbone, que le plan doit prendre
+ *   en compte (registre Territoires & Climat de l'ADEME, `scripts/pcaet-emettre.ts`) ;
+ * - les désignations internationales qui touchent la commune — site Ramsar,
+ *   réserve de biosphère, bien naturel du patrimoine mondial —, d'après les
+ *   périmètres de l'INPN (`scripts/espaces-emettre.ts`).
+ *
+ * Une absence du registre de l'ADEME ne dit pas qu'un plan manque : elle dit
+ * que le registre n'en porte pas.
+ */
+import type { DemarchePcaet } from '../../modele/pcaet.ts';
+import type { ZoneNaturelle } from '../../modele/carte.ts';
+
+interface Props {
+  nom: string;
+  epci: { siren: string; nom: string } | null;
+  plan: DemarchePcaet | null;
+  majPlans: string | null;
+  designations: ZoneNaturelle[];
+}
+const { nom, epci, plan, majPlans, designations } = Astro.props;
+const annee = (d: string | null) => (d ? d.slice(0, 4) : null);
+const etat = (e: string) => e.replace('Mise en oeuvre', 'mise en œuvre').replace("En cours d'élaboration", 'en cours d’élaboration').replace('Dépôt pour avis', 'déposé pour avis');
+// Une réserve de biosphère a trois zones publiées sous le même nom : une ligne par désignation.
+const uniques = [...new Map(designations.map((z) => [`${z.rang}|${z.nom}`, z])).values()];
+const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
+  10: { id: 'convention-ramsar', texte: 'la convention de Ramsar' },
+  11: { id: 'unesco', texte: 'l’UNESCO' },
+  12: { id: 'patrimoine-mondial', texte: 'le patrimoine mondial' },
+};
+---
+<ul class="mesure c-international">
+  {epci && (
+    <li>
+      <strong>Le climat.</strong>
+      {plan ? (
+        <>
+          {` ${plan.porteur} porte un plan climat-air-énergie territorial — « ${plan.nom} » —, ${etat(plan.etat)}`}
+          {annee(plan.lancement) ? `, lancé en ${annee(plan.lancement)}` : ''}
+          {plan.oblige === true ? ' ; le registre le dit obligé, l’intercommunalité dépassant 20 000 habitants.' : plan.oblige === false ? ' ; le registre le dit volontaire.' : '.'}
+        </>
+      ) : (
+        ` Le registre de l’ADEME ne porte pas de plan climat-air-énergie pour ${epci.nom} — ce qui ne dit pas qu’il n’y en a pas.`
+      )}
+      {' C’est le bout local de '}<a href="/n/accord-de-paris">l’accord de Paris</a>{plan
+        ? ', décliné par la stratégie nationale bas-carbone, que ce plan doit prendre en compte.'
+        : ', décliné par la stratégie nationale bas-carbone, que le plan d’une intercommunalité de plus de 20 000 habitants doit prendre en compte.'}
+    </li>
+  )}
+  {uniques.map((z) => (
+    <li>
+      <strong>{z.nature}.</strong>
+      {` ${nom} est concernée par « ${z.nom} »`}{LIEN_NOEUD[z.rang] ? <>{', au titre de '}<a href={`/n/${LIEN_NOEUD[z.rang].id}`}>{LIEN_NOEUD[z.rang].texte}</a>{'.'}</> : '.'}
+    </li>
+  ))}
+</ul>
+<p class="p-source-territoire">
+  {`Plans climat : registre Territoires & Climat de l’ADEME (Licence Ouverte)${majPlans ? `, lu le ${majPlans.split('-').reverse().join('/')}` : ''} — sans les noms des chefs de projet ni des élus référents. ` +
+    'Désignations internationales : périmètres de l’INPN, croisés avec la commune (voir « Les espaces naturels ») ; l’INPN ne porte que les biens naturels du patrimoine mondial, pas les biens culturels.'}
+</p>

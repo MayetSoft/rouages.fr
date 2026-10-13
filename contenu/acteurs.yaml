@@ -741,6 +741,28 @@ acteurs:
     verifie_le: 2026-10-13
     confiance: etabli
 
+  - id: convention-ramsar
+    nom: "La convention de Ramsar sur les zones humides"
+    nom_court: "Convention de Ramsar"
+    type: organe_collegial
+    echelon: international
+    domaine: environnement
+    resume: "Le traité des zones humides d'importance internationale, ratifié par la France en 1986 : chaque État partie inscrit des sites sur la liste et s'engage à une utilisation rationnelle de ses zones humides."
+    liens: [wp-convention-ramsar, ramsar-france-mise-en-oeuvre]
+    verifie_le: 2026-10-13
+    confiance: etabli
+
+  - id: omc
+    nom: "L'Organisation mondiale du commerce"
+    nom_court: "OMC"
+    type: organisation_internationale
+    echelon: international
+    domaine: economie
+    resume: "L'organisation des règles du commerce entre États ; son accord sur les marchés publics fixe les seuils au-delà desquels un achat public s'ouvre à la concurrence internationale."
+    liens: [wp-omc, directive-2014-24-seuils]
+    verifie_le: 2026-10-13
+    confiance: etabli
+
   # --- Union européenne -------------------------------------------------
   - id: union-europeenne
     # Les deux moitiés de la phrase ont été vérifiées séparément : les directives

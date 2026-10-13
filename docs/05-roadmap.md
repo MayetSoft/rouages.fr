@@ -4468,3 +4468,32 @@ Le 13 octobre, à la demande du mainteneur :
   un lien existe parce qu'une source le dit. Restent bloquants : aucun nœud
   isolé, un graphe d'un seul tenant. Mesure du jour : 251 nœuds, diamètre 6,
   65,2 % des paires à trois clics.
+
+### Ce qui s'applique ici depuis l'international (13 octobre 2026)
+
+Sur la page de commune, un bloc relie la commune aux engagements de la
+colonne International :
+
+- **le plan climat-air-énergie de l'intercommunalité**, d'après le registre
+  Territoires & Climat de l'ADEME (`scripts/pcaet-emettre.ts`, 569
+  collectivités porteuses) — le bout local de l'accord de Paris. Sans les
+  noms des chefs de projet, des contacts ni des élus référents, que le
+  registre publie ; une absence du registre ne dit pas qu'un plan manque, et
+  la page le dit ;
+- **les désignations internationales** qui touchent la commune : site
+  Ramsar, réserve de biosphère et bien naturel du patrimoine mondial de
+  l'UNESCO — trois couches de l'INPN ajoutées à `scripts/espaces-emettre.ts`
+  (rangs 10 à 12, en fin de liste pour ne pas décaler les rangs écrits) :
+  1 184 communes touchent un site Ramsar, 2 247 une réserve de biosphère,
+  165 un bien naturel du patrimoine mondial, dont la Chaîne des Puys et sa
+  zone tampon. Les trois zones d'une réserve de biosphère sont réunies sur
+  une ligne (zone tampon FR64…, zone de transition FR65… d'après l'INPN ;
+  FR63…, la zone centrale). L'INPN n'a pas les biens culturels du
+  patrimoine mondial ; aucune couche ouverte n'a été trouvée pour eux.
+
+Dans le réseau, la colonne International s'enrichit de la convention de
+Ramsar (environnement) et de l'Organisation mondiale du commerce (économie :
+son accord sur les marchés publics fixe les seuils que les directives
+reprennent, et le code de la commande publique après elles). L'OCDE n'est
+pas ajoutée : sa convention contre la corruption d'agents publics étrangers
+est contraignante, mais aucun mécanisme ne la relie aux collectivités.

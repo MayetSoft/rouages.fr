@@ -22,11 +22,33 @@ const GROUPES: { titre: string; rangs: number[] }[] = [
   { titre: 'Natura 2000', rangs: [4, 5] },
   { titre: 'Inventaires', rangs: [6, 7] },
   { titre: 'Parcs', rangs: [8, 9] },
+  { titre: 'Désignations internationales', rangs: [10, 11, 12] },
 ];
+/**
+ * Une réserve de biosphère a trois zones, que l'INPN publie séparément sous le
+ * même nom : FR64… la zone tampon, FR65… la zone de transition (fiches de
+ * l'INPN) ; FR63…, la troisième du modèle de l'UNESCO, la zone centrale.
+ * La page les réunit sur une ligne.
+ */
+const ZONES_BIOSPHERE: Record<string, string> = { FR63: 'zone centrale', FR64: 'zone tampon', FR65: 'zone de transition' };
 const groupes = GROUPES.map((g) => ({ ...g, zones: e.zones.filter((z) => g.rangs.includes(z.rang)) })).filter((g) => g.zones.length > 0);
+const reserves = (() => {
+  const parNom = new Map<string, ZoneNaturelle[]>();
+  for (const z of e.zones.filter((x) => x.rang === 11)) parNom.set(z.nom, [...(parNom.get(z.nom) ?? []), z]);
+  return parNom;
+})();
+const ligne = (z: ZoneNaturelle): string | null => {
+  if (z.rang !== 11) return `${z.nature} — ${z.nom} : ${part(z)}.`;
+  const memes = reserves.get(z.nom) ?? [z];
+  if (memes[0] !== z) return null;
+  const detail = memes
+    .map((m) => `${ZONES_BIOSPHERE[m.id.slice(0, 4)] ?? 'zone'}, ${part(m)}`)
+    .join(' ; ');
+  return `${z.nature} — ${z.nom} : ${detail}.`;
+};
 // Un parc couvre la commune entière : elle y adhère, ou pas.
 const part = (z: ZoneNaturelle) =>
-  z.rang >= 8 || z.part >= 99 ? 'toute la commune' : z.part === 0 ? 'moins de 1 % de la commune' : z.part < 5 ? `${z.part} % de la commune` : `environ ${Math.round(z.part / 5) * 5} % de la commune`;
+  z.rang === 8 || z.rang === 9 || z.part >= 99 ? 'toute la commune' : z.part === 0 ? 'moins de 1 % de la commune' : z.part < 5 ? `${z.part} % de la commune` : `environ ${Math.round(z.part / 5) * 5} % de la commune`;
 
 // La carte : la commune, et les zones qu'on dessine, découpées à ses limites.
 const W = 480;
@@ -96,7 +118,7 @@ const apb = e.zones.some((z) => z.rang === 3);
       <>
         <h3 class="espaces-groupe">{g.titre}</h3>
         <ul class="c-structures">
-          {g.zones.map((z) => <li>{`${z.nature} — ${z.nom} : ${part(z)}.`}</li>)}
+          {g.zones.map((z) => ligne(z)).filter((t) => t !== null).map((t) => <li>{t}</li>)}
         </ul>
       </>
     ))}
