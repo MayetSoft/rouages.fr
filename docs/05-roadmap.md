@@ -4497,3 +4497,33 @@ son accord sur les marchés publics fixe les seuils que les directives
 reprennent, et le code de la commande publique après elles). L'OCDE n'est
 pas ajoutée : sa convention contre la corruption d'agents publics étrangers
 est contraignante, mais aucun mécanisme ne la relie aux collectivités.
+
+### Trouver des communes : les indicateurs (13 octobre 2026)
+
+Le requêteur compare maintenant cinq indicateurs à un seuil, « au moins » ou
+« au plus » : le taux de taxe foncière sur le bâti, cumulé sur tous les
+percepteurs (REI 2025 de la DGFiP), la part des logements vacants (recensement
+2023), la part des 65 ans et plus et celle des moins de 20 ans (recensement
+2023), le nombre de reconnaissances de catastrophe naturelle depuis 1982
+(GASPAR). `scripts/proximite-emettre.ts` les écrit dans
+`proximite/indicateurs/<clé>.json`, une valeur par commune dans l'ordre de
+l'index, lue dans les fichiers par département que la page de commune affiche
+déjà : rien n'est estimé, une part n'est que le rapport de deux chiffres
+publiés. Une commune sans valeur est écartée par le critère et sa case montre
+un tiret : un indicateur absent n'est pas un zéro. L'adresse garde le seuil
+(`ifb:max40`, `ivacants:min15`).
+
+Au Mayet-de-Montagne : 39,2 % de foncier bâti, 17,9 % de logements vacants,
+34,4 % de 65 ans et plus, six reconnaissances.
+
+### Le budget 2027 : pas encore en données ouvertes (13 octobre 2026)
+
+Le projet de loi de finances pour 2027 a été déposé à l'Assemblée nationale le
+1er octobre 2026 (texte n° 3210). Au 13 octobre, data.economie.gouv.fr ne
+publie aucun de ses jeux : ni le budget vert, que `/argent-public` lit, ni les
+tables du projet. La fiche du budget vert du PLF 2026 est datée du 13 novembre
+2025.
+Plutôt que d'attendre à la main, la veille guette le titre au catalogue
+(`budget-vert-plf`, nouveau type `opendatasoft-catalogue`) : quand l'année
+change, il faut repointer `JEU_BUDGET` et les trois colonnes de
+`scripts/budget-etat-emettre.ts`, dont les noms portent les années.

@@ -17,7 +17,13 @@
  *   communes qui en ont au moins un, et combien.
  * - `proximite/associations/<n>.json` : pour le domaine n du répertoire, les
  *   communes où au moins une association existante le déclare, et combien.
- * - `proximite/index.json` : les types, les domaines, les millésimes.
+ * - `proximite/indicateurs/<clé>.json` : pour le requêteur, une valeur par
+ *   commune (dans l'ordre de `index.json`, null quand le fichier source ne la
+ *   donne pas) — le taux de foncier bâti voté, la part de logements vacants,
+ *   la part des 65 ans et plus et des moins de 20 ans, le nombre d'arrêtés de
+ *   catastrophe naturelle. Rien n'est estimé : chaque valeur se lit dans les
+ *   fichiers que la page de commune affiche déjà.
+ * - `proximite/index.json` : les types, les domaines, les indicateurs, les millésimes.
  * - `dep/XX-manques.json` : pour chaque commune, chaque regroupement de la
  *   gamme de proximité de l'INSEE qu'elle n'a pas, et la commune la plus
  *   proche qui l'a, avec la distance entre les deux centres, en hectomètres.
@@ -170,6 +176,75 @@ function emettreManques(
   return situes;
 }
 
+/** Un indicateur du requêteur : sa clé, son libellé, son unité, son millésime, et combien de communes le renseignent. */
+type Indicateur = [string, string, string, string, number];
+
+function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], dossier: string): Indicateur[] {
+  const rang = new Map(index.c.map(([code], i) => [code, i]));
+  const n = index.c.length;
+  const valeurs: Record<string, (number | null)[]> = {
+    fb: new Array(n).fill(null),
+    vacants: new Array(n).fill(null),
+    plus65: new Array(n).fill(null),
+    moins20: new Array(n).fill(null),
+    catnat: new Array(n).fill(null),
+  };
+  const millesimes: Record<string, string> = {};
+  const arrondi = (x: number) => Math.round(x * 10) / 10;
+  for (const f of fichiers) {
+    if (f.endsWith('-fiscalite.json')) {
+      const d = lire<{ millesime: number; c: Record<string, [number[], ...unknown[]]> }>(join(sortie, 'dep', f));
+      if (!d) continue;
+      millesimes.fb = String(d.millesime);
+      for (const [code, v] of Object.entries(d.c)) {
+        const i = rang.get(code);
+        if (i !== undefined && Array.isArray(v[0])) valeurs.fb[i] = arrondi(v[0].reduce((a, x) => a + x, 0));
+      }
+    } else if (f.endsWith('-parc.json')) {
+      const d = lire<{ millesimes: number[]; c: Record<string, (number | null)[][]> }>(join(sortie, 'dep', f));
+      if (!d) continue;
+      millesimes.vacants = String(d.millesimes[0]);
+      for (const [code, v] of Object.entries(d.c)) {
+        const i = rang.get(code);
+        const [logements, , , vacants] = v[0] ?? [];
+        if (i !== undefined && logements && vacants !== null && vacants !== undefined) valeurs.vacants[i] = arrondi((100 * vacants) / logements);
+      }
+    } else if (f.endsWith('-ages.json')) {
+      const d = lire<{ millesime: number; tranches: number[]; c: Record<string, number[][]> }>(join(sortie, 'dep', f));
+      if (!d) continue;
+      millesimes.plus65 = millesimes.moins20 = String(d.millesime);
+      for (const [code, [femmes, hommes]] of Object.entries(d.c)) {
+        const i = rang.get(code);
+        if (i === undefined || !femmes || !hommes) continue;
+        const total = [...femmes, ...hommes].reduce((a, x) => a + x, 0);
+        if (total <= 0) continue;
+        const part = (garde: (age: number) => boolean) =>
+          arrondi((100 * d.tranches.reduce((a, age, k) => a + (garde(age) ? femmes[k] + hommes[k] : 0), 0)) / total);
+        valeurs.plus65[i] = part((age) => age >= 65);
+        valeurs.moins20[i] = part((age) => age < 20);
+      }
+    } else if (f.endsWith('-risques.json')) {
+      const d = lire<{ maj: string; c: Record<string, { catnat?: [number, number, string][] }> }>(join(sortie, 'dep', f));
+      if (!d) continue;
+      millesimes.catnat = d.maj;
+      for (const [code, v] of Object.entries(d.c)) {
+        const i = rang.get(code);
+        if (i !== undefined) valeurs.catnat[i] = (v.catnat ?? []).reduce((a, [, nombre]) => a + nombre, 0);
+      }
+    }
+  }
+  mkdirSync(join(dossier, 'indicateurs'), { recursive: true });
+  for (const [cle, v] of Object.entries(valeurs)) writeFileSync(join(dossier, 'indicateurs', `${cle}.json`), JSON.stringify({ v }));
+  const compte = (cle: string) => valeurs[cle].filter((x) => x !== null).length;
+  return [
+    ['fb', 'Taxe foncière sur le bâti, taux cumulé des percepteurs', '%', millesimes.fb ?? '', compte('fb')],
+    ['vacants', 'Part des logements vacants', '%', millesimes.vacants ?? '', compte('vacants')],
+    ['plus65', 'Part des 65 ans et plus', '%', millesimes.plus65 ?? '', compte('plus65')],
+    ['moins20', 'Part des moins de 20 ans', '%', millesimes.moins20 ?? '', compte('moins20')],
+    ['catnat', 'Reconnaissances de catastrophe naturelle depuis 1982', '', millesimes.catnat ?? '', compte('catnat')],
+  ];
+}
+
 export function emettreProximite(sortie: string, dire: (m: string) => void = console.log): void {
   const index = lire<Index>(join(sortie, 'index.json'));
   if (!index) throw new Error('index.json absent');
@@ -234,6 +309,9 @@ export function emettreProximite(sortie: string, dire: (m: string) => void = con
     writeFileSync(join(dossier, 'equipements', `${t}.json`), JSON.stringify({ r: ecarts(l.map(([i]) => i)), n: l.map(([, n]) => n) }));
   }
 
+  // Les indicateurs du requêteur, lus dans les fichiers par département.
+  const indicateurs = emettreIndicateurs(sortie, index, fichiers, dossier);
+
   // Ce qui manque, et où le trouver : la commune la plus proche qui a chaque regroupement absent.
   const manques = emettreManques(sortie, index, centres, groupes, parType);
 
@@ -282,6 +360,7 @@ export function emettreProximite(sortie: string, dire: (m: string) => void = con
         types: (types ?? []).map(([nom, gamme, groupe], t) => [nom, gamme, groupe, parType.get(t)?.length ?? 0]),
       },
       associations: { maj: majAssociations, domaines: domaines.map((nom, dm) => [nom, parDomaine.get(dm)?.size ?? 0]) },
+      indicateurs,
     }),
   );
   dire(
