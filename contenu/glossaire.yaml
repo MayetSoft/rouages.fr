@@ -617,3 +617,9 @@ sigles:
     definition: "Organisation internationale tripartite — gouvernements, employeurs, travailleurs — qui adopte les conventions du travail."
     noeud: oit
     liens: [wp-oit]
+  - id: sigle-cop
+    sigle: COP
+    developpe: "Conférence des parties"
+    definition: "La réunion des États parties à une convention internationale ; la COP sur le climat se tient chaque année et a adopté l'accord de Paris en 2015."
+    noeud: cop-climat
+    liens: [wp-cop-climat]

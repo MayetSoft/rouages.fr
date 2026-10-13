@@ -730,6 +730,17 @@ acteurs:
     verifie_le: 2026-10-12
     confiance: etabli
 
+  - id: cop-climat
+    nom: "La Conférence des parties sur le climat"
+    nom_court: "COP climat"
+    type: organe_collegial
+    echelon: international
+    domaine: environnement
+    resume: "La réunion annuelle des États parties à la convention-cadre des Nations unies sur les changements climatiques : c'est elle qui a adopté l'accord de Paris, le 12 décembre 2015."
+    liens: [wp-cop-climat, wp-accord-de-paris]
+    verifie_le: 2026-10-13
+    confiance: etabli
+
   # --- Union européenne -------------------------------------------------
   - id: union-europeenne
     # Les deux moitiés de la phrase ont été vérifiées séparément : les directives

@@ -436,6 +436,16 @@ competences:
     verifie_le: 2026-10-12
     confiance: etabli
 
+  - id: accord-de-paris
+    nom: "Accord de Paris sur le climat"
+    nom_court: "Accord de Paris"
+    acteur: cop-climat
+    resume: "Adopté à la COP de 2015, ratifié par la France (loi du 15 juin 2016), il est décliné par la stratégie nationale bas-carbone ; chaque intercommunalité de plus de 20 000 habitants doit la prendre en compte dans son plan climat-air-énergie territorial, revu tous les six ans."
+    partagee_avec: [etat, epci]
+    liens: [senat-ratification-accord-paris, mrae-pcaet-snbc, wp-accord-de-paris]
+    verifie_le: 2026-10-13
+    confiance: etabli
+
   - id: acces-documents
     nom: "Accès aux documents administratifs"
     nom_court: "Accès aux documents"

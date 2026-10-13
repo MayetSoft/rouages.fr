@@ -249,10 +249,12 @@ environnement, économie et commerce.
   chemins du réseau sans rien dire au lecteur.
 - **Une organisation internationale n'a pas de branche du pouvoir**, une cour
   comprise : la page « Les pouvoirs » décrit la France.
-- **Le seuil à surveiller** : le premier lot (neuf acteurs) laisse 65,5 % des
-  paires à trois clics, pour un plancher de 65 %. Chaque ajout devra se
-  relier à un nœud central — l'État, le Gouvernement, les collectivités —
-  plutôt qu'à un autre nœud international.
+- **Les liens sont vrais avant tout** (décision du 13 octobre 2026) : le
+  diamètre et la part des paires à trois clics sont mesurés et affichés par
+  `npm run verifier-reseau`, mais ne font plus échouer le build. Un lien
+  existe parce qu'une source le dit, jamais pour remonter une mesure ; une
+  organisation en marge du réseau peut l'être réellement. Seuls restent
+  bloquants l'absence de nœud isolé et le graphe d'un seul tenant.
 
 ## Quand la loi répond avant le registre
 
