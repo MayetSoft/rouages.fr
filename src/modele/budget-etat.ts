@@ -5,7 +5,7 @@
  */
 import { national } from './fiche-commune.ts';
 
-/** Trois montants en euros — exécution 2024, LFI 2025, PLF 2026 —, null quand le jeu n'en donne pas. */
+/** Trois montants en euros — exécution N-2, LFI N-1, PLF N (2024, 2025, 2026 pour le jeu 2026) —, null quand le jeu n'en donne pas. */
 export type Montants = [number | null, number | null, number | null];
 
 export interface ActionBudget {
@@ -43,7 +43,7 @@ export interface DepenseFiscale {
   libelle: string;
   mission: string;
   v: Montants;
-  /** « ε » : moins de 0,5 M€ ; « nc » : non chiffrée pour 2026. */
+  /** « ε » : moins de 0,5 M€ ; « nc » : non chiffrée pour l'année du projet. */
   note: string | null;
 }
 export interface ImpotBudget {
@@ -55,6 +55,10 @@ export interface BudgetEtat {
   maj: string;
   /** La date de mise à jour du jeu, telle que le portail la publie. */
   version: string | null;
+  /** L'année du projet de loi de finances : les trois montants portent sur N-2, N-1 et N. */
+  plf: number;
+  /** L'identifiant du jeu sur data.economie.gouv.fr. */
+  jeu: string;
   /** L'exercice des balances d'où vient le ministère de chaque programme. */
   anneeMinisteres: number | null;
   credits: MissionBudget[];

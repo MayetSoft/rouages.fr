@@ -103,8 +103,9 @@ surveillances:
 
   # Le budget vert du projet de loi de finances paraît chaque automne sous un
   # nouvel identifiant : on guette son titre au catalogue. Quand l'année
-  # change, il faut repointer `JEU_BUDGET` et les trois colonnes de
-  # `scripts/budget-etat-emettre.ts`. Le PLF 2027, déposé le 1er octobre 2026,
+  # change, la réingestion suivante le prend d'elle-même
+  # (`scripts/budget-etat-emettre.ts` cherche le jeu et ses colonnes) : il
+  # reste à relire /argent-public. Le PLF 2027, déposé le 1er octobre 2026,
   # n'y était pas le 13 octobre ; la fiche du jeu 2026 est datée du 13 novembre 2025.
   # Licence relevée sur la fiche du jeu 2026, le 13 octobre 2026.
   - id: budget-vert-plf

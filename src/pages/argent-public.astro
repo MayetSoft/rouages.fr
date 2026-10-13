@@ -5,8 +5,8 @@
  * (`scripts/budget-etat-emettre.ts`).
  *
  * Trois chiffres par ligne, qui ne disent pas la même chose — ce qui a été
- * dépensé en 2024, ce qui a été voté pour 2025, ce qui était proposé pour
- * 2026 —, et un seul affiché à la fois : le lecteur choisit lequel, la page
+ * dépensé en N-2, ce qui a été voté pour N-1, ce qui était proposé pour
+ * N, N étant l'année du dernier projet de loi de finances publié —, et un seul affiché à la fois : le lecteur choisit lequel, la page
  * dit toujours lequel elle montre. Les taxes affectées et les dépenses
  * fiscales restent à part : les secondes sont des recettes auxquelles l'État
  * renonce, estimées, qui ne s'ajoutent pas aux crédits.
@@ -20,6 +20,8 @@ import { voteExecute } from '../vues/vote-execute.ts';
 import { chargerGraphe, formaterDate } from '../modele/graphe.ts';
 
 const b = budgetEtat();
+/** L'année du projet de loi de finances du fichier : les trois exercices sont N-2, N-1 et N. */
+const N = b?.plf ?? 2026;
 // Le voté face à l'exécuté, une figure par ligne de la situation budgétaire.
 const ex = budgetExecution();
 const PAR_DEFAUT_EX = 'Total dépenses nettes du budget général';
@@ -69,21 +71,21 @@ const g = chargerGraphe();
 
 /** Les trois exercices, dans l'ordre du fichier. */
 const EXERCICES = [
-  { court: 'dépensé en 2024', long: 'Dépensé en 2024', nature: 'exécution' },
-  { court: 'voté pour 2025', long: 'Voté pour 2025', nature: 'loi de finances initiale' },
-  { court: 'proposé pour 2026', long: 'Proposé pour 2026', nature: 'projet de loi de finances, avant le vote' },
+  { court: `dépensé en ${N - 2}`, long: `Dépensé en ${N - 2}`, nature: 'exécution' },
+  { court: `voté pour ${N - 1}`, long: `Voté pour ${N - 1}`, nature: 'loi de finances initiale' },
+  { court: `proposé pour ${N}`, long: `Proposé pour ${N}`, nature: 'projet de loi de finances, avant le vote' },
 ] as const;
 // Le dernier budget voté que donne le fichier : c'est lui qu'on montre d'abord.
 const PAR_DEFAUT = 1;
 
 const montant = montantBudget;
-/** Les trois chiffres, et l'écart entre le projet 2026 et la loi votée pour 2025, retraités au même format. */
+/** Les trois chiffres, et l'écart entre le projet N et la loi votée pour N-1, retraités au même format. */
 function trois(v: Montants): string {
   const texte = EXERCICES.map((e, i) => `${e.long} : ${montant(v[i])}`).join(' · ');
   const [, vote, projet] = v;
   if (vote === null || projet === null || vote <= 0 || projet < 0) return texte;
   const e = Math.round((projet / vote - 1) * 100);
-  return `${texte} (${e === 0 ? 'stable' : `${e > 0 ? '+' : '−'}${Math.abs(e)} %`} par rapport au voté 2025)`;
+  return `${texte} (${e === 0 ? 'stable' : `${e > 0 ? '+' : '−'}${Math.abs(e)} %`} par rapport au voté ${N - 1})`;
 }
 
 // Une seule échelle : la plus grosse ligne de la page, tous exercices confondus.
@@ -143,12 +145,12 @@ const ordre = <T extends { v: Montants }>(liste: T[]) => {
 };
 
 const MONTREES = 15;
-const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chiffrée pour 2026' };
+const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: `non chiffrée pour ${N}` };
 ---
 
 <Base
   titre="L’argent public"
-  description="Ce que l'État dépense, mission par mission et programme par programme : ce qui a été dépensé en 2024, voté pour 2025 et proposé pour 2026, d'après le budget publié par la direction du Budget."
+  description={`Ce que l'État dépense, mission par mission et programme par programme : ce qui a été dépensé en ${N - 2}, voté pour ${N - 1} et proposé pour ${N}, d'après le budget publié par la direction du Budget.`}
   section="argent-public"
 >
   <div class="page page--argent">
@@ -313,7 +315,7 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
 
         <h2 class="badge" id="depenses-fiscales">Les dépenses fiscales</h2>
         <p class="mesure">
-          {`Les exonérations, réductions et crédits d’impôt : de l’argent que l’État ne perçoit pas plutôt que de l’argent qu’il verse. Leur coût est une estimation — chiffré pour 2024, prévu pour 2025 et 2026 —, à comportements inchangés, et il ne s’ajoute pas aux crédits : supprimer une mesure ne rapporterait pas forcément ce montant. La direction du Budget en analyse ${b.fiscales.reduce((s, f) => s + f.mesures.length, 0)}, pour ${montant(totalFiscales(2))} prévus en 2026. Ici, par impôt.`}
+          {`Les exonérations, réductions et crédits d’impôt : de l’argent que l’État ne perçoit pas plutôt que de l’argent qu’il verse. Leur coût est une estimation — chiffré pour ${N - 2}, prévu pour ${N - 1} et ${N} —, à comportements inchangés, et il ne s’ajoute pas aux crédits : supprimer une mesure ne rapporterait pas forcément ce montant. La direction du Budget en analyse ${b.fiscales.reduce((s, f) => s + f.mesures.length, 0)}, pour ${montant(totalFiscales(2))} prévus en ${N}. Ici, par impôt.`}
         </p>
         <ul class="b-liste">
           {b.fiscales.map((f, _i, liste) => (
@@ -336,7 +338,7 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
                   </ul>
                   {f.mesures.length > MONTREES && (
                     <details class="equivalent">
-                      <summary>{`Les ${f.mesures.length - MONTREES} autres, plus petites d’après la prévision 2026`}</summary>
+                      <summary>{`Les ${f.mesures.length - MONTREES} autres, plus petites d’après la prévision ${N}`}</summary>
                       <ul class="b-liste b-actions">
                         {f.mesures.slice(MONTREES).map((d, _i, liste) => (
                           <li class="b-ligne b-action" style={ordre(liste)(d)}>
@@ -498,15 +500,15 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
         <h2 class="badge" id="lire">Lire ces chiffres</h2>
         <ul class="mesure">
           <li>
-            <strong>Trois natures de chiffres.</strong> «&nbsp;Dépensé en 2024&nbsp;» est l’exécution&nbsp;: ce qui
-            a été payé. «&nbsp;Voté pour 2025&nbsp;» est la loi de finances initiale&nbsp;: ce que le Parlement a
-            autorisé en début d’année, avant les lois de finances rectificatives et les mouvements de crédits en cours d’année. «&nbsp;Proposé pour
-            2026&nbsp;» est le projet du Gouvernement à l’automne 2025, avant le vote&nbsp;: la loi votée a pu le
+            <strong>Trois natures de chiffres.</strong> {`« Dépensé en ${N - 2} »`} est l’exécution&nbsp;: ce qui
+            a été payé. {`« Voté pour ${N - 1} »`} est la loi de finances initiale&nbsp;: ce que le Parlement a
+            autorisé en début d’année, avant les lois de finances rectificatives et les mouvements de crédits en cours d’année.
+            {` « Proposé pour ${N} » est le projet du Gouvernement à l’automne ${N - 1}, avant le vote`}&nbsp;: la loi votée a pu le
             modifier, et ce fichier ne la donne pas.
           </li>
           <li>
-            <strong>Au même format.</strong> La direction du Budget a retraité 2024 et 2025 au format du projet
-            2026 — changements de périmètre, transferts entre programmes, fonds de concours —, pour que les trois
+            <strong>Au même format.</strong> {`La direction du Budget a retraité ${N - 2} et ${N - 1} au format du projet ${N}`}
+            — changements de périmètre, transferts entre programmes, fonds de concours —, pour que les trois
             colonnes se comparent. Ils diffèrent donc un peu des comptes publiés l’année même.
           </li>
           <li>
@@ -554,7 +556,7 @@ const NOTES: Record<string, string> = { 'ε': 'moins de 0,5 M€', nc: 'non chif
             </li>
           )}
           <li>
-            <a href="https://data.economie.gouv.fr/explore/dataset/plf-2026-budget-vert/" target="_blank" rel="noopener">Direction du Budget — PLF 2026, budget vert</a>
+            <a href={`https://data.economie.gouv.fr/explore/dataset/${b?.jeu ?? 'plf-2026-budget-vert'}/`} target="_blank" rel="noopener">{`Direction du Budget — PLF ${N}, budget vert`}</a>
             {`, Licence Ouverte 2.0${b.version ? `, mis à jour le ${formaterDate(new Date(b.version))}` : ''}, lu le ${formaterDate(new Date(b.maj))} : les montants, au « périmètre des dépenses de l’État ». Le jeu sert au rapport sur l’impact environnemental du budget ; ses cotations ne sont pas reprises ici.`}
           </li>
           <li>

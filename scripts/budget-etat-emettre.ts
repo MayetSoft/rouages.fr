@@ -1,6 +1,12 @@
 /**
- * Le budget de l'État, mission par mission, d'après le jeu « PLF 2026 —
- * Budget vert » de la direction du Budget (data.economie.gouv.fr).
+ * Le budget de l'État, mission par mission, d'après le dernier jeu « PLF N —
+ * Budget vert » de la direction du Budget (data.economie.gouv.fr). Le jeu
+ * change d'identifiant chaque automne (`plf25-budget-vert`,
+ * `plf-2026-budget-vert`) : on le cherche au catalogue par son titre, et ses
+ * colonnes par leur motif, l'année N venant du titre. Quand le budget vert
+ * du PLF 2027 paraîtra, la réingestion suivante le prendra d'elle-même ; une
+ * colonne introuvable fait échouer la collecte, qui laisse alors en place le
+ * fichier précédent. Les années ci-dessous sont celles du jeu 2026.
  *
  * Le jeu sert au rapport sur l'impact environnemental du budget, mais il porte
  * les montants de toute la dépense de l'État sur le « périmètre des dépenses
@@ -41,27 +47,40 @@ import type { AffectataireBudget, ActionBudget, BudgetEtat, DepenseFiscale, Impo
 import { telechargerSiAbsent } from './par-departement.ts';
 
 const PORTAIL = 'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets';
-export const JEU_BUDGET = 'plf-2026-budget-vert';
+/** Le titre du jeu, l'année du projet entre parenthèses (« PLF 2026 - Budget vert », « PLF 2024 Budget Vert »). */
+export const TITRE_BUDGET = /^PLF (\d{4})\s*-?\s*Budget vert$/i;
 const JEU_BALANCES = 'balances_des_comptes_etat';
 
-const COLONNES = [
-  'execution_2024_cp',
-  'lfi_2025_cp_ou_prevision_2025_si_depense_fiscale',
-  'plf_2026_cp_ou_prevision_2026_si_depense_fiscale',
-] as const;
+/** Les colonnes d'un millésime : les trois montants, le code de l'action, la note des dépenses fiscales. */
+export interface Colonnes {
+  montants: [string, string, string];
+  action: string;
+  note: string | null;
+}
+
+/** Les colonnes du jeu du PLF `n`, cherchées par motif parmi les champs : exécution n-2, LFI n-1, PLF n. */
+export function colonnesDuJeu(champs: string[], n: number): Colonnes {
+  const trouver = (motif: RegExp) => champs.find((c) => motif.test(c)) ?? null;
+  const execution = trouver(new RegExp(`^execution_${n - 2}_cp$`));
+  const lfi = trouver(new RegExp(`^lfi_${n - 1}_cp`));
+  const plf = trouver(new RegExp(`^plf_${n}_cp`));
+  const action = trouver(/^code_action(_si_credit_budgetaire)?$/);
+  if (!execution || !lfi || !plf || !action) {
+    throw new Error(`budget vert du PLF ${n} : colonnes introuvables (${[!execution && 'exécution', !lfi && 'LFI', !plf && 'PLF', !action && 'action'].filter(Boolean).join(', ')})`);
+  }
+  return { montants: [execution, lfi, plf], action, note: trouver(/^depenses_fiscales_e_montant/) };
+}
 
 interface Ligne {
   type_depense: string;
   mission: string | null;
   numero_programme: number | null;
   programme: string | null;
-  code_action_si_credit_budgetaire: string | null;
   action_si_credit_budgetaire: string | null;
   affectataire_si_taxe_affectee: string | null;
   impot_si_depense_fiscale: string | null;
   code_depense: string | null;
   libelle: string | null;
-  depenses_fiscales_e_montant_inferieur_a_0_5_meur_nc_montant_non_calcule_en_prevision_2026: string | null;
   [colonne: string]: unknown;
 }
 
@@ -70,8 +89,8 @@ function ajouter(a: Montants, b: Montants) {
   for (let i = 0; i < 3; i++) if (b[i] !== null) a[i] = (a[i] ?? 0) + b[i]!;
 }
 const arrondir = (v: Montants): Montants => v.map((x) => (x === null ? null : Math.round(x))) as Montants;
-const montants = (l: Ligne): Montants =>
-  COLONNES.map((c) => (typeof l[c] === 'number' && Number.isFinite(l[c]) ? (l[c] as number) : null)) as Montants;
+const montants = (l: Ligne, colonnes: Colonnes): Montants =>
+  colonnes.montants.map((c) => (typeof l[c] === 'number' && Number.isFinite(l[c]) ? (l[c] as number) : null)) as Montants;
 /** Du plus gros au plus petit, sur le projet 2026, puis sur l'exécution 2024. */
 const parTaille = (a: { v: Montants }, b: { v: Montants }) =>
   (b.v[2] ?? 0) - (a.v[2] ?? 0) || (b.v[0] ?? 0) - (a.v[0] ?? 0);
@@ -84,7 +103,7 @@ const MISSIONS_EN_CLAIR: Record<string, { nom: string; psr: MissionBudget['psr']
 };
 const ACTION_SANS_CODE = /^MP\/MT - Mesure de périmètre\/transfert - (PLF \d{4})$/;
 
-export function lireBudget(lignes: Ligne[]): Omit<BudgetEtat, 'maj' | 'version' | 'anneeMinisteres'> {
+export function lireBudget(lignes: Ligne[], colonnes: Colonnes): Omit<BudgetEtat, 'maj' | 'version' | 'anneeMinisteres' | 'plf' | 'jeu'> {
   const missions = new Map<string, MissionBudget>();
   const programmes = new Map<string, ProgrammeBudget>();
   const poidsDuNom = new Map<ProgrammeBudget, number>();
@@ -96,7 +115,7 @@ export function lireBudget(lignes: Ligne[]): Omit<BudgetEtat, 'maj' | 'version' 
   const mesures = new Map<string, DepenseFiscale>();
 
   for (const l of lignes) {
-    const v = montants(l);
+    const v = montants(l, colonnes);
     const mission = propre(l.mission);
     if (l.type_depense === 'Crédits budgétaires') {
       // Le jeu retranche du total une contribution qu'il compte déjà ailleurs.
@@ -126,7 +145,7 @@ export function lireBudget(lignes: Ligne[]): Omit<BudgetEtat, 'maj' | 'version' 
         p.nom = propre(l.programme);
         poidsDuNom.set(p, poids);
       }
-      const code = propre(l.code_action_si_credit_budgetaire) || null;
+      const code = propre(l[colonnes.action] as string | null) || null;
       const sansCode = ACTION_SANS_CODE.exec(propre(l.libelle));
       const nomAction = code
         ? propre(l.action_si_credit_budgetaire) || code
@@ -169,7 +188,7 @@ export function lireBudget(lignes: Ligne[]): Omit<BudgetEtat, 'maj' | 'version' 
           libelle: propre(l.libelle),
           mission,
           v: vide(),
-          note: propre(l.depenses_fiscales_e_montant_inferieur_a_0_5_meur_nc_montant_non_calcule_en_prevision_2026) || null,
+          note: (colonnes.note && propre(l[colonnes.note] as string | null)) || null,
         };
         mesures.set(cleM, d);
         i.mesures.push(d);
@@ -238,11 +257,25 @@ async function lireMinisteres(lireJson: LireJson): Promise<{ annee: number; parP
   return { annee, parProgramme };
 }
 
+/** Le dernier budget vert au catalogue : son identifiant et l'année du projet. */
+async function dernierJeu(lireJson: LireJson): Promise<{ id: string; plf: number }> {
+  const q = new URLSearchParams({ where: 'search("Budget vert")', select: 'dataset_id,title', limit: '100' });
+  const r = (await lireJson(`${PORTAIL}?${q}`)) as { results?: { dataset_id?: string; title?: string }[] };
+  const jeux = (r.results ?? [])
+    .map((x) => ({ id: x.dataset_id ?? '', plf: Number(TITRE_BUDGET.exec(x.title ?? '')?.[1]) }))
+    .filter((x) => x.id && x.plf > 2000)
+    .sort((a, b) => b.plf - a.plf);
+  if (!jeux[0]) throw new Error('aucun « PLF N - Budget vert » au catalogue');
+  return jeux[0];
+}
+
 export async function collecterBudgetEtat(lireJson: LireJson, dire: (m: string) => void): Promise<BudgetEtat> {
-  const fiche = (await lireJson(`${PORTAIL}/${JEU_BUDGET}`)) as { metas?: { default?: { modified?: string } } };
-  const lignes = (await lireJson(`${PORTAIL}/${JEU_BUDGET}/exports/json`)) as Ligne[];
-  if (!Array.isArray(lignes) || lignes.length < 1000) throw new Error(`${JEU_BUDGET} : ${Array.isArray(lignes) ? lignes.length : 0} lignes`);
-  const budget = lireBudget(lignes);
+  const { id: jeu, plf } = await dernierJeu(lireJson);
+  const fiche = (await lireJson(`${PORTAIL}/${jeu}`)) as { metas?: { default?: { modified?: string } }; fields?: { name: string }[] };
+  const colonnes = colonnesDuJeu((fiche.fields ?? []).map((f) => f.name), plf);
+  const lignes = (await lireJson(`${PORTAIL}/${jeu}/exports/json`)) as Ligne[];
+  if (!Array.isArray(lignes) || lignes.length < 1000) throw new Error(`${jeu} : ${Array.isArray(lignes) ? lignes.length : 0} lignes`);
+  const budget = lireBudget(lignes, colonnes);
 
   let anneeMinisteres: number | null = null;
   try {
@@ -258,13 +291,15 @@ export async function collecterBudgetEtat(lireJson: LireJson, dire: (m: string) 
   dire(
     `Budget de l'État : ${budget.credits.length} missions, ` +
       `${budget.credits.reduce((s, m) => s + m.programmes.length, 0)} programmes, ` +
-      `crédits ${md(total(0))} (exécution 2024), ${md(total(1))} (LFI 2025), ${md(total(2))} (PLF 2026) ; ` +
+      `crédits ${md(total(0))} (exécution ${plf - 2}), ${md(total(1))} (LFI ${plf - 1}), ${md(total(2))} (PLF ${plf}, jeu ${jeu}) ; ` +
       `${budget.taxes.length} organismes bénéficiaires de taxes affectées, ` +
       `${budget.fiscales.reduce((s, i) => s + i.mesures.length, 0)} dépenses fiscales.`,
   );
   return {
     maj: new Date().toISOString().slice(0, 10),
     version: fiche.metas?.default?.modified?.slice(0, 10) ?? null,
+    plf,
+    jeu,
     anneeMinisteres,
     ...budget,
   };

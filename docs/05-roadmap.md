@@ -4554,3 +4554,16 @@ le code de commerce consolidé au 1er octobre 2026, lu sur codes.droit.org
 
 Le total compte désormais les formalités : environ 410 € HT de plus pour une
 maison, ce que le simulateur locatif reprend aussi.
+
+### Le budget 2027 : la bascule est prête (13 octobre 2026)
+
+`scripts/budget-etat-emettre.ts` ne nomme plus le jeu : il cherche au
+catalogue le dernier « PLF N - Budget vert », puis ses colonnes par motif —
+`execution_<N-2>_cp`, `lfi_<N-1>_cp…`, `plf_<N>_cp…`, le code d'action sous
+ses deux noms. Le motif vaut pour les jeux 2025 et 2026, qui n'ont pas les
+mêmes noms de colonnes ; une colonne introuvable fait échouer la collecte,
+qui laisse le fichier précédent en place. `budget-etat.json` porte l'année
+du projet (`plf`) et l'identifiant du jeu (`jeu`), et `/argent-public`, le
+jeu « Où va l'argent ? » et les fiches du réseau en tirent leurs années et
+leur lien. Le jour où le budget vert du PLF 2027 paraît, la réingestion le
+prend ; la veille (`budget-vert-plf`) le signale pour qu'on relise la page.
