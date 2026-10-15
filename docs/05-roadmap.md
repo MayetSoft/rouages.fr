@@ -4578,3 +4578,34 @@ et le taux de pauvreté (Filosofi 2023, là où le secret statistique le
 permet : 30 794 et 5 242 communes). Au Mayet-de-Montagne : 11,5 % de
 résidences secondaires, 671 €/m² pour une maison, 22 680 € de niveau de vie
 médian ; ni prix d'appartement ni taux de pauvreté publiés.
+
+### Le patrimoine mondial, biens culturels compris (15 octobre 2026)
+
+L'INPN ne porte que sept biens du patrimoine mondial — naturels pour la
+plupart, mais aussi le Mont-Saint-Michel et Taputapuātea : le libellé
+« bien naturel » du rang 12 était faux, il devient « bien du patrimoine
+mondial ». Pour les autres, `scripts/patrimoine-mondial-emettre.ts` croise
+deux sources :
+
+- **la liste de l'UNESCO** (data.unesco.org, jeu `whc001`, CC BY-SA 4.0) :
+  les 56 biens français, leur nom, leur catégorie, leur année, et les
+  coordonnées de 251 éléments situés dans une commune. Couverture nationale,
+  mais ponctuelle : le Val de Loire n'a qu'un point, les Chemins de
+  Saint-Jacques et les sites funéraires de la Grande Guerre aucun ;
+- **les périmètres régionaux**, quand ils sont publiés en GeoJSON : DREAL
+  d'Occitanie (biens et zones tampons), de Bretagne, de Nouvelle-Aquitaine,
+  et Vichy Communauté pour Vichy. Chaque entité est rattachée au numéro
+  UNESCO du bien, par un champ ou par le nom.
+
+716 communes sont rattachées : 340 dans un bien, 236 dans une zone tampon,
+152 par un élément. La page dit lequel des trois, avec le lien vers la fiche
+de l'UNESCO, et ne répète pas un bien que l'INPN porte aussi. Au Mayet-de-
+Montagne, rien ; à Vichy, « Les grandes villes d'eaux d'Europe », dans le
+périmètre.
+
+Le partage à l'identique de la CC BY-SA vaut pour `patrimoine-mondial.json` :
+la validation l'exige comme pour l'ODbL, et /mentions le dit. Restent à
+brancher : Normandie et Provence-Alpes-Côte d'Azur (servies en GML),
+Bourgogne-Franche-Comté et le Bassin minier (en Shapefile), et les régions
+qui ne publient rien. Le registre des plans climat de l'ADEME, oublié des
+mentions le 13 octobre, y figure désormais.

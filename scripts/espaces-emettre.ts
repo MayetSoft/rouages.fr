@@ -33,7 +33,7 @@ import { fileURLToPath } from 'node:url';
 import { departementDe, ecrireParDepartement, telechargerSiAbsent } from './par-departement.ts';
 
 const WFS = 'https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:4326';
-const ECHELLE = 1e4;
+export const ECHELLE = 1e4;
 
 /** Les natures, dans l'ordre où la page les range. */
 export const NATURES = [
@@ -49,11 +49,12 @@ export const NATURES = [
   'Aire d’adhésion de parc national',
   // Les désignations internationales, ajoutées en fin de liste pour ne pas
   // décaler les rangs déjà écrits : la convention de Ramsar, et deux
-  // programmes de l'UNESCO — l'INPN n'a que les biens naturels du patrimoine
-  // mondial, pas les biens culturels.
+  // programmes de l'UNESCO. L'INPN ne porte que sept biens du patrimoine
+  // mondial, naturels pour la plupart ; les autres viennent de
+  // `patrimoine-mondial-emettre.ts`.
   'Site Ramsar',
   'Réserve de biosphère (UNESCO)',
-  'Bien naturel du patrimoine mondial (UNESCO)',
+  'Bien du patrimoine mondial (UNESCO)',
 ] as const;
 const DESSINEES = new Set([0, 1, 2, 3, 4, 5, 6, 7]);
 
@@ -73,9 +74,9 @@ const COUCHES: { couche: string; nature: (p: Proprietes) => number }[] = [
 ];
 
 type Proprietes = { nom_site?: string; id_mnhn?: string; cd_sig?: string; zone?: string; area_sig?: number };
-type Entite = { properties: Proprietes; geometry: { type: string; coordinates: unknown } | null };
+export type Entite = { properties: Proprietes; geometry: { type: string; coordinates: unknown } | null };
 /** Un anneau à plat : x0, y0, x1, y1… en dix-millièmes de degré. */
-type Anneau = number[];
+export type Anneau = number[];
 
 interface Zone {
   cle: string;
@@ -97,7 +98,7 @@ export interface Espaces {
   zones: Map<string, Record<string, [string, string, number, number[][]]>>;
 }
 
-function cadreDe(anneaux: Anneau[]): [number, number, number, number] {
+export function cadreDe(anneaux: Anneau[]): [number, number, number, number] {
   let x0 = Infinity;
   let y0 = Infinity;
   let x1 = -Infinity;
@@ -162,7 +163,7 @@ function simplifier(r: Anneau, tol: number): Anneau {
   return [...a, ...b.slice(2)];
 }
 
-function anneauxDe(g: Entite['geometry'], tol: number): Anneau[] {
+export function anneauxDe(g: Entite['geometry'], tol: number): Anneau[] {
   if (!g) return [];
   const polys = (g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []) as number[][][][];
   const sortie: Anneau[] = [];
@@ -201,7 +202,7 @@ export function casse(nom: string): string {
 }
 
 /** Pair-impair : le point est-il dans l'ensemble des anneaux (trous compris) ? */
-function dedans(x: number, y: number, anneaux: Anneau[]): boolean {
+export function dedans(x: number, y: number, anneaux: Anneau[]): boolean {
   let c = false;
   for (const r of anneaux) {
     const n = r.length;
@@ -215,7 +216,7 @@ function dedans(x: number, y: number, anneaux: Anneau[]): boolean {
 }
 
 /** Distance d'un point au bord le plus proche des anneaux. */
-function distanceAuBord(x: number, y: number, anneaux: Anneau[]): number {
+export function distanceAuBord(x: number, y: number, anneaux: Anneau[]): number {
   let min = Infinity;
   for (const r of anneaux) {
     for (let i = 0, j = r.length - 2; i < r.length; j = i, i += 2) {
@@ -308,7 +309,7 @@ async function entites(couche: string, dire: (m: string) => void): Promise<Entit
 }
 
 /** Les contours que `contours-emettre.ts` a écrits, à plat. */
-function contoursDesCommunes(sortie: string): Map<string, Anneau[]> {
+export function contoursDesCommunes(sortie: string): Map<string, Anneau[]> {
   const dossier = join(sortie, 'dep');
   const m = new Map<string, Anneau[]>();
   for (const f of readdirSync(dossier).filter((n) => n.endsWith('-contours.json'))) {
