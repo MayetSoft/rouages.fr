@@ -7,14 +7,19 @@
  *   décliné par la stratégie nationale bas-carbone, que le plan doit prendre
  *   en compte (registre Territoires & Climat de l'ADEME, `scripts/pcaet-emettre.ts`) ;
  * - les désignations internationales qui touchent la commune — site Ramsar,
- *   réserve de biosphère, bien naturel du patrimoine mondial —, d'après les
- *   périmètres de l'INPN (`scripts/espaces-emettre.ts`).
+ *   réserve de biosphère —, d'après les périmètres de l'INPN
+ *   (`scripts/espaces-emettre.ts`) ;
+ * - les biens du patrimoine mondial, d'après la liste de l'UNESCO et les
+ *   périmètres régionaux (`scripts/patrimoine-mondial-emettre.ts`) : la
+ *   commune est dans le bien, dans sa zone tampon, ou l'UNESCO y situe un
+ *   élément. Les sept biens que porte aussi l'INPN n'y sont pas répétés.
  *
  * Une absence du registre de l'ADEME ne dit pas qu'un plan manque : elle dit
  * que le registre n'en porte pas.
  */
 import type { DemarchePcaet } from '../../modele/pcaet.ts';
 import type { ZoneNaturelle } from '../../modele/carte.ts';
+import { lienUnesco, type BienMondial, type RattachementMondial } from '../../modele/patrimoine-mondial.ts';
 
 interface Props {
   nom: string;
@@ -22,12 +27,26 @@ interface Props {
   plan: DemarchePcaet | null;
   majPlans: string | null;
   designations: ZoneNaturelle[];
+  biens: (BienMondial & { id: number; mode: RattachementMondial[1]; elements: string[] })[];
+  majMondial: string | null;
 }
-const { nom, epci, plan, majPlans, designations } = Astro.props;
+const { nom, epci, plan, majPlans, designations, biens, majMondial } = Astro.props;
+const plier = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+// Un bien que l'INPN porte aussi (le Mont-Saint-Michel, la Chaîne des Puys…) n'est dit qu'une fois, d'après l'UNESCO.
+const dejaDits = biens.map((b) => plier(b.nom).slice(0, 18));
+const CATEGORIE = { culturel: 'bien culturel', naturel: 'bien naturel', mixte: 'bien mixte, culturel et naturel' } as const;
+const liste = (l: string[]) => (l.length > 1 ? `${l.slice(0, -1).join(', ')} et ${l.at(-1)}` : l[0] ?? '');
 const annee = (d: string | null) => (d ? d.slice(0, 4) : null);
 const etat = (e: string) => e.replace('Mise en oeuvre', 'mise en œuvre').replace("En cours d'élaboration", 'en cours d’élaboration').replace('Dépôt pour avis', 'déposé pour avis');
 // Une réserve de biosphère a trois zones publiées sous le même nom : une ligne par désignation.
-const uniques = [...new Map(designations.map((z) => [`${z.rang}|${z.nom}`, z])).values()];
+const uniques = [...new Map(designations.map((z) => [`${z.rang}|${z.nom}`, z])).values()].filter(
+  (z) => z.rang !== 12 || !dejaDits.some((d) => plier(z.nom).includes(d) || d.includes(plier(z.nom).slice(0, 18))),
+);
 const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
   10: { id: 'convention-ramsar', texte: 'la convention de Ramsar' },
   11: { id: 'unesco', texte: 'l’UNESCO' },
@@ -52,6 +71,19 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
         : ', décliné par la stratégie nationale bas-carbone, que le plan d’une intercommunalité de plus de 20 000 habitants doit prendre en compte.'}
     </li>
   )}
+  {biens.map((b) => ({ ...b, elements: b.elements.filter((e) => plier(e) !== plier(nom)) })).map((b) => (
+    <li>
+      <strong>Patrimoine mondial.</strong>
+      {b.mode === 'perimetre'
+        ? ` ${nom} est dans le périmètre de `
+        : b.mode === 'tampon'
+          ? ` ${nom} est dans la zone tampon de `
+          : b.elements.length
+            ? ` L’UNESCO situe à ${nom} ${b.elements.length > 1 ? 'des éléments' : 'un élément'} de `
+            : ` L’UNESCO situe à ${nom} `}
+      <a href={lienUnesco(b.id)} target="_blank" rel="noopener">{`« ${b.nom} »`}</a>{`, ${CATEGORIE[b.categorie]}${b.inscrit ? ` inscrit en ${b.inscrit}` : ''}${b.elements.length ? ` — ${liste(b.elements)} —` : ''} au titre de la `}<a href="/n/patrimoine-mondial">convention du patrimoine mondial</a>{b.mode === 'tampon' ? '. La zone tampon entoure le bien pour lui ajouter une protection.' : '.'}
+    </li>
+  ))}
   {uniques.map((z) => (
     <li>
       <strong>{z.nature}.</strong>
@@ -61,5 +93,6 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
 </ul>
 <p class="p-source-territoire">
   {`Plans climat : registre Territoires & Climat de l’ADEME (Licence Ouverte)${majPlans ? `, lu le ${majPlans.split('-').reverse().join('/')}` : ''} — sans les noms des chefs de projet ni des élus référents. ` +
-    'Désignations internationales : périmètres de l’INPN, croisés avec la commune (voir « Les espaces naturels ») ; l’INPN ne porte que les biens naturels du patrimoine mondial, pas les biens culturels.'}
+    'Désignations internationales : périmètres de l’INPN, croisés avec la commune (voir « Les espaces naturels »). ' +
+    `Patrimoine mondial : la liste de l’UNESCO (CC BY-SA 4.0${majMondial ? `, mise à jour le ${majMondial.split('-').reverse().join('/')}` : ''}), dont les éléments sont situés par leurs coordonnées, et les périmètres et zones tampons publiés par les DREAL d’Occitanie, de Bretagne et de Nouvelle-Aquitaine et par Vichy Communauté. Ailleurs, un bien étendu n’est rattaché qu’aux communes de ses éléments : une commune absente peut en faire partie.`}
 </p>

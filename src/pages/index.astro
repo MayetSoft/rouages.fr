@@ -14,6 +14,7 @@ import Icone from '../composants/Icone.astro';
 import type { NomIcone } from '../modele/icones.ts';
 import { construireReseau } from '../modele/reseau.ts';
 import { communes } from '../modele/territoires.ts';
+import { budgetEtat } from '../modele/budget-etat.ts';
 
 const reseau = construireReseau();
 const noeud = (id: string) => reseau.noeuds.find((n) => n.id === id);
@@ -34,6 +35,7 @@ const questions = (
   ] satisfies Question[]
 ).filter((x: Question) => !x.noeud || noeud(x.noeud));
 const nCommunes = communes().length;
+const plf = budgetEtat()?.plf ?? 2026;
 const acteurs = reseau.noeuds.filter((n) => n.type === 'acteur').length;
 const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
 const exemple = !filtre || filtre.length === 0 || filtre.includes('03');
@@ -88,8 +90,8 @@ const exemple = !filtre || filtre.length === 0 || filtre.includes('03');
         <span class="pastille"><Icone nom="argent" /></span>
         <span class="accueil-porte-titre">L’argent public</span>
         <span>
-          Ce que l’État dépense, mission par mission, programme par programme&nbsp;: ce qui a été dépensé en 2024,
-          voté pour 2025, proposé pour 2026.
+          Ce que l’État dépense, mission par mission, programme par programme&nbsp;:
+          {` ce qui a été dépensé en ${plf - 2}, voté pour ${plf - 1}, proposé pour ${plf}.`}
         </span>
       </a>
       <a class="accueil-porte" href="/jeux" data-theme-couleur="habitants">

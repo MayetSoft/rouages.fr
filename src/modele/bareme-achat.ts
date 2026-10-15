@@ -5,8 +5,8 @@
  * la table d'après le tableau de la DGFiP, et rien d'autre.
  */
 
-/** Relu le 12 octobre 2026. */
-export const RELU = '2026-10-12';
+/** Relu le 13 octobre 2026. */
+export const RELU = '2026-10-13';
 
 export const SOURCES = {
   taux: {
@@ -20,6 +20,14 @@ export const SOURCES = {
   impots: {
     titre: 'impots.gouv.fr — J’achète un bien immobilier : quels frais dois-je payer chez le notaire ?',
     url: 'https://www.impots.gouv.fr/particulier/questions/jachete-un-bien-immobilier-quaurai-je-payer-comme-frais-au-notaire',
+  },
+  tarif: {
+    titre: 'Code de commerce — tarif des notaires : vente (art. A444-91), formalités (art. A444-169 à A444-173-1), remises (art. A444-174), écrêtement (art. R444-9 et A444-175), édition consolidée du 1er octobre 2026',
+    url: 'https://codes.droit.org/PDF/Code%20de%20commerce.pdf',
+  },
+  servicePublic: {
+    titre: 'Service-public.fr — Frais de notaire : qu’est-ce que c’est ? (vérifié le 5 août 2026)',
+    url: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F17701',
   },
   communes: {
     titre: 'collectivites-locales.gouv.fr — Droits de mutation',
@@ -161,21 +169,71 @@ export const EMOLUMENTS: [number, number][] = [
   [Infinity, 0.799],
 ];
 export const TVA_EMOLUMENTS = 0.2;
+
+/**
+ * Les émoluments de formalités d'une vente de logement : des montants fixes,
+ * HT, tels que le tarif les écrit (code de commerce, art. A444-169 à
+ * A444-173-1, numéros du tableau 5 de l'annexe 4-7). `quand` dit dans quel
+ * dossier la formalité est due :
+ * - `toujours` : toute vente publiée au fichier immobilier ; la vérification
+ *   du casier de l'acquéreur est exigée pour tout logement (code de la
+ *   construction et de l'habitation, art. L551-1) ;
+ * - `copro` : un lot de copropriété ;
+ * - `preemption` : un bien soumis à un droit de préemption, par notification.
+ */
+export const FORMALITES: { numero: number; libelle: string; montant: number; quand: 'toujours' | 'copro' | 'preemption' }[] = [
+  { numero: 194, libelle: 'Forfait des formalités d’un acte publié au fichier immobilier : état civil, cadastre, copies, réquisitions d’état', montant: 339.58, quand: 'toujours' },
+  { numero: 188, libelle: 'Réquisition de publication au service de la publicité foncière', montant: 18.87, quand: 'toujours' },
+  { numero: 181, libelle: 'Vérification du casier judiciaire de l’acquéreur (interdiction d’acheter un logement)', montant: 37.73, quand: 'toujours' },
+  { numero: 195, libelle: 'Transmission de la vente au Conseil supérieur du notariat (base des prix immobiliers)', montant: 15.31, quand: 'toujours' },
+  { numero: 182, libelle: 'Vérification de l’immatriculation du syndicat des copropriétaires', montant: 15.09, quand: 'copro' },
+  { numero: 220, libelle: 'Obtention et vérification du certificat de mesurage (loi Carrez)', montant: 15.09, quand: 'copro' },
+  { numero: 187, libelle: 'Notification pour la purge du droit de préemption (déclaration d’intention d’aliéner)', montant: 37.73, quand: 'preemption' },
+];
+/** Ce qui peut s'ajouter selon les pièces que le notaire obtient lui-même, par pièce (art. A444-172 et A444-172-1). */
+export const FORMALITES_PAR_PIECE = { document: 56.6, diagnostic: 15.09 };
+/** Le total des émoluments d'une mutation est écrêté à 10 % de la valeur, 90 € au moins (art. R444-9 et A444-175). */
+export const ECRETEMENT = { taux: 10, minimum: 90 };
+/** La remise que le notaire peut consentir, la même pour tous ses clients : 20 % au plus de l'émolument calculé sur les tranches de 100 000 € et plus (art. A444-174). */
+export const REMISE = { taux: 20, seuil: 100_000 };
 /** Dans le neuf (vente en l'état futur d'achèvement, soumise à la TVA) : 0,70 % pour le département, 2,14 % de frais d'assiette, pas de taxe communale (impots.gouv.fr). */
 export const NEUF = { departement: 0.7, assiette: 2.14 };
 
-export function emoluments(prix: number): number {
-  let reste = prix;
+/** L'émolument de l'acte, tranche par tranche : de, à, taux, la part du prix dans la tranche, le montant HT. */
+export interface Tranche {
+  de: number;
+  a: number;
+  taux: number;
+  assiette: number;
+  montant: number;
+}
+
+export function tranches(prix: number): Tranche[] {
+  const t: Tranche[] = [];
   let bas = 0;
-  let total = 0;
   for (const [haut, taux] of EMOLUMENTS) {
-    const tranche = Math.max(0, Math.min(reste, haut - bas));
-    total += (tranche * taux) / 100;
-    reste -= tranche;
+    const assiette = Math.max(0, Math.min(prix, haut) - bas);
+    if (assiette <= 0) break;
+    t.push({ de: bas, a: haut, taux, assiette, montant: (assiette * taux) / 100 });
     bas = haut;
-    if (reste <= 0) break;
   }
-  return total;
+  return t;
+}
+
+export function emoluments(prix: number): number {
+  return tranches(prix).reduce((s, t) => s + t.montant, 0);
+}
+
+/** La remise la plus forte que le tarif permet : 20 % de l'émolument calculé sur la part du prix au-delà de 100 000 €. */
+export function remiseMaximale(prix: number): number {
+  const partHaute = Math.max(0, prix - REMISE.seuil);
+  const taux = EMOLUMENTS.find(([haut]) => REMISE.seuil < haut)![1];
+  return (((partHaute * taux) / 100) * REMISE.taux) / 100;
+}
+
+export interface Dossier {
+  copro: boolean;
+  preemption: boolean;
 }
 
 export interface Frais {
@@ -186,21 +244,41 @@ export interface Frais {
   commune: number;
   etatAssiette: number;
   csi: number;
+  /** L'émolument de l'acte et celui des formalités, HT, avant écrêtement. */
+  acte: number;
+  tranches: Tranche[];
+  formalites: { numero: number; libelle: string; montant: number }[];
+  formalitesHt: number;
+  /** Ce que l'écrêtement à 10 % du prix retire, 0 le plus souvent. */
+  ecretement: number;
+  /** Ce que touche le notaire, HT, après écrêtement. */
   emolumentsHt: number;
   tva: number;
+  remiseMaximale: number;
   total: number;
 }
 
-export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = false): Frais | null {
+function notaire(prix: number, dossier: Dossier) {
+  const t = tranches(prix);
+  const acte = t.reduce((s, x) => s + x.montant, 0);
+  const formalites = FORMALITES.filter((f) => f.quand === 'toujours' || (f.quand === 'copro' && dossier.copro) || (f.quand === 'preemption' && dossier.preemption)).map(
+    ({ numero, libelle, montant }) => ({ numero, libelle, montant }),
+  );
+  const formalitesHt = formalites.reduce((s, f) => s + f.montant, 0);
+  const plafond = Math.max(ECRETEMENT.minimum, (prix * ECRETEMENT.taux) / 100);
+  const emolumentsHt = Math.min(acte + formalitesHt, plafond);
+  return { tranches: t, acte, formalites, formalitesHt, ecretement: acte + formalitesHt - emolumentsHt, emolumentsHt, tva: emolumentsHt * TVA_EMOLUMENTS, remiseMaximale: Math.min(remiseMaximale(prix), emolumentsHt) };
+}
+
+export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = false, dossier: Dossier = { copro: false, preemption: false }): Frais | null {
   const t = TAUX_DEPARTEMENT[dep];
   if (!t) return null;
+  const n = notaire(prix, dossier);
   if (neuf) {
     const departement = (prix * NEUF.departement) / 100;
     const etatAssiette = (departement * NEUF.assiette) / 100;
     const csi = Math.max(CSI.minimum, (prix * CSI.taux) / 100);
-    const emolumentsHt = emoluments(prix);
-    const tva = emolumentsHt * TVA_EMOLUMENTS;
-    return { tauxDepartement: NEUF.departement, tauxSansHausse: NEUF.departement, departement, commune: 0, etatAssiette, csi, emolumentsHt, tva, total: departement + etatAssiette + csi + emolumentsHt + tva };
+    return { tauxDepartement: NEUF.departement, tauxSansHausse: NEUF.departement, departement, commune: 0, etatAssiette, csi, ...n, total: departement + etatAssiette + csi + n.emolumentsHt + n.tva };
   }
   const [majore, base] = t;
   const reduit = primo ? PREMIERE_PROPRIETE[dep] : undefined;
@@ -209,8 +287,6 @@ export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = fal
   const commune = (prix * TAXE_COMMUNALE) / 100;
   const etatAssiette = (departement * FRAIS_ASSIETTE) / 100;
   const csi = Math.max(CSI.minimum, (prix * CSI.taux) / 100);
-  const emolumentsHt = emoluments(prix);
-  const tva = emolumentsHt * TVA_EMOLUMENTS;
   return {
     tauxDepartement,
     tauxSansHausse: reduit ?? base,
@@ -218,8 +294,7 @@ export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = fal
     commune,
     etatAssiette,
     csi,
-    emolumentsHt,
-    tva,
-    total: departement + commune + etatAssiette + csi + emolumentsHt + tva,
+    ...n,
+    total: departement + commune + etatAssiette + csi + n.emolumentsHt + n.tva,
   };
 }

@@ -18,6 +18,8 @@ import '../../styles/jeux.css';
 const b = budgetEtat();
 /** L'exercice joué : le dernier budget voté que donne le fichier, celui qu'affiche d'abord « L'argent public ». */
 const EXERCICE = 1;
+/** L'année des crédits votés : celle d'avant le projet de loi de finances du fichier. */
+const ANNEE = (b?.plf ?? 2026) - 1;
 const slug = (s: string) =>
   s
     .normalize('NFD')
@@ -33,7 +35,7 @@ const missions = (b?.credits ?? [])
 ---
 <Base
   titre="Où va l’argent"
-  description="Classez les missions du budget de l’État, de la plus grosse à la plus petite, d’après les crédits votés pour 2025."
+  description={`Classez les missions du budget de l’État, de la plus grosse à la plus petite, d’après les crédits votés pour ${ANNEE}.`}
   section="jeux"
   image="/apercus/argent.png"
 >
@@ -42,7 +44,7 @@ const missions = (b?.credits ?? [])
     <h1>Où va l’argent&nbsp;?</h1>
     <p class="resume">
       Cinq missions du budget de l’État&nbsp;: rangez-les de la plus grosse à la plus petite. Les montants sont les
-      crédits votés pour 2025, ceux de <a href="/argent-public">l’argent public</a>.
+      {`crédits votés pour ${ANNEE}, ceux de `}<a href="/argent-public">l’argent public</a>.
     </p>
 
     {missions.length < 5 ? (
@@ -66,19 +68,21 @@ const missions = (b?.credits ?? [])
     <h2 class="badge">Sources</h2>
     <ul class="mesure b-sources">
       <li>
-        <a href="https://data.economie.gouv.fr/explore/dataset/plf-2026-budget-vert/" target="_blank" rel="noopener">Direction du Budget — PLF 2026, budget vert</a>{b ? `, Licence Ouverte 2.0, lu le ${formaterDate(new Date(b.maj))} : les crédits votés pour 2025 en loi de finances initiale, au périmètre des dépenses de l’État.` : ''}
+        <a href={`https://data.economie.gouv.fr/explore/dataset/${b?.jeu ?? 'plf-2026-budget-vert'}/`} target="_blank" rel="noopener">{`Direction du Budget — PLF ${ANNEE + 1}, budget vert`}</a>{b ? `, Licence Ouverte 2.0, lu le ${formaterDate(new Date(b.maj))} : les crédits votés pour ${ANNEE} en loi de finances initiale, au périmètre des dépenses de l’État.` : ''}
       </li>
     </ul>
   </div>
 </Base>
 
-<script type="application/json" is:inline id="ja-donnees" set:html={JSON.stringify(missions)} />
+<script type="application/json" is:inline id="ja-donnees" data-annee={ANNEE} set:html={JSON.stringify(missions)} />
 <script>
   import { brancherClassement } from '../../client/jeux-classement.ts';
 
   /** [nom, montant, montant écrit, ancre] */
   type Mission = [string, number, string, string];
-  const missions = JSON.parse(document.getElementById('ja-donnees')?.textContent ?? '[]') as Mission[];
+  const donnees = document.getElementById('ja-donnees');
+  const missions = JSON.parse(donnees?.textContent ?? '[]') as Mission[];
+  const annee = donnees?.dataset.annee ?? '';
   if (missions.length >= 5) {
     brancherClassement({
       cle: 'argent',
@@ -97,7 +101,7 @@ const missions = (b?.credits ?? [])
         }
         choisies.sort((x, y) => y[1] - x[1]);
         return {
-          titre: 'Crédits votés pour 2025',
+          titre: `Crédits votés pour ${annee}`,
           elements: choisies.map(([nom, , ecrit]) => ({ texte: nom, reponse: ecrit })),
           apres: (contexte) => {
             contexte.append('Chaque mission, programme par programme, dans ');

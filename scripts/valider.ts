@@ -65,8 +65,8 @@ for (const s of g.surveillances.values()) if (s.lien) citees.add(s.lien);
 // Un jeu sous ODbL impose de republier sous ODbL ce qu'on en dérive : les
 // mentions doivent dire quels fichiers, et la liste ne s'écrit pas après coup.
 for (const s of g.surveillances.values()) {
-  if (s.licence === 'odbl' && !s.fichiers?.length) {
-    erreurs.push(`surveillance « ${s.id} » sous ODbL sans la liste des fichiers qui en dérivent (champ fichiers)`);
+  if ((s.licence === 'odbl' || s.licence === 'cc-by-sa-4.0') && !s.fichiers?.length) {
+    erreurs.push(`surveillance « ${s.id} » sous ${s.licence === 'odbl' ? 'ODbL' : 'CC BY-SA'} sans la liste des fichiers qui en dérivent (champ fichiers)`);
   }
 }
 for (const id of g.sources.keys()) {

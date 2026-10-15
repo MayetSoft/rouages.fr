@@ -99,6 +99,7 @@ import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
 import International from '../../composants/commune/International.astro';
 import { pcaet } from '../../modele/pcaet.ts';
+import { patrimoineMondial } from '../../modele/patrimoine-mondial.ts';
 import Production from '../../composants/commune/Production.astro';
 import Monuments from '../../composants/commune/Monuments.astro';
 import SolsPollues from '../../composants/commune/SolsPollues.astro';
@@ -160,6 +161,8 @@ const espaces = espacesNaturels(commune);
 const plansClimat = pcaet();
 const planClimat = epciFp ? plansClimat?.c[epciFp.siren] ?? null : null;
 const designations = (espaces?.zones ?? []).filter((z) => z.rang >= 10);
+const mondial = patrimoineMondial();
+const biensMondiaux = (mondial?.c[commune.code] ?? []).map(([id, mode, elements]) => ({ id, mode, elements, ...mondial!.biens[String(id)] }));
 
 const nomDe = new Map(reseau.noeuds.map((n) => [n.id, n]));
 /**
@@ -1121,7 +1124,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
-    {(epciFp || designations.length > 0) && (
+    {(epciFp || designations.length > 0 || biensMondiaux.length > 0) && (
       <section id="international">
         <h2 class="badge">Ce qui s’applique ici depuis l’international</h2>
         <International
@@ -1130,6 +1133,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
           plan={planClimat}
           majPlans={plansClimat?.maj ?? null}
           designations={designations}
+          biens={biensMondiaux}
+          majMondial={mondial?.version ?? null}
         />
       </section>
     )}

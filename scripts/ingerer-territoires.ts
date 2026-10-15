@@ -984,6 +984,11 @@ async function principal() {
   const espaces = await tenter('Espaces naturels', () => collecterEspaces(SORTIE, CACHE, grise));
   if (espaces) grise(`${ecrireEspaces(SORTIE, espaces)} départements d’espaces naturels écrits.`);
 
+  // Le patrimoine mondial : la liste de l'UNESCO et les périmètres régionaux, croisés avec les mêmes contours.
+  const { collecterPatrimoineMondial, ecrirePatrimoineMondial } = await import('./patrimoine-mondial-emettre.ts');
+  const mondial = await tenter('Patrimoine mondial', () => collecterPatrimoineMondial(SORTIE, lireJson, grise));
+  if (mondial) ecrirePatrimoineMondial(SORTIE, mondial);
+
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));
   if (petiteEnfance) {

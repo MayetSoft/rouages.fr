@@ -103,8 +103,9 @@ surveillances:
 
   # Le budget vert du projet de loi de finances paraît chaque automne sous un
   # nouvel identifiant : on guette son titre au catalogue. Quand l'année
-  # change, il faut repointer `JEU_BUDGET` et les trois colonnes de
-  # `scripts/budget-etat-emettre.ts`. Le PLF 2027, déposé le 1er octobre 2026,
+  # change, la réingestion suivante le prend d'elle-même
+  # (`scripts/budget-etat-emettre.ts` cherche le jeu et ses colonnes) : il
+  # reste à relire /argent-public. Le PLF 2027, déposé le 1er octobre 2026,
   # n'y était pas le 13 octobre ; la fiche du jeu 2026 est datée du 13 novembre 2025.
   # Licence relevée sur la fiche du jeu 2026, le 13 octobre 2026.
   - id: budget-vert-plf
@@ -796,6 +797,67 @@ surveillances:
     licence: licence-ouverte-2.0
     url: "https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=patrinat_pnr:pnr&resultType=hits"
     lien: od-espaces-naturels
+
+  # La liste du patrimoine mondial, publiée par l'UNESCO sous CC BY-SA 4.0
+  # (licence relevée sur la fiche du jeu le 15 octobre 2026) : le partage à
+  # l'identique vaut pour le fichier qu'on en tire. Le total compte tous les
+  # biens du monde ; une chute dit que le jeu a changé.
+  - id: unesco-patrimoine-mondial
+    nom: "UNESCO — liste du patrimoine mondial"
+    alimente: "les biens du patrimoine mondial qui touchent la commune"
+    type: opendatasoft-total
+    licence: cc-by-sa-4.0
+    fichiers: ["patrimoine-mondial.json"]
+    url: "https://data.unesco.org/api/explore/v2.1/catalog/datasets/whc001"
+    # Relevé au 15 octobre 2026.
+    attendu: 1273
+    lien: od-unesco-liste
+
+  # Les périmètres des biens et de leurs zones tampons, région par région :
+  # aucune couche nationale n'existe. Licences relevées sur les fiches
+  # data.gouv le 15 octobre 2026 ; celles d'Occitanie et de Nouvelle-Aquitaine
+  # n'en précisent pas.
+  - id: unesco-occitanie
+    nom: "DREAL Occitanie — biens du patrimoine mondial et zones tampons"
+    alimente: "le périmètre et la zone tampon des biens du patrimoine mondial en Occitanie"
+    type: disponibilite
+    licence: non-precisee
+    url: "https://catalogue.picto-occitanie.fr/api/data/fed755b8-d97e-4a91-a4e1-aa82f6acc48c?srs=EPSG:4326"
+    lien: od-unesco-occitanie
+
+  - id: unesco-bretagne
+    nom: "DREAL Bretagne — biens du patrimoine mondial et zones tampons"
+    alimente: "le périmètre et la zone tampon des biens du patrimoine mondial en Bretagne"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://geobretagne.fr/geoserver/dreal_b/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=dreal_b:Unesco_BPM&RESULTTYPE=hits"
+    lien: od-unesco-bretagne
+
+  - id: unesco-nouvelle-aquitaine
+    nom: "DREAL Nouvelle-Aquitaine — biens du patrimoine mondial"
+    alimente: "le périmètre des biens du patrimoine mondial en Nouvelle-Aquitaine"
+    type: disponibilite
+    licence: non-precisee
+    url: "https://catalogue.sigena.fr/api/data/01fc5e30-d0be-42e7-ad74-644faaffabfa?srs=EPSG:4326"
+    lien: od-unesco-nouvelle-aquitaine
+
+  - id: unesco-vichy
+    nom: "Vichy Communauté — Vichy, grande ville d’eaux d’Europe"
+    alimente: "le périmètre et la zone tampon de Vichy au patrimoine mondial"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://ids.craig.fr/wxs/public/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=public:VVA_2021_ZONE_TAMPON_UNESCO&RESULTTYPE=hits"
+    lien: od-unesco-vichy
+
+  # Le registre des plans climat de l'ADEME, sous Licence Ouverte sans version
+  # précisée (fiche data-fair relevée le 15 octobre 2026).
+  - id: ademe-pcaet
+    nom: "ADEME — plans climat-air-énergie territoriaux"
+    alimente: "le plan climat de l'intercommunalité, sur la page de commune"
+    type: disponibilite
+    licence: licence-ouverte
+    url: "https://data.ademe.fr/data-fair/api/v1/datasets/pcaet-(v2)-demarches-partie-1-entete"
+    lien: od-ademe-pcaet
 
   - id: palissy
     nom: "Palissy — objets protégés"

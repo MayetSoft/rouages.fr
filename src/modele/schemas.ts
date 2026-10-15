@@ -470,14 +470,15 @@ export const Surveillance = z.object({
    * et non supposée : la Licence Ouverte d'Etalab dans sa version 2.0 ou 1.0
    * (« licence-ouverte » quand le producteur ne précise pas la version), la
    * CC0 de la Commission européenne, qui verse le jeu au domaine public, l'ODbL,
-   * qui impose de republier sous la même licence toute base qu'on en dérive,
+   * qui impose de republier sous la même licence toute base qu'on en dérive, la
+   * CC BY-SA 4.0 de l'UNESCO, qui l'impose aussi,
    * « variable » quand chaque publieur choisit la sienne, « non-precisee »
    * quand la fiche n'en dit rien. /mentions l'affiche jeu par jeu.
    */
-  licence: z.enum(['licence-ouverte-2.0', 'licence-ouverte-1.0', 'licence-ouverte', 'cc-by-4.0', 'cc0', 'odbl', 'variable', 'non-precisee']),
+  licence: z.enum(['licence-ouverte-2.0', 'licence-ouverte-1.0', 'licence-ouverte', 'cc-by-4.0', 'cc-by-sa-4.0', 'cc0', 'odbl', 'variable', 'non-precisee']),
   /**
-   * Pour un jeu sous ODbL : les fichiers de `public/territoires/` qui en
-   * dérivent, et qui sont donc republiés sous ODbL eux aussi. Exigé par
+   * Pour un jeu sous ODbL ou CC BY-SA : les fichiers de `public/territoires/`
+   * qui en dérivent, et qui sont donc republiés sous la même licence. Exigé par
    * `scripts/valider.ts`, affiché sur /mentions.
    */
   fichiers: z.array(z.string()).optional(),

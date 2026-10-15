@@ -4527,3 +4527,85 @@ Plutôt que d'attendre à la main, la veille guette le titre au catalogue
 (`budget-vert-plf`, nouveau type `opendatasoft-catalogue`) : quand l'année
 change, il faut repointer `JEU_BUDGET` et les trois colonnes de
 `scripts/budget-etat-emettre.ts`, dont les noms portent les années.
+
+### Frais d'achat : le notaire, ligne par ligne (13 octobre 2026)
+
+Le simulateur détaille ce que touche le notaire, d'après le tarif lui-même :
+le code de commerce consolidé au 1er octobre 2026, lu sur codes.droit.org
+(Légifrance refuse cet environnement).
+
+- **L'acte** : l'émolument de la vente, tranche par tranche (art. A444-91).
+  Pour 200 000 €, 251,55 + 167,58 + 457,52 + 1 118,60 = 1 995,25 € HT,
+  l'exemple que donne service-public.fr.
+- **Les formalités** : des montants fixes (art. A444-169 à A444-173-1). Pour
+  toute vente de logement, le forfait d'un acte publié au fichier immobilier
+  (n° 194, 339,58 €), la réquisition de publication (n° 188, 18,87 €), la
+  vérification du casier judiciaire de l'acquéreur, que l'article L551-1 du
+  code de la construction impose pour tout logement (n° 181, 37,73 €), la
+  transmission au Conseil supérieur du notariat (n° 195, 15,31 €). Deux cases
+  ajoutent la copropriété (n° 182 et 220) et la purge d'un droit de
+  préemption (n° 187). Les pièces que le notaire obtient selon le dossier
+  sont dites par pièce, sans être comptées : leur nombre ne se devine pas.
+- **L'écrêtement** à 10 % du prix, 90 € au moins (art. R444-9, A444-175), et
+  **la remise** possible, 20 % au plus de l'émolument calculé au-delà de
+  100 000 € (art. A444-174), affichée comme un plafond, pas déduite.
+- **La publication** : la contribution de sécurité immobilière est rattachée
+  à la publication au fichier immobilier.
+
+Le total compte désormais les formalités : environ 410 € HT de plus pour une
+maison, ce que le simulateur locatif reprend aussi.
+
+### Le budget 2027 : la bascule est prête (13 octobre 2026)
+
+`scripts/budget-etat-emettre.ts` ne nomme plus le jeu : il cherche au
+catalogue le dernier « PLF N - Budget vert », puis ses colonnes par motif —
+`execution_<N-2>_cp`, `lfi_<N-1>_cp…`, `plf_<N>_cp…`, le code d'action sous
+ses deux noms. Le motif vaut pour les jeux 2025 et 2026, qui n'ont pas les
+mêmes noms de colonnes ; une colonne introuvable fait échouer la collecte,
+qui laisse le fichier précédent en place. `budget-etat.json` porte l'année
+du projet (`plf`) et l'identifiant du jeu (`jeu`), et `/argent-public`, le
+jeu « Où va l'argent ? » et les fiches du réseau en tirent leurs années et
+leur lien. Le jour où le budget vert du PLF 2027 paraît, la réingestion le
+prend ; la veille (`budget-vert-plf`) le signale pour qu'on relise la page.
+
+### Trouver des communes : prix, résidences secondaires, niveau de vie (13 octobre 2026)
+
+Cinq indicateurs de plus, lus comme les autres dans les fichiers par
+département : la part des résidences secondaires (recensement 2023), le prix
+médian au mètre carré des maisons et des appartements (DVF, ventes
+2023-2025 d'un seul logement, cinq ventes au moins), le niveau de vie médian
+et le taux de pauvreté (Filosofi 2023, là où le secret statistique le
+permet : 30 794 et 5 242 communes). Au Mayet-de-Montagne : 11,5 % de
+résidences secondaires, 671 €/m² pour une maison, 22 680 € de niveau de vie
+médian ; ni prix d'appartement ni taux de pauvreté publiés.
+
+### Le patrimoine mondial, biens culturels compris (15 octobre 2026)
+
+L'INPN ne porte que sept biens du patrimoine mondial — naturels pour la
+plupart, mais aussi le Mont-Saint-Michel et Taputapuātea : le libellé
+« bien naturel » du rang 12 était faux, il devient « bien du patrimoine
+mondial ». Pour les autres, `scripts/patrimoine-mondial-emettre.ts` croise
+deux sources :
+
+- **la liste de l'UNESCO** (data.unesco.org, jeu `whc001`, CC BY-SA 4.0) :
+  les 56 biens français, leur nom, leur catégorie, leur année, et les
+  coordonnées de 251 éléments situés dans une commune. Couverture nationale,
+  mais ponctuelle : le Val de Loire n'a qu'un point, les Chemins de
+  Saint-Jacques et les sites funéraires de la Grande Guerre aucun ;
+- **les périmètres régionaux**, quand ils sont publiés en GeoJSON : DREAL
+  d'Occitanie (biens et zones tampons), de Bretagne, de Nouvelle-Aquitaine,
+  et Vichy Communauté pour Vichy. Chaque entité est rattachée au numéro
+  UNESCO du bien, par un champ ou par le nom.
+
+716 communes sont rattachées : 340 dans un bien, 236 dans une zone tampon,
+152 par un élément. La page dit lequel des trois, avec le lien vers la fiche
+de l'UNESCO, et ne répète pas un bien que l'INPN porte aussi. Au Mayet-de-
+Montagne, rien ; à Vichy, « Les grandes villes d'eaux d'Europe », dans le
+périmètre.
+
+Le partage à l'identique de la CC BY-SA vaut pour `patrimoine-mondial.json` :
+la validation l'exige comme pour l'ODbL, et /mentions le dit. Restent à
+brancher : Normandie et Provence-Alpes-Côte d'Azur (servies en GML),
+Bourgogne-Franche-Comté et le Bassin minier (en Shapefile), et les régions
+qui ne publient rien. Le registre des plans climat de l'ADEME, oublié des
+mentions le 13 octobre, y figure désormais.
