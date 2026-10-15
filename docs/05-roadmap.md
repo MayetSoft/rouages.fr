@@ -4662,3 +4662,18 @@ sa zone tampon). 1 015 communes rattachées : 501 dans un bien, 449 dans une
 zone tampon, 79 par un élément seulement. La Provence-Alpes-Côte d'Azur n'est
 pas branchée : sa couche ne donne que le centre de chaque bien, ce que la
 liste de l'UNESCO dit déjà.
+
+### Trouver des communes : parcs, Natura 2000, patrimoine mondial, plan climat (15 octobre 2026)
+
+Cinq critères « oui / non », sous « Protections et engagements » : dans un
+parc naturel régional, dans un parc national (cœur ou aire d'adhésion),
+touchée par un site Natura 2000, touchée par un bien du patrimoine mondial,
+et une intercommunalité qui porte un plan climat au registre de l'ADEME.
+« Non » n'est proposé que lorsque l'absence est une donnée : les périmètres de
+l'INPN couvrent toute la France, une commune qui n'y figure pas est hors de
+tout parc. Le patrimoine mondial — périmètres publiés dans six régions
+seulement — et le registre des plans climat ne permettent de chercher que
+« oui » ; une adresse qui demanderait `imondial:non` est lue comme « oui ».
+4 949 communes sont dans un parc naturel régional, 456 dans un parc national,
+12 493 touchées par un site Natura 2000. Au Mayet-de-Montagne : Natura 2000
+(Bois Noirs), pas de parc, le plan climat de Vichy Communauté.
