@@ -986,7 +986,7 @@ async function principal() {
 
   // Le patrimoine mondial : la liste de l'UNESCO et les périmètres régionaux, croisés avec les mêmes contours.
   const { collecterPatrimoineMondial, ecrirePatrimoineMondial } = await import('./patrimoine-mondial-emettre.ts');
-  const mondial = await tenter('Patrimoine mondial', () => collecterPatrimoineMondial(SORTIE, lireJson, grise));
+  const mondial = await tenter('Patrimoine mondial', () => collecterPatrimoineMondial(SORTIE, lireJson, grise, CACHE));
   if (mondial) ecrirePatrimoineMondial(SORTIE, mondial);
 
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');

@@ -18,6 +18,11 @@
 editeur:
   # MayetCo SAS édite rouages.fr comme Rouages Pro, et elle exploite aussi le
   # site techniquement : il n'y a plus de ligne « réalisation technique » à part.
+  # Décision du 15 octobre 2026 : rouages.fr sera porté par l'association Forge
+  # des communs. Tant qu'elle n'est pas déclarée — une association n'a de
+  # personnalité juridique qu'après sa déclaration et sa publication au Journal
+  # officiel —, MayetCo SAS reste l'éditeur et le titulaire des droits ; ces
+  # champs ne changent qu'avec l'acte qui transmet le site. Voir « transition ».
   # Relevé au répertoire SIRENE et sur l'annuaire des entreprises le 3 octobre
   # 2026 (SIREN, siège) ; le capital et le greffe, d'après les extraits publiés.
   nom: >-
@@ -35,3 +40,9 @@ editeur:
     o2switch, SAS au capital de 100 000 €, RCS Clermont-Ferrand,
     SIRET 510 909 807 00032 — Chemin des Pardiaux, 63000 Clermont-Ferrand,
     04 44 44 60 40.
+  transition: >-
+    Rouages sera porté par l’association Forge des communs, en cours de
+    formation. Jusqu’à sa déclaration et au transfert du site et des droits sur
+    le code, MayetCo SAS en reste l’éditeur et le titulaire. Les services
+    professionnels — Rouages Pro — resteront assurés par MayetCo SAS, en
+    partenariat avec l’association.

@@ -841,6 +841,30 @@ surveillances:
     url: "https://catalogue.sigena.fr/api/data/01fc5e30-d0be-42e7-ad74-644faaffabfa?srs=EPSG:4326"
     lien: od-unesco-nouvelle-aquitaine
 
+  - id: unesco-normandie
+    nom: "DREAL Normandie — biens du patrimoine mondial et zones tampons"
+    alimente: "le périmètre et la zone tampon des biens du patrimoine mondial en Normandie"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://ogc.geo-ide.developpement-durable.gouv.fr/wxs?map=/opt/data/stack/mapfiles/1.4/org_4930752/917badc9-c987-44d1-b1b1-d07bbe1b3ba8.internet.map&SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&TYPENAME=ms:drealnorm_unesco_s_r28&RESULTTYPE=hits"
+    lien: od-unesco-normandie
+
+  - id: unesco-bfc
+    nom: "DREAL Bourgogne-Franche-Comté — biens du patrimoine mondial et zones tampons"
+    alimente: "le périmètre et la zone tampon des biens du patrimoine mondial en Bourgogne-Franche-Comté"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://ckan2.data.arnia-bfc.fr/dataset/e62d3c1e-e8a2-48c7-ab7f-ebdb6fb5fac8/resource/8a91d418-c1ba-42d5-861f-af9c9d8912ce/download/sites-de-bourgo_92b2d64b_ef05ce4_9720a7dd_n_enp_bpm_s_r27.zip"
+    lien: od-unesco-bfc
+
+  - id: unesco-bassin-minier
+    nom: "Mission Bassin Minier — le bien inscrit et sa zone tampon"
+    alimente: "les 109 éléments du Bassin minier du Nord-Pas de Calais et sa zone tampon"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://cdn.s-pass.org/SPASSDATA/attachments/2021_10/21/104581-unesco-l93-2018.zip"
+    lien: od-unesco-bassin-minier
+
   - id: unesco-vichy
     nom: "Vichy Communauté — Vichy, grande ville d’eaux d’Europe"
     alimente: "le périmètre et la zone tampon de Vichy au patrimoine mondial"

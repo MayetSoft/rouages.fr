@@ -26,10 +26,12 @@
  * les contours des communes déjà écrits.
  */
 import { existsSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { BienMondial, PatrimoineMondial, RattachementMondial } from '../src/modele/patrimoine-mondial.ts';
 import { anneauxDe, cadreDe, contoursDesCommunes, dedans, distanceAuBord, ECHELLE, type Entite } from './espaces-emettre.ts';
+import { lireGml, lireShapefile } from './geo-formats.ts';
 import { telechargerSiAbsent } from './par-departement.ts';
 
 type LireJson = (url: string) => Promise<unknown>;
@@ -45,6 +47,10 @@ interface Perimetre {
   producteur: string;
   licence: 'licence-ouverte-2.0' | 'non-precisee';
   url: string;
+  /** GeoJSON en WGS 84 par défaut ; GML 3.1.1 d'un WFS (latitude d'abord) ; Shapefile en Lambert 93, dans une archive zip. */
+  format?: 'geojson' | 'gml' | 'shp';
+  /** Pour un Shapefile : les couches de l'archive à lire, sans extension. */
+  membres?: string[];
   lire: (p: Proprietes) => Lecture;
 }
 
@@ -55,7 +61,11 @@ const element = (v: unknown) => {
   return t && t !== '/' ? t.replace(/\*$/, '') : null;
 };
 
-/** Les sources régionales lisibles en GeoJSON, en WGS 84. Les autres (Normandie, PACA en GML, Bourgogne-Franche-Comté et Bassin minier en Shapefile) restent à brancher. */
+/**
+ * Les sources régionales. La Provence-Alpes-Côte d'Azur n'y est pas : sa
+ * couche ne donne que le centre de chaque bien, ce que la liste de l'UNESCO
+ * dit déjà.
+ */
 export const PERIMETRES: Perimetre[] = [
   {
     id: 'occitanie-biens',
@@ -95,6 +105,45 @@ export const PERIMETRES: Perimetre[] = [
     },
   },
   {
+    id: 'normandie',
+    producteur: 'DREAL Normandie',
+    licence: 'licence-ouverte-2.0',
+    format: 'gml',
+    url: 'https://ogc.geo-ide.developpement-durable.gouv.fr/wxs?map=/opt/data/stack/mapfiles/1.4/org_4930752/917badc9-c987-44d1-b1b1-d07bbe1b3ba8.internet.map&SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&TYPENAME=ms:drealnorm_unesco_s_r28&SRSNAME=EPSG:4326',
+    // « B80-002 », « ZT1581 » : le numéro UNESCO est dans l'identifiant local.
+    lire: (p) => ({
+      unesco: Number(/(\d+)/.exec(texte(p.id_local))?.[1]) || null,
+      nom: texte(p.nom_site).split(' : ')[0] || null,
+      zone: /tampon/i.test(texte(p.type)) ? 'tampon' : 'bien',
+      element: texte(p.nom_site).split(' : ')[1] ?? null,
+    }),
+  },
+  {
+    id: 'bourgogne-franche-comte',
+    producteur: 'DREAL Bourgogne-Franche-Comté',
+    licence: 'licence-ouverte-2.0',
+    format: 'shp',
+    membres: ['n_enp_bpm_s_r27'],
+    url: 'https://ckan2.data.arnia-bfc.fr/dataset/e62d3c1e-e8a2-48c7-ab7f-ebdb6fb5fac8/resource/8a91d418-c1ba-42d5-861f-af9c9d8912ce/download/sites-de-bourgo_92b2d64b_ef05ce4_9720a7dd_n_enp_bpm_s_r27.zip',
+    // « 203bis », « 1363-063 » : le numéro du bien, puis celui de l'élément.
+    lire: (p) => ({
+      unesco: Number(/^(\d+)/.exec(texte(p.id_unesco))?.[1]) || null,
+      nom: texte(p.libelle_un).split(' - ')[0] || null,
+      zone: /tampon/i.test(texte(p.zone)) ? 'tampon' : 'bien',
+      element: texte(p.libelle_un).split(' - ').slice(1).join(' - ') || null,
+    }),
+  },
+  {
+    id: 'bassin-minier',
+    producteur: 'Mission Bassin Minier Nord-Pas de Calais',
+    licence: 'licence-ouverte-2.0',
+    format: 'shp',
+    membres: ['UNESCO - L93 2018/Bien Inscrit UNESCO BM', 'UNESCO - L93 2018/Zone Tampon'],
+    url: 'https://cdn.s-pass.org/SPASSDATA/attachments/2021_10/21/104581-unesco-l93-2018.zip',
+    // Les 109 éléments du bien 1360, puis sa zone tampon, qui n'a pas d'attribut nommant le bien.
+    lire: (p) => ({ unesco: 1360, nom: null, zone: p.Nom === undefined ? 'tampon' : 'bien', element: element(p.Nom) }),
+  },
+  {
     id: 'vichy-bien',
     producteur: 'Vichy Communauté',
     licence: 'licence-ouverte-2.0',
@@ -129,7 +178,18 @@ const COMPOSANT = /\{name: (.*?), ref: ([^,]+), latitude: (-?[\d.]+), longitude:
 
 type Ligne = { id_no: string; name_fr: string; category: string; date_inscribed: string; iso_codes: string | null; components_list: string | null; coordinates: string | null };
 
-export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJson, dire: (m: string) => void): Promise<PatrimoineMondial> {
+/** Les entités d'une source, quel que soit son format. */
+async function entitesDe(src: Perimetre, lireJson: LireJson, cache: string): Promise<Entite[]> {
+  if (!src.format || src.format === 'geojson') return ((await lireJson(src.url)) as { features?: Entite[] }).features ?? [];
+  const r = await fetch(src.url, { signal: AbortSignal.timeout(300_000) });
+  if (!r.ok) throw new Error(`${r.status}`);
+  if (src.format === 'gml') return lireGml(await r.text()) as unknown as Entite[];
+  const zip = join(cache, `patrimoine-mondial-${src.id}.zip`);
+  writeFileSync(zip, Buffer.from(await r.arrayBuffer()));
+  return (src.membres ?? []).flatMap((m) => lireShapefile(zip, m)) as unknown as Entite[];
+}
+
+export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJson, dire: (m: string) => void, cache = tmpdir()): Promise<PatrimoineMondial> {
   const fiche = (await lireJson(LISTE)) as { metas?: { default?: { modified?: string; license?: string } } };
   const q = new URLSearchParams({ where: 'iso_codes like "FR"', select: 'id_no,name_fr,category,date_inscribed,iso_codes,components_list,coordinates' });
   const lignes = ((await lireJson(`${LISTE}/exports/json?${q}`)) as Ligne[]).filter((l) => (l.iso_codes ?? '').split(',').some((c) => c.trim() === 'FR'));
@@ -210,7 +270,7 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
   for (const src of PERIMETRES) {
     let entites: Entite[];
     try {
-      entites = ((await lireJson(src.url)) as { features?: Entite[] }).features ?? [];
+      entites = await entitesDe(src, lireJson, cache);
     } catch (e) {
       dire(`  ${src.id} : injoignable (${(e as Error).message}) — ignorée`);
       continue;
@@ -282,8 +342,8 @@ export function ecrirePatrimoineMondial(sortie: string, p: PatrimoineMondial): v
 // Lancé seul.
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const racine = join(fileURLToPath(new URL('.', import.meta.url)), '..');
-  const { lireJson, sortie } = telechargerSiAbsent(racine);
+  const { lireJson, sortie, cache } = telechargerSiAbsent(racine);
   if (!existsSync(sortie)) throw new Error('public/territoires absent');
-  ecrirePatrimoineMondial(sortie, await collecterPatrimoineMondial(sortie, lireJson, console.log));
+  ecrirePatrimoineMondial(sortie, await collecterPatrimoineMondial(sortie, lireJson, console.log, cache));
 }
 
