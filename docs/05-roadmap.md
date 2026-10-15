@@ -4609,3 +4609,38 @@ brancher : Normandie et Provence-Alpes-Côte d'Azur (servies en GML),
 Bourgogne-Franche-Comté et le Bassin minier (en Shapefile), et les régions
 qui ne publient rien. Le registre des plans climat de l'ADEME, oublié des
 mentions le 13 octobre, y figure désormais.
+
+### Rouages passe à l'association Forge des communs (décision du 15 octobre 2026)
+
+Rouages sera porté par l'association **Forge des communs**, en cours de
+formation, au lieu de MayetCo SAS. Les services professionnels — Rouages Pro —
+restent à MayetCo SAS, par un partenariat avec l'association.
+
+Une association n'a de personnalité juridique qu'une fois déclarée et publiée
+au Journal officiel : avant, elle ne peut ni éditer le site au sens de la loi
+pour la confiance dans l'économie numérique, ni détenir les droits sur le code.
+D'ici là, rien ne change dans les mentions légales ni dans les titulaires ; ce
+qui est fait aujourd'hui l'annonce et prépare le transfert :
+
+- `/mentions` dit « ce qui va changer » (champ `transition` de
+  `contenu/editeur.yaml`) ; le README le dit aussi ;
+- la charte de contribution annonce la transmission, et la cession qu'elle
+  organise prévoit expressément que MayetCo SAS puisse céder les droits à
+  l'association ;
+- Rouages Pro est nommé « service de MayetCo SAS », et non plus « de
+  l'éditeur », pour rester exact après le transfert.
+
+Ce qui reste à faire, dans l'ordre, et qui relève du mainteneur :
+
+1. déclarer l'association en préfecture et attendre sa publication au
+   Journal officiel des associations ;
+2. signer l'acte par lequel MayetCo SAS cède à l'association les droits
+   patrimoniaux sur le code et le contenu, et lui transmet le site (nom de
+   domaine, hébergement, comptes) ;
+3. signer la convention de partenariat pour Rouages Pro : quelles données
+   publiques il réutilise, sous quelle licence, ce qu'il apporte en retour ;
+4. alors seulement : réécrire `contenu/editeur.yaml` (nom, numéro RNA, siège,
+   directeur de la publication — le président de l'association), le titulaire
+   dans `LICENSE-CONTENU.md`, le README, `package.json`, `/mentions`, la charte
+   de contribution et le modèle de demande de fusion, puis retirer le champ
+   `transition`.

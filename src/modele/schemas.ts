@@ -542,6 +542,12 @@ export const Editeur = z.object({
    * personne ne réclame.
    */
   realisation_technique: z.string().min(2).optional(),
+  /**
+   * Ce qui est décidé et pas encore fait : un changement d'éditeur annoncé.
+   * Les champs ci-dessus disent qui publie aujourd'hui, au sens de la loi ;
+   * celui-ci dit à quoi s'attendre, et /mentions l'affiche à part.
+   */
+  transition: z.string().min(10).optional(),
 });
 
 /**

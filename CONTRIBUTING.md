@@ -4,6 +4,13 @@ Rouages est édité et exploité par **MayetCo SAS** (marque MayetSoft). Le code
 est publié sous [GNU AGPL 3.0 ou ultérieure](LICENSE), le contenu éditorial
 sous [CC BY-SA 4.0](LICENSE-CONTENU.md).
 
+**Ce qui va changer.** Rouages sera porté par l'association **Forge des
+communs**, en cours de formation. Une fois l'association déclarée, MayetCo SAS
+lui transmettra le site et les droits qu'elle tient sur le dépôt, y compris
+ceux que cette charte lui fait céder ; la charte sera alors réécrite à son nom.
+Les services professionnels — Rouages Pro — resteront assurés par MayetCo SAS,
+en partenariat avec l'association.
+
 Signaler une erreur n'est pas contribuer au sens de cette charte : le
 [formulaire de signalement](https://rouages.fr/signaler) ouvre une issue, et
 une issue ne cède rien. La charte vaut pour ce qui entre dans le dépôt — code,
@@ -29,7 +36,10 @@ patrimoniaux d'auteur attachés à votre contribution, à savoir :
 - **le droit de distribution** : la mettre sur le marché, à titre gratuit ou
   onéreux, y compris par location ;
 - **le droit de concéder des licences** sur tout ou partie de ces droits, sous
-  la licence de son choix, libre ou non.
+  la licence de son choix, libre ou non ;
+- **le droit de les céder à son tour**, en tout ou partie, et en particulier à
+  l'association Forge des communs quand elle portera Rouages : votre cession
+  la suit, aux mêmes conditions, avec ce que la section 2 vous garantit.
 
 Le domaine de la cession est le suivant :
 

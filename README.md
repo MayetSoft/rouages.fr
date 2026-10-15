@@ -85,6 +85,12 @@ le build échoue.
 
 ## Licence
 
+**Qui porte Rouages.** MayetCo SAS l'édite aujourd'hui. Il sera porté par
+l'association **Forge des communs**, en cours de formation, à qui MayetCo SAS
+transmettra le site et les droits une fois l'association déclarée ; les
+services professionnels (Rouages Pro) resteront assurés par MayetCo SAS, en
+partenariat.
+
 **Code** : [GNU AGPL 3.0 ou ultérieure](LICENSE), © 2026 MayetCo SAS. Qui
 modifie le code et le fait tourner pour d'autres, y compris comme service en
 ligne, doit en publier les modifications. Les contributions sont régies par la
