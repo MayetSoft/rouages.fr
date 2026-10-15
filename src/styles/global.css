@@ -34,7 +34,9 @@
   /* Les espaces naturels : ce qui protège, ce qui inventorie (validées ensemble, avec une texture en plus). */
   --nature-protection: #2f7d4f;
   --nature-inventaire: #b4741f;
-  --patrimoine-mondial: #7a4f9e;
+  --patrimoine-mondial: #eb6834;
+  --ramsar: #2a78d6;
+  --biosphere: #1baf7a;
   --carte-resultat: #0a8aa3;
 
   /* --- Familles de relations ------------------------------------- *
@@ -104,7 +106,9 @@
     --defavorable: #f08a80;
     --nature-protection: #3f9e68;
     --nature-inventaire: #b77a2e;
-    --patrimoine-mondial: #b08ad6;
+    --patrimoine-mondial: #d95926;
+    --ramsar: #3987e5;
+    --biosphere: #199e70;
     --carte-resultat: #2a9fb8;
     --sur-accent: #15171a;
     --barre-budget: #3a9fc8;
@@ -1460,6 +1464,13 @@ a.p-sommaire-lien { text-decoration: none; }
 .espaces-legende { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .8rem; color: var(--encre-douce); margin-top: .3rem; }
 .espaces-cle { display: inline-block; width: .9rem; height: .9rem; border-radius: 2px; margin-right: .35rem; vertical-align: -.12rem; }
 .espaces-cle-protection { background: color-mix(in srgb, var(--nature-protection) 55%, transparent); border: 1px solid var(--nature-protection); }
+.ramsar-site { fill: var(--ramsar); fill-opacity: .45; stroke: var(--ramsar); stroke-width: 1; }
+.biosphere-centrale { fill: var(--biosphere); fill-opacity: .45; stroke: var(--biosphere); stroke-width: 1; }
+.biosphere-zone { stroke: var(--biosphere); stroke-width: 1; }
+.biosphere-hachure { stroke: var(--biosphere); stroke-width: 1.6; }
+.ramsar-cle { background: color-mix(in srgb, var(--ramsar) 45%, transparent); border: 1px solid var(--ramsar); }
+.biosphere-cle-centrale { background: color-mix(in srgb, var(--biosphere) 45%, transparent); border: 1px solid var(--biosphere); }
+.biosphere-cle-zone { border: 1px solid var(--biosphere); background: repeating-linear-gradient(135deg, var(--biosphere) 0 2px, transparent 2px 5px); }
 .mondial-bien { fill: var(--patrimoine-mondial); fill-opacity: .5; stroke: var(--patrimoine-mondial); stroke-width: 1; }
 .mondial-tampon { stroke: var(--patrimoine-mondial); stroke-width: 1; }
 .mondial-hachure { stroke: var(--patrimoine-mondial); stroke-width: 2; }

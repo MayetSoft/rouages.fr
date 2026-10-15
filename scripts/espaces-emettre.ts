@@ -56,7 +56,9 @@ export const NATURES = [
   'Réserve de biosphère (UNESCO)',
   'Bien du patrimoine mondial (UNESCO)',
 ] as const;
-const DESSINEES = new Set([0, 1, 2, 3, 4, 5, 6, 7]);
+// Les protections, Natura 2000 et les ZNIEFF pour la carte des espaces naturels ; Ramsar et la biosphère pour
+// celle de la section internationale.
+const DESSINEES = new Set([0, 1, 2, 3, 4, 5, 6, 7, 10, 11]);
 
 const COUCHES: { couche: string; nature: (p: Proprietes) => number }[] = [
   { couche: 'patrinat_pn:parc_national', nature: (p) => (/c(œ|oe)ur/i.test(p.zone ?? '') ? 0 : 9) },

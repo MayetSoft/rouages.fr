@@ -4757,3 +4757,20 @@ aucun parc, 102 communes touchées par 22 sites Natura 2000, 11
 intercommunalités sur 12 avec un plan climat, et Vichy et Bellerive-sur-Allier
 pour « Les grandes villes d'eaux d'Europe ». Le bilan n'est donné qu'une fois
 pour le Rhône et la Métropole de Lyon, qui se partagent les communes.
+
+### Ramsar et biosphère sur la carte internationale (16 octobre 2026)
+
+La collecte des espaces naturels garde désormais aussi les tracés des sites
+Ramsar et des réserves de biosphère (rangs 10 et 11), et la carte de la
+section internationale les dessine avec le patrimoine mondial : réserve de
+biosphère (zone centrale pleine, zones tampon et de transition hachurées),
+site Ramsar, bien et zone tampon du patrimoine mondial. Elle paraît dès qu'un
+seul de ces périmètres touche la commune — à Arles, la Camargue. Les fichiers
+ont été réécrits à partir des couches de l'INPN collectées le 13 octobre, et
+gardent cette date : un million d'octets de plus en tout.
+
+Trois catégories sur une même carte : la palette a été reprise au validateur.
+Le violet du patrimoine mondial et le bleu de Ramsar étaient indiscernables
+pour un daltonien ; ce sont désormais le bleu (Ramsar), l'orange (patrimoine
+mondial) et le vert d'eau (biosphère), validés en clair et en sombre, chacun
+nommé dans la légende.

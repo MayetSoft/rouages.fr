@@ -30,21 +30,41 @@ interface Props {
   biens: (BienMondial & { id: number; mode: RattachementMondial[1]; elements: string[] })[];
   majMondial: string | null;
   carte: { commune: Anneau[]; traces: { id: number; zone: 'bien' | 'tampon' | 'ensemble'; anneaux: Anneau[] }[] } | null;
+  /** Le contour de la commune, pour cadrer la carte quand seuls Ramsar ou la biosphère la touchent. */
+  contour: Anneau[] | null;
 }
-const { nom, epci, plan, majPlans, designations, biens, majMondial, carte } = Astro.props;
-// La carte : la commune, le bien et sa zone tampon, découpés à ses limites.
+const { nom, epci, plan, majPlans, designations, biens, majMondial, carte, contour } = Astro.props;
+// La carte : la commune, et ce qui la touche — réserve de biosphère, site Ramsar, bien du patrimoine mondial et sa
+// zone tampon —, découpés à ses limites, du plus étendu au plus resserré.
 const W = 480;
 const H = 300;
-const dessin = carte
-  ? (() => {
-      const vue = cadrerSurCommune(carte.commune, W, H);
-      const nomBien = (id: number) => biens.find((b) => b.id === id)?.nom ?? '';
-      return {
-        commune: vue(carte.commune),
-        traces: carte.traces.map((t) => ({ zone: t.zone, nom: nomBien(t.id), d: vue(t.anneaux) })),
-      };
-    })()
-  : null;
+const ZONES_BIOSPHERE: Record<string, string> = { FR63: 'zone centrale', FR64: 'zone tampon', FR65: 'zone de transition' };
+const tracees = designations.filter((z) => (z.rang === 10 || z.rang === 11) && z.anneaux.length > 0);
+const cadreCommune = carte?.commune ?? contour;
+const dessin =
+  cadreCommune && (carte || tracees.length)
+    ? (() => {
+        const vue = cadrerSurCommune(cadreCommune, W, H);
+        const nomBien = (id: number) => biens.find((b) => b.id === id)?.nom ?? '';
+        return {
+          commune: vue(cadreCommune),
+          biosphere: tracees
+            .filter((z) => z.rang === 11)
+            .map((z) => ({ nom: z.nom, zone: ZONES_BIOSPHERE[z.id.slice(0, 4)] ?? 'zone', centrale: z.id.startsWith('FR63'), d: vue(z.anneaux) })),
+          ramsar: tracees.filter((z) => z.rang === 10).map((z) => ({ nom: z.nom, d: vue(z.anneaux) })),
+          traces: (carte?.traces ?? []).map((t) => ({ zone: t.zone, nom: nomBien(t.id), d: vue(t.anneaux) })),
+        };
+      })()
+    : null;
+const nomsCarte = dessin
+  ? [
+      ...new Set([
+        ...dessin.biosphere.map((z) => `${z.nom} (réserve de biosphère, ${z.zone})`),
+        ...dessin.ramsar.map((z) => `${z.nom} (site Ramsar)`),
+        ...dessin.traces.map((t) => `${t.nom}${t.zone === 'tampon' ? ' (zone tampon)' : t.zone === 'ensemble' ? ' (bien ou zone tampon)' : ''}`),
+      ]),
+    ]
+  : [];
 const idCarte = `mondial-${Math.abs([...nom].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7))}`;
 const plier = (s: string) =>
   s
@@ -70,15 +90,26 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
 ---
 {dessin && (
   <figure class="espaces-carte">
-    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Carte de ${nom} et du patrimoine mondial qui la touche : ${[...new Set(dessin.traces.map((t) => `${t.nom}${t.zone === 'tampon' ? ' (zone tampon)' : t.zone === 'ensemble' ? ' (bien ou zone tampon)' : ''}`))].join(', ')}.`}>
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Carte de ${nom} et de ce qui la touche au titre d’engagements internationaux : ${nomsCarte.join(', ')}.`}>
       <defs>
         <clipPath id={`${idCarte}-limite`}><path d={dessin.commune} /></clipPath>
         <pattern id={`${idCarte}-hachures`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <line class="mondial-hachure" x1="0" y1="0" x2="0" y2="7" />
         </pattern>
+        <pattern id={`${idCarte}-biosphere`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">
+          <line class="biosphere-hachure" x1="0" y1="0" x2="0" y2="7" />
+        </pattern>
       </defs>
       <path class="espaces-fond" d={dessin.commune} />
       <g clip-path={`url(#${idCarte}-limite)`}>
+        {dessin.biosphere.map((z) =>
+          z.centrale ? (
+            <path class="biosphere-centrale" d={z.d}><title>{`${z.nom} — réserve de biosphère, ${z.zone}`}</title></path>
+          ) : (
+            <path class="biosphere-zone" d={z.d} fill={`url(#${idCarte}-biosphere)`}><title>{`${z.nom} — réserve de biosphère, ${z.zone}`}</title></path>
+          ),
+        )}
+        {dessin.ramsar.map((z) => <path class="ramsar-site" d={z.d}><title>{`${z.nom} — site Ramsar`}</title></path>)}
         {dessin.traces.map((t) =>
           t.zone !== 'bien' ? (
             <path class="mondial-tampon" d={t.d} fill={`url(#${idCarte}-hachures)`}><title>{`${t.nom} — ${t.zone === 'tampon' ? 'zone tampon' : 'bien ou zone tampon'}`}</title></path>
@@ -90,6 +121,9 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
       <path class="espaces-limite" d={dessin.commune} />
     </svg>
     <figcaption class="espaces-legende">
+      {dessin.biosphere.some((z) => z.centrale) && <span><i class="espaces-cle biosphere-cle-centrale" aria-hidden="true"></i>Réserve de biosphère, zone centrale</span>}
+      {dessin.biosphere.some((z) => !z.centrale) && <span><i class="espaces-cle biosphere-cle-zone" aria-hidden="true"></i>Réserve de biosphère, zone tampon ou de transition</span>}
+      {dessin.ramsar.length > 0 && <span><i class="espaces-cle ramsar-cle" aria-hidden="true"></i>Site Ramsar</span>}
       {dessin.traces.some((t) => t.zone === 'bien') && <span><i class="espaces-cle mondial-cle-bien" aria-hidden="true"></i>Bien inscrit au patrimoine mondial</span>}
       {dessin.traces.some((t) => t.zone === 'tampon') && <span><i class="espaces-cle mondial-cle-tampon" aria-hidden="true"></i>Zone tampon</span>}
       {dessin.traces.some((t) => t.zone === 'ensemble') && <span><i class="espaces-cle mondial-cle-tampon" aria-hidden="true"></i>Bien ou zone tampon, que la couche publiée ne distingue pas</span>}
