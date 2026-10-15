@@ -4677,3 +4677,15 @@ seulement — et le registre des plans climat ne permettent de chercher que
 4 949 communes sont dans un parc naturel régional, 456 dans un parc national,
 12 493 touchées par un site Natura 2000. Au Mayet-de-Montagne : Natura 2000
 (Bois Noirs), pas de parc, le plan climat de Vichy Communauté.
+
+### Le patrimoine mondial sur la carte de la commune (15 octobre 2026)
+
+La section « Ce qui s'applique ici depuis l'international » dessine le bien et
+sa zone tampon, découpés aux limites de la commune, comme la carte des espaces
+naturels — le cadrage est désormais partagé (`cadrerSurCommune`, dans
+`src/modele/carte.ts`). La collecte écrit `dep/XX-mondial.json` : pour chaque
+commune touchée par un périmètre, le tracé réduit à son cadre, simplifié à une
+dizaine de mètres pour un monument et une centaine pour un paysage — 544 Ko
+pour 39 départements. Une commune rattachée par un élément seulement n'a pas
+de carte : l'UNESCO donne un point, pas un périmètre. Couleur propre
+(`--patrimoine-mondial`), redéfinie en mode sombre.

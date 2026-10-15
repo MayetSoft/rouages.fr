@@ -117,6 +117,46 @@ export function espacesNaturels(c: CommuneFiche): EspacesNaturels | null {
   return { zones, commune: ici.anneaux, maj: d.maj };
 }
 
+/**
+ * Le cadrage d'une petite carte sur une commune : une projection équirectangulaire
+ * corrigée de la latitude, une marge de 6 %, le cadre W × H rempli sans
+ * déformer. Rend la fonction qui écrit des anneaux en chemin SVG.
+ */
+export function cadrerSurCommune(commune: Anneau[], W: number, H: number): (a: Anneau[]) => string {
+  const ys = commune.flat().map(([, y]) => y);
+  const k = Math.cos((((Math.min(...ys) + Math.max(...ys)) / 2 / 1e4) * Math.PI) / 180);
+  const proj = ([x, y]: Point): Point => [x * k, -y];
+  const ici = commune.map((r) => r.map(proj));
+  const xs = ici.flat().map(([x]) => x);
+  const yv = ici.flat().map(([, y]) => y);
+  let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...yv), Math.max(...yv)];
+  const m = 0.06 * Math.max(x1 - x0, y1 - y0);
+  [x0, x1, y0, y1] = [x0 - m, x1 + m, y0 - m, y1 + m];
+  if ((x1 - x0) / (y1 - y0) < W / H) {
+    const l = ((y1 - y0) * W) / H;
+    const c = (x0 + x1) / 2;
+    [x0, x1] = [c - l / 2, c + l / 2];
+  } else {
+    const h = ((x1 - x0) * H) / W;
+    const c = (y0 + y1) / 2;
+    [y0, y1] = [c - h / 2, c + h / 2];
+  }
+  const s = W / (x1 - x0);
+  return (a: Anneau[]) =>
+    a.map((r) => 'M' + r.map(proj).map(([x, y]) => `${((x - x0) * s).toFixed(1)} ${((y - y0) * s).toFixed(1)}`).join('L') + 'Z').join('');
+}
+
+type MondialDep = { maj: string; c: Record<string, [number, 'b' | 't', number[][]][]> };
+const mondialDep = parDepartement<MondialDep>('mondial');
+
+/** Les tracés du patrimoine mondial sur la commune, et son contour : de quoi dessiner la carte. */
+export function carteMondiale(c: CommuneFiche): { commune: Anneau[]; traces: { id: number; zone: 'bien' | 'tampon'; anneaux: Anneau[] }[] } | null {
+  const l = mondialDep.get(c.dep)?.c[c.code];
+  const ici = anneauxDe(c.code);
+  if (!l?.length || !ici) return null;
+  return { commune: ici.anneaux, traces: l.map(([id, z, a]) => ({ id, zone: z === 't' ? 'tampon' : 'bien', anneaux: a.map(decoder) })) };
+}
+
 export interface CarteCommunes {
   communes: { code: string; nom: string; groupe: string; anneaux: Anneau[] }[];
   millesime: string;

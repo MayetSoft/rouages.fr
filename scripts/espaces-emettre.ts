@@ -146,7 +146,7 @@ function simplifierLigne(r: Anneau, tol: number): Anneau {
 }
 
 /** Un anneau fermé, coupé au point le plus éloigné du premier pour que la corde ne soit pas nulle. */
-function simplifier(r: Anneau, tol: number): Anneau {
+export function simplifier(r: Anneau, tol: number): Anneau {
   const n = r.length / 2;
   if (n <= 4) return r;
   let k = 1;
@@ -231,7 +231,7 @@ export function distanceAuBord(x: number, y: number, anneaux: Anneau[]): number 
 }
 
 /** Sutherland-Hodgman contre un rectangle : ce qui reste d'un anneau dans le cadre de la commune. */
-function decouper(r: Anneau, [x0, y0, x1, y1]: [number, number, number, number]): Anneau {
+export function decouper(r: Anneau, [x0, y0, x1, y1]: [number, number, number, number]): Anneau {
   let pts = r;
   const bords: [(x: number, y: number) => boolean, (ax: number, ay: number, bx: number, by: number) => [number, number]][] = [
     [(x) => x >= x0, (ax, ay, bx, by) => [x0, ay + ((by - ay) * (x0 - ax)) / (bx - ax)]],
@@ -258,7 +258,7 @@ function decouper(r: Anneau, [x0, y0, x1, y1]: [number, number, number, number])
   return pts;
 }
 
-function encoder(r: Anneau): number[] {
+export function encoder(r: Anneau): number[] {
   const s: number[] = [];
   let px = 0;
   let py = 0;

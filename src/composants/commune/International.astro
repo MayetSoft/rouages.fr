@@ -18,7 +18,7 @@
  * que le registre n'en porte pas.
  */
 import type { DemarchePcaet } from '../../modele/pcaet.ts';
-import type { ZoneNaturelle } from '../../modele/carte.ts';
+import { cadrerSurCommune, type Anneau, type ZoneNaturelle } from '../../modele/carte.ts';
 import { lienUnesco, type BienMondial, type RattachementMondial } from '../../modele/patrimoine-mondial.ts';
 
 interface Props {
@@ -29,8 +29,23 @@ interface Props {
   designations: ZoneNaturelle[];
   biens: (BienMondial & { id: number; mode: RattachementMondial[1]; elements: string[] })[];
   majMondial: string | null;
+  carte: { commune: Anneau[]; traces: { id: number; zone: 'bien' | 'tampon'; anneaux: Anneau[] }[] } | null;
 }
-const { nom, epci, plan, majPlans, designations, biens, majMondial } = Astro.props;
+const { nom, epci, plan, majPlans, designations, biens, majMondial, carte } = Astro.props;
+// La carte : la commune, le bien et sa zone tampon, découpés à ses limites.
+const W = 480;
+const H = 300;
+const dessin = carte
+  ? (() => {
+      const vue = cadrerSurCommune(carte.commune, W, H);
+      const nomBien = (id: number) => biens.find((b) => b.id === id)?.nom ?? '';
+      return {
+        commune: vue(carte.commune),
+        traces: carte.traces.map((t) => ({ zone: t.zone, nom: nomBien(t.id), d: vue(t.anneaux) })),
+      };
+    })()
+  : null;
+const idCarte = `mondial-${Math.abs([...nom].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7))}`;
 const plier = (s: string) =>
   s
     .normalize('NFD')
@@ -53,6 +68,33 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
   12: { id: 'patrimoine-mondial', texte: 'le patrimoine mondial' },
 };
 ---
+{dessin && (
+  <figure class="espaces-carte">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Carte de ${nom} et du patrimoine mondial qui la touche : ${[...new Set(dessin.traces.map((t) => `${t.nom}${t.zone === 'tampon' ? ' (zone tampon)' : ''}`))].join(', ')}.`}>
+      <defs>
+        <clipPath id={`${idCarte}-limite`}><path d={dessin.commune} /></clipPath>
+        <pattern id={`${idCarte}-hachures`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line class="mondial-hachure" x1="0" y1="0" x2="0" y2="7" />
+        </pattern>
+      </defs>
+      <path class="espaces-fond" d={dessin.commune} />
+      <g clip-path={`url(#${idCarte}-limite)`}>
+        {dessin.traces.map((t) =>
+          t.zone === 'tampon' ? (
+            <path class="mondial-tampon" d={t.d} fill={`url(#${idCarte}-hachures)`}><title>{`${t.nom} — zone tampon`}</title></path>
+          ) : (
+            <path class="mondial-bien" d={t.d}><title>{t.nom}</title></path>
+          ),
+        )}
+      </g>
+      <path class="espaces-limite" d={dessin.commune} />
+    </svg>
+    <figcaption class="espaces-legende">
+      {dessin.traces.some((t) => t.zone === 'bien') && <span><i class="espaces-cle mondial-cle-bien" aria-hidden="true"></i>Bien inscrit au patrimoine mondial</span>}
+      {dessin.traces.some((t) => t.zone === 'tampon') && <span><i class="espaces-cle mondial-cle-tampon" aria-hidden="true"></i>Zone tampon</span>}
+    </figcaption>
+  </figure>
+)}
 <ul class="mesure c-international">
   {epci && (
     <li>

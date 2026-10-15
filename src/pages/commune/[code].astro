@@ -95,7 +95,7 @@ import Icone from '../../composants/Icone.astro';
 import CentEuros from '../../composants/CentEuros.astro';
 import Frise, { type Jalon } from '../../composants/commune/Frise.astro';
 import type { NomIcone } from '../../modele/icones.ts';
-import { carteDeSituation, espacesNaturels } from '../../modele/carte.ts';
+import { carteDeSituation, carteMondiale, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
 import International from '../../composants/commune/International.astro';
 import { pcaet } from '../../modele/pcaet.ts';
@@ -1135,6 +1135,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
           designations={designations}
           biens={biensMondiaux}
           majMondial={mondial?.version ?? null}
+          carte={carteMondiale(commune)}
         />
       </section>
     )}
