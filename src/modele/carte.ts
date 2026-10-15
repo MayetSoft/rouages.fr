@@ -81,6 +81,11 @@ type EspacesDep = {
 };
 const espacesDep = parDepartement<EspacesDep>('espaces');
 
+/** Le fichier des espaces naturels d'un département, tel quel : pour les bilans qui comptent par département. */
+export function espacesDuDepartement(dep: string): EspacesDep | null {
+  return espacesDep.get(dep) ?? null;
+}
+
 export interface ZoneNaturelle {
   /** Rang de la nature : 0 à 3 protections, 4 et 5 Natura 2000, 6 et 7 ZNIEFF, 8 et 9 parcs, 10 à 12 désignations internationales (Ramsar, biosphère, patrimoine mondial). */
   rang: number;

@@ -4743,3 +4743,17 @@ le département, la population ; clic : la page de la commune. Le tableau reste
 la vue complète et accessible. La couleur des résultats (`--carte-resultat`)
 a été choisie au validateur de palette, en clair comme en sombre — la couleur
 d'accent du site manquait de saturation pour marquer des points.
+
+### Département et région : ce qui protège et engage leurs communes (16 octobre 2026)
+
+Une section de plus sur la page du département et de la région, faite des
+fichiers que la page de commune lit déjà (`src/modele/bilan-protections.ts`) :
+combien de communes sont dans un parc naturel régional, dans un parc national
+(cœur et aire d'adhésion réunis sous un même nom), touchées par un site Natura
+2000 ; combien d'intercommunalités portent un plan climat au registre de
+l'ADEME ; chaque parc nommé avec ses communes, et chaque bien du patrimoine
+mondial avec les siennes et la façon dont elles y tiennent. Dans l'Allier :
+aucun parc, 102 communes touchées par 22 sites Natura 2000, 11
+intercommunalités sur 12 avec un plan climat, et Vichy et Bellerive-sur-Allier
+pour « Les grandes villes d'eaux d'Europe ». Le bilan n'est donné qu'une fois
+pour le Rhône et la Métropole de Lyon, qui se partagent les communes.

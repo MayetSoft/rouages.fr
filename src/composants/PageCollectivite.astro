@@ -29,6 +29,8 @@ import ElusCollectivite from './ElusCollectivite.astro';
 import { parTitulaire, rapprocher, type Rapprochement } from '../modele/recoupements.ts';
 import Marches from './commune/Marches.astro';
 import { elusDeCollectivite } from '../modele/elus-echelons.ts';
+import { bilanProtections } from '../modele/bilan-protections.ts';
+import BilanProtections from './BilanProtections.astro';
 
 interface Props {
   c: Collectivite;
@@ -96,6 +98,8 @@ const thematiques = carte && deps.length === 1 ? thematiquesDepartement(deps[0],
 const partage = c.code === '69' || c.code === '691';
 const zonages = partage ? null : zonagesGroupe(communes().filter((x) => deps.includes(x.dep)));
 const marches = marchesCollectivite(c);
+// Le Rhône et la Métropole de Lyon se partagent les communes : le bilan n'est donné qu'une fois, sous le Rhône.
+const protections = c.code === '691' ? null : bilanProtections(deps);
 const investissement = c.echelon === 'departement' ? investissementCollectivite('departement', c.code) : null;
 const petiteEnfance = partage || c.code === '67A' ? null : petiteEnfanceCollectivite(c.echelon, c.code);
 
@@ -205,6 +209,12 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
       <section id="zonages">
         <h2 class="badge">Les programmes de l’État et les zonages de ses communes</h2>
         <ZonagesGroupe z={zonages} />
+      </section>
+    )}
+    {protections && (
+      <section id="protections">
+        <h2 class="badge">Ce qui protège et engage ses communes</h2>
+        <BilanProtections b={protections} ou={c.echelon === 'departement' ? 'ce département' : 'cette région'} />
       </section>
     )}
     {petiteEnfance && (
