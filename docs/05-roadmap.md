@@ -4605,9 +4605,9 @@ périmètre.
 
 Le partage à l'identique de la CC BY-SA vaut pour `patrimoine-mondial.json` :
 la validation l'exige comme pour l'ODbL, et /mentions le dit. Restent à
-brancher : Normandie et Provence-Alpes-Côte d'Azur (servies en GML),
-Bourgogne-Franche-Comté et le Bassin minier (en Shapefile), et les régions
-qui ne publient rien. Le registre des plans climat de l'ADEME, oublié des
+brancher : ~~Normandie et Provence-Alpes-Côte d'Azur (servies en GML),
+Bourgogne-Franche-Comté et le Bassin minier (en Shapefile)~~ — fait, voir
+plus bas —, et les régions qui ne publient rien. Le registre des plans climat de l'ADEME, oublié des
 mentions le 13 octobre, y figure désormais.
 
 ### Rouages passe à l'association Forge des communs (décision du 15 octobre 2026)
@@ -4644,3 +4644,21 @@ Ce qui reste à faire, dans l'ordre, et qui relève du mainteneur :
    dans `LICENSE-CONTENU.md`, le README, `package.json`, `/mentions`, la charte
    de contribution et le modèle de demande de fusion, puis retirer le champ
    `transition`.
+
+### Patrimoine mondial : GML et Shapefile (15 octobre 2026)
+
+`scripts/geo-formats.ts` lit, sans bibliothèque, le GML 3.1.1 d'un WFS de
+MapServer (latitude d'abord en EPSG:4326) et le Shapefile en archive zip,
+projeté en Lambert 93 — la conversion vers la longitude et la latitude suit
+la conique conforme de l'IGN, vérifiée sur l'origine (3° E, 46,5° N) et sur
+Notre-Dame de Paris. Sa table attributaire est lue en UTF-8, ou en
+Windows-1252 quand elle n'en est pas.
+
+Trois sources de plus : la DREAL de Normandie (Mont-Saint-Michel, Le Havre,
+les tours de Tatihou et de la Hougue, les plages du Débarquement), celle de
+Bourgogne-Franche-Comté (les salines, les Climats, Fontenay, Vézelay, les
+palafittes du Jura…) et la Mission Bassin Minier (les 109 éléments du bien et
+sa zone tampon). 1 015 communes rattachées : 501 dans un bien, 449 dans une
+zone tampon, 79 par un élément seulement. La Provence-Alpes-Côte d'Azur n'est
+pas branchée : sa couche ne donne que le centre de chaque bien, ce que la
+liste de l'UNESCO dit déjà.
