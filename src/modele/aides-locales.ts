@@ -141,7 +141,7 @@ export function aidesLocales(racine = process.cwd()): AideLocale[] {
 
 let epciDeCommune: Map<string, Set<string>> | undefined;
 /** Les intercommunalités à fiscalité propre de chaque commune. */
-function intercosDe(code: string): Set<string> {
+export function intercosDe(code: string): Set<string> {
   if (!epciDeCommune) {
     epciDeCommune = new Map();
     for (const e of intercommunalites()) {
@@ -249,7 +249,11 @@ export function controlerAidesLocales(registre = aidesLocales(), jour = aujourdh
       if (v !== null && !date.test(v)) err(`${nom} : date AAAA-MM-JJ attendue`);
     }
     if (!a.verifie_le) err('verifie_le manquant');
-    if (a.statut === 'ouverte' && a.fermeture && a.fermeture < jour) err(`dite ouverte, mais fermée depuis le ${a.fermeture}`);
+    // Un avertissement, pas une erreur : le site l'affiche déjà fermée, et une date qui passe ne doit pas casser le build.
+    // La veille du lundi la signale deux mois avant.
+    if (a.statut === 'ouverte' && a.fermeture && a.fermeture < jour) {
+      avertissements.push(`${ou} : dite ouverte, mais fermée depuis le ${a.fermeture} — affichée fermée ; reconduite, ou à passer en « fermee » ?`);
+    }
     if (a.verifie_le && (Date.parse(jour) - Date.parse(a.verifie_le)) / JOUR > VERIFICATION_VALABLE_JOURS) {
       avertissements.push(`${ou} : vérifiée le ${a.verifie_le}, il y a plus d'un an — affichée « à revérifier »`);
     }

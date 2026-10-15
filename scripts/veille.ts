@@ -25,6 +25,7 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { chargerGraphe, RACINE } from '../src/modele/graphe.ts';
 import type { Surveillance } from '../src/modele/schemas.ts';
+import { veillerAides } from './veille-aides.ts';
 
 // Le fetch intégré de Node ne lit la configuration de proxy qu'à son démarrage.
 if (process.env.HTTPS_PROXY && process.env.NODE_USE_ENV_PROXY !== '1') {
@@ -65,6 +66,8 @@ interface Etat {
   constats: Record<string, { empreinte?: string; millesime?: number | string; gravite: Gravite }>;
   /** Identifiants des jeux déjà proposés : on ne les repropose pas indéfiniment. */
   decouvertes_vues?: string[];
+  /** Les textes des aides locales : l'empreinte de chacun, par adresse. */
+  aides_textes?: Record<string, string>;
 }
 
 /**
@@ -654,6 +657,10 @@ for (const c of constats) {
   }
 }
 
+// Les aides locales : leurs textes relus, et les dates qui approchent.
+const aides = await veillerAides(etat.aides_textes ?? {});
+const aidesARegarder = aides.constats.filter((c) => c.gravite !== 'ok');
+
 let decouvertes: Jeu[] = [];
 let ecartes = 0;
 if (process.argv.includes('--decouvrir') && g.decouverte) {
@@ -685,6 +692,12 @@ if (decouvertes.length > 0) {
 if (ecartes > 0) {
   console.log(`${GRIS}   (${ecartes} jeu(x) écarté(s) : d'emprise locale)${RAZ}`);
 }
+console.log(`\nAides locales — ${aides.relus} textes relus`);
+for (const c of aidesARegarder) {
+  console.log(`${symbole[c.gravite]} ${c.nom}`);
+  console.log(`        ${c.message}`);
+  console.log(`        ${GRIS}${c.cle.startsWith('aide:') ? c.aides.join(', ') : c.cle}${RAZ}`);
+}
 
 /* --- le même rapport en markdown, pour l'issue hebdomadaire --- */
 const marque = { ok: '✅', 'a-regarder': '🟡', alerte: '🔴' };
@@ -702,6 +715,16 @@ if (decouvertes.length > 0) {
     md.push(`- \`${d.date}\` [${d.titre}](${d.url}) — ${p}${d.org ? ` · ${d.org}` : ''}`);
   }
   if (ecartes > 0) md.push('', `_${ecartes} jeu(x) écarté(s) : emprise locale._`);
+}
+md.push('', `## Aides locales : ${aides.relus} textes relus`, '');
+if (aidesARegarder.length === 0) md.push('Toutes les citations du registre sont retrouvées dans leurs textes, et aucune date n’approche.');
+else {
+  md.push('| | Texte ou aide | Constat | Aides |', '| --- | --- | --- | --- |');
+  for (const k of aidesARegarder) {
+    const nom = k.cle.startsWith('aide:') ? k.nom : `[${k.nom}](${k.cle})`;
+    md.push(`| ${marque[k.gravite]} | ${nom.replace(/\|/g, '\\|')} | ${k.message.replace(/\|/g, '\\|')} | ${k.aides.map((a) => `\`${a}\``).join(', ')} |`);
+  }
+  md.push('', 'Une citation introuvable : relire le texte, corriger `contenu/aides-locales.yaml` et sa date `verifie_le`.');
 }
 md.push(
   '',
@@ -722,14 +745,15 @@ writeFileSync(
         constats.map((c) => [c.id, { empreinte: c.empreinte, millesime: c.millesime, gravite: c.gravite }]),
       ),
       decouvertes_vues: [...new Set([...(etat.decouvertes_vues ?? []), ...decouvertes.map((d) => d.id)])],
+      aides_textes: Object.fromEntries(Object.entries(aides.empreintes).sort(([a], [b]) => a.localeCompare(b))),
     },
     null,
     2,
   ) + '\n',
 );
 
-const alertes = constats.filter((c) => c.gravite === 'alerte').length;
-const aVoir = constats.filter((c) => c.gravite === 'a-regarder').length + decouvertes.length;
+const alertes = [...constats, ...aidesARegarder].filter((c) => c.gravite === 'alerte').length;
+const aVoir = [...constats, ...aidesARegarder].filter((c) => c.gravite === 'a-regarder').length + decouvertes.length;
 console.log(
   alertes > 0
     ? `\n${ROUGE}${alertes} source(s) en panne.${RAZ}`
