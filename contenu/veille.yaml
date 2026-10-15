@@ -841,6 +841,14 @@ surveillances:
     url: "https://catalogue.sigena.fr/api/data/01fc5e30-d0be-42e7-ad74-644faaffabfa?srs=EPSG:4326"
     lien: od-unesco-nouvelle-aquitaine
 
+  - id: unesco-pays-de-la-loire
+    nom: "DREAL Pays de la Loire — zone tampon du Val de Loire"
+    alimente: "la zone tampon du Val de Loire, de Sully-sur-Loire à Chalonnes"
+    type: disponibilite
+    licence: non-precisee
+    url: "https://catalogue.sigloire.fr/api/data/51034a16-6b22-48b2-af59-dc3601540ef0?srs=EPSG:4326"
+    lien: od-unesco-pays-de-la-loire
+
   - id: unesco-normandie
     nom: "DREAL Normandie — biens du patrimoine mondial et zones tampons"
     alimente: "le périmètre et la zone tampon des biens du patrimoine mondial en Normandie"

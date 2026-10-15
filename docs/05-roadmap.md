@@ -4689,3 +4689,25 @@ dizaine de mètres pour un monument et une centaine pour un paysage — 544 Ko
 pour 39 départements. Une commune rattachée par un élément seulement n'a pas
 de carte : l'UNESCO donne un point, pas un périmètre. Couleur propre
 (`--patrimoine-mondial`), redéfinie en mode sombre.
+
+### Patrimoine mondial : le Val de Loire, et les régions qui ne publient rien (15 octobre 2026)
+
+La DREAL des Pays de la Loire publie la zone tampon du Val de Loire, entière,
+de Sully-sur-Loire à Chalonnes : 154 communes de cinq départements. Ses
+polygones englobent la vallée sans en retrancher le bien (pas de trou, à la
+différence des zones tampons d'Occitanie), et le périmètre du bien, sur le
+même catalogue, ne se télécharge pas (le lien rend une page) ; la Région des
+Pays de la Loire, qui le publiait aussi, a retiré son jeu. La page dit donc
+« dans le périmètre ou dans la zone tampon », et la carte le légende ainsi :
+dire « zone tampon » de Tours, qui est dans le bien, aurait été faux.
+1 168 communes sont désormais rattachées.
+
+Rien n'a été trouvé, le 15 octobre 2026, pour l'Île-de-France (Versailles,
+Fontainebleau, Provins, les rives de la Seine), le Grand Est (Strasbourg,
+Nancy, Reims, la Champagne), le Centre-Val de Loire (Chartres, Bourges ; la
+couche « valeur universelle exceptionnelle » du Val de Loire décrit ses
+attributs, pas son périmètre) ni l'Auvergne-Rhône-Alpes au-delà de Vichy et
+de la Chaîne des Puys (Lyon, Chauvet, les palafittes savoyards) : ni sur
+data.gouv.fr, ni par recherche. Ces biens restent rattachés par leurs
+éléments, d'après la liste de l'UNESCO. Le jeu « Périmètre UNESCO » de la
+Ville du Havre double celui de la DREAL de Normandie et n'est pas repris.

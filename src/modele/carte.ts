@@ -146,15 +146,15 @@ export function cadrerSurCommune(commune: Anneau[], W: number, H: number): (a: A
     a.map((r) => 'M' + r.map(proj).map(([x, y]) => `${((x - x0) * s).toFixed(1)} ${((y - y0) * s).toFixed(1)}`).join('L') + 'Z').join('');
 }
 
-type MondialDep = { maj: string; c: Record<string, [number, 'b' | 't', number[][]][]> };
+type MondialDep = { maj: string; c: Record<string, [number, 'b' | 't' | 'e', number[][]][]> };
 const mondialDep = parDepartement<MondialDep>('mondial');
 
 /** Les tracés du patrimoine mondial sur la commune, et son contour : de quoi dessiner la carte. */
-export function carteMondiale(c: CommuneFiche): { commune: Anneau[]; traces: { id: number; zone: 'bien' | 'tampon'; anneaux: Anneau[] }[] } | null {
+export function carteMondiale(c: CommuneFiche): { commune: Anneau[]; traces: { id: number; zone: 'bien' | 'tampon' | 'ensemble'; anneaux: Anneau[] }[] } | null {
   const l = mondialDep.get(c.dep)?.c[c.code];
   const ici = anneauxDe(c.code);
   if (!l?.length || !ici) return null;
-  return { commune: ici.anneaux, traces: l.map(([id, z, a]) => ({ id, zone: z === 't' ? 'tampon' : 'bien', anneaux: a.map(decoder) })) };
+  return { commune: ici.anneaux, traces: l.map(([id, z, a]) => ({ id, zone: z === 't' ? 'tampon' : z === 'e' ? 'ensemble' : 'bien', anneaux: a.map(decoder) })) };
 }
 
 export interface CarteCommunes {

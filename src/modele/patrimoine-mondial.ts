@@ -14,10 +14,11 @@ export interface BienMondial {
 
 /**
  * Un bien et la commune : son numéro UNESCO ; comment elle y tient — dans le
- * périmètre du bien, dans sa zone tampon, ou par un élément que l'UNESCO y
- * situe — ; les éléments nommés.
+ * périmètre du bien, dans sa zone tampon, dans l'un ou l'autre quand la couche
+ * publiée ne les distingue pas (« ensemble »), ou par un élément que l'UNESCO
+ * y situe — ; les éléments nommés.
  */
-export type RattachementMondial = [number, 'perimetre' | 'tampon' | 'element', string[]];
+export type RattachementMondial = [number, 'perimetre' | 'tampon' | 'ensemble' | 'element', string[]];
 
 export interface PatrimoineMondial {
   maj: string;
