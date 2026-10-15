@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Pour lire les PDF des aides locales et y chercher les citations du registre.
+      - run: sudo apt-get install -y --no-install-recommends poppler-utils
 
       - name: Contrôler les sources et chercher les nouveautés
         id: veille

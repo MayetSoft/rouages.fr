@@ -4431,6 +4431,26 @@ Une réponse favorable de l'ANIL — accord de réutilisation ou export —
 changerait l'échelle : le registre se pré-remplirait, la vérification
 restant la nôtre.
 
+**La veille des textes (15 octobre 2026).** Chaque lundi, la veille des
+sources relit les 79 textes du registre (`scripts/veille-aides.ts`). Elle
+cherche dans chacun les citations qui fondent les montants et les
+conditions, et `pdftotext` lit les PDF. Elle relève trois sortes de
+constats :
+
+- **une alerte** quand une citation est introuvable ou qu'un texte n'est
+  plus en ligne ;
+- **un point à voir** quand un texte a changé sans que ses citations en
+  souffrent ;
+- **les dates** : une aide dont la fin approche, à deux mois, et une
+  vérification qui aura bientôt un an.
+
+La comparaison tolère les glyphes de ligature perdus et les tableaux lus
+colonne par colonne. Elle ne tolère pas un nombre changé :
+`npm run verifier-veille-aides` le garantit sur des cas tirés des vrais
+textes. Une aide dite ouverte après sa date de fin n'arrête plus le build :
+elle est affichée fermée et la veille la signale. Le registre est publié
+dans `/territoires/aides-locales.json`, que suit l'alerte de pro.rouages.fr.
+
 ### La colonne International (12 octobre 2026)
 
 Une colonne à gauche de l'Union européenne, rangée par domaine d'action.
