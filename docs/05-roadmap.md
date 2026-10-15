@@ -4731,3 +4731,15 @@ de la Chaîne des Puys (Lyon, Chauvet, les palafittes savoyards) : ni sur
 data.gouv.fr, ni par recherche. Ces biens restent rattachés par leurs
 éléments, d'après la liste de l'UNESCO. Le jeu « Périmètre UNESCO » de la
 Ville du Havre double celui de la DREAL de Normandie et n'est pas repris.
+
+### Trouver des communes : la carte des résultats (16 octobre 2026)
+
+Au-dessus du tableau, une carte : chaque commune est un point posé à son
+centre (`proximite/centres.json`, déjà publié pour « le plus proche »), et
+celles qui répondent aux critères sont en couleur. Sans département choisi,
+la France métropolitaine ; l'outre-mer se voit en choisissant son
+département, et la légende dit combien de résultats y sont. Survol : le nom,
+le département, la population ; clic : la page de la commune. Le tableau reste
+la vue complète et accessible. La couleur des résultats (`--carte-resultat`)
+a été choisie au validateur de palette, en clair comme en sombre — la couleur
+d'accent du site manquait de saturation pour marquer des points.

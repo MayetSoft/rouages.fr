@@ -13,6 +13,7 @@
  * navigateur ; l'adresse garde la recherche, qui se partage comme un lien.
  */
 import { chargerIndex, type CommuneBreve } from './recherche-commune.ts';
+import { carteDesResultats } from './requeteur-carte.ts';
 
 type Fichier = { r: number[]; n: number[] };
 /** Clé, libellé, unité, millésime, nombre de communes renseignées. */
@@ -285,6 +286,10 @@ export function brancherRequeteur(): void {
     const cadre = el('div', 'rq-cadre');
     cadre.append(table);
     zone.append(telecharger, cadre, plus);
+    // La carte avant le tableau, dès qu'elle est prête — et seulement si la recherche n'a pas changé entre-temps.
+    void carteDesResultats(communes, rangs, dep.value).then((carte) => {
+      if (carte && mien === tour) zone.insertBefore(carte, cadre);
+    });
     montrer();
   };
 

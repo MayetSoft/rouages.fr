@@ -35,6 +35,7 @@
   --nature-protection: #2f7d4f;
   --nature-inventaire: #b4741f;
   --patrimoine-mondial: #7a4f9e;
+  --carte-resultat: #0a8aa3;
 
   /* --- Familles de relations ------------------------------------- *
    * Trois teintes seulement portent l'identité : c'est le seul triplet
@@ -104,6 +105,7 @@
     --nature-protection: #3f9e68;
     --nature-inventaire: #b77a2e;
     --patrimoine-mondial: #b08ad6;
+    --carte-resultat: #2a9fb8;
     --sur-accent: #15171a;
     --barre-budget: #3a9fc8;
     --budget-vote: #d95926;
@@ -1278,6 +1280,12 @@ a.p-sommaire-lien { text-decoration: none; }
 .rq-critere input[type='number'] { width: 4.5rem; }
 .rq-critere-nom { font-weight: 600; }
 .rq-csv { display: inline-block; margin: 0 0 .6rem; }
+.rq-carte { margin: 0 0 1rem; max-width: 40rem; }
+.rq-carte-cadre { position: relative; }
+.rq-carte canvas { display: block; width: 100%; height: auto; background: var(--fond-doux); border-radius: var(--rayon); }
+.rq-bulle { position: absolute; transform: translate(-50%, calc(-100% - 10px)); background: var(--fond-carte, var(--fond)); color: var(--encre); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .2rem .5rem; font-size: .8rem; white-space: nowrap; pointer-events: none; box-shadow: 0 2px 6px rgb(0 0 0 / .12); }
+.rq-carte-legende { font-size: .8rem; color: var(--encre-douce); margin-top: .35rem; }
+.rq-carte-cle { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; background: var(--carte-resultat); margin-right: .35rem; vertical-align: -.05rem; }
 .rq-cadre { overflow-x: auto; }
 .rq-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 .rq-table th, .rq-table td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--trait); vertical-align: top; }
