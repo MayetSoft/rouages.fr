@@ -47,6 +47,12 @@ jobs:
         run: npx astro build
         env:
           ROUAGES_DEPS: '03,29,55,75'
+      # axe-core sur quelques pages du build, en clair et en sombre : trois défauts
+      # relevés à la main le 16 octobre 2026 avaient survécu à toutes les relectures.
+      - name: Navigateur pour l'audit d'accessibilité
+        run: npx playwright install --with-deps chromium
+      - name: Accessibilité (axe-core)
+        run: npm run verifier-accessibilite
 
   fraicheur:
     # Contrôle non bloquant sur les branches : une fiche périmée n'empêche pas

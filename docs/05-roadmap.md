@@ -5001,3 +5001,16 @@ arrivera avec la prochaine réingestion ; d'ici là, la page dit qu'il n'est
 pas encore publié. La page de la commune y renvoie quand l'index de son
 département existe.
 
+
+### L'audit d'accessibilité en CI (16 octobre 2026)
+
+`npm run verifier-accessibilite` sert `dist/` sur un port local et passe
+axe-core (4.10.2, Playwright 1.56.1, versions figées) sur huit pages — l'accueil,
+Le Mayet-de-Montagne et Paris toutes sections ouvertes, l'Allier, le
+requêteur avec des résultats, la recherche dans les délibérations, les
+mentions, signaler —, en clair et en sombre ; une violation fait échouer la
+CI. Essayé dans les deux sens : aucune violation sur le build de la CI, et
+une image sans texte de remplacement glissée dans la page du Mayet fait
+échouer le contrôle. La CI installe Chromium (`npx playwright install
+--with-deps chromium`) ; la réingestion ne refait pas cet audit, les données
+ne changeant pas le balisage.
