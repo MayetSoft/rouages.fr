@@ -4951,3 +4951,22 @@ figure dans les intitulés d'au moins trois collectivités, ce qui rend
 introuvables un nom de famille ou un lieu-dit sans priver la recherche de
 « cantine » ou d'« assainissement ». Le cadrage a fait trouver le défaut du
 filtre des civilités corrigé ci-dessus.
+
+### La réingestion du 16 octobre sur GitHub, et Melodi de nouveau (16 octobre 2026)
+
+Lancée sur les machines de GitHub : réussie en 2 h 38 d'ingestion, contrôle
+de la CI passé, PR ouverte (20 933 fichiers). Cinq collectes en échec, leurs
+fichiers d'avant restés en place : Kohesio et le BRGM, qui refusent les
+machines de GitHub (attendu), et les trois tables du recensement servies par
+Melodi — « unzip a rendu 9 », comme le 30 septembre.
+
+La cause, cette fois : à un client qui accepte la compression — Node
+l'accepte par défaut —, Melodi renvoie l'archive recompressée à la volée,
+sans longueur annoncée ; la comparaison à la longueur ne pouvait donc rien
+voir, et le délai de trois minutes de `obstine`, qui court jusqu'à la fin du
+corps, coupait ces gros fichiers lents en route. Le téléchargeur demande
+désormais le fichier tel quel (`accept-encoding: identity`, et Melodi
+annonce alors ses 25 725 242 octets), laisse une demi-heure au
+téléchargement, et ne garde une archive zip que si sa fin de répertoire
+central est là. Même garde dans le téléchargeur des collectes lancées
+seules. La limite du workflow passe de trois à quatre heures.
