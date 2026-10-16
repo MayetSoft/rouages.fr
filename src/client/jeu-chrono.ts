@@ -9,7 +9,7 @@
  */
 import { aplatir } from './recherche-commune.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, feter, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, feter, jourDuJeu, memoire, type Case, type Resultat } from './jeux-commun.ts';
 import { carte, perimetre, type Communes } from './jeux-communes.ts';
 
 const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['interco'] };
@@ -31,7 +31,7 @@ export function brancherChrono(): void {
   if (!$('carte')) return;
   brancherChampLieu('jh-lieu', LIEUX);
   const garde = memoire('rouages-jeu-chrono');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const saisie = $<HTMLInputElement>('saisie');
   let lieu: Lieu | null = null;
   let codes: string[] = [];

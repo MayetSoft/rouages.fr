@@ -6,7 +6,7 @@
 import { aplatir } from './recherche-commune.ts';
 import { boutonPhoto } from './photo-commune.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, progression, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDuJeu, memoire, progression, type Case, type Resultat } from './jeux-commun.ts';
 import { carte, direction, distance, nombre, perimetre, type Communes, type CommuneJeu } from './jeux-communes.ts';
 
 const ESSAIS = 6;
@@ -55,7 +55,7 @@ export function brancherJeuMystere(): void {
   if (!$('jx')) return;
   brancherChampLieu('jx-lieu', LIEUX);
   const garde = memoire('rouages-jeu-mystere');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const jouer = $<HTMLButtonElement>('jx-jouer');
   const saisie = $<HTMLInputElement>('jx-saisie');
 

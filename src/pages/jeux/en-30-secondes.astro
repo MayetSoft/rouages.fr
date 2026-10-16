@@ -61,14 +61,14 @@ const mayet = !filtre?.length || filtre.includes('03');
 
 <script>
   import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type OptionsLieu } from '../../client/jeux-lieu.ts';
-  import { brancherPartage, jourDeParis, memoire, type Case, type Resultat } from '../../client/jeux-commun.ts';
+  import { brancherPartage, jourDuJeu, memoire, type Case, type Resultat } from '../../client/jeux-commun.ts';
   import { chargerRecit, ecranFin, lire } from '../../client/recit-commune.ts';
 
   const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
   const $ = (id: string) => document.getElementById(`j3-${id}`) as HTMLElement;
   brancherChampLieu('j3-lieu', LIEUX);
   const garde = memoire('rouages-jeu-30s');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   let res: Resultat | null = null;
   const remplir = brancherPartage('j3', () => res, 'trente');
   const message = (t: string) => (($('message').textContent = t), ($('message').hidden = !t));

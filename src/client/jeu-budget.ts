@@ -6,7 +6,7 @@
  */
 import { aLieu } from '../modele/signalement.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, feter, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, feter, jourDuJeu, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 const POSTES: [string, string, string][] = [
   ['👷', 'Payer les agents', 'cantine, entretien, secrétariat de mairie…'],
@@ -24,7 +24,7 @@ export function brancherBudget(): void {
   if (!$('postes')) return;
   brancherChampLieu('jb-lieu', LIEUX);
   const garde = memoire('rouages-jeu-budget');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   let lieu: Lieu | null = null;
   let vrais: number[] = [];
   let annee: number | null = null;

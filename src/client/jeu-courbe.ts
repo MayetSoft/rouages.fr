@@ -12,7 +12,7 @@
  */
 import { aLieu } from '../modele/signalement.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, feter, jourDeParis, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, feter, jourDuJeu, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
 type Fichier = { annees: number[]; c: Record<string, [(number | null)[], number, number]> };
@@ -51,7 +51,7 @@ export function brancherCourbe(): void {
   if (!$('zone')) return;
   brancherChampLieu('jc-lieu', LIEUX);
   const garde = memoire('rouages-jeu-courbe');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let lieu: Lieu | null = null;
   let f: Fichier | null = null;

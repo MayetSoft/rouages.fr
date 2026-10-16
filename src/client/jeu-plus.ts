@@ -3,7 +3,7 @@
  * périmètre, chacun sur un indicateur que leurs deux pages renseignent.
  */
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, progression, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDuJeu, memoire, progression, type Resultat } from './jeux-commun.ts';
 import { carte, nombre, perimetre, type Communes } from './jeux-communes.ts';
 
 type Duel = { a: string; b: string; i: number; choix?: 1 | -1 };
@@ -19,7 +19,7 @@ export function brancherJeuPlus(): void {
   if (!$('jm')) return;
   brancherChampLieu('jm-lieu', LIEUX);
   const garde = memoire('rouages-jeu-plus');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const jouer = $<HTMLButtonElement>('jm-jouer');
 
   let lieu: Lieu | null = null;

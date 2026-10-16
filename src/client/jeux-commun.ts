@@ -17,6 +17,72 @@ export function jourDeParis(d = new Date()): string {
   return new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 }
 
+/**
+ * Un duel : le lien qu'un joueur envoie après sa partie. Il porte le jeu, le
+ * jour et le lieu de la partie — de quoi la rejouer à l'identique, puisque
+ * le tirage du défi du jour ne dépend que d'eux —, le score et les cases à
+ * battre, et un pseudo s'il en a donné un. Rien d'autre, et rien ne part
+ * vers un serveur : tout est dans l'adresse.
+ */
+export interface Duel {
+  /** Le jeu. */
+  g: string;
+  /** Le jour de la partie, AAAA-MM-JJ. */
+  j: string;
+  /** Le lieu, tel que le partage l'affiche. */
+  l: string | null;
+  /** Le score à battre, et ses cases. */
+  s: string;
+  c: Case[];
+  /** Le pseudo, facultatif. */
+  n?: string;
+}
+
+const versBase64 = (t: string) => btoa(String.fromCharCode(...new TextEncoder().encode(t))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const deBase64 = (t: string) => new TextDecoder().decode(Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
+
+export function lienDuel(adresse: string, d: Duel): string {
+  const u = new URL(adresse);
+  u.searchParams.set('duel', versBase64(JSON.stringify(d)));
+  return u.toString();
+}
+
+/** Le duel de l'adresse de la page, s'il y en a un et qu'il se lit. */
+export function duelDeLAdresse(): Duel | null {
+  try {
+    const brut = new URLSearchParams(location.search).get('duel');
+    if (!brut) return null;
+    const d = JSON.parse(deBase64(brut)) as Duel;
+    if (typeof d.g !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d.j) || typeof d.s !== 'string' || !Array.isArray(d.c)) return null;
+    d.n = typeof d.n === 'string' ? d.n.slice(0, 24) : undefined;
+    d.c = d.c.filter((c) => c in EMOJI).slice(0, 40);
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Le jour de la partie : celui du duel reçu, pour rejouer exactement la même,
+ * sinon aujourd'hui. Un duel ne fait pas jouer l'avenir.
+ */
+export function jourDuJeu(): string {
+  const d = duelDeLAdresse();
+  const aujourdhui = jourDeParis();
+  return d && d.j <= aujourdhui ? d.j : aujourdhui;
+}
+
+/** Les jeux qui comptent des essais : moins, c'est mieux, et « X » veut dire perdu. */
+const EN_ESSAIS = new Set(['La commune mystère', 'La silhouette']);
+
+/** Un score en nombre, plus grand c'est mieux : de quoi désigner le gagnant d'un duel. */
+export function valeurScore(jeu: string, score: string): number {
+  const m = /^(X|\d+(?:[.,]\d+)?)(?:\/(\d+))?/.exec(score.trim());
+  if (!m) return 0;
+  if (EN_ESSAIS.has(jeu)) return m[1] === 'X' ? 0 : Number(m[2] ?? 6) + 1 - Number(m[1]);
+  return m[1] === 'X' ? 0 : Number(m[1].replace(',', '.'));
+}
+
 /** « 10 octobre 2026 ». */
 export function dateLongue(jour: string): string {
   return new Date(`${jour}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -66,6 +132,15 @@ export function memoire(prefixe: string) {
   };
 }
 
+/** Le pseudo des duels, retenu dans le navigateur d'une partie à l'autre. */
+function pseudoRetenu(): string {
+  try {
+    return JSON.parse(localStorage.getItem('rouages-jeux:pseudo') ?? '""') as string;
+  } catch {
+    return '';
+  }
+}
+
 /** Les jeux, par la clé de leur historique : leur nom et leur adresse. */
 export const JEUX = {
   qui: { nom: 'Qui décide ?', adresse: '/jeux/qui-decide' },
@@ -100,6 +175,8 @@ export function historique(jeu: CleJeu): Record<string, Trace> {
 }
 
 export function noterResultat(jeu: CleJeu, r: Resultat): void {
+  // Une partie rejouée pour un duel, d'un autre jour, ne compte pas dans la série.
+  if (r.jour !== jourDeParis()) return;
   const tout = HISTORIQUE.lire<Record<string, Record<string, Trace>>>('historique') ?? {};
   const h = { ...(tout[jeu] ?? {}), [r.jour]: { lieu: r.lieu, cases: r.cases, score: r.score } };
   tout[jeu] = Object.fromEntries(Object.entries(h).sort((a, b) => b[0].localeCompare(a[0])).slice(0, GARDER));
@@ -218,6 +295,43 @@ export async function imageDuResultat(r: Resultat): Promise<Blob> {
 export function brancherPartage(prefixe: string, resultat: () => Resultat | null, jeu: CleJeu): (r: Resultat) => void {
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(`${prefixe}-${id}`) as T;
   const note = $('note-image');
+  const duel = duelDeLAdresse();
+  const nomDuJeu = JEUX[jeu].nom;
+  // Un duel reçu : un bandeau en haut du jeu, pour savoir ce qu'il y a à battre.
+  if (duel && duel.g === jeu) {
+    const jeuEl = document.getElementById(prefixe);
+    const bandeau = Object.assign(document.createElement('p'), { className: 'pj-defi' });
+    bandeau.append(
+      Object.assign(document.createElement('strong'), { textContent: `⚔️ ${duel.n ? `${duel.n} vous défie` : 'Vous êtes défié'}` }),
+      ` : ${duel.c.map((c) => EMOJI[c]).join('')} ${duel.s}${duel.l ? `, ${duel.l}` : ''}, défi du ${dateLongue(duel.j)}. La même partie vous attend — à vous de jouer.`,
+    );
+    jeuEl?.prepend(bandeau);
+  }
+  const defier = document.getElementById(`${prefixe}-defier`);
+  const noteDuel = document.getElementById(`${prefixe}-note-duel`);
+  defier?.addEventListener('click', async () => {
+    const r = resultat();
+    if (!r) return;
+    const pseudo = (document.getElementById(`${prefixe}-pseudo`) as HTMLInputElement | null)?.value.trim().slice(0, 24) || undefined;
+    try {
+      localStorage.setItem('rouages-jeux:pseudo', JSON.stringify(pseudo ?? ''));
+    } catch {
+      /* rien */
+    }
+    const url = lienDuel(r.adresse, { g: jeu, j: r.jour, l: r.lieu, s: r.score, c: r.cases, n: pseudo });
+    const texte = `${r.cases.map((c) => EMOJI[c]).join('')} ${r.score} au défi « ${nomDuJeu} »${r.lieu ? `, ${r.lieu}` : ''}. Tu fais mieux ? La même partie t’attend :`;
+    try {
+      if (typeof navigator.share === 'function') await navigator.share({ text: texte, url });
+      else {
+        await navigator.clipboard.writeText(`${texte}\n${url}`);
+        if (noteDuel) (noteDuel.textContent = 'Lien du duel copié : envoyez-le à qui vous voulez.'), (noteDuel.hidden = false);
+      }
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError' && noteDuel) (noteDuel.textContent = url), (noteDuel.hidden = false);
+    }
+  });
+  const pseudoEl = document.getElementById(`${prefixe}-pseudo`) as HTMLInputElement | null;
+  if (pseudoEl) pseudoEl.value = pseudoRetenu();
   $('natif').hidden = typeof navigator.share !== 'function';
   $('natif').addEventListener('click', () => {
     const r = resultat();
@@ -287,7 +401,35 @@ export function brancherPartage(prefixe: string, resultat: () => Resultat | null
     minuterie = window.setInterval(rebours, 30_000);
   };
 
+  /** La comparaison d'un duel reçu : deux barres qui avancent, et le verdict. */
+  const comparer = (r: Resultat) => {
+    const boite = document.getElementById(`${prefixe}-duel`);
+    if (!boite) return;
+    boite.hidden = true;
+    if (!duel || duel.g !== jeu || duel.j !== r.jour || (duel.l ?? null) !== (r.lieu ?? null)) return;
+    const moi = valeurScore(r.jeu, r.score);
+    const lui = valeurScore(r.jeu, duel.s);
+    const max = Math.max(moi, lui, 1);
+    const qui = duel.n || 'Votre adversaire';
+    boite.innerHTML = '';
+    const couloir = (nom: string, score: string, cases: Case[], v: number, gagnant: boolean) => {
+      const l = Object.assign(document.createElement('div'), { className: `pj-couloir${gagnant ? ' pj-couloir--gagnant' : ''}` });
+      const barre = Object.assign(document.createElement('span'), { className: 'pj-couloir-barre' });
+      barre.style.setProperty('--part', `${(v / max) * 100}%`);
+      l.append(Object.assign(document.createElement('span'), { className: 'pj-couloir-nom', textContent: `${gagnant ? '🏆 ' : ''}${nom}` }), barre, Object.assign(document.createElement('span'), { className: 'pj-couloir-score', textContent: `${cases.map((c) => EMOJI[c]).join('')} ${score}` }));
+      return l;
+    };
+    boite.append(
+      Object.assign(document.createElement('p'), { className: 'pj-titre', textContent: '⚔️ Le duel' }),
+      couloir('Vous', r.score, r.cases, moi, moi > lui),
+      couloir(qui, duel.s, duel.c, lui, lui > moi),
+      Object.assign(document.createElement('p'), { className: 'pj-verdict', textContent: moi > lui ? `Vous gagnez le duel contre ${duel.n || 'votre adversaire'} !` : moi < lui ? `${qui} gagne ce duel. Revanche demain ?` : 'Égalité parfaite.' }),
+    );
+    boite.hidden = false;
+  };
+
   return (r: Resultat) => {
+    comparer(r);
     suivre(r);
     if (reussie(r.cases)) feter();
     const texte = texteDuResultat(r);

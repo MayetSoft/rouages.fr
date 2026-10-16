@@ -7,7 +7,7 @@
  */
 import { aplatir } from './recherche-commune.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, progression, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDuJeu, memoire, progression, type Resultat } from './jeux-commun.ts';
 import { carte, direction, distance, nombre, perimetre, type Communes } from './jeux-communes.ts';
 import { caseDistance } from './jeu-mystere.ts';
 
@@ -22,7 +22,7 @@ export function brancherSilhouette(): void {
   if (!$('forme')) return;
   brancherChampLieu('js-lieu', LIEUX);
   const garde = memoire('rouages-jeu-silhouette');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const saisie = $<HTMLInputElement>('saisie');
   let lieu: Lieu | null = null;
   let codes: string[] = [];
