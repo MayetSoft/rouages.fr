@@ -206,7 +206,7 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
     {marches && (
       <section id="marches" class="p-marches">
         <h2 class="badge">Ses marchés publics</h2>
-        <Marches liste={marches.liste} depuis={marches.depuis} fenetre={marches.fenetre} procedures={marches.procedures} rapprochements={rapprochementsMarches} />
+        <Marches liste={marches.liste} depuis={marches.depuis} fenetre={marches.fenetre} procedures={marches.procedures} rapprochements={rapprochementsMarches} departement={deps.length === 1 ? deps[0] : undefined} />
       </section>
     )}
     {zonages && (
