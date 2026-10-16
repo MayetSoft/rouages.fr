@@ -71,7 +71,7 @@ export function brancherLocatif(): void {
     const loyer = champ('loyer');
     const travaux = champ('travaux');
     const fa = prix ? fraisAchat(prix, dep, false) : null;
-    // L'estimation d'un dossier ordinaire, formalités et débours compris, plutôt que le minimum du tarif.
+    // L'estimation d'un dossier ordinaire, formalités et débours compris : le milieu de la fourchette du simulateur des frais.
     const frais = fa ? (fa.usuel?.total ?? fa.total) : 0;
     const cout = prix + frais + travaux;
 
