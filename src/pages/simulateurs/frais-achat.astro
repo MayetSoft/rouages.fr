@@ -58,11 +58,12 @@ const recettes = { annee: dmto.annees[i], d: Object.fromEntries(Object.entries(d
       <section id="sf-resultat" class="jeu-carte" hidden aria-live="polite">
         <span class="chiffre" id="sf-total"></span>
         <span class="chiffre-legende" id="sf-part"></span>
+        <p class="jeu-contexte" id="sf-minimum"></p>
         <h2 class="sf-titre-postes">Qui touche quoi</h2>
         <ul class="sf-postes" id="sf-postes"></ul>
         <p class="jeu-contexte" id="sf-hausse"></p>
         <p class="jeu-contexte" id="sf-recettes-texte"></p>
-        <p class="jeu-contexte">Non comptés&nbsp;: les débours, que le notaire avance pour vous et qui sont remboursés à leur coût, les pièces qu’il obtient lui-même selon le dossier, et une éventuelle remise sur ses émoluments — le détail du notaire dit ce qu’elles peuvent valoir. Un prêt immobilier fait l’objet d’un autre acte, avec ses propres frais.</p>
+        <p class="jeu-contexte">Non comptés&nbsp;: une éventuelle remise sur les émoluments — le détail du notaire dit ce qu’elle peut valoir —, et des frais de négociation si le notaire a trouvé l’acheteur et que le mandat de vente les met à sa charge&nbsp;: leur montant est libre, et l’offre d’achat doit le dire. Un prêt immobilier fait l’objet d’un autre acte, avec ses propres frais.</p>
       </section>
       <script type="application/json" id="sf-recettes" set:html={JSON.stringify(recettes)} />
       <noscript><p class="mesure">Le simulateur a besoin de JavaScript.</p></noscript>
@@ -75,6 +76,7 @@ const recettes = { annee: dmto.annees[i], d: Object.fromEntries(Object.entries(d
       <li><strong>L’État</strong>&nbsp;: 2,37 % de la part du département pour les frais d’assiette et de recouvrement, et la contribution de sécurité immobilière — 0,10 % du prix, 15&nbsp;€ au moins.</li>
       <li><strong>Le notaire, pour l’acte</strong>&nbsp;: l’émolument de la vente, proportionnel au prix et le même chez tous les notaires — 3,870 % jusqu’à 6&nbsp;500&nbsp;€, 1,596 % de 6&nbsp;500 à 17&nbsp;000&nbsp;€, 1,064 % de 17&nbsp;000 à 60&nbsp;000&nbsp;€, 0,799 % au-delà (code de commerce, art. A444-91). C’est ce qui rémunère la rédaction de l’acte.</li>
       <li><strong>Le notaire, pour les formalités</strong>&nbsp;: des montants fixes, formalité par formalité (art. A444-169 à A444-173-1). Pour toute vente de logement&nbsp;: le forfait des formalités d’un acte publié — état civil, cadastre, copies, états hypothécaires —, 339,58&nbsp;€&nbsp;; la réquisition de publication, 18,87&nbsp;€&nbsp;; la vérification du casier judiciaire de l’acquéreur, que la loi impose pour tout logement, 37,73&nbsp;€&nbsp;; la transmission au Conseil supérieur du notariat, 15,31&nbsp;€. En copropriété, 30,18&nbsp;€ de plus&nbsp;; pour purger un droit de préemption, 37,73&nbsp;€ par notification. Tous hors taxes.</li>
+      <li><strong>Un dossier ordinaire</strong>&nbsp;: le tarif fixe le prix de chaque formalité, pas leur nombre. Le notaire en ajoute selon le dossier — 56,60&nbsp;€ hors taxes par pièce qu’il obtient, comme une note d’urbanisme ou un état hypothécaire, 15,09&nbsp;€ par diagnostic qu’il vérifie —, et il avance des débours. Dans l’ancien, le chiffre affiché les compte comme le simulateur des notaires de France&nbsp;: 850&nbsp;€ hors taxes de formalités et 400&nbsp;€ de débours, quel que soit le prix. Le minimum fixé par le tarif est dit à côté.</li>
       <li><strong>Le plafond et la remise</strong>&nbsp;: acte et formalités réunis ne peuvent dépasser 10 % du prix, ni descendre sous 90&nbsp;€ (art. R444-9). Le notaire peut consentir une remise de 20 % au plus sur l’émolument calculé au-delà de 100&nbsp;000&nbsp;€ (art. A444-174), la même pour tous ses clients. Sur le tout, 20 % de TVA.</li>
       <li><strong>La publication</strong>&nbsp;: la vente est publiée au fichier immobilier, au service de la publicité foncière. L’État y perçoit la contribution de sécurité immobilière&nbsp;; le notaire, la réquisition de publication. Les droits du département portent d’ailleurs le nom de «&nbsp;taxe de publicité foncière&nbsp;».</li>
       <li><strong>Dans le neuf</strong>&nbsp;: 0,70 % pour le département, 2,14 % de frais d’assiette sur cette part, pas de taxe communale&nbsp;; la TVA est dans le prix.</li>

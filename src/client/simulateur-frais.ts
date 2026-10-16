@@ -4,7 +4,7 @@
  * le notaire. Voir `src/modele/bareme-achat.ts`.
  */
 import { aLieu } from '../modele/signalement.ts';
-import { ECRETEMENT, FIN_HAUSSE, FORMALITES_PAR_PIECE, fraisAchat, REMISE, SEUIL_COMMUNE, type Frais } from '../modele/bareme-achat.ts';
+import { ECRETEMENT, FIN_HAUSSE, FORFAITS_NOTAIRES, FORMALITES_PAR_PIECE, fraisAchat, REMISE, SEUIL_COMMUNE, type Frais } from '../modele/bareme-achat.ts';
 import { brancherRapport, restaurerSaisie } from './rapport.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 
@@ -49,7 +49,14 @@ function detailNotaire(f: Frais, prix: number): HTMLDetailsElement {
   if (f.ecretement > 0) ligne(`Écrêtement : le total ne peut dépasser ${ECRETEMENT.taux} % du prix, ni descendre sous ${ECRETEMENT.minimum} €`, `− ${centimes(f.ecretement)}`);
   ligne('Émoluments hors taxes', centimes(f.emolumentsHt), 'sf-detail-total');
   ligne('TVA à 20 %, versée à l’État', centimes(f.tva));
-  ligne('Émoluments TTC', centimes(f.emolumentsHt + f.tva), 'sf-detail-total');
+  ligne('Émoluments TTC, au minimum du tarif', centimes(f.emolumentsHt + f.tva), 'sf-detail-total');
+  if (f.usuel) {
+    tete('Un dossier ordinaire — l’estimation');
+    ligne('Formalités au forfait du simulateur des notaires de France, à la place des seules obligatoires', centimes(f.usuel.formalitesHt));
+    ligne('Émoluments hors taxes', centimes(f.usuel.emolumentsHt));
+    ligne('TVA à 20 %', centimes(f.usuel.tva));
+    ligne('Émoluments TTC, estimés', centimes(f.usuel.emolumentsHt + f.usuel.tva), 'sf-detail-total');
+  }
   const notes = document.createElement('ul');
   const note = (t: string) => notes.append(Object.assign(document.createElement('li'), { textContent: t }));
   note(
@@ -60,7 +67,7 @@ function detailNotaire(f: Frais, prix: number): HTMLDetailsElement {
       ? `Remise possible : le notaire peut réduire jusqu’à ${REMISE.taux} % l’émolument calculé sur la part du prix au-delà de ${euros(REMISE.seuil)}, soit ${centimes(f.remiseMaximale)} HT au plus ici. Il l’applique au même taux à tous ses clients : demandez-lui s’il la pratique.`
       : `Remise : le tarif n’en prévoit que sur la part du prix au-delà de ${euros(REMISE.seuil)} ; à ${euros(prix)}, il n’y en a pas.`,
   );
-  note('Les débours — les sommes que le notaire avance pour vous à d’autres, comme un service de l’État ou un syndic — sont remboursés à leur coût et ne figurent pas ici, à part la contribution de sécurité immobilière, comptée avec l’État.');
+  note('Les débours — les sommes que le notaire avance pour vous à d’autres, comme un service de l’État ou un syndic — sont remboursés à leur coût : l’estimation en compte 400 €, le forfait des notaires de France. La contribution de sécurité immobilière est comptée avec l’État.');
   details.append(resume, table, notes);
   return details;
 }
@@ -91,8 +98,16 @@ export function brancherFrais(): void {
     const f = prix > 0 ? fraisAchat(prix, dep, primo, neuf, { copro: coche('copro'), preemption: coche('preemption') }) : null;
     $('sf-resultat').hidden = !f;
     if (!f || !lieu) return;
-    $('sf-total').textContent = euros(f.total);
-    $('sf-part').textContent = `${pc((f.total / prix) * 100)} du prix, dont ${euros(f.departement + f.commune + f.etatAssiette + f.csi)} d’impôts et ${euros(f.emolumentsHt + f.tva)} pour le notaire, TVA comprise`;
+    const u = f.usuel;
+    const impots = f.departement + f.commune + f.etatAssiette + f.csi;
+    const total = u?.total ?? f.total;
+    $('sf-total').textContent = u ? `environ ${euros(Math.round(u.total / 10) * 10)}` : euros(f.total);
+    $('sf-part').textContent = u
+      ? `${pc((u.total / prix) * 100)} du prix, dont ${euros(impots)} d’impôts, ${euros(u.emolumentsHt + u.tva)} pour le notaire, TVA comprise, et ${euros(u.debours)} de débours`
+      : `${pc((f.total / prix) * 100)} du prix, dont ${euros(impots)} d’impôts et ${euros(f.emolumentsHt + f.tva)} pour le notaire, TVA comprise`;
+    $('sf-minimum').textContent = u
+      ? `Le minimum fixé par le tarif est de ${euros(f.total)} : les impôts, l’acte et les seules formalités que toute vente exige. Un dossier ordinaire en demande davantage — pièces d’urbanisme, état hypothécaire, diagnostics —, et le notaire avance des débours. L’estimation les compte comme le simulateur des notaires de France : ${euros(FORFAITS_NOTAIRES.formalitesHt)} hors taxes de formalités et ${euros(FORFAITS_NOTAIRES.debours)} de débours. Seul le décompte du notaire fait foi.`
+      : 'Dans le neuf, le simulateur ne compte que le minimum fixé par le tarif : les formalités et les débours d’un dossier s’y ajoutent.';
 
     const recoitCommune = habitants !== null && habitants > SEUIL_COMMUNE;
     const postes = [
@@ -110,18 +125,21 @@ export function brancherFrais(): void {
       {
         qui: 'Le notaire',
         icone: 'deliberations',
-        montant: f.emolumentsHt,
-        detail: `au tarif réglementé, hors taxes : ${euros(f.acte)} pour la rédaction de l’acte, ${euros(f.formalitesHt)} pour les formalités${f.ecretement > 0 ? `, écrêtés de ${euros(f.ecretement)}` : ''}`,
+        montant: u?.emolumentsHt ?? f.emolumentsHt,
+        detail: u
+          ? `au tarif réglementé, hors taxes : ${euros(f.acte)} pour la rédaction de l’acte, ${euros(u.formalitesHt)} de formalités estimées — ${euros(f.formalitesHt)} au minimum${u.emolumentsHt < f.acte + u.formalitesHt ? ', écrêtés à 10 % du prix' : ''}`
+          : `au tarif réglementé, hors taxes : ${euros(f.acte)} pour la rédaction de l’acte, ${euros(f.formalitesHt)} pour les formalités${f.ecretement > 0 ? `, écrêtés de ${euros(f.ecretement)}` : ''}`,
         lien: null,
         detailNotaire: true,
       },
-      { qui: 'La TVA sur les émoluments', icone: 'argent', montant: f.tva, detail: '20 % des émoluments, pour l’État', lien: null },
+      { qui: 'La TVA sur les émoluments', icone: 'argent', montant: u?.tva ?? f.tva, detail: '20 % des émoluments, pour l’État', lien: null },
+      { qui: 'Les débours, estimés', icone: 'argent', montant: u?.debours ?? 0, detail: 'les sommes que le notaire avance pour vous — cadastre, urbanisme, état hypothécaire — et qui lui sont remboursées à leur coût : le forfait des notaires de France', lien: null },
     ].filter((p) => p.montant > 0);
     const ul = $('sf-postes');
     ul.innerHTML = '';
     for (const p of postes) {
       const li = document.createElement('li');
-      li.style.setProperty('--part', String((p.montant / f.total) * 100));
+      li.style.setProperty('--part', String((p.montant / total) * 100));
       const tete = document.createElement('div');
       tete.className = 'sf-tete';
       const nom = p.lien ? Object.assign(document.createElement('a'), { href: p.lien, textContent: p.qui }) : Object.assign(document.createElement('span'), { textContent: p.qui });
