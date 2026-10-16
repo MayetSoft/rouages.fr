@@ -4915,6 +4915,6 @@ chaque commune restant un lien ; la première case d'en-tête du tableau des
 diagnostics énergétiques était vide. Plus aucune violation sur les pages de
 commune, de département, du requêteur, d'accueil et des mentions. Au
 clavier : le lien d'évitement vient en premier, le focus est visible
-partout, les onglets suivent les flèches, Début et Fin. Reste : la carte des
+partout, les onglets suivent les flèches, Début et Fin. La carte des
 communes d'un département fait passer le clavier par chaque commune (317
-dans l'Allier) — un lien pour la sauter serait le prochain pas.
+dans l'Allier) : un lien « Passer la carte », visible au focus, la saute.

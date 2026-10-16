@@ -175,6 +175,8 @@ h1, .titre-voix { font-family: var(--titre); font-weight: 640; letter-spacing: -
   background: var(--accent); color: var(--sur-accent); border-radius: var(--rayon);
 }
 .evitement:focus { top: .5rem; }
+.cc-sauter { position: absolute; left: -999px; }
+.cc-sauter:focus { position: static; display: inline-block; margin-bottom: .4rem; }
 
 .visuellement-cache {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
