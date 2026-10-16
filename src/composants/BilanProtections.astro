@@ -13,10 +13,8 @@ interface Props {
   ou: string;
   /** Les mêmes comptes pour la région (d'un département) et pour la France entière. */
   comparaison?: { ici: PartsProtections; region: PartsProtections | null; france: PartsProtections } | null;
-  /** « Ce département », « Cette région » : l'en-tête de la première colonne. */
-  titre?: string;
 }
-const { b, ou, titre = 'Ici' } = Astro.props;
+const { b, ou } = Astro.props;
 // Une part calculée sur une seule commune — Paris — ne situe rien.
 const comparaison = (Astro.props.comparaison?.ici.total ?? 0) > 1 ? Astro.props.comparaison! : null;
 const part = (x: number, total: number) => (total ? `${(Math.round((1000 * x) / total) / 10).toLocaleString('fr-FR')} %` : '—');
@@ -52,11 +50,11 @@ const date = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') :
 {comparaison && (
   <div class="rq-cadre">
     <table class="rq-table bp-comparaison">
-      <caption>{`Part des communes, ${comparaison.region ? 'ici, dans la région et' : 'ici et'} dans la France entière`}</caption>
+      <caption>{`Part des communes de ${ou}${comparaison.region ? ', de sa région' : ''} et de la France entière`}</caption>
       <thead>
         <tr>
           <th scope="col">Communes…</th>
-          <th scope="col" class="rq-nombre">{titre}</th>
+          <th scope="col" class="rq-nombre">Ici</th>
           {comparaison.region && <th scope="col" class="rq-nombre">Sa région</th>}
           <th scope="col" class="rq-nombre">France entière</th>
         </tr>
