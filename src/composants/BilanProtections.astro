@@ -4,15 +4,27 @@
  * parcs, Natura 2000, le patrimoine mondial, les plans climat. Un bilan des
  * fichiers que la page de commune lit déjà (`src/modele/bilan-protections.ts`).
  */
-import type { BilanProtections } from '../modele/bilan-protections.ts';
+import type { BilanProtections, PartsProtections } from '../modele/bilan-protections.ts';
 import { lienUnesco } from '../modele/patrimoine-mondial.ts';
 
 interface Props {
   b: BilanProtections;
   /** « le département », « la région » : pour les phrases. */
   ou: string;
+  /** Les mêmes comptes pour la région (d'un département) et pour la France entière. */
+  comparaison?: { ici: PartsProtections; region: PartsProtections | null; france: PartsProtections } | null;
 }
 const { b, ou } = Astro.props;
+// Une part calculée sur une seule commune — Paris — ne situe rien.
+const comparaison = (Astro.props.comparaison?.ici.total ?? 0) > 1 ? Astro.props.comparaison! : null;
+const part = (x: number, total: number) => (total ? `${(Math.round((1000 * x) / total) / 10).toLocaleString('fr-FR')} %` : '—');
+const LIGNES: [keyof PartsProtections, string][] = [
+  ['pnr', 'Dans un parc naturel régional'],
+  ['parcNational', 'Dans un parc national (cœur ou aire d’adhésion)'],
+  ['natura2000', 'Touchées par un site Natura 2000'],
+  ['mondial', 'Rattachées à un bien du patrimoine mondial'],
+  ['plan', 'Couvertes par le plan climat de leur intercommunalité'],
+];
 const n = (x: number) => x.toLocaleString('fr-FR');
 const pluriel = (x: number, mot: string) => `${n(x)} ${mot}${x > 1 ? 's' : ''}`;
 const pc = (x: number) => `${Math.round((100 * x) / b.total)} %`;
@@ -34,6 +46,38 @@ const date = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') :
     {` portent un plan climat-air-énergie au registre de l’ADEME, pour ${pluriel(b.plans.communesCouvertes, 'commune')} de ${ou}`}
   </li>
 </ul>
+
+{comparaison && (
+  <div class="rq-cadre">
+    <table class="rq-table bp-comparaison">
+      <caption>{`Part des communes de ${ou}${comparaison.region ? ', de sa région' : ''} et de la France entière`}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Communes…</th>
+          <th scope="col" class="rq-nombre">Ici</th>
+          {comparaison.region && <th scope="col" class="rq-nombre">Sa région</th>}
+          <th scope="col" class="rq-nombre">France entière</th>
+        </tr>
+      </thead>
+      <tbody>
+        {LIGNES.map(([k, libelle]) => (
+          <tr>
+            <th scope="row">{libelle}</th>
+            <td class="rq-nombre">{part(comparaison.ici[k], comparaison.ici.total)}</td>
+            {comparaison.region && <td class="rq-nombre">{part(comparaison.region[k], comparaison.region.total)}</td>}
+            <td class="rq-nombre">{part(comparaison.france[k], comparaison.france.total)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+{comparaison && (
+  <p class="p-source-territoire">
+    {`Sur ${pluriel(comparaison.ici.total, 'commune')} ici${comparaison.region ? `, ${n(comparaison.region.total)} dans la région` : ''} et ${n(comparaison.france.total)} en France, outre-mer compris. ` +
+      'Mêmes fichiers et mêmes règles que plus haut. Le patrimoine mondial se compare mal d’une région à l’autre : là où la région ne publie pas les périmètres de ses biens, seules les communes de leurs éléments sont rattachées.'}
+  </p>
+)}
 
 {[
   ['Parcs naturels régionaux', b.pnr],

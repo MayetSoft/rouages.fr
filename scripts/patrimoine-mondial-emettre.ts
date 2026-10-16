@@ -19,7 +19,8 @@
  *
  * Une commune est retenue par un périmètre comme par les espaces naturels :
  * un point de sa grille à plus de 50 m de sa limite tombe dedans, ou trois
- * sommets du périmètre, ou, pour un petit périmètre, son centre.
+ * sommets du périmètre, ou, pour un petit périmètre, son centre s'il est lui
+ * aussi à plus de 50 m de la limite.
  *
  * Écrit `public/territoires/patrimoine-mondial.json`, que seul le build lit,
  * et pour la carte de la commune, `dep/XX-mondial.json` : le tracé du bien
@@ -48,7 +49,7 @@ type Lecture = { unesco: number | null; nom: string | null; zone: 'bien' | 'tamp
 interface Perimetre {
   id: string;
   producteur: string;
-  licence: 'licence-ouverte-2.0' | 'non-precisee';
+  licence: 'licence-ouverte-2.0' | 'odbl' | 'non-precisee';
   url: string;
   /** GeoJSON en WGS 84 par défaut ; GML 3.1.1 d'un WFS (latitude d'abord) ; Shapefile en Lambert 93, dans une archive zip. */
   format?: 'geojson' | 'gml' | 'shp';
@@ -172,7 +173,39 @@ export const PERIMETRES: Perimetre[] = [
     url: 'https://ids.craig.fr/wxs/public/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=public:VVA_2021_ZONE_TAMPON_UNESCO&outputFormat=application/json&srsName=EPSG:4326',
     lire: () => ({ unesco: 1613, nom: null, zone: 'tampon', element: null }),
   },
+  {
+    // La Ville de Paris annexe à son PLU le bien (« PB ») et la zone tampon (« ZT ») de chaque bien parisien :
+    // les rives de la Seine, deux éléments de l'œuvre de Le Corbusier, la tour Saint-Jacques des Chemins de
+    // Saint-Jacques-de-Compostelle. La couche ne nomme le bien qu'en capitales, d'où la table.
+    id: 'paris',
+    producteur: 'Ville de Paris',
+    licence: 'odbl',
+    url: 'https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/plu-annexes-biens-inscrits-au-patrimoine-mondial/exports/geojson',
+    lire: (p) => {
+      const nom = texte(p.nom).toUpperCase();
+      const [unesco, el] = PARIS[nom] ?? [null, null];
+      const zone = texte(p.type) === 'ZT' ? 'tampon' : 'bien';
+      return { unesco, nom: null, zone, element: zone === 'bien' ? el : null };
+    },
+  },
+  {
+    // L'Eurométropole publie trois contours : le plan de sauvegarde, son extension, et le bien « Strasbourg,
+    // Grande-Île et Neustadt » (185 ha, l'étendue que l'UNESCO lui donne depuis 2017). Pas de zone tampon.
+    id: 'strasbourg',
+    producteur: 'Eurométropole de Strasbourg',
+    licence: 'licence-ouverte-2.0',
+    url: 'https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/contours_psmv_unesco/exports/geojson',
+    lire: (p) => ({ unesco: /unesco/i.test(texte(p.libelle)) ? 495 : null, nom: null, zone: 'bien', element: null }),
+  },
 ];
+
+/** Les biens de la couche parisienne, par leur nom en capitales : le numéro UNESCO et l'élément. */
+const PARIS: Record<string, [number, string | null]> = {
+  'RIVES DE LA SEINE': [600, null],
+  'OEUVRE DE LE CORBUSIER - MAISON LA ROCHE ET JEANNERET': [1321, 'Maisons La Roche et Jeanneret'],
+  'OEUVRE DE LE CORBUSIER - IMMEUBLE LOCATIF A LA PORTE MOLITOR': [1321, 'Immeuble locatif à la Porte Molitor'],
+  'TOUR SAINT-JACQUES': [868, 'Tour Saint-Jacques'],
+};
 
 /** Un nom comparable : sans accents, sans ponctuation, sans les petits mots. */
 const plier = (s: string) =>
@@ -326,6 +359,10 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
       const cadre = cadreDe(zone);
       const cx = (cadre[0] + cadre[2]) / 2;
       const cy = (cadre[1] + cadre[3]) / 2;
+      // Le centre d'un petit périmètre ne compte que s'il est à plus de 50 m de la limite : en deçà, la
+      // précision des contours ne dit pas de quel côté tombe le monument (l'immeuble Molitor, à Paris, est
+      // posé sur la limite de Boulogne-Billancourt). La liste de l'UNESCO le situe alors seule.
+      const auCentre = candidates([cx, cy, cx, cy]).find((k) => dedans(cx, cy, communes.get(k)!) && distanceAuBord(cx, cy, communes.get(k)!) > MARGE);
       for (const code of candidates(cadre)) {
         const anneaux = communes.get(code)!;
         const k = cadres.get(code)!;
@@ -339,7 +376,7 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
         if (!touche) {
           let sommets = 0;
           for (const r of zone) for (let i = 0; i < r.length && sommets < 3; i += 2) if (dedans(r[i], r[i + 1], anneaux) && distanceAuBord(r[i], r[i + 1], anneaux) > MARGE) sommets++;
-          touche = sommets >= 3 || dedans(cx, cy, anneaux);
+          touche = sommets >= 3 || code === auCentre;
         }
         if (touche) {
           rattacher(code, id, mode, lu.element);

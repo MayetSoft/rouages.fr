@@ -4732,6 +4732,37 @@ data.gouv.fr, ni par recherche. Ces biens restent rattachés par leurs
 éléments, d'après la liste de l'UNESCO. Le jeu « Périmètre UNESCO » de la
 Ville du Havre double celui de la DREAL de Normandie et n'est pas repris.
 
+### Patrimoine mondial : Paris et Strasbourg (16 octobre 2026)
+
+Deuxième recherche, catalogue par catalogue : data.gouv.fr, la
+Géoplateforme (sa couche « Bien du patrimoine mondial » est celle de l'INPN,
+naturels seulement), le catalogue fédéré d'Opendatasoft, DataGrandEst, le
+WFS de la Métropole de Lyon. Deux couches s'ajoutent :
+
+- **la Ville de Paris** annexe à son PLU le bien et la zone tampon de chaque
+  bien parisien — les rives de la Seine, deux éléments de l'œuvre de Le
+  Corbusier, la tour Saint-Jacques des Chemins de Saint-Jacques —, sous
+  ODbL : `dep/75-mondial.json` et les tracés qui en dérivent sont rediffusés
+  sous la même licence ;
+- **l'Eurométropole de Strasbourg** publie le contour du bien « Grande-Île et
+  Neustadt » (185 ha, l'étendue que l'UNESCO lui donne depuis 2017), sans sa
+  zone tampon.
+
+La règle du centre d'un petit périmètre a été resserrée : il doit être à plus
+de 50 m de la limite de la commune. L'immeuble Molitor, au 24 rue
+Nungesser-et-Coli à Paris, est posé sur la limite de Boulogne-Billancourt, et
+les contours des communes le mettaient côté Boulogne. À cette distance, on ne
+tranche plus : la liste de l'UNESCO situe seule le monument, et la zone
+tampon dit le reste. Quatre éléments de l'Occitanie, de la Dordogne et du
+Pas-de-Calais, des ponts surtout, ne sont plus rattachés par leur périmètre.
+
+Restent sans couche : Versailles, Fontainebleau et Provins (la DRIEAT ne
+publie rien), Reims, Nancy et la Champagne (la Grande Région ne donne que des
+points, l'atlas éolien de la DREAL Grand Est a disparu), Chartres et Bourges,
+le site historique de Lyon, Chauvet, les palafittes. Le jeu « Patrimoine
+mondial de l'UNESCO » de la Région des Pays de la Loire, qui couvrait aussi
+le Centre-Val de Loire, rend toujours une erreur 404.
+
 ### Trouver des communes : la carte des résultats (16 octobre 2026)
 
 Au-dessus du tableau, une carte : chaque commune est un point posé à son
@@ -4774,3 +4805,39 @@ Le violet du patrimoine mondial et le bleu de Ramsar étaient indiscernables
 pour un daltonien ; ce sont désormais le bleu (Ramsar), l'orange (patrimoine
 mondial) et le vert d'eau (biosphère), validés en clair et en sombre, chacun
 nommé dans la légende.
+
+### Trouver des communes : trier, copier le lien (16 octobre 2026)
+
+Chaque en-tête du tableau est un bouton : un clic trie par la colonne — un
+nombre du plus grand au plus petit, un nom de A à Z —, un second inverse le
+sens, et l'en-tête le dit (`aria-sort`). À égalité, la plus peuplée d'abord ;
+une valeur non publiée va en fin de liste, quel que soit le sens. Le tri
+s'écrit dans l'adresse (`tri=3d`) quand il n'est pas celui d'origine, et le
+fichier CSV suit l'ordre affiché. Un bouton copie le lien de la recherche ;
+si le navigateur refuse, il affiche l'adresse à copier.
+
+### Département et région : se situer parmi les autres (16 octobre 2026)
+
+Sous les chiffres du bilan des protections, un tableau : la part des communes
+dans un parc naturel régional, dans un parc national, touchées par Natura
+2000, rattachées au patrimoine mondial, couvertes par un plan climat — ici,
+dans la région (pour un département) et dans la France entière, outre-mer
+compris. Mêmes fichiers et mêmes règles que le bilan, comptés une fois par
+département pendant le build. L'Allier : aucun parc quand sa région en a
+20,8 % et la France 14,2 % ; 32,2 % de communes Natura 2000 pour 45,1 % en
+Auvergne-Rhône-Alpes ; 99,1 % sous un plan climat pour 58,8 % et 44,7 %. La
+page dit que le patrimoine mondial se compare mal, faute de périmètres
+publiés partout. Paris, une commune, n'a pas de comparaison.
+
+
+### Le runner auto-hébergé : relu avant la mise en place (16 octobre 2026)
+
+Relecture de `docs/08-runner-auto-heberge.md`, de l'image Docker et du
+workflow avant que le runner ne soit installé. Deux contrôles ajoutés à la
+CI depuis — les lecteurs géographiques, la veille des aides — manquaient à
+la réingestion, dans le workflow comme dans `docker compose run ingestion` :
+une réingestion pouvait ouvrir une PR que la CI aurait refusée. Le réglage
+d'approbation est désormais nommé (« Require approval for all external
+contributors »), avec la raison : une PR venue d'un fork apporte ses propres
+workflows. `npm run valider` refuse un workflow autre que la réingestion qui
+viserait le runner, et une réingestion déclenchée autrement qu'à la main.

@@ -15,7 +15,7 @@ import { ATTENTE_EDITEUR } from '../src/modele/schemas.ts';
 import { nommeUnePersonne } from '../src/modele/civilites.ts';
 import { aidesDeCommune, aidesLocales, controlerAidesLocales } from '../src/modele/aides-locales.ts';
 import { controlerJeuxClasse } from '../src/modele/jeux-classe.ts';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 
 const args = new Set(process.argv.slice(2));
 const verifierLiens = args.has('--liens');
@@ -416,6 +416,31 @@ if (!g.editeur) {
 /* ------------------------------------------------------------------ *
  * Rapport
  * ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ *
+ * Le runner auto-hébergé
+ * ------------------------------------------------------------------ */
+
+// Le dépôt est public : un workflow lancé par une pull request qui viserait le runner y ferait exécuter le
+// code d'un inconnu. Seule la réingestion, déclenchée à la main, peut le viser (docs/08-runner-auto-heberge.md,
+// « La sécurité »). Le contrôle ne remplace pas l'approbation des workflows venus d'un fork : il empêche
+// qu'on ouvre la porte par mégarde.
+if (existsSync('.github/workflows')) {
+  for (const f of readdirSync('.github/workflows').filter((n) => /\.ya?ml$/.test(n))) {
+    const code = readFileSync(`.github/workflows/${f}`, 'utf8')
+      .split('\n')
+      .filter((l) => !/^\s*#/.test(l))
+      .join('\n');
+    const vise = /self-hosted|[\s"',[]rouages[\s"',\]]/.test(code);
+    if (vise && f !== 'reingerer.yml') erreurs.push(`.github/workflows/${f} : vise le runner auto-hébergé, que seule la réingestion manuelle peut viser`);
+    if (f === 'reingerer.yml') {
+      const on = /^on:\s*\n((?:[ \t]+.*\n|[ \t]*\n)*)/m.exec(code)?.[1] ?? '';
+      const declencheurs = [...on.matchAll(/^ {2}([a-z_]+):/gm)].map((m) => m[1]);
+      if (declencheurs.join(',') !== 'workflow_dispatch')
+        erreurs.push(`.github/workflows/reingerer.yml : déclenché par ${declencheurs.join(', ') || '?'} — il vise le runner auto-hébergé, il ne doit l'être qu'à la main (workflow_dispatch)`);
+    }
+  }
+}
 
 const total =
   g.acteurs.size +

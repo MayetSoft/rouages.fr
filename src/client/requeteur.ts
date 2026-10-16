@@ -99,6 +99,8 @@ export function brancherRequeteur(): void {
   let ip: IndexProximite | null = null;
   const criteres: Critere[] = [];
   let tour = 0;
+  /** La colonne triée — 0 la commune, 1 le département, 2 la population, puis les critères — et le sens. */
+  let tri: { col: number; desc: boolean } = { col: 2, desc: true };
   const indicateur = (cle: string) => (cle.startsWith('i') ? ip?.indicateurs?.find(([k]) => k === cle.slice(1)) : undefined);
   const libelle = (cle: string) => {
     if (!ip) return cle;
@@ -137,6 +139,8 @@ export function brancherRequeteur(): void {
           ? `${c.cle}:${c.mode === 'au-plus' ? 'max' : 'min'}${c.n}`
           : `${c.cle}:${c.mode === 'aucun' ? 0 : c.n}`;
     if (criteres.length) p.set('c', criteres.map(morceau).join(','));
+    // Le tri n'est écrit que s'il n'est pas celui d'origine : `tri=0a`, la commune de A à Z ; `tri=3d`, le premier critère décroissant.
+    if (tri.col !== 2 || !tri.desc) p.set('tri', `${tri.col}${tri.desc ? 'd' : 'a'}`);
     history.replaceState(null, '', p.size ? `?${p}` : location.pathname);
   };
 
@@ -239,27 +243,98 @@ export function brancherRequeteur(): void {
       }
       rangs.push(r);
     });
-    rangs.sort((a, b) => communes[b].population - communes[a].population);
+    if (tri.col > 2 + criteres.length) tri = { col: 2, desc: true };
+    /** La clé de tri d'une commune : le texte pour les deux premières colonnes, un nombre ensuite ; une valeur absente va en fin de liste. */
+    const cle = (r: number): string | number | undefined => {
+      if (tri.col === 0) return communes[r].nom;
+      if (tri.col === 1) return communes[r].depNom;
+      if (tri.col === 2) return communes[r].population;
+      const k = tri.col - 3;
+      const x = comptes[k].get(r);
+      return criteres[k].cle.startsWith('i') ? x : (x ?? 0);
+    };
+    const trier = () =>
+      rangs.sort((a, b) => {
+        const [x, y] = [cle(a), cle(b)];
+        if (x === undefined || y === undefined) return x === y ? 0 : x === undefined ? 1 : -1;
+        const d = typeof x === 'string' ? x.localeCompare(y as string, 'fr') : x - (y as number);
+        // À égalité, la plus peuplée d'abord : l'ordre reste stable d'un tri à l'autre.
+        return (tri.desc ? -d : d) || communes[b].population - communes[a].population;
+      });
+    trier();
 
     zone.textContent = '';
     if (lienCsv) URL.revokeObjectURL(lienCsv);
     lienCsv = null;
-    etat.textContent =
-      `${rangs.length.toLocaleString('fr-FR')} commune${rangs.length > 1 ? 's répondent' : ' répond'} à ces critères, sur ${communes.length.toLocaleString('fr-FR')} en France` +
-      (rangs.length > 1 ? ' — de la plus peuplée à la moins peuplée.' : '.');
+    const titres = ['Commune', 'Département', 'Population', ...criteres.map((c) => libelle(c.cle))];
+    const ordre = () =>
+      tri.col === 2
+        ? tri.desc
+          ? 'de la plus peuplée à la moins peuplée'
+          : 'de la moins peuplée à la plus peuplée'
+        : `par ${tri.col === 0 ? 'nom' : tri.col === 1 ? 'département' : `« ${titres[tri.col]} »`}, ${tri.col < 2 ? (tri.desc ? 'de Z à A' : 'de A à Z') : tri.desc ? 'en ordre décroissant' : 'en ordre croissant'}`;
+    const dire = () => {
+      etat.textContent =
+        `${rangs.length.toLocaleString('fr-FR')} commune${rangs.length > 1 ? 's répondent' : ' répond'} à ces critères, sur ${communes.length.toLocaleString('fr-FR')} en France` +
+        (rangs.length > 1 ? ` — ${ordre()}.` : '.');
+    };
+    dire();
     if (!rangs.length) return;
-    lienCsv = csv(communes, comptes, rangs);
+    const outils = el('p', 'rq-outils');
     const telecharger = el('a', 'rq-csv', 'Télécharger la liste (CSV)');
-    telecharger.href = lienCsv;
     telecharger.download = 'communes-rouages.csv';
+    const majCsv = () => {
+      if (lienCsv) URL.revokeObjectURL(lienCsv);
+      lienCsv = csv(communes, comptes, rangs);
+      telecharger.href = lienCsv;
+    };
+    majCsv();
+    // L'adresse garde déjà la recherche : le bouton la copie, et dit si le navigateur l'a refusé.
+    const copier = el('button', 'rq-copier', 'Copier le lien de cette recherche');
+    copier.type = 'button';
+    const retour = el('span', 'rq-copie');
+    retour.setAttribute('role', 'status');
+    copier.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        retour.textContent = 'Lien copié.';
+      } catch {
+        retour.textContent = `Copiez l’adresse de la page : ${location.href}`;
+      }
+    });
+    outils.append(telecharger, copier, retour);
     const table = el('table', 'rq-table');
     const thead = el('thead');
     const tr = el('tr');
-    ['Commune', 'Département', 'Population', ...criteres.map((c) => libelle(c.cle))].forEach((t, k) => {
-      const th = el('th', k >= 2 ? 'rq-nombre' : '', t);
+    const entetes: HTMLTableCellElement[] = [];
+    const marquer = () =>
+      entetes.forEach((th, k) => {
+        if (k === tri.col) th.setAttribute('aria-sort', tri.desc ? 'descending' : 'ascending');
+        else th.removeAttribute('aria-sort');
+      });
+    titres.forEach((t, k) => {
+      const th = el('th', k >= 2 ? 'rq-nombre' : '');
       th.scope = 'col';
+      // Un bouton par en-tête : un clic trie par la colonne, un second inverse le sens.
+      const b = el('button', 'rq-trier', t);
+      b.type = 'button';
+      b.addEventListener('click', () => {
+        // Un nombre se lit d'abord du plus grand au plus petit, un nom de A à Z.
+        tri = tri.col === k ? { col: k, desc: !tri.desc } : { col: k, desc: k >= 2 };
+        trier();
+        marquer();
+        dire();
+        majCsv();
+        ecrireAdresse();
+        tbody.textContent = '';
+        montres = 0;
+        montrer();
+      });
+      th.append(b);
+      entetes.push(th);
       tr.append(th);
     });
+    marquer();
     thead.append(tr);
     const tbody = el('tbody');
     let montres = 0;
@@ -285,7 +360,7 @@ export function brancherRequeteur(): void {
     table.append(thead, tbody);
     const cadre = el('div', 'rq-cadre');
     cadre.append(table);
-    zone.append(telecharger, cadre, plus);
+    zone.append(outils, cadre, plus);
     // La carte avant le tableau, dès qu'elle est prête — et seulement si la recherche n'a pas changé entre-temps.
     void carteDesResultats(communes, rangs, dep.value).then((carte) => {
       if (carte && mien === tour) zone.insertBefore(carte, cadre);
@@ -346,6 +421,8 @@ export function brancherRequeteur(): void {
     pmin.value = p.get('pmin') ?? '';
     pmax.value = p.get('pmax') ?? '';
     if (p.get('dep') && [...dep.options].some((o) => o.value === p.get('dep'))) dep.value = p.get('dep')!;
+    const t = /^(\d+)([ad])$/.exec(p.get('tri') ?? '');
+    if (t) tri = { col: Number(t[1]), desc: t[2] === 'd' };
     for (const morceau of (p.get('c') ?? '').split(',').filter(Boolean)) {
       const [cle, n = ''] = morceau.split(':');
       if (!valide(cle) || criteres.some((c) => c.cle === cle)) continue;

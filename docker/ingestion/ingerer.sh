@@ -21,6 +21,8 @@ npm run valider
 npm run verifier-recherche
 npm run verifier-journal
 npm run verifier-rattachement
+npm run verifier-geo
+npm run verifier-veille-aides
 npm run verifier-reseau
 npm run verifier-types
 ROUAGES_DEPS='03,29,55,75' npx astro build

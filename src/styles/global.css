@@ -1283,7 +1283,16 @@ a.p-sommaire-lien { text-decoration: none; }
 .rq-critere { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .rq-critere input[type='number'] { width: 4.5rem; }
 .rq-critere-nom { font-weight: 600; }
-.rq-csv { display: inline-block; margin: 0 0 .6rem; }
+.rq-outils { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0 0 .6rem; }
+.rq-csv { display: inline-block; }
+.rq-copier { font: inherit; font-size: .9rem; padding: .2rem .6rem; border: 1px solid var(--trait); border-radius: 4px; background: var(--fond); color: var(--encre); cursor: pointer; }
+.rq-copier:hover { border-color: var(--encre-douce); }
+.rq-copie { font-size: .85rem; color: var(--encre-douce); overflow-wrap: anywhere; }
+.rq-trier { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+.rq-trier:hover { text-decoration: underline; }
+.rq-table th[aria-sort] { color: var(--encre); }
+.rq-table th[aria-sort="descending"] .rq-trier::after { content: " ▼"; font-size: .7em; }
+.rq-table th[aria-sort="ascending"] .rq-trier::after { content: " ▲"; font-size: .7em; }
 .rq-carte { margin: 0 0 1rem; max-width: 40rem; }
 .rq-carte-cadre { position: relative; }
 .rq-carte canvas { display: block; width: 100%; height: auto; background: var(--fond-doux); border-radius: var(--rayon); }
@@ -1291,6 +1300,15 @@ a.p-sommaire-lien { text-decoration: none; }
 .rq-carte-legende { font-size: .8rem; color: var(--encre-douce); margin-top: .35rem; }
 .rq-carte-cle { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; background: var(--carte-resultat); margin-right: .35rem; vertical-align: -.05rem; }
 .rq-cadre { overflow-x: auto; }
+.bp-comparaison { margin: .8rem 0 .4rem; }
+.bp-comparaison caption { text-align: left; font-size: .85rem; color: var(--encre-douce); padding-bottom: .3rem; }
+.bp-comparaison tbody th { font-weight: 400; color: var(--encre); font-size: .9rem; }
+@media (max-width: 520px) {
+  .bp-comparaison { font-size: .8rem; }
+  .bp-comparaison th, .bp-comparaison td { padding: .3rem .3rem; }
+  .bp-comparaison tbody th { font-size: .8rem; }
+  .bp-comparaison thead th { white-space: normal; }
+}
 .rq-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 .rq-table th, .rq-table td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--trait); vertical-align: top; }
 .rq-table th { font-size: .8rem; color: var(--encre-douce); font-weight: 600; }
