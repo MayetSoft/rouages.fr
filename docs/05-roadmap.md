@@ -4829,3 +4829,15 @@ Auvergne-Rhône-Alpes ; 99,1 % sous un plan climat pour 58,8 % et 44,7 %. La
 page dit que le patrimoine mondial se compare mal, faute de périmètres
 publiés partout. Paris, une commune, n'a pas de comparaison.
 
+
+### Le runner auto-hébergé : relu avant la mise en place (16 octobre 2026)
+
+Relecture de `docs/08-runner-auto-heberge.md`, de l'image Docker et du
+workflow avant que le runner ne soit installé. Deux contrôles ajoutés à la
+CI depuis — les lecteurs géographiques, la veille des aides — manquaient à
+la réingestion, dans le workflow comme dans `docker compose run ingestion` :
+une réingestion pouvait ouvrir une PR que la CI aurait refusée. Le réglage
+d'approbation est désormais nommé (« Require approval for all external
+contributors »), avec la raison : une PR venue d'un fork apporte ses propres
+workflows. `npm run valider` refuse un workflow autre que la réingestion qui
+viserait le runner, et une réingestion déclenchée autrement qu'à la main.

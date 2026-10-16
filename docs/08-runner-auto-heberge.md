@@ -126,6 +126,10 @@ Les deux premiers partagent le cache des gros fichiers (volume
 
 ### La mise en route
 
+0. **Docker Desktop à jour** : `compose.yaml` déclare le fichier `.env`
+   facultatif (`required: false`), ce que Compose comprend depuis sa
+   version 2.24.0 (`docker compose version`). Et, sur GitHub, les deux
+   réglages de la section « La sécurité » avant d'inscrire le runner.
 1. `cp .env.exemple .env`, et remplir `ROUAGES_RETRAITS_SECRET` (le même
    que dans GitHub Actions ; jamais publié ni changé).
 2. Sonder : `docker compose run --rm sonde`.
@@ -213,11 +217,26 @@ pourrait lui faire exécuter le sien. D'où trois règles :
 - **Le déclenchement manuel demande les droits d'écriture sur le dépôt** :
   un contributeur extérieur ne peut pas lancer la réingestion.
 - **Le runner tourne sous un utilisateur dédié**, sans `sudo`, sur une
-  machine qui ne sert qu'à cela. Ce que la machine contient d'autre, un
+  machine qui ne sert qu'à cela — dans Docker, l'utilisateur `node` du
+  conteneur, qui ne voit que ses volumes. Ce que la machine contient d'autre, un
   workflow compromis pourrait le lire.
 
-Dans *Settings → Actions → General*, garder l'approbation obligatoire des
-workflows proposés par des contributeurs extérieurs.
+Dans *Settings → Actions → General*, rubrique *Approval for running fork
+pull request workflows from contributors*, choisir **Require approval for
+all external contributors**. Le réglage par défaut ne demande l'approbation
+qu'à un premier contributeur : après une première PR acceptée, un
+contributeur extérieur verrait ses workflows tourner seuls. Or une PR venue
+d'un fork apporte ses propres fichiers de workflow : elle pourrait en ajouter
+un qui vise le runner. **Avant d'approuver l'exécution d'une PR extérieure,
+lire ce qu'elle change dans `.github/workflows/`.** Un workflow déclenché par
+`pull_request_target` tourne sans approbation, dans le contexte de la branche
+de base : le dépôt n'en a aucun, et il ne doit jamais viser le runner.
+
+`npm run valider` refuse un workflow autre que `reingerer.yml` qui viserait
+`self-hosted` ou l'étiquette `rouages`, et un `reingerer.yml` déclenché
+autrement qu'à la main. C'est un garde-fou contre la mégarde, pas contre une
+PR malveillante, qui tournerait avant ce contrôle : contre elle, c'est
+l'approbation qui protège.
 
 ## La suite possible
 
