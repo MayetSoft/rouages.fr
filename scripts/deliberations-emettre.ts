@@ -42,7 +42,7 @@
  */
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { nommeUnePersonne } from '../src/modele/civilites.ts';
+import { nommeUnParticulier } from '../src/modele/civilites.ts';
 import { debutFenetre, GENRES, type Evenement } from '../src/modele/journal.ts';
 import { lireCsvOuvert, ressourcesDuJeu, ressourcesDuSchema } from './donnees-ouvertes.ts';
 
@@ -175,8 +175,9 @@ export async function collecterDeliberations(
       const date = (l['DELIB_DATE'] ?? '').slice(0, 10);
       if (!objet || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
       // Celles qui statuent sur le cas d'une personne restent chez la
-      // collectivité : le site n'a pas à les relayer ni à les indexer.
-      if (nommeUnePersonne(objet)) {
+      // collectivité : le site n'a pas à les relayer ni à les indexer. Une
+      // civilité, ou un prénom courant suivi d'un nom (`civilites.ts`).
+      if (nommeUnParticulier(objet)) {
         ecartees++;
         continue;
       }

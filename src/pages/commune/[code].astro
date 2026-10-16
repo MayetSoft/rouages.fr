@@ -79,6 +79,8 @@ import Caf from '../../composants/commune/Caf.astro';
 import Defibrillateurs from '../../composants/commune/Defibrillateurs.astro';
 import Route from '../../composants/commune/Route.astro';
 import Gares from '../../composants/commune/Gares.astro';
+import Transports from '../../composants/commune/Transports.astro';
+import ZonagePlu from '../../composants/commune/ZonagePlu.astro';
 import Antennes from '../../composants/commune/Antennes.astro';
 import Zonages from '../../composants/commune/Zonages.astro';
 import Investissement from '../../composants/commune/Investissement.astro';
@@ -95,7 +97,7 @@ import Icone from '../../composants/Icone.astro';
 import CentEuros from '../../composants/CentEuros.astro';
 import Frise, { type Jalon } from '../../composants/commune/Frise.astro';
 import type { NomIcone } from '../../modele/icones.ts';
-import { carteDeSituation, carteMondiale, espacesNaturels } from '../../modele/carte.ts';
+import { carteDeSituation, carteMondiale, contourDe, espacesNaturels } from '../../modele/carte.ts';
 import EspacesNaturels from '../../composants/commune/EspacesNaturels.astro';
 import International from '../../composants/commune/International.astro';
 import { pcaet } from '../../modele/pcaet.ts';
@@ -218,6 +220,8 @@ const lignes = fiche
  * plan du tout — auquel cas le préfet donne son accord sur chaque permis.
  */
 const urb = fiche?.urbanisme ?? null;
+// Le zonage se charge à la demande ; une commune au règlement national n'en a pas.
+const contourZonage = urb && urb.document !== 'RNU' ? contourDe(commune) : null;
 
 // Les jalons de la frise : des dates que la page donne déjà, chacune vers son bloc.
 const jalons: Jalon[] = [];
@@ -388,6 +392,7 @@ const sommaire: [string, string, unknown][] = [
   ['securite', 'La délinquance', vie.delinquance],
   ['route', 'Les accidents de la route', vie.route],
   ['gares', 'Le train', vie.gares],
+  ['transports', 'Transports en commun', vie.transports],
   ['recharge', 'Recharge et covoiturage', vie.recharge],
   ['agriculture', 'L’agriculture', vie.agriculture],
   ['appellations', 'Les appellations', vie.appellations],
@@ -430,7 +435,7 @@ const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   {
     id: 'quotidien',
     nom: 'Au quotidien',
-    blocs: ['equipements', 'services', 'sante', 'defibrillateurs', 'petite-enfance', 'ecoles', 'reseaux', 'gares', 'recharge', 'mobile', 'securite', 'route'],
+    blocs: ['equipements', 'services', 'sante', 'defibrillateurs', 'petite-enfance', 'ecoles', 'reseaux', 'gares', 'transports', 'recharge', 'mobile', 'securite', 'route'],
   },
   {
     id: 'environnement',
@@ -850,6 +855,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
             </span>
           </p>
         )}
+        {contourZonage && <ZonagePlu contour={contourZonage} nom={commune.nom} />}
         {urb.totalPartout > 0 && (
           <p class="c-urbanisme-repere">
             {`Sur les ${urb.totalPartout.toLocaleString('fr-FR')} communes du pays, ` +
@@ -1188,6 +1194,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="gares">
         <h2 class="badge">Prendre le train</h2>
         <Gares g={vie.gares} />
+      </section>
+    )}
+
+    {vie.transports && (
+      <section id="transports">
+        <h2 class="badge">Les transports en commun</h2>
+        <Transports t={vie.transports} />
       </section>
     )}
 

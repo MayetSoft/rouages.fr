@@ -31,6 +31,8 @@ jobs:
         run: npm run verifier-rattachement
       - name: Lecteurs géographiques (Lambert 93, GML, Shapefile)
         run: npm run verifier-geo
+      - name: Particuliers nommés dans les délibérations
+        run: npm run verifier-particuliers
       - name: Citations retrouvées par la veille des aides locales
         run: npm run verifier-veille-aides
       - name: Types

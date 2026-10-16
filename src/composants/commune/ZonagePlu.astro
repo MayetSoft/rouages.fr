@@ -1,0 +1,53 @@
+---
+/**
+ * Le zonage du document d'urbanisme sur la carte de la commune, chargé à la
+ * demande depuis la Géoplateforme de l'IGN (`src/client/zonage-plu.ts`). La
+ * page porte le contour et le cadrage ; rien n'est demandé au service sans un
+ * clic.
+ */
+import { cadrerSurCommune, projectionSurCommune, type Anneau } from '../../modele/carte.ts';
+
+interface Props {
+  contour: Anneau[];
+  nom: string;
+}
+const { contour, nom } = Astro.props;
+const W = 480;
+const H = 300;
+const vue = cadrerSurCommune(contour, W, H);
+const { k, x0, y0, s } = projectionSurCommune(contour, W, H);
+const xs = contour.flat().map(([x]) => x / 1e4);
+const ys = contour.flat().map(([, y]) => y / 1e4);
+// Le cadre de la requête, latitude d'abord comme le veut EPSG:4326 en WFS 2.0.
+const cadre = [Math.min(...ys), Math.min(...xs), Math.max(...ys), Math.max(...xs)].map((v) => v.toFixed(5)).join(',');
+const id = `zp-clip-${Math.round(Math.abs(x0))}`;
+---
+<div class="zp" data-contour={JSON.stringify(contour)} data-projection={[k, x0, y0, s].join(',')} data-cadre={cadre}>
+  <p class="mesure">
+    <button type="button" class="zp-charger">Afficher le zonage du document d’urbanisme</button>
+  </p>
+  <p class="p-strate">
+    Le zonage n’est pas stocké par le site : un clic le demande à la Géoplateforme de l’IGN, qui sert
+    le Géoportail de l’urbanisme. Ce service voit alors votre adresse IP, comme pour toute carte qu’il
+    sert ; Rouages n’en garde rien.
+  </p>
+  <p class="zp-etat" role="status"></p>
+  <figure class="zp-carte">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Carte de ${nom} et du zonage de son document d’urbanisme, une fois chargé. La liste des zones suit.`}>
+      <defs>
+        <clipPath id={id}><path d={vue(contour)} fill-rule="evenodd" /></clipPath>
+        <pattern id={`${id}-au`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="6" height="6" class="zp-au-fond" />
+          <line x1="0" y1="0" x2="0" y2="6" class="zp-au-trait" />
+        </pattern>
+      </defs>
+      <g class="zp-zones" clip-path={`url(#${id})`} style={`--zp-au: url(#${id}-au)`}></g>
+      <path d={vue(contour)} class="zp-commune" fill-rule="evenodd" />
+    </svg>
+  </figure>
+  <div class="zp-liste"></div>
+</div>
+<script>
+  import { brancherZonagePlu } from '../../client/zonage-plu.ts';
+  brancherZonagePlu();
+</script>

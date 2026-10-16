@@ -4841,3 +4841,113 @@ d'approbation est désormais nommé (« Require approval for all external
 contributors »), avec la raison : une PR venue d'un fork apporte ses propres
 workflows. `npm run valider` refuse un workflow autre que la réingestion qui
 viserait le runner, et une réingestion déclenchée autrement qu'à la main.
+
+### Les transports en commun de chaque commune (16 octobre 2026)
+
+Reportés le 30 septembre faute des contours des communes, que le site a
+depuis. Le Point d'accès national aux données de transport lit tous les
+fichiers d'horaires GTFS qu'on y déclare et sert leurs arrêts par carreaux
+(`/api/gtfs-stops`, au plus 20 000 points : un carreau trop dense est coupé
+en quatre). Son export statique date de janvier 2026 ; les carreaux suivent
+les republications. `scripts/transports-emettre.ts` place chaque arrêt dans
+la commune dont le contour le contient, le compte une fois par nom dans la
+commune, et nomme les réseaux qui l'inscrivent — un agrégat régional
+seulement si aucun réseau propre n'a d'arrêt dans la commune. Une commune
+sans arrêt reçoit le plus proche de son centre, jusqu'à 30 km.
+
+742 075 points lus, 328 798 arrêts distincts : 22 978 communes en ont au
+moins un, 11 880 reçoivent le plus proche, 4 Mo de fichiers. Au
+Mayet-de-Montagne, deux arrêts — le lycée Claude Mercier et le collège —
+du réseau interurbain de l'Allier ; à Vichy, 61 arrêts et quatre réseaux.
+Le Point d'accès dit la couche expérimentale et demande qu'on ne s'en serve
+pas pour l'information voyageur : la page dit qu'un arrêt existe et qui
+l'inscrit, jamais quand on y passe, et renvoie à la fiche de chaque réseau.
+Les fréquences, qui demanderaient de lire les horaires de chaque fichier,
+restent à faire.
+
+### Le zonage d'urbanisme sur la page de commune, à la demande (16 octobre 2026)
+
+La mesure du 23 septembre portait sur les attributs : 1,3 million de zones,
+290 Mo. Avec les géométries, c'est autre chose — 3,2 Mo pour les seuls
+environs du Mayet-de-Montagne, des dizaines de gigaoctets pour la France, et
+autant d'un dépôt qui les garderait. Le site ne stocke donc rien : un bouton,
+dans « Ce qui peut s'y construire », demande les zones du PLU ou du PLUi
+(`wfs_du:zone_urba`), à défaut les secteurs de la carte communale
+(`wfs_du:secteur_cc`), au service WFS de la Géoplateforme de l'IGN, qui
+sert le Géoportail de l'urbanisme. Le zonage est donc toujours celui que le
+Géoportail publie à l'instant.
+
+La carte reprend le cadrage des autres cartes de la commune
+(`projectionSurCommune`), découpe les zones au contour, les colore par type
+— U, AU (hachurée en plus), A, N : palette passée au validateur, en clair et
+en sombre, l'orange et le jaune des PLU imprimés ne s'y distinguant pas — et
+liste chaque zone avec son libellé et la page du règlement qui la décrit,
+sur les annexes de la Géoplateforme. Une zone n'est retenue que si un de
+ses sommets est dans la commune à plus de 50 m de sa limite, ou si elle la
+contient : sans cela, les zones d'Issy et de Boulogne entraient dans la
+liste de Paris. Au Mayet-de-Montagne, 17 zones du PLUi de Vichy
+Communauté ; à Paris, le PLU et les deux plans de sauvegarde.
+
+Le service voit l'adresse IP de qui clique : `/mentions` le dit, et rien ne
+part sans le clic. La phrase sous la carte dit qu'une zone se lit avec son
+règlement et que la carte ne dit pas ce qu'on peut construire sur une
+parcelle.
+
+### Accessibilité et poids de la page de commune, mesurés (16 octobre 2026)
+
+Mesuré sur le build, dans Chromium, processeur ralenti quatre fois :
+
+| Page | HTML | compressé | nœuds | DOMContentLoaded |
+|---|---:|---:|---:|---:|
+| Le Mayet-de-Montagne | 470 Ko | 95 Ko | 5 708 | 1,8 à 2,2 s |
+| Paris | 800 Ko | 141 Ko | 10 876 | 1,8 à 2,0 s |
+
+Les sections hors de l'onglet ouvert ne sont pas rendues, ce qui tient le
+temps d'affichage malgré le poids. À Paris, la moitié du poids vient des
+1 796 représentants d'intérêts dont le siège est dans la commune : c'est le
+contenu, pas un doublon, et on l'a laissé.
+
+L'audit axe-core (4.10), toutes sections ouvertes, en clair et en sombre, à
+1 200 et 390 px, a trouvé trois défauts, corrigés : la carte de situation et
+la carte des communes d'un département ou d'une intercommunalité étaient des
+images (`role="img"`) contenant des liens — ce sont désormais des groupes,
+chaque commune restant un lien ; la première case d'en-tête du tableau des
+diagnostics énergétiques était vide. Plus aucune violation sur les pages de
+commune, de département, du requêteur, d'accueil et des mentions. Au
+clavier : le lien d'évitement vient en premier, le focus est visible
+partout, les onglets suivent les flèches, Début et Fin. La carte des
+communes d'un département fait passer le clavier par chaque commune (317
+dans l'Allier) : un lien « Passer la carte », visible au focus, la saute.
+
+### Les particuliers nommés sans civilité dans les délibérations (16 octobre 2026)
+
+En préparant le cadrage de la recherche dans les délibérations, une mesure sur
+les 6 931 intitulés publiés a trouvé ce que le filtre des civilités laissait
+passer : « subv à » suivi d'un prénom et d'un nom, un cadeau de départ, un
+remboursement d'assurance, une vente par un agent immobilier nommé — et des
+civilités écrites en capitales (« AU PROFIT DE MADAME … »), que le motif ne
+lisait pas. La règle exclut les particuliers cités dans les délibérations :
+c'étaient des publications contraires à la règle.
+
+Le motif des civilités lit désormais les capitales, sans prendre « maître
+d'œuvre » ni « Madame la Maire » pour un nom. Un second motif,
+`nommeUnParticulier`, cherche un prénom courant suivi d'un nom : les prénoms
+portés par au moins cinq conseillers municipaux au répertoire des élus
+(`src/modele/prenoms.json`, 2 325 prénoms, `scripts/prenoms-emettre.ts`),
+moins ceux qui sont aussi des mots (« France », « Noël », « Maire »…), et
+jamais après un mot de lieu (« rue Jean Moulin », « école publique Henri
+Matisse »). Il écarte trop plutôt que pas assez — « grille tarifaire Jean
+Moulin » part avec —, et c'est le sens voulu. 21 délibérations sont retirées
+des fichiers publiés et 45 du journal, sans attendre la réingestion ;
+`npm run verifier-particuliers`, en CI, tient 22 cas aux noms inventés.
+
+### La recherche dans les délibérations : le cadrage, avant le code (16 octobre 2026)
+
+`docs/07-risques.md`, section 8. Trois niveaux : chercher dans les intitulés
+déjà publiés, les ranger par compétence du graphe — acceptables sous
+garde-fous —, et chercher dans le texte des documents, refusé en l'état
+faute d'avis juridique. Le garde-fou central : un mot ne se cherche que s'il
+figure dans les intitulés d'au moins trois collectivités, ce qui rend
+introuvables un nom de famille ou un lieu-dit sans priver la recherche de
+« cantine » ou d'« assainissement ». Le cadrage a fait trouver le défaut du
+filtre des civilités corrigé ci-dessus.

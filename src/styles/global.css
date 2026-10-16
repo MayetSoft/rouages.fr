@@ -38,6 +38,8 @@
   --ramsar: #2a78d6;
   --biosphere: #1baf7a;
   --carte-resultat: #0a8aa3;
+  /* Le zonage d'urbanisme : U, AU (hachurée en plus), A, N — palette validée, clair et sombre. */
+  --plu-u: #e87ba4; --plu-au: #eda100; --plu-a: #2a78d6; --plu-n: #008300;
 
   /* --- Familles de relations ------------------------------------- *
    * Trois teintes seulement portent l'identité : c'est le seul triplet
@@ -110,6 +112,7 @@
     --ramsar: #3987e5;
     --biosphere: #199e70;
     --carte-resultat: #2a9fb8;
+    --plu-u: #d55181; --plu-au: #c98500; --plu-a: #3987e5; --plu-n: #008300;
     --sur-accent: #15171a;
     --barre-budget: #3a9fc8;
     --budget-vote: #d95926;
@@ -172,6 +175,8 @@ h1, .titre-voix { font-family: var(--titre); font-weight: 640; letter-spacing: -
   background: var(--accent); color: var(--sur-accent); border-radius: var(--rayon);
 }
 .evitement:focus { top: .5rem; }
+.cc-sauter { position: absolute; left: -999px; }
+.cc-sauter:focus { position: static; display: inline-block; margin-bottom: .4rem; }
 
 .visuellement-cache {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -1762,3 +1767,31 @@ a.p-sommaire-lien { text-decoration: none; }
   .ce-pieces, .sf-barre, .cc-echelle span, .jeu-progres li { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   @page { margin: 14mm 14mm 16mm; }
 }
+
+/* Le zonage du document d'urbanisme, chargé à la demande (src/client/zonage-plu.ts). */
+.zp-charger { font: inherit; padding: .35rem .8rem; border: 1px solid var(--trait); border-radius: 4px; background: var(--fond); color: var(--encre); cursor: pointer; }
+.zp-charger:hover { border-color: var(--encre-douce); }
+.zp-charger[disabled] { opacity: .6; cursor: progress; }
+.zp-etat:empty { display: none; }
+.zp-carte { margin: .6rem 0; display: none; }
+.zp-carte:has(svg.zp-chargee) { display: block; }
+.zp-carte svg { width: 100%; height: auto; max-width: 640px; }
+.zp-commune { fill: none; stroke: var(--encre); stroke-width: 1.4; }
+.zp-zones path { stroke: var(--fond); stroke-width: .6; fill-opacity: .85; }
+.zp-zones .zp-u { fill: var(--plu-u); }
+.zp-zones .zp-au { fill: var(--zp-au); }
+.zp-zones .zp-a { fill: var(--plu-a); }
+.zp-zones .zp-n { fill: var(--plu-n); }
+.zp-zones .zp-autre { fill: var(--encre-douce); fill-opacity: .4; }
+.zp-au-fond { fill: var(--plu-au); }
+.zp-au-trait { stroke: var(--fond); stroke-width: 2; }
+.zp-legende, .zp-zones-liste { list-style: none; padding: 0; margin: .4rem 0; }
+.zp-legende { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .9rem; }
+.zp-zones-liste li { margin: .25rem 0; font-size: .92rem; }
+.zp-cle { display: inline-block; width: .85em; height: .85em; border-radius: 2px; margin-right: .4em; vertical-align: -.05em; }
+.zp-cle-u { background: var(--plu-u); }
+.zp-cle-au { background: repeating-linear-gradient(45deg, var(--plu-au) 0 3px, var(--fond) 3px 4.5px); }
+.zp-cle-a { background: var(--plu-a); }
+.zp-cle-n { background: var(--plu-n); }
+.zp-cle-autre { background: var(--encre-douce); opacity: .4; }
+

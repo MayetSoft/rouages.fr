@@ -25,6 +25,7 @@ interface Props {
   thematiques?: Thematique[];
 }
 const { carte, libelle, legende, thematiques = [] } = Astro.props;
+const ancreFin = `cc-fin-${carte.communes.length}`;
 
 const W = 560;
 const tous = carte.communes.flatMap((c) => c.anneaux.flat());
@@ -95,7 +96,10 @@ for (const [a, b] of segments) {
       {thematiques.map((t) => <label><input type="radio" name="cc-teinte" value={t.id} /> {t.nom}</label>)}
     </fieldset>
   )}
-  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={libelle}>
+  {/* Au clavier, la carte fait passer par chaque commune : un lien, visible au focus, permet de la sauter. */}
+  <a class="cc-sauter" href={`#${ancreFin}`}>{`Passer la carte (${formes.length} communes)`}</a>
+  {/* Un groupe, pas une image : chaque commune y est un lien, et la carte est le seul chemin vers elles sur la page. */}
+  <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={libelle}>
     {formes.map((c) => (
       <a href={`/commune/${c.code}`} class="carte-communes-commune">
         <title>{c.nom}</title>
@@ -104,6 +108,7 @@ for (const [a, b] of segments) {
     ))}
     <path class="carte-communes-limite" d={limites} />
   </svg>
+  <span id={ancreFin} tabindex="-1"></span>
   {thematiques.length > 0 && (
     <div class="cc-legende" hidden aria-live="polite">
       <div class="cc-echelle" aria-hidden="true">

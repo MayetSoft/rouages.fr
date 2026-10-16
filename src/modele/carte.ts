@@ -128,6 +128,18 @@ export function espacesNaturels(c: CommuneFiche): EspacesNaturels | null {
  * déformer. Rend la fonction qui écrit des anneaux en chemin SVG.
  */
 export function cadrerSurCommune(commune: Anneau[], W: number, H: number): (a: Anneau[]) => string {
+  const { k, x0, y0, s } = projectionSurCommune(commune, W, H);
+  const proj = ([x, y]: Point): Point => [x * k, -y];
+  return (a: Anneau[]) =>
+    a.map((r) => 'M' + r.map(proj).map(([x, y]) => `${((x - x0) * s).toFixed(1)} ${((y - y0) * s).toFixed(1)}`).join('L') + 'Z').join('');
+}
+
+/**
+ * Les paramètres de ce cadrage, pour qu'un script du navigateur projette
+ * d'autres tracés exactement comme la carte : x écran = (x · k − x0) · s,
+ * y écran = (−y − y0) · s, en dix-millièmes de degré.
+ */
+export function projectionSurCommune(commune: Anneau[], W: number, H: number): { k: number; x0: number; y0: number; s: number } {
   const ys = commune.flat().map(([, y]) => y);
   const k = Math.cos((((Math.min(...ys) + Math.max(...ys)) / 2 / 1e4) * Math.PI) / 180);
   const proj = ([x, y]: Point): Point => [x * k, -y];
@@ -146,9 +158,12 @@ export function cadrerSurCommune(commune: Anneau[], W: number, H: number): (a: A
     const c = (y0 + y1) / 2;
     [y0, y1] = [c - h / 2, c + h / 2];
   }
-  const s = W / (x1 - x0);
-  return (a: Anneau[]) =>
-    a.map((r) => 'M' + r.map(proj).map(([x, y]) => `${((x - x0) * s).toFixed(1)} ${((y - y0) * s).toFixed(1)}`).join('L') + 'Z').join('');
+  return { k, x0, y0, s: W / (x1 - x0) };
+}
+
+/** Le contour d'une commune, seul. */
+export function contourDe(c: CommuneFiche): Anneau[] | null {
+  return anneauxDe(c.code)?.anneaux ?? null;
 }
 
 type MondialDep = { maj: string; c: Record<string, [number, 'b' | 't' | 'e', number[][]][]> };

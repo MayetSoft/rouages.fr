@@ -588,6 +588,11 @@ sigles:
     developpe: "Société nationale des chemins de fer français"
     definition: "Groupe public ferroviaire. Sa filiale SNCF Gares & Connexions gère les gares de voyageurs et en publie la liste et la fréquentation."
     liens: [od-sncf-gares]
+  - id: sigle-gtfs
+    sigle: GTFS
+    developpe: "General Transit Feed Specification"
+    definition: "Format ouvert des fichiers d’horaires de transport en commun : les arrêts, les lignes, les passages. Chaque réseau publie le sien au Point d’accès national, transport.data.gouv.fr."
+    liens: [od-pan-arrets]
   - id: sigle-onisr
     sigle: ONISR
     developpe: "Observatoire national interministériel de la sécurité routière"
