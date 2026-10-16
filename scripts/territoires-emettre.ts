@@ -39,7 +39,7 @@ import { comparerTransferts, type EtatDep } from './transferts-emettre.ts';
 import { retenir } from '../src/modele/journal.ts';
 import { ecrireRisques, type Risques } from './risques-emettre.ts';
 import { ecrireElections, type Elections } from './elections-emettre.ts';
-import { ecrireDeliberations, type Deliberations } from './deliberations-emettre.ts';
+import { ecrireDeliberations, ecrireRechercheDeliberations, type Deliberations } from './deliberations-emettre.ts';
 import { ecrireSubventions, type Subventions } from './subventions-emettre.ts';
 import { prefixesEchelon, sirensParPrefixe } from './donnees-ouvertes.ts';
 import { ecrireEau, serviceDe, type Eau, type ServiceEau } from './eau-emettre.ts';
@@ -308,6 +308,7 @@ export function emettre(o: {
   let transfertsVus = 0;
   let electionsEcrites = 0;
   let delibEcrites = 0;
+  let rechercheEcrite = 0;
   let subvEcrites = 0;
 
   // Rassemblé une fois pour toute la France : chaque département n'en prend
@@ -417,6 +418,15 @@ export function emettre(o: {
           sirenDeCommune,
           o.deliberations,
           echelonsDelib,
+        );
+        // L'index de recherche : les mêmes collectivités, nommées comme sur la page de la commune.
+        const nomCommune = new Map(liste.filter((c) => c.siren).map((c) => [c.siren!, c.nom] as const));
+        rechercheEcrite += ecrireRechercheDeliberations(
+          sortie,
+          dep,
+          [...sirens, ...echelonsDelib],
+          (s) => nomCommune.get(s) ?? groupements.get(s)?.nom ?? (s === echelonsDelib[0] ? 'Le département' : s === echelonsDelib[1] ? 'La région' : undefined),
+          o.deliberations,
         );
       }
       if (o.subventions) {
@@ -721,6 +731,7 @@ export function emettre(o: {
     dire(
       `${GRIS}Délibérations : ${delibEcrites.toLocaleString('fr-FR')} collectivités qui publient.${RAZ}`,
     );
+    dire(`${GRIS}Recherche dans les délibérations : ${rechercheEcrite.toLocaleString('fr-FR')} intitulés indexés.${RAZ}`);
   }
   if (o.subventions) {
     dire(

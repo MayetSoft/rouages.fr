@@ -81,6 +81,9 @@ import Route from '../../composants/commune/Route.astro';
 import Gares from '../../composants/commune/Gares.astro';
 import Transports from '../../composants/commune/Transports.astro';
 import ZonagePlu from '../../composants/commune/ZonagePlu.astro';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { RACINE } from '../../modele/graphe.ts';
 import Antennes from '../../composants/commune/Antennes.astro';
 import Zonages from '../../composants/commune/Zonages.astro';
 import Investissement from '../../composants/commune/Investissement.astro';
@@ -220,6 +223,8 @@ const lignes = fiche
  * plan du tout — auquel cas le préfet donne son accord sur chaque permis.
  */
 const urb = fiche?.urbanisme ?? null;
+// La recherche dans les délibérations, quand l'index du département est publié.
+const rechercheDelib = existsSync(join(RACINE, 'public', 'territoires', 'recherche-deliberations', commune.dep, 'meta.json'));
 // Le zonage se charge à la demande ; une commune au règlement national n'en a pas.
 const contourZonage = urb && urb.document !== 'RNU' ? contourDe(commune) : null;
 
@@ -993,6 +998,9 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="deliberations" class="p-marches p-delibs">
         <h2 class="badge">Ce qui a été délibéré</h2>
         <Deliberations liste={plus.deliberations} depuis={plus.delibDepuis} />
+        {rechercheDelib && (
+          <p class="mesure"><a href={`/deliberations?dep=${commune.dep}`}>Chercher dans les délibérations du département</a>, par mot, famille d’actes et année.</p>
+        )}
         <Demarches bloc="deliberations" />
       </section>
     )}

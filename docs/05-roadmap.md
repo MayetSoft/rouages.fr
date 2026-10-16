@@ -4984,3 +4984,20 @@ comme les rapprochements. Essayé sur une délibération d'Ille-et-Vilaine :
 présente sur la page de sa commune sans le retrait, absente avec. `/signaler`
 et `/mentions` le disent.
 
+### Chercher dans les délibérations (16 octobre 2026)
+
+Le niveau 1 du cadrage (`docs/07-risques.md`, section 8). La collecte garde,
+en plus des cinq dernières délibérations de chaque collectivité, toutes
+celles des vingt-quatre derniers mois, et écrit pour chaque département
+`recherche-deliberations/<dep>/` : les intitulés par morceaux de deux mille,
+du plus récent au plus ancien, et pour chaque mot cherchable — présent chez
+trois collectivités au moins, jamais un prénom — les rangs des intitulés qui
+l'emploient. La page `/deliberations` croise les rangs des mots cherchés et
+ne charge que les morceaux qu'elle affiche. Essayée sur l'année 2025 de
+l'Ille-et-Vilaine (index d'essai, non publié) : 167 délibérations pour
+« cantine », 34 pour « cantine scolaire » en 2025 ; « Sébastien » et un nom
+de famille rare ne se cherchent pas, et la page le dit. L'index réel
+arrivera avec la prochaine réingestion ; d'ici là, la page dit qu'il n'est
+pas encore publié. La page de la commune y renvoie quand l'index de son
+département existe.
+
