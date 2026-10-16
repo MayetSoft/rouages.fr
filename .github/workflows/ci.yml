@@ -37,6 +37,8 @@ jobs:
         run: npm run verifier-themes
       - name: Horaires des transports (GTFS)
         run: npm run verifier-horaires
+      - name: Orienteur des autorisations d’urbanisme
+        run: npm run verifier-autorisations
       - name: Citations retrouvées par la veille des aides locales
         run: npm run verifier-veille-aides
       - name: Types

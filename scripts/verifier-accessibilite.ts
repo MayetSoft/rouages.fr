@@ -46,6 +46,7 @@ const PAGES = [
   '/jeux',
   '/jeux/qui-decide',
   '/simulateurs/frais-achat',
+  '/simulateurs/autorisation?travaux=extension',
   '/mentions',
   '/signaler',
 ];

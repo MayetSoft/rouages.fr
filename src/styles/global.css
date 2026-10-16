@@ -1809,3 +1809,16 @@ a.p-sommaire-lien { text-decoration: none; }
 .rd-regles-liste dt { margin-top: .6rem; font-weight: 600; }
 .rd-regles-liste dd { margin: .1rem 0 0; font-size: .88rem; color: var(--encre-douce); overflow-wrap: anywhere; }
 .rd-sauf { font-style: italic; }
+
+/* L'orienteur des autorisations d'urbanisme (src/client/autorisation.ts). */
+.au-relecture { border-left: 3px solid var(--trait); padding: .4rem .8rem; color: var(--encre-douce); max-width: 46rem; }
+.au-form fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
+.au-form fieldset[hidden], .au-form [hidden] { display: none; }
+.au-form legend { font-weight: 600; margin-bottom: .3rem; }
+.au-form label { display: block; margin: .2rem 0; }
+.au-nombre { display: inline-flex; align-items: center; gap: .3rem; margin-left: .4rem; }
+.au-nombre input { width: 6rem; font: inherit; }
+.au-question { margin: .6rem 0 .2rem; font-weight: 600; }
+.au-aide { margin: .3rem 0 0; font-size: .85rem; color: var(--encre-douce); }
+.au-hypothese { border-left: 3px solid var(--trait); padding-left: .6rem; color: var(--encre-douce); }
+.au-source { font-size: .85rem; color: var(--encre-douce); margin-top: .6rem; }

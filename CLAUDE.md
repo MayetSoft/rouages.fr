@@ -29,8 +29,9 @@ npm run verifier-geo         la projection Lambert 93 et les lecteurs GML et Sha
 npm run verifier-particuliers  les particuliers nommés dans l'objet d'une délibération
 npm run verifier-themes      les délibérations rangées sous la bonne compétence
 npm run verifier-horaires    la lecture des horaires GTFS et le choix de la semaine de classe
+npm run verifier-autorisations  l'orienteur des autorisations d'urbanisme, contre les fiches de service-public.fr
 npm run verifier-types       les types, fichiers .astro compris — `tsc` seul ne les voit pas
-npm run verifier-accessibilite  axe-core sur quinze pages du build, en clair, en sombre et à 390 px
+npm run verifier-accessibilite  axe-core sur seize pages du build, en clair, en sombre et à 390 px
 npm run build                valide puis génère (le build refuse un contenu invalide)
 npm run relire               les fiches encore à vérifier contre leur source
 npm run veille               l'état des sources surveillées

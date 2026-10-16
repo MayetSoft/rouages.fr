@@ -6,6 +6,7 @@
  * précision mesurée.
  */
 import Base from '../layouts/Base.astro';
+import { PUBLIE as AUTORISATIONS_PUBLIEES } from '../modele/autorisations.ts';
 ---
 <Base
   titre="Simulateurs"
@@ -54,6 +55,16 @@ import Base from '../layouts/Base.astro';
         </p>
         <p class="sim-meta">Données&nbsp;: la carte des loyers, les ventes DVF, les taux de la DGFiP, le décret sur la décence énergétique.</p>
       </li>
+      {AUTORISATIONS_PUBLIEES && (
+        <li>
+          <a href="/simulateurs/autorisation">Quelle autorisation pour mes travaux&nbsp;?</a>
+          <p>
+            Abri de jardin, agrandissement, véranda, piscine, clôture, changement de destination&nbsp;: déclaration
+            préalable, permis de construire ou rien, d’après les règles générales — et ce qui peut changer la réponse.
+          </p>
+          <p class="sim-meta">Règles&nbsp;: les fiches de service-public.fr, chacune avec sa date de vérification.</p>
+        </li>
+      )}
     </ul>
   </div>
 </Base>

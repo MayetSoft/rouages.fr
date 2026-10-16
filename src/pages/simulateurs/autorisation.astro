@@ -1,0 +1,162 @@
+---
+/**
+ * Quelle autorisation d'urbanisme demander pour des travaux courants : un
+ * orienteur, pas un simulateur qui conclut — voir `docs/07-risques.md`,
+ * section 9, et `src/modele/autorisations.ts`. La page reste hors des moteurs
+ * et du menu tant que `PUBLIE` est faux : elle attend la relecture d'un
+ * praticien.
+ */
+import Base from '../../layouts/Base.astro';
+import { FICHE_ARCHITECTE, FICHES, PUBLIE, urlFiche } from '../../modele/autorisations.ts';
+import { enFrancais } from '../../modele/urbanisme.ts';
+import '../../styles/jeux.css';
+
+const ASSISTANT = 'https://www.service-public.gouv.fr/particuliers/vosdroits/R52221';
+const fiches = [...Object.values(FICHES), FICHE_ARCHITECTE];
+---
+<Base
+  titre="Quelle autorisation pour mes travaux ?"
+  description="Abri de jardin, agrandissement, véranda, piscine, clôture, changement de destination : déclaration préalable, permis de construire ou rien, d’après les règles générales que présente service-public.fr."
+  section="simulateurs"
+  indexer={PUBLIE}
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/simulateurs">Simulateurs</a></p>
+    <h1>Quelle autorisation pour mes travaux&nbsp;?</h1>
+    {!PUBLIE && (
+      <p class="au-relecture" role="note">
+        Page en relecture&nbsp;: elle n’est ni au menu ni dans les moteurs de recherche tant qu’un praticien de
+        l’urbanisme n’a pas relu ses réponses.
+      </p>
+    )}
+    <p class="resume">
+      Déclaration préalable, permis de construire, ou rien&nbsp;: d’après les règles générales que présente
+      service-public.fr, pour les travaux les plus courants. Ce n’est pas une réponse de la mairie&nbsp;: son PLU, un
+      secteur protégé ou une délibération peuvent la changer, et seul un certificat d’urbanisme engage
+      l’administration.
+    </p>
+
+    <form id="au-form" class="jeu-carte au-form">
+      <fieldset>
+        <legend>Vos travaux</legend>
+        <label><input type="radio" name="type" value="abri" checked /> Un abri de jardin, un garage ou une annexe, séparé de la maison</label>
+        <label><input type="radio" name="type" value="abri-accole" /> Un abri ou une annexe accolé à la maison</label>
+        <label><input type="radio" name="type" value="extension" /> Un agrandissement ou une surélévation</label>
+        <label><input type="radio" name="type" value="veranda" /> Une véranda</label>
+        <label><input type="radio" name="type" value="piscine" /> Une piscine</label>
+        <label><input type="radio" name="type" value="cloture" /> Une clôture, un mur, une haie</label>
+        <label><input type="radio" name="type" value="destination" /> Un changement de destination (une grange ou un commerce transformé en logement…)</label>
+      </fieldset>
+
+      <fieldset data-pour="abri abri-accole extension veranda piscine">
+        <legend>La surface</legend>
+        <label>
+          <span data-pour="abri abri-accole extension veranda">Surface créée — la plus grande de l’emprise au sol et de la surface de plancher</span>
+          <span data-pour="piscine">Surface du bassin</span>
+          <span class="au-nombre"><input type="number" name="surface" min="0" step="1" inputmode="numeric" value="15" /> m²</span>
+        </label>
+        <label data-pour="extension veranda">
+          Surface de plancher totale du bâtiment après les travaux (pour savoir si l’architecte est obligatoire)
+          <span class="au-nombre"><input type="number" name="totale" min="0" step="1" inputmode="numeric" value="" placeholder="facultatif" /> m²</span>
+        </label>
+      </fieldset>
+
+      <fieldset data-pour="piscine">
+        <legend>La piscine</legend>
+        <label><input type="radio" name="couverture" value="aucune" checked /> Sans couverture</label>
+        <label><input type="radio" name="couverture" value="basse" /> Avec une couverture de 1,80 m de haut au plus</label>
+        <label><input type="radio" name="couverture" value="haute" /> Avec une couverture de plus de 1,80 m de haut</label>
+        <label><input type="checkbox" name="horsSol" /> Hors sol, installée trois mois par an au plus (quinze jours en secteur protégé)</label>
+      </fieldset>
+
+      <fieldset data-pour="cloture">
+        <legend>La clôture</legend>
+        <label><input type="radio" name="nature" value="mur" checked /> Un mur</label>
+        <label><input type="radio" name="nature" value="autre" /> Un grillage, une palissade, des panneaux</label>
+        <label><input type="radio" name="nature" value="vegetale" /> Une haie</label>
+        <label data-pour-nature="mur"><input type="checkbox" name="deuxMetres" /> Le mur fait 2 mètres de haut ou plus</label>
+        <p class="au-question">La commune soumet-elle les clôtures à déclaration&nbsp;?</p>
+        <label><input type="radio" name="commune" value="nsp" checked /> Je ne sais pas</label>
+        <label><input type="radio" name="commune" value="oui" /> Oui</label>
+        <label><input type="radio" name="commune" value="non" /> Non</label>
+      </fieldset>
+
+      <fieldset data-pour="destination">
+        <legend>Le changement de destination</legend>
+        <label><input type="checkbox" name="memeDestination" /> Le bâtiment reste dans la même destination (un commerce qui devient un autre commerce, par exemple)</label>
+        <label><input type="checkbox" name="facade" /> Les travaux modifient la façade (une fenêtre ou une porte créée ou agrandie) ou la structure porteuse</label>
+        <label>
+          Surface de plancher du bâtiment ou du local
+          <span class="au-nombre"><input type="number" name="local" min="0" step="1" inputmode="numeric" value="" placeholder="facultatif" /> m²</span>
+        </label>
+      </fieldset>
+
+      <fieldset data-pour="abri-accole extension veranda">
+        <legend>Le terrain est-il en zone urbaine (U) d’un plan local d’urbanisme&nbsp;?</legend>
+        <label><input type="radio" name="zone" value="nsp" checked /> Je ne sais pas</label>
+        <label><input type="radio" name="zone" value="oui" /> Oui</label>
+        <label><input type="radio" name="zone" value="non" /> Non, ou la commune n’a pas de PLU</label>
+        <p class="au-aide">La page de votre commune montre son document d’urbanisme et, à la demande, son zonage.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Le terrain est-il dans un secteur protégé&nbsp;?</legend>
+        <label><input type="radio" name="protege" value="nsp" checked /> Je ne sais pas</label>
+        <label><input type="radio" name="protege" value="oui" /> Oui</label>
+        <label><input type="radio" name="protege" value="non" /> Non</label>
+        <p class="au-aide">
+          Abords d’un monument historique, site patrimonial remarquable, site classé ou en instance de classement,
+          réserve naturelle, cœur d’un parc national. La mairie le sait&nbsp;; la page de votre commune liste ses
+          monuments historiques.
+        </p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Qui fait les travaux&nbsp;?</legend>
+        <label><input type="radio" name="qui" value="particulier" checked /> Un particulier, pour lui-même</label>
+        <label><input type="radio" name="qui" value="morale" /> Une société, une association</label>
+      </fieldset>
+    </form>
+
+    <section id="au-resultat" class="jeu-carte" aria-live="polite">
+      <p class="chiffre" id="au-regime"></p>
+      <p class="chiffre-legende" id="au-architecte"></p>
+      <ul id="au-raisons" class="mesure"></ul>
+      <div id="au-hypotheses"></div>
+      <p class="au-source" id="au-fiche"></p>
+    </section>
+    <noscript><p class="mesure">L’orienteur a besoin de JavaScript : il calcule dans le navigateur, et ne garde rien.</p></noscript>
+
+    <h2 class="badge">Ce qui peut changer la réponse</h2>
+    <ul class="mesure">
+      <li><strong>Le PLU de la commune</strong> fixe des règles d’implantation, de hauteur et d’aspect, et peut soumettre d’autres travaux à déclaration — les clôtures, souvent.</li>
+      <li><strong>Un secteur protégé</strong> rend une déclaration nécessaire là où elle ne l’est pas ailleurs, et l’architecte des Bâtiments de France donne son avis.</li>
+      <li><strong>Le droit change</strong>&nbsp;: le décret du 20 février 2026 a par exemple dispensé certaines pompes à chaleur et relevé des seuils pour le solaire en toiture, que cet orienteur ne couvre pas.</li>
+      <li><strong>Construire sans l’autorisation requise est un délit</strong> (article L480-4 du code de l’urbanisme), et la construction peut devoir être démolie.</li>
+    </ul>
+
+    <h2 class="badge">Où demander</h2>
+    <ul class="mesure">
+      <li>Le service de l’urbanisme de votre mairie — sa page sur ce site donne ses coordonnées et son document d’urbanisme.</li>
+      <li>L’<a href={ASSISTANT} target="_blank" rel="noopener">assistance de l’État pour les demandes d’autorisation d’urbanisme</a>, qui constitue aussi le dossier.</li>
+      <li>Un certificat d’urbanisme, demandé en mairie, est la seule réponse qui engage l’administration.</li>
+    </ul>
+
+    <p class="p-source-territoire">
+      Les règles sont celles des fiches de service-public.fr (Direction de l’information légale et administrative), lues
+      le 16 octobre 2026&nbsp;:
+      {fiches.map((f, i) => (
+        <>
+          {i ? ' ; ' : ' '}
+          <a href={urlFiche(f.code)} target="_blank" rel="noopener">{f.titre}</a>
+          {` (vérifiée le ${enFrancais(f.verifie)})`}
+        </>
+      ))}
+      . Rien de ce que vous saisissez n’est envoyé ni gardé.
+    </p>
+  </div>
+</Base>
+<script>
+  import { brancherAutorisation } from '../../client/autorisation.ts';
+  brancherAutorisation();
+</script>
