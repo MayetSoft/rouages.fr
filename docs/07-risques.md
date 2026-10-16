@@ -631,10 +631,8 @@ chaque année une mesure de même nature, la « valeur verte ».
   (Licence Ouverte, ODbL : obligations de partage à l'identique différentes).
 - **RGPD (phase 4)** : les délibérations de conseils municipaux sont publiques,
   mais contiennent des noms de personnes physiques. Republier et **indexer**
-  n'est pas neutre au regard du droit à l'effacement et du référencement. À
-  cadrer avant la première collecte : pseudonymisation des mentions non
-  publiques par nature, exclusion de l'indexation par les moteurs, procédure de
-  retrait. Recommandation : avis juridique avant la phase 4.
+  n'est pas neutre au regard du droit à l'effacement et du référencement. Le
+  cadrage de la recherche est à la section 8.
 
 ## 5. L'assistance à la lecture du PLU
 
@@ -665,3 +663,86 @@ Risque de produire un doublon moins bon de vie-publique.fr.
 **Garde-fous** : l'entité `levier` et la vue V4 (« où puis-je agir ») ; l'échelon
 local ; le format graphique. Si une fiche n'apporte rien de plus que la page
 service-public correspondante, ne pas la publier — la lier.
+
+## 8. La recherche dans les délibérations (cadrage du 16 octobre 2026)
+
+La phase 4 annonce une « recherche dans les délibérations ». Ce cadrage est
+écrit avant toute ligne de code, comme le demande la feuille de route.
+
+### Ce qui existe, et pourquoi c'était acceptable
+
+Le site relaie déjà l'objet, la date et le lien de 586 022 délibérations de
+1 400 collectivités, sur la page de chaque commune, sans en reprendre le
+document. Lier n'est ni republier ni indexer : le document reste chez la
+collectivité qui l'a publié, sous sa responsabilité. Les délibérations dont
+l'objet nomme un particulier sont écartées à la collecte — par une civilité,
+et depuis le 16 octobre 2026 par un prénom courant suivi d'un nom
+(`src/modele/civilites.ts`).
+
+### Ce qu'une recherche change : la trouvabilité
+
+Un nom qui échappe au filtre, sur la page d'une commune, ne se lit que si
+l'on ouvre cette page. Dans une recherche nationale, il devient une
+requête : on cherche une personne et l'on obtient tout ce que 1 400
+collectivités ont délibéré à son sujet. C'est le rapprochement que la règle
+du site refuse de faire de lui-même. Le risque n'est pas théorique : la
+mesure du 16 octobre a trouvé une vingtaine de particuliers publiés malgré
+le filtre des civilités (`docs/05-roadmap.md`). Un filtre par motifs
+laissera toujours passer un nom sans prénom courant (« vente Dupont »).
+
+### Trois niveaux, du moins au plus risqué
+
+1. **Chercher dans les intitulés déjà publiés**, par mot, en filtrant par
+   territoire, par période et par famille de la nomenclature des actes.
+   Aucune donnée nouvelle. Acceptable sous les garde-fous ci-dessous.
+2. **Ranger les intitulés par compétence du graphe** — l'eau, la voirie,
+   l'urbanisme —, par règles écrites et publiées, pas par un modèle qui
+   jugerait. Acceptable : c'est le niveau 1 avec un index de plus, et il
+   relie l'acte à la fiche qui l'explique.
+3. **Chercher dans le texte des documents** (les PDF). **Refusé en l'état.**
+   Ce serait republier et indexer le contenu, noms compris : le principe
+   posé par la loi pour une République numérique (article L312-1-2 du code
+   des relations entre le public et l'administration) subordonne la mise en
+   ligne d'un document comportant des données personnelles à un traitement
+   qui empêche d'identifier les personnes, sauf disposition législative
+   contraire, accord des intéressés ou catégorie fixée par décret après avis
+   de la CNIL. Le texte en vigueur est à relire sur Légifrance, et la
+   question de savoir si l'obligation de publier les actes (ordonnance
+   n° 2021-1310) couvre une republication par un tiers est à soumettre à un
+   juriste. Une occultation automatique n'est pas fiable : un nom sans
+   civilité, une adresse, une référence cadastrale suffisent à identifier.
+
+### Les garde-fous des niveaux 1 et 2
+
+- **L'index ne lit que des intitulés déjà publiés**, après les deux filtres
+  de la collecte. Rien n'est ajouté pour la recherche.
+- **Un mot n'entre dans l'index que s'il figure dans les intitulés d'au
+  moins trois collectivités.** Un nom de famille, un lieu-dit, un nom
+  d'entreprise locale ne se cherchent pas ; « cantine », « assainissement »
+  ou « PLU » si. Mesuré sur les intitulés publiés : 71 % des mots distincts
+  sont exclus, et 45 % des intitulés ont au moins un mot qui ne se cherche
+  pas — ils restent trouvables par leurs autres mots. Le seuil est un
+  paramètre à remesurer sur les 586 022 intitulés, pas sur l'échantillon.
+- **Les références cadastrales ne s'indexent pas** (« parcelle AC 0151 ») :
+  le cadastre les relie à un propriétaire. 68 intitulés publiés en portent.
+- **La recherche tourne dans le navigateur**, sur un index statique ; aucune
+  page de résultats n'est produite pour les moteurs, et la page de recherche
+  porte `noindex`. Le site ne garde aucune requête.
+- **Les résultats sont rangés par date**, jamais par une « importance », et
+  aucun total n'est présenté comme une comparaison entre collectivités : une
+  collectivité absente ne délibère pas moins, elle ne verse pas ses actes en
+  données ouvertes. Chaque page de résultats le dit.
+- **Le retrait** : un intitulé signalé par `/signaler` s'inscrit dans
+  `retraits.yaml` par la collectivité et l'empreinte de l'intitulé ;
+  l'ingestion suivante l'écarte de la page et de l'index.
+- **Un contrôle en CI** tient des cas aux noms inventés
+  (`npm run verifier-particuliers`), comme pour les autres filtres.
+
+### Avant d'écrire le code
+
+- Remesurer le seuil des trois collectivités sur tout le corpus, et lire un
+  échantillon de ce qu'il laisse chercher.
+- Mesurer la taille de l'index par département, pour qu'il se charge comme
+  les fichiers de proximité.
+- Le niveau 3 attend un avis juridique écrit. Sans lui, il ne se fait pas.
+

@@ -4940,3 +4940,14 @@ Matisse »). Il écarte trop plutôt que pas assez — « grille tarifaire Jean
 Moulin » part avec —, et c'est le sens voulu. 21 délibérations sont retirées
 des fichiers publiés et 45 du journal, sans attendre la réingestion ;
 `npm run verifier-particuliers`, en CI, tient 22 cas aux noms inventés.
+
+### La recherche dans les délibérations : le cadrage, avant le code (16 octobre 2026)
+
+`docs/07-risques.md`, section 8. Trois niveaux : chercher dans les intitulés
+déjà publiés, les ranger par compétence du graphe — acceptables sous
+garde-fous —, et chercher dans le texte des documents, refusé en l'état
+faute d'avis juridique. Le garde-fou central : un mot ne se cherche que s'il
+figure dans les intitulés d'au moins trois collectivités, ce qui rend
+introuvables un nom de famille ou un lieu-dit sans priver la recherche de
+« cantine » ou d'« assainissement ». Le cadrage a fait trouver le défaut du
+filtre des civilités corrigé ci-dessus.
