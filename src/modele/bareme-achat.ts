@@ -29,6 +29,10 @@ export const SOURCES = {
     titre: 'Service-public.fr — Frais de notaire : qu’est-ce que c’est ? (vérifié le 5 août 2026)',
     url: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F17701',
   },
+  notaires: {
+    titre: 'Notaires de France — Simulateur des frais d’acquisition : forfaits de formalités et de débours, relevés le 16 octobre 2026 sur son service de calcul',
+    url: 'https://www.immobilier.notaires.fr/fr/frais-de-notaire',
+  },
   communes: {
     titre: 'collectivites-locales.gouv.fr — Droits de mutation',
     url: 'https://www.collectivites-locales.gouv.fr/gerer-les-finances-publiques-locales/fiscalite-locale/fiscalite-indirecte-locale/droits-de-mutation',
@@ -196,6 +200,19 @@ export const FORMALITES_PAR_PIECE = { document: 56.6, diagnostic: 15.09 };
 export const ECRETEMENT = { taux: 10, minimum: 90 };
 /** La remise que le notaire peut consentir, la même pour tous ses clients : 20 % au plus de l'émolument calculé sur les tranches de 100 000 € et plus (art. A444-174). */
 export const REMISE = { taux: 20, seuil: 100_000 };
+/**
+ * Ce qu'un dossier ordinaire coûte en plus du minimum : les forfaits du
+ * simulateur des notaires de France, relevés le 16 octobre 2026 sur son
+ * service de calcul (`/pub-services/inotr-www-calculs/v1/frais-acquisition`),
+ * les mêmes à 20 000, 50 000, 150 000 et 500 000 € dans l'ancien —
+ * 850 € HT de formalités, à la place des seules formalités obligatoires, et
+ * 400 € de débours, sans TVA. Le tarif fixe le prix de chaque formalité, pas
+ * leur nombre : le notaire en ajoute selon les pièces du dossier
+ * (urbanisme, état hypothécaire, diagnostics). Ce service applique encore
+ * les taux de l'acte d'avant 2021 ; on n'en reprend que les deux forfaits.
+ */
+export const FORFAITS_NOTAIRES = { formalitesHt: 850, debours: 400, releve: '2026-10-16' } as const;
+
 /** Dans le neuf (vente en l'état futur d'achèvement, soumise à la TVA) : 0,70 % pour le département, 2,14 % de frais d'assiette, pas de taxe communale (impots.gouv.fr). */
 export const NEUF = { departement: 0.7, assiette: 2.14 };
 
@@ -255,7 +272,28 @@ export interface Frais {
   emolumentsHt: number;
   tva: number;
   remiseMaximale: number;
+  /** Le minimum que fixe le tarif : les impôts, l'acte et les seules formalités obligatoires. */
   total: number;
+  /** Dans l'ancien : le même achat avec les forfaits des notaires de France. Absent dans le neuf. */
+  usuel: Usuel | null;
+}
+
+export interface Usuel {
+  formalitesHt: number;
+  emolumentsHt: number;
+  tva: number;
+  debours: number;
+  total: number;
+}
+
+/** Le minimum, avec les forfaits de formalités et de débours d'un dossier ordinaire ; l'écrêtement vaut toujours. */
+function usuel(prix: number, f: Omit<Frais, 'usuel'>): Usuel {
+  const formalitesHt = Math.max(f.formalitesHt, FORFAITS_NOTAIRES.formalitesHt);
+  const plafond = Math.max(ECRETEMENT.minimum, (prix * ECRETEMENT.taux) / 100);
+  const emolumentsHt = Math.min(f.acte + formalitesHt, plafond);
+  const tva = emolumentsHt * TVA_EMOLUMENTS;
+  const impots = f.total - f.emolumentsHt - f.tva;
+  return { formalitesHt, emolumentsHt, tva, debours: FORFAITS_NOTAIRES.debours, total: impots + emolumentsHt + tva + FORFAITS_NOTAIRES.debours };
 }
 
 function notaire(prix: number, dossier: Dossier) {
@@ -278,7 +316,7 @@ export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = fal
     const departement = (prix * NEUF.departement) / 100;
     const etatAssiette = (departement * NEUF.assiette) / 100;
     const csi = Math.max(CSI.minimum, (prix * CSI.taux) / 100);
-    return { tauxDepartement: NEUF.departement, tauxSansHausse: NEUF.departement, departement, commune: 0, etatAssiette, csi, ...n, total: departement + etatAssiette + csi + n.emolumentsHt + n.tva };
+    return { tauxDepartement: NEUF.departement, tauxSansHausse: NEUF.departement, departement, commune: 0, etatAssiette, csi, ...n, total: departement + etatAssiette + csi + n.emolumentsHt + n.tva, usuel: null };
   }
   const [majore, base] = t;
   const reduit = primo ? PREMIERE_PROPRIETE[dep] : undefined;
@@ -287,7 +325,7 @@ export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = fal
   const commune = (prix * TAXE_COMMUNALE) / 100;
   const etatAssiette = (departement * FRAIS_ASSIETTE) / 100;
   const csi = Math.max(CSI.minimum, (prix * CSI.taux) / 100);
-  return {
+  const f = {
     tauxDepartement,
     tauxSansHausse: reduit ?? base,
     departement,
@@ -297,4 +335,5 @@ export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = fal
     ...n,
     total: departement + commune + etatAssiette + csi + n.emolumentsHt + n.tva,
   };
+  return { ...f, usuel: usuel(prix, f) };
 }

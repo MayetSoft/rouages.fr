@@ -71,7 +71,8 @@ export function brancherLocatif(): void {
     const loyer = champ('loyer');
     const travaux = champ('travaux');
     const fa = prix ? fraisAchat(prix, dep, false) : null;
-    const frais = fa?.total ?? 0;
+    // L'estimation d'un dossier ordinaire, formalités et débours compris, plutôt que le minimum du tarif.
+    const frais = fa ? (fa.usuel?.total ?? fa.total) : 0;
     const cout = prix + frais + travaux;
 
     $('sl-references').textContent = [
@@ -93,7 +94,7 @@ export function brancherLocatif(): void {
     const net = encaisse - charges;
 
     $('sl-cout').textContent = euros(cout);
-    $('sl-cout-detail').textContent = `${euros(prix)} de prix, ${euros(frais)} de frais d’achat au taux du département${travaux ? `, ${euros(travaux)} de travaux` : ''}`;
+    $('sl-cout-detail').textContent = `${euros(prix)} de prix, environ ${euros(frais)} de frais d’achat au taux du département${travaux ? `, ${euros(travaux)} de travaux` : ''}`;
     $('sl-brut').textContent = pc((annuel / cout) * 100);
     $('sl-net').textContent = pc((net / cout) * 100);
     $('sl-net-detail').textContent = `${euros(encaisse)} encaissés par an${vacance ? ` (${vacance} mois vacants)` : ''}${gestion ? `, après ${Math.round(gestion * 100)} % de gestion` : ''}, moins ${euros(charges)} de charges et de taxe foncière.`;
