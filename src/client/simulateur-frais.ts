@@ -4,7 +4,7 @@
  * le notaire. Voir `src/modele/bareme-achat.ts`.
  */
 import { aLieu } from '../modele/signalement.ts';
-import { ECRETEMENT, FIN_HAUSSE, FORFAITS_NOTAIRES, FORMALITES_PAR_PIECE, fraisAchat, REMISE, SEUIL_COMMUNE, type Frais } from '../modele/bareme-achat.ts';
+import { DOSSIER_CHARGE, ECRETEMENT, FIN_HAUSSE, FORFAITS_NOTAIRES, FORMALITES_PAR_PIECE, fraisAchat, REMISE, SEUIL_COMMUNE, type Frais } from '../modele/bareme-achat.ts';
 import { brancherRapport, restaurerSaisie } from './rapport.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
 
@@ -57,6 +57,13 @@ function detailNotaire(f: Frais, prix: number): HTMLDetailsElement {
     ligne('TVA à 20 %', centimes(f.usuel.tva));
     ligne('Émoluments TTC, estimés', centimes(f.usuel.emolumentsHt + f.usuel.tva), 'sf-detail-total');
   }
+  if (f.charge) {
+    tete('Un dossier chargé — le haut de la fourchette');
+    ligne(`Formalités obligatoires, plus ${DOSSIER_CHARGE.pieces} pièces obtenues par le notaire à ${centimes(FORMALITES_PAR_PIECE.document)} HT chacune (art. A444-172)`, centimes(f.charge.formalitesHt));
+    ligne('Émoluments hors taxes', centimes(f.charge.emolumentsHt));
+    ligne('TVA à 20 %', centimes(f.charge.tva));
+    ligne('Émoluments TTC, dossier chargé', centimes(f.charge.emolumentsHt + f.charge.tva), 'sf-detail-total');
+  }
   const notes = document.createElement('ul');
   const note = (t: string) => notes.append(Object.assign(document.createElement('li'), { textContent: t }));
   note(
@@ -101,12 +108,29 @@ export function brancherFrais(): void {
     const u = f.usuel;
     const impots = f.departement + f.commune + f.etatAssiette + f.csi;
     const total = u?.total ?? f.total;
-    $('sf-total').textContent = u ? `environ ${euros(Math.round(u.total / 10) * 10)}` : euros(f.total);
-    $('sf-part').textContent = u
-      ? `${pc((u.total / prix) * 100)} du prix, dont ${euros(impots)} d’impôts, ${euros(u.emolumentsHt + u.tva)} pour le notaire, TVA comprise, et ${euros(u.debours)} de débours`
+    const c = f.charge;
+    const arrondi = (x: number) => euros(Math.round(x / 10) * 10);
+    $('sf-total').textContent = u && c ? `${arrondi(f.total)} à ${arrondi(c.total)}` : euros(f.total);
+    $('sf-part').textContent = u && c
+      ? `${pc((f.total / prix) * 100)} à ${pc((c.total / prix) * 100)} du prix. Les impôts, ${euros(impots)}, sont certains ; ce qui varie, c’est la part du notaire, selon le dossier.`
       : `${pc((f.total / prix) * 100)} du prix, dont ${euros(impots)} d’impôts et ${euros(f.emolumentsHt + f.tva)} pour le notaire, TVA comprise`;
+    const fourchette = $('sf-fourchette');
+    fourchette.innerHTML = '';
+    fourchette.hidden = !(u && c);
+    if (u && c) {
+      const niveau = (titre: string, montant: number, texte: string) => {
+        const li = document.createElement('li');
+        const tete = Object.assign(document.createElement('div'), { className: 'sf-tete' });
+        tete.append(Object.assign(document.createElement('span'), { textContent: titre }), Object.assign(document.createElement('strong'), { textContent: euros(montant) }));
+        li.append(tete, Object.assign(document.createElement('small'), { textContent: texte }));
+        fourchette.append(li);
+      };
+      niveau('Le minimum fixé par le tarif', f.total, `Les impôts, l’acte, et les seules formalités que toute vente exige (${euros(f.formalitesHt)} HT). Aucun dossier réel ne coûte moins ; peu coûtent si peu.`);
+      niveau('Un dossier ordinaire', u.total, `Comme le simulateur des notaires de France : ${euros(FORFAITS_NOTAIRES.formalitesHt)} HT de formalités au forfait et ${euros(FORFAITS_NOTAIRES.debours)} de débours. La répartition ci-dessous suit ce cas.`);
+      niveau('Un dossier chargé', c.total, `Des titres anciens à analyser, une servitude, un vendeur public, plusieurs parcelles : les formalités obligatoires plus ${DOSSIER_CHARGE.pieces} pièces que le notaire obtient, à ${centimes(FORMALITES_PAR_PIECE.document)} HT chacune, soit ${euros(c.formalitesHt)} HT. C’est l’ordre de grandeur d’un projet de compromis réel relu pour vérifier ce simulateur. Une hypothèse, pas un plafond : le tarif fixe le prix de chaque pièce, pas leur nombre.`);
+    }
     $('sf-minimum').textContent = u
-      ? `Le minimum fixé par le tarif est de ${euros(f.total)} : les impôts, l’acte et les seules formalités que toute vente exige. Un dossier ordinaire en demande davantage — pièces d’urbanisme, état hypothécaire, diagnostics —, et le notaire avance des débours. L’estimation les compte comme le simulateur des notaires de France : ${euros(FORFAITS_NOTAIRES.formalitesHt)} hors taxes de formalités et ${euros(FORFAITS_NOTAIRES.debours)} de débours. Seul le décompte du notaire fait foi.`
+      ? 'Le notaire demande d’abord une provision, souvent arrondie vers le haut, puis rend le trop-perçu une fois les formalités faites. Demandez-lui le décompte : chaque formalité y porte son numéro au tarif, chaque débours son justificatif.'
       : 'Dans le neuf, le simulateur ne compte que le minimum fixé par le tarif : les formalités et les débours d’un dossier s’y ajoutent.';
 
     const recoitCommune = habitants !== null && habitants > SEUIL_COMMUNE;

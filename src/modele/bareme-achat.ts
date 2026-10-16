@@ -213,6 +213,20 @@ export const REMISE = { taux: 20, seuil: 100_000 };
  */
 export const FORFAITS_NOTAIRES = { formalitesHt: 850, debours: 400, releve: '2026-10-16' } as const;
 
+/**
+ * Le haut de la fourchette : un dossier chargé — titres de propriété
+ * anciens à analyser, une servitude, un vendeur public, des parcelles
+ * multiples. Une hypothèse, pas une moyenne : seize pièces que le notaire
+ * obtient lui-même, au prix que le tarif fixe pour chacune (56,60 € HT,
+ * art. A444-172), en plus des formalités obligatoires. L'ordre de grandeur
+ * vient d'un projet de compromis relu le 16 octobre 2026 pour vérifier ce
+ * simulateur (50 000 €, Allier) : 2 145 € HT d'émoluments, dont 770 € pour
+ * l'acte, soit environ 1 375 € HT de formalités. Les débours restent au
+ * forfait des notaires : aucune source ne dit ce qu'ils valent dans un tel
+ * dossier.
+ */
+export const DOSSIER_CHARGE = { pieces: 16, releve: '2026-10-16' } as const;
+
 /** Dans le neuf (vente en l'état futur d'achèvement, soumise à la TVA) : 0,70 % pour le département, 2,14 % de frais d'assiette, pas de taxe communale (impots.gouv.fr). */
 export const NEUF = { departement: 0.7, assiette: 2.14 };
 
@@ -276,6 +290,8 @@ export interface Frais {
   total: number;
   /** Dans l'ancien : le même achat avec les forfaits des notaires de France. Absent dans le neuf. */
   usuel: Usuel | null;
+  /** Dans l'ancien : le haut de la fourchette, un dossier chargé (`DOSSIER_CHARGE`). Absent dans le neuf. */
+  charge: Usuel | null;
 }
 
 export interface Usuel {
@@ -287,8 +303,7 @@ export interface Usuel {
 }
 
 /** Le minimum, avec les forfaits de formalités et de débours d'un dossier ordinaire ; l'écrêtement vaut toujours. */
-function usuel(prix: number, f: Omit<Frais, 'usuel'>): Usuel {
-  const formalitesHt = Math.max(f.formalitesHt, FORFAITS_NOTAIRES.formalitesHt);
+function usuel(prix: number, f: Omit<Frais, 'usuel' | 'charge'>, formalitesHt: number): Usuel {
   const plafond = Math.max(ECRETEMENT.minimum, (prix * ECRETEMENT.taux) / 100);
   const emolumentsHt = Math.min(f.acte + formalitesHt, plafond);
   const tva = emolumentsHt * TVA_EMOLUMENTS;
@@ -316,7 +331,7 @@ export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = fal
     const departement = (prix * NEUF.departement) / 100;
     const etatAssiette = (departement * NEUF.assiette) / 100;
     const csi = Math.max(CSI.minimum, (prix * CSI.taux) / 100);
-    return { tauxDepartement: NEUF.departement, tauxSansHausse: NEUF.departement, departement, commune: 0, etatAssiette, csi, ...n, total: departement + etatAssiette + csi + n.emolumentsHt + n.tva, usuel: null };
+    return { tauxDepartement: NEUF.departement, tauxSansHausse: NEUF.departement, departement, commune: 0, etatAssiette, csi, ...n, total: departement + etatAssiette + csi + n.emolumentsHt + n.tva, usuel: null, charge: null };
   }
   const [majore, base] = t;
   const reduit = primo ? PREMIERE_PROPRIETE[dep] : undefined;
@@ -335,5 +350,9 @@ export function fraisAchat(prix: number, dep: string, primo: boolean, neuf = fal
     ...n,
     total: departement + commune + etatAssiette + csi + n.emolumentsHt + n.tva,
   };
-  return { ...f, usuel: usuel(prix, f) };
+  return {
+    ...f,
+    usuel: usuel(prix, f, Math.max(f.formalitesHt, FORFAITS_NOTAIRES.formalitesHt)),
+    charge: usuel(prix, f, f.formalitesHt + DOSSIER_CHARGE.pieces * FORMALITES_PAR_PIECE.document),
+  };
 }
