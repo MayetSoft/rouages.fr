@@ -4805,3 +4805,27 @@ Le violet du patrimoine mondial et le bleu de Ramsar étaient indiscernables
 pour un daltonien ; ce sont désormais le bleu (Ramsar), l'orange (patrimoine
 mondial) et le vert d'eau (biosphère), validés en clair et en sombre, chacun
 nommé dans la légende.
+
+### Trouver des communes : trier, copier le lien (16 octobre 2026)
+
+Chaque en-tête du tableau est un bouton : un clic trie par la colonne — un
+nombre du plus grand au plus petit, un nom de A à Z —, un second inverse le
+sens, et l'en-tête le dit (`aria-sort`). À égalité, la plus peuplée d'abord ;
+une valeur non publiée va en fin de liste, quel que soit le sens. Le tri
+s'écrit dans l'adresse (`tri=3d`) quand il n'est pas celui d'origine, et le
+fichier CSV suit l'ordre affiché. Un bouton copie le lien de la recherche ;
+si le navigateur refuse, il affiche l'adresse à copier.
+
+### Département et région : se situer parmi les autres (16 octobre 2026)
+
+Sous les chiffres du bilan des protections, un tableau : la part des communes
+dans un parc naturel régional, dans un parc national, touchées par Natura
+2000, rattachées au patrimoine mondial, couvertes par un plan climat — ici,
+dans la région (pour un département) et dans la France entière, outre-mer
+compris. Mêmes fichiers et mêmes règles que le bilan, comptés une fois par
+département pendant le build. L'Allier : aucun parc quand sa région en a
+20,8 % et la France 14,2 % ; 32,2 % de communes Natura 2000 pour 45,1 % en
+Auvergne-Rhône-Alpes ; 99,1 % sous un plan climat pour 58,8 % et 44,7 %. La
+page dit que le patrimoine mondial se compare mal, faute de périmètres
+publiés partout. Paris, une commune, n'a pas de comparaison.
+

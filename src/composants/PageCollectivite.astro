@@ -29,7 +29,7 @@ import ElusCollectivite from './ElusCollectivite.astro';
 import { parTitulaire, rapprocher, type Rapprochement } from '../modele/recoupements.ts';
 import Marches from './commune/Marches.astro';
 import { elusDeCollectivite } from '../modele/elus-echelons.ts';
-import { bilanProtections } from '../modele/bilan-protections.ts';
+import { bilanProtections, comparaisonProtections } from '../modele/bilan-protections.ts';
 import BilanProtections from './BilanProtections.astro';
 
 interface Props {
@@ -100,6 +100,10 @@ const zonages = partage ? null : zonagesGroupe(communes().filter((x) => deps.inc
 const marches = marchesCollectivite(c);
 // Le Rhône et la Métropole de Lyon se partagent les communes : le bilan n'est donné qu'une fois, sous le Rhône.
 const protections = c.code === '691' ? null : bilanProtections(deps);
+// Un département se compare à sa région et à la France ; une région, à la France.
+const depsRegion =
+  c.echelon === 'departement' ? Object.entries(meta?.codesRegion ?? {}).filter(([, r]) => r === meta?.codesRegion?.[deps[0]]).map(([d]) => d) : null;
+const comparaison = protections ? comparaisonProtections(deps, depsRegion) : null;
 const investissement = c.echelon === 'departement' ? investissementCollectivite('departement', c.code) : null;
 const petiteEnfance = partage || c.code === '67A' ? null : petiteEnfanceCollectivite(c.echelon, c.code);
 
@@ -214,7 +218,12 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
     {protections && (
       <section id="protections">
         <h2 class="badge">Ce qui protège et engage ses communes</h2>
-        <BilanProtections b={protections} ou={c.echelon === 'departement' ? 'ce département' : 'cette région'} />
+        <BilanProtections
+          b={protections}
+          ou={c.echelon === 'departement' ? 'ce département' : 'cette région'}
+          comparaison={comparaison}
+          titre={c.echelon === 'departement' ? 'Ce département' : 'Cette région'}
+        />
       </section>
     )}
     {petiteEnfance && (

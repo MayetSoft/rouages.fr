@@ -107,3 +107,69 @@ export function bilanProtections(deps: string[]): BilanProtections | null {
     majPlans: registre?.maj ?? null,
   };
 }
+
+/** Ce que compte la comparaison, en communes : toutes, puis celles que chaque protection ou engagement touche. */
+export interface PartsProtections {
+  total: number;
+  pnr: number;
+  parcNational: number;
+  natura2000: number;
+  mondial: number;
+  plan: number;
+}
+
+const PARTS_VIDES: PartsProtections = { total: 0, pnr: 0, parcNational: 0, natura2000: 0, mondial: 0, plan: 0 };
+const partsParDep = new Map<string, PartsProtections>();
+let couvertesFrance: Set<string> | null = null;
+
+/** Les comptes d'un département, faits une fois pour tout le build : chaque page de département et de région les additionne. */
+function partsDuDepartement(dep: string): PartsProtections {
+  const deja = partsParDep.get(dep);
+  if (deja) return deja;
+  // Les communes couvertes par un plan climat, d'après l'intercommunalité qui le porte, où qu'elle ait son siège.
+  if (!couvertesFrance) {
+    const registre = pcaet();
+    couvertesFrance = new Set(intercommunalites().filter((e) => registre?.c[e.siren]).flatMap((e) => e.communes.map((x) => x.code)));
+  }
+  const ici = communes().filter((x) => x.dep === dep);
+  const codes = new Set(ici.map((x) => x.code));
+  const avec = (rangs: number[]) => {
+    const d = espacesDuDepartement(dep);
+    if (!d) return 0;
+    return Object.entries(d.c).filter(([code, zones]) => codes.has(code) && zones.some(([r]) => rangs.includes(r))).length;
+  };
+  const mondial = patrimoineMondial()?.c ?? {};
+  const p: PartsProtections = {
+    total: ici.length,
+    pnr: avec([8]),
+    parcNational: avec([0, 9]),
+    natura2000: avec([4, 5]),
+    mondial: ici.filter((x) => mondial[x.code]?.length).length,
+    plan: ici.filter((x) => couvertesFrance!.has(x.code)).length,
+  };
+  partsParDep.set(dep, p);
+  return p;
+}
+
+const additionner = (deps: string[]): PartsProtections =>
+  deps.map(partsDuDepartement).reduce(
+    (s, p) => ({
+      total: s.total + p.total,
+      pnr: s.pnr + p.pnr,
+      parcNational: s.parcNational + p.parcNational,
+      natura2000: s.natura2000 + p.natura2000,
+      mondial: s.mondial + p.mondial,
+      plan: s.plan + p.plan,
+    }),
+    PARTS_VIDES,
+  );
+
+/**
+ * Le territoire, sa région quand c'est un département, et la France entière :
+ * les mêmes comptes, faits des mêmes fichiers, pour situer un département
+ * parmi ses voisins sans rien calculer de neuf.
+ */
+export function comparaisonProtections(deps: string[], region: string[] | null): { ici: PartsProtections; region: PartsProtections | null; france: PartsProtections } {
+  const tous = [...new Set(communes().map((x) => x.dep))];
+  return { ici: additionner(deps), region: region && region.length > deps.length ? additionner(region) : null, france: additionner(tous) };
+}
