@@ -79,6 +79,7 @@ export const JEUX = {
   vraifaux: { nom: 'Vrai ou faux : le maire peut-il… ?', adresse: '/jeux/vrai-ou-faux' },
   carte: { nom: 'Le puzzle de la carte', adresse: '/jeux/puzzle-carte' },
   budget: { nom: 'Le budget de ma commune', adresse: '/jeux/budget' },
+  courbe: { nom: 'Devine la courbe', adresse: '/jeux/devine-la-courbe' },
 } as const;
 export type CleJeu = keyof typeof JEUX;
 
