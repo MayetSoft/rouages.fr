@@ -989,6 +989,11 @@ async function principal() {
   const mondial = await tenter('Patrimoine mondial', () => collecterPatrimoineMondial(SORTIE, lireJson, grise, CACHE));
   if (mondial) ecrirePatrimoineMondial(SORTIE, mondial);
 
+  // Les arrêts se placent dans les contours des communes, écrits avec les espaces naturels.
+  const { collecterTransports, ecrireTransports } = await import('./transports-emettre.ts');
+  const transports = await tenter('Arrêts de transport en commun', () => collecterTransports(SORTIE, lireJson, grise));
+  if (transports) grise(`${ecrireTransports(SORTIE, transports)} départements d’arrêts écrits.`);
+
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));
   if (petiteEnfance) {

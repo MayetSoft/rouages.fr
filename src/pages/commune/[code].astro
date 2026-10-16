@@ -79,6 +79,7 @@ import Caf from '../../composants/commune/Caf.astro';
 import Defibrillateurs from '../../composants/commune/Defibrillateurs.astro';
 import Route from '../../composants/commune/Route.astro';
 import Gares from '../../composants/commune/Gares.astro';
+import Transports from '../../composants/commune/Transports.astro';
 import Antennes from '../../composants/commune/Antennes.astro';
 import Zonages from '../../composants/commune/Zonages.astro';
 import Investissement from '../../composants/commune/Investissement.astro';
@@ -388,6 +389,7 @@ const sommaire: [string, string, unknown][] = [
   ['securite', 'La délinquance', vie.delinquance],
   ['route', 'Les accidents de la route', vie.route],
   ['gares', 'Le train', vie.gares],
+  ['transports', 'Transports en commun', vie.transports],
   ['recharge', 'Recharge et covoiturage', vie.recharge],
   ['agriculture', 'L’agriculture', vie.agriculture],
   ['appellations', 'Les appellations', vie.appellations],
@@ -430,7 +432,7 @@ const FAMILLES: { id: string; nom: string; blocs: string[] }[] = [
   {
     id: 'quotidien',
     nom: 'Au quotidien',
-    blocs: ['equipements', 'services', 'sante', 'defibrillateurs', 'petite-enfance', 'ecoles', 'reseaux', 'gares', 'recharge', 'mobile', 'securite', 'route'],
+    blocs: ['equipements', 'services', 'sante', 'defibrillateurs', 'petite-enfance', 'ecoles', 'reseaux', 'gares', 'transports', 'recharge', 'mobile', 'securite', 'route'],
   },
   {
     id: 'environnement',
@@ -1188,6 +1190,13 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="gares">
         <h2 class="badge">Prendre le train</h2>
         <Gares g={vie.gares} />
+      </section>
+    )}
+
+    {vie.transports && (
+      <section id="transports">
+        <h2 class="badge">Les transports en commun</h2>
+        <Transports t={vie.transports} />
       </section>
     )}
 

@@ -547,6 +547,18 @@ surveillances:
     ressource: "geodae.csv"
     lien: od-geodae
 
+  # Les arrêts de tous les fichiers d'horaires GTFS déclarés au Point d'accès
+  # national, lus par carreaux. Chaque réseau a sa licence (Licence Ouverte ou
+  # ODbL) : les fichiers qui en dérivent sont rediffusés sous ODbL.
+  - id: pan-arrets
+    nom: "Point d’accès national — les arrêts des réseaux de transport"
+    alimente: "les arrêts de transport en commun de la commune, et les réseaux qui les inscrivent"
+    type: disponibilite
+    licence: odbl
+    fichiers: ["dep/XX-transports.json"]
+    url: "https://transport.data.gouv.fr/api/gtfs-stops?south=46.07&north=46.08&west=3.66&east=3.67"
+    lien: od-pan-arrets
+
   - id: sncf-gares
     nom: "SNCF — gares de voyageurs"
     alimente: "les gares de la commune, ou la plus proche"

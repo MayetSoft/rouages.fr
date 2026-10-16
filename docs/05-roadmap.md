@@ -4841,3 +4841,26 @@ d'approbation est désormais nommé (« Require approval for all external
 contributors »), avec la raison : une PR venue d'un fork apporte ses propres
 workflows. `npm run valider` refuse un workflow autre que la réingestion qui
 viserait le runner, et une réingestion déclenchée autrement qu'à la main.
+
+### Les transports en commun de chaque commune (16 octobre 2026)
+
+Reportés le 30 septembre faute des contours des communes, que le site a
+depuis. Le Point d'accès national aux données de transport lit tous les
+fichiers d'horaires GTFS qu'on y déclare et sert leurs arrêts par carreaux
+(`/api/gtfs-stops`, au plus 20 000 points : un carreau trop dense est coupé
+en quatre). Son export statique date de janvier 2026 ; les carreaux suivent
+les republications. `scripts/transports-emettre.ts` place chaque arrêt dans
+la commune dont le contour le contient, le compte une fois par nom dans la
+commune, et nomme les réseaux qui l'inscrivent — un agrégat régional
+seulement si aucun réseau propre n'a d'arrêt dans la commune. Une commune
+sans arrêt reçoit le plus proche de son centre, jusqu'à 30 km.
+
+742 075 points lus, 328 798 arrêts distincts : 22 978 communes en ont au
+moins un, 11 880 reçoivent le plus proche, 4 Mo de fichiers. Au
+Mayet-de-Montagne, deux arrêts — le lycée Claude Mercier et le collège —
+du réseau interurbain de l'Allier ; à Vichy, 61 arrêts et quatre réseaux.
+Le Point d'accès dit la couche expérimentale et demande qu'on ne s'en serve
+pas pour l'information voyageur : la page dit qu'un arrêt existe et qui
+l'inscrit, jamais quand on y passe, et renvoie à la fiche de chaque réseau.
+Les fréquences, qui demanderaient de lire les horaires de chaque fichier,
+restent à faire.

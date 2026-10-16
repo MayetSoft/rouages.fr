@@ -112,6 +112,13 @@ type GaresDep = {
   c: Record<string, { g: [string, number][] } | { p: [string, string, number, number] }>;
 };
 const garesDep = parDepartement<GaresDep>('gares');
+type TransportsDep = {
+  maj: string;
+  /** Les réseaux cités : titre, éditeur, fiche au Point d'accès national. */
+  r: Record<string, [string, string, string]>;
+  c: Record<string, { n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] }>;
+};
+const transportsDep = parDepartement<TransportsDep>('transports');
 type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Record<string, [number, number, number, number][]> };
 const antennesDep = parDepartement<AntennesDep>('antennes');
 type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<string, [number, number, number, number, 0 | 1 | 2][]> };
@@ -450,6 +457,20 @@ export interface Gares {
 }
 
 /**
+ * Les arrêts de transport en commun de la commune et les réseaux qui les
+ * inscrivent dans leurs horaires ; à défaut, l'arrêt le plus proche de son
+ * centre. Rien sur la fréquence.
+ */
+export interface Transports {
+  arrets: number;
+  /** Les arrêts nommés, quand ils sont peu nombreux. */
+  noms: string[] | null;
+  reseaux: { titre: string; editeur: string; url: string }[];
+  proche: { nom: string; code: string; commune: string; km: number } | null;
+  maj: string;
+}
+
+/**
  * Les sites mobiles installés sur la commune, par opérateur ; aucun est une
  * réponse. Des antennes, pas une couverture.
  */
@@ -731,6 +752,7 @@ export interface ComplementsVie {
   defibrillateurs: Defibrillateurs | null;
   route: Route | null;
   gares: Gares | null;
+  transports: Transports | null;
   antennes: Antennes | null;
   production: Production | null;
   monuments: Monuments | null;
@@ -995,6 +1017,20 @@ function gares(c: CommuneFiche): Gares | null {
     annee: d.annee,
     maj: d.maj,
   };
+}
+
+function transports(c: CommuneFiche): Transports | null {
+  const d = transportsDep.get(c.dep);
+  const f = d?.c[c.code];
+  if (!d || !f) return null;
+  const reseau = (id: string) => {
+    const [titre, editeur, url] = d.r[id] ?? [id, '', 'https://transport.data.gouv.fr/datasets'];
+    return { titre, editeur, url };
+  };
+  if ('n' in f) return { arrets: f.n, noms: f.a ?? null, reseaux: f.r.map(reseau), proche: null, maj: d.maj };
+  nomsCommunes ??= new Map(communes().map((x) => [x.code, x.nom]));
+  const [nom, code, hm, r] = f.p;
+  return { arrets: 0, noms: null, reseaux: r.map(reseau), proche: { nom, code, commune: nomsCommunes.get(code) ?? code, km: hm / 10 }, maj: d.maj };
 }
 
 const FIN_TRIMESTRE = ['03-31', '06-30', '09-30', '12-31'];
@@ -1371,6 +1407,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     defibrillateurs: defibrillateurs(c),
     route: route(c),
     gares: gares(c),
+    transports: transports(c),
     antennes: antennes(c),
     production: production(c),
     monuments: monuments(c),

@@ -1,0 +1,50 @@
+---
+/**
+ * Les arrêts de transport en commun de la commune et les réseaux qui les
+ * inscrivent dans leurs horaires ; à défaut, l'arrêt le plus proche de son
+ * centre. Une présence, pas une desserte : rien ne dit ici combien de fois
+ * par jour on y passe.
+ */
+import type { Transports } from '../../modele/fiche-vie.ts';
+import Glose from '../Glose.astro';
+
+interface Props {
+  t: Transports;
+}
+const { t } = Astro.props;
+const nf = (v: number) => v.toLocaleString('fr-FR');
+const p = t.proche;
+const date = t.maj.split('-').reverse().join('/');
+---
+{!p && (
+  <p class="mesure">
+    <Glose
+      texte={t.arrets === 1
+        ? `Un arrêt de transport en commun${t.noms ? `, « ${t.noms[0]} »` : ''}, inscrit dans les horaires de ${t.reseaux.length > 1 ? `${t.reseaux.length} réseaux` : 'ce réseau'} :`
+        : `${nf(t.arrets)} arrêts de transport en commun${t.noms ? ` — ${t.noms.map((n) => `« ${n} »`).join(', ')} —` : ''}, inscrits dans les horaires de ${t.reseaux.length > 1 ? `${t.reseaux.length} réseaux` : 'ce réseau'} :`}
+    />
+  </p>
+)}
+{p && (
+  <p class="mesure">
+    <Glose texte="Aucun arrêt de transport en commun dans la commune. Le plus proche de son centre est « " />{p.nom}
+    {' », à '}<a href={`/commune/${p.code}`}>{p.commune}</a>
+    {`, à ${p.km.toLocaleString('fr-FR')} km à vol d’oiseau, inscrit dans les horaires de :`}
+  </p>
+)}
+<ul class="c-structures">
+  {t.reseaux.map((r) => (
+    <li>
+      <a href={r.url} target="_blank" rel="noopener">{r.titre}</a>{r.editeur && !r.titre.includes(r.editeur) ? ` — publié par ${r.editeur}` : ''}
+    </li>
+  ))}
+</ul>
+<p class="p-strate">
+  <Glose texte={'Un arrêt figure ici s’il est inscrit dans un fichier d’horaires publié au Point d’accès national : bus, car, tramway, métro, train. ' +
+    'Le site ne dit pas combien de fois par jour on y passe, ni vers où : un arrêt de car scolaire desservi deux fois par jour y pèse autant qu’une station de métro. ' +
+    'Le transport à la demande, quand il n’a pas d’arrêt fixe, n’y figure pas. Deux arrêts de même nom dans la commune — les deux sens d’une ligne — n’en font qu’un.' +
+    (p ? ' La distance est mesurée depuis le centre de la commune, en ligne droite.' : '')} />
+</p>
+<p class="p-source-territoire">
+  {`D’après la couche des arrêts du Point d’accès national aux données de transport (transport.data.gouv.fr), lue le ${date} : les fichiers d’horaires GTFS de chaque réseau, réunis. Le Point d’accès la dit expérimentale et demande qu’on ne s’en serve pas pour l’information voyageur : pour les horaires, la fiche de chaque réseau. La commune de chaque arrêt est celle dont le contour le contient (IGN, Admin Express).`}
+</p>
