@@ -123,6 +123,8 @@ type TransportsDep = {
 const transportsDep = parDepartement<TransportsDep>('transports');
 type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Record<string, [number, number, number, number][]> };
 const antennesDep = parDepartement<AntennesDep>('antennes');
+type CouvertureDep = { maj: string; t: string; au: string; ops: string[]; c: Record<string, [number] | [number, number[], number[][]]> };
+const couvertureDep = parDepartement<CouvertureDep>('couverture');
 type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<string, [number, number, number, number, 0 | 1 | 2][]> };
 const productionDep = parDepartement<ProductionDep>('production');
 type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
@@ -489,6 +491,27 @@ export interface Antennes {
   maj: string;
 }
 
+/** Une part de la surface, en pour cent, par niveau de la carte de couverture 4G. */
+export interface PartsCouverture {
+  tbc: number;
+  bc: number;
+  cl: number;
+  aucune: number;
+}
+
+/**
+ * La couverture 4G théorique de la commune, en part de sa surface : pour au
+ * moins un opérateur, puis opérateur par opérateur. `null` pour les parts
+ * quand la commune est trop petite pour la grille de mesure.
+ */
+export interface CouvertureMobile {
+  meilleure: PartsCouverture | null;
+  operateurs: ({ nom: string } & PartsCouverture)[];
+  /** La date des cartes, AAAA-MM-JJ : le dernier jour du trimestre. */
+  au: string;
+  maj: string;
+}
+
 /**
  * L'électricité produite dans la commune, par filière, d'après le registre
  * national des installations ; aucune installation est une réponse. L'énergie
@@ -762,6 +785,7 @@ export interface ComplementsVie {
   gares: Gares | null;
   transports: Transports | null;
   antennes: Antennes | null;
+  couvertureMobile: CouvertureMobile | null;
   production: Production | null;
   monuments: Monuments | null;
   solsPollues: SolsPollues | null;
@@ -1057,6 +1081,15 @@ function antennes(c: CommuneFiche): Antennes | null {
     au: `${m[1]}-${FIN_TRIMESTRE[Number(m[2]) - 1]}`,
     maj: d.maj,
   };
+}
+
+function couvertureMobile(c: CommuneFiche): CouvertureMobile | null {
+  const d = couvertureDep.get(c.dep);
+  const f = d?.c[c.code];
+  if (!d || !f) return null;
+  const parts = ([tbc, bc, cl]: number[]): PartsCouverture => ({ tbc, bc, cl, aucune: Math.max(0, 100 - tbc - bc - cl) });
+  if (f.length === 1) return { meilleure: null, operateurs: [], au: d.au, maj: d.maj };
+  return { meilleure: parts(f[1]), operateurs: f[2].map((p, i) => ({ nom: d.ops[i] ?? '', ...parts(p) })), au: d.au, maj: d.maj };
 }
 
 function production(c: CommuneFiche): Production | null {
@@ -1422,6 +1455,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     gares: gares(c),
     transports: transports(c),
     antennes: antennes(c),
+    couvertureMobile: couvertureMobile(c),
     production: production(c),
     monuments: monuments(c),
     solsPollues: solsPollues(c),

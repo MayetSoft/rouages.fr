@@ -3071,7 +3071,8 @@ réécrit ces fichiers seul.
 
   **Ce que le bloc ne dit pas : la couverture.** Un site voisin peut couvrir
   la commune, un site d'ici ne la couvre pas toute ; la page le dit et renvoie
-  à la carte de l'Arcep. Les cartes de couverture théorique, elles, sont des
+  à la carte de l'Arcep. — Mesurée depuis, le 16 octobre : voir « La
+  couverture 4G de chaque commune ». Les cartes de couverture théorique, elles, sont des
   polygones par opérateur et par technologie — de 28 à 380 Mo compressés
   chacun — qu'on ne ramènerait à la commune qu'avec ses contours. Un site
   partagé compte une fois par opérateur : l'identifiant de partage n'est
@@ -5110,3 +5111,45 @@ monte pas, fichier périmé), la fusion, le choix de la semaine et la phrase.
 La collecte allonge la réingestion de quelques minutes à un quart d'heure ;
 un échec des horaires laisse les arrêts. Les données arriveront avec la
 prochaine réingestion.
+
+### La couverture 4G de chaque commune, en part de sa surface (16 octobre 2026)
+
+Le bloc des antennes disait ce qui est installé, pas ce qui est couvert. Les
+cartes de couverture théorique que l'Arcep collecte chaque trimestre
+(`couverture-emettre.ts`) le disent : une par opérateur — Orange, SFR,
+Bouygues Telecom, Free Mobile —, pour la métropole et la Corse, en
+GeoPackage archivé en 7z (122 à 369 Mo chacune, 928 Mo ouverte pour la plus
+légère), en Lambert 93, un multipolygone par département et par niveau :
+très bonne, bonne, limitée. Les niveaux ne se recouvrent pas (aucun point
+dans deux niveaux sur les 184 000 de l'Allier).
+
+**La mesure** : une grille d'un point tous les 200 m environ par
+département ; chaque point prend sa commune et, pour chaque opérateur, son
+niveau, par une rastérisation rangée par rangée (les abscisses où les
+anneaux croisent la rangée, et la parité à gauche du point). La part d'une
+commune est la part de ses points ; « au moins un opérateur » prend le
+meilleur niveau des quatre, point par point. Une commune de moins de
+vingt-cinq points (un kilomètre carré environ) est dite trop petite pour la
+grille. **En part de la surface, pas de la population** (décision du
+16 octobre) : le carroyage de l'INSEE viendra plus tard pondérer par les
+habitants, et servira à d'autres croisements.
+
+**Un trimestre, un calcul** : environ 85 secondes par opérateur, la carte
+nationale étant décodée en entier — un quart d'heure pour la France. La
+collecte s'arrête si les fichiers publiés portent déjà le dernier trimestre
+de l'Arcep (`ROUAGES_COUVERTURE_FORCER=1` refait le calcul) ; elle ne
+pèse donc sur la réingestion qu'une fois par trimestre. Il faut `7z` : il
+est sur les machines de GitHub, le workflow l'installe sinon, et l'image
+Docker l'embarque désormais. L'outre-mer, dont les cartes sont par
+territoire et dans d'autres projections, viendra après.
+
+**Vérifié** : au Mayet-de-Montagne (2026 T2), au moins un opérateur donne
+86 % de la surface en très bonne couverture, 13 % en bonne, 1 % en limitée,
+moins de 1 % sans couverture ; Orange seul 65 / 30 / 5 %. Un second calcul
+écrit à part en Python — projection directe vers le Lambert 93 au lieu de
+l'inverse, test du point dans le polygone réécrit, grille décalée — donne
+64 / 30 / 5 % pour Orange. `npm run verifier-geo` tient la lecture d'une
+géométrie GeoPackage et la grille (un anneau, son trou, le dehors, le
+meilleur niveau gardé). La page de commune la montre sous les antennes,
+dans une section renommée « Le téléphone mobile : antennes et
+couverture ». Les données arriveront avec la prochaine réingestion.

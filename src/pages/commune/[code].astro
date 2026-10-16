@@ -85,6 +85,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { RACINE } from '../../modele/graphe.ts';
 import Antennes from '../../composants/commune/Antennes.astro';
+import Couverture from '../../composants/commune/Couverture.astro';
 import Zonages from '../../composants/commune/Zonages.astro';
 import Investissement from '../../composants/commune/Investissement.astro';
 import Loyers from '../../composants/commune/Loyers.astro';
@@ -390,7 +391,7 @@ const sommaire: [string, string, unknown][] = [
   ['reseaux', 'Eau, fibre, énergie', vie.eau || vie.fibre || vie.energie],
   ['secheresse', 'Les restrictions d’eau', vie.secheresse],
   ['nature', 'Les espaces naturels', espaces],
-  ['mobile', 'Les antennes mobiles', vie.antennes],
+  ['mobile', 'Le mobile : antennes et couverture', vie.antennes || vie.couvertureMobile],
   ['production', 'L’électricité produite', vie.production],
   ['monuments', 'Les monuments historiques', vie.monuments],
   ['a-voir', 'À voir', vie.lieux],
@@ -1155,10 +1156,16 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
-    {vie.antennes && (
+    {(vie.antennes || vie.couvertureMobile) && (
       <section id="mobile">
-        <h2 class="badge">Les antennes de téléphonie mobile</h2>
-        <Antennes a={vie.antennes} />
+        <h2 class="badge">Le téléphone mobile : antennes et couverture</h2>
+        {vie.antennes && <Antennes a={vie.antennes} />}
+        {vie.couvertureMobile && (
+          <>
+            <h3>La couverture 4G</h3>
+            <Couverture c={vie.couvertureMobile} />
+          </>
+        )}
       </section>
     )}
 
