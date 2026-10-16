@@ -1795,3 +1795,9 @@ a.p-sommaire-lien { text-decoration: none; }
 .zp-cle-n { background: var(--plu-n); }
 .zp-cle-autre { background: var(--encre-douce); opacity: .4; }
 
+/* La recherche dans les délibérations (src/client/recherche-deliberations.ts). */
+.rd-liste { list-style: none; padding: 0; margin: .6rem 0; max-width: 46rem; }
+.rd-liste li { padding: .5rem 0; border-bottom: 1px solid var(--trait); }
+.rd-tete { margin: 0; font-size: .82rem; color: var(--encre-douce); }
+.rd-objet { margin: .15rem 0 0; overflow-wrap: anywhere; }
+

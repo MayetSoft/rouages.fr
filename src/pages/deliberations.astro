@@ -1,0 +1,103 @@
+---
+/**
+ * Chercher dans les délibérations d'un département : les intitulés des
+ * vingt-quatre derniers mois que les collectivités versent en données
+ * ouvertes, par mot, famille d'actes et année. Tout se passe dans le
+ * navigateur : voir `src/client/recherche-deliberations.ts`. Les garde-fous
+ * sont ceux de `docs/07-risques.md`, section 8 ; la page n'est pas indexée.
+ */
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import Base from '../layouts/Base.astro';
+import { RACINE } from '../modele/graphe.ts';
+
+const dossier = join(RACINE, 'public', 'territoires', 'recherche-deliberations');
+const cheminIndex = join(RACINE, 'public', 'territoires', 'index.json');
+const index = existsSync(cheminIndex) ? (JSON.parse(readFileSync(cheminIndex, 'utf8')) as { deps: Record<string, string> }) : { deps: {} };
+const deps = existsSync(dossier)
+  ? readdirSync(dossier)
+      .filter((d) => existsSync(join(dossier, d, 'meta.json')))
+      .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }))
+  : [];
+---
+<Base
+  titre="Chercher dans les délibérations"
+  description="Les délibérations des collectivités qui les versent en données ouvertes, des vingt-quatre derniers mois : chercher par mot, famille d’actes et année, dans un département."
+  section="chez-moi"
+  indexer={false}
+>
+  <div class="page page--comparer">
+    <p class="badge">Données de chez moi</p>
+    <h1>Chercher dans les délibérations</h1>
+    <p class="resume">
+      Une cantine, un plan local d’urbanisme, une subvention au comité des fêtes&nbsp;: les intitulés des délibérations
+      que les communes, leurs intercommunalités et leurs syndicats versent en données ouvertes, depuis vingt-quatre
+      mois. Chaque résultat mène à l’acte, chez la collectivité qui l’a publié.
+    </p>
+
+    {deps.length === 0 ? (
+      <p class="c-vide">
+        L’index sera publié avec la prochaine mise à jour des données&nbsp;: il se construit pendant l’ingestion, sur
+        tous les intitulés collectés.
+      </p>
+    ) : (
+      <form id="rd-formulaire" class="rq-filtres" role="search">
+        <fieldset class="rq-bloc">
+          <legend>Département</legend>
+          <label class="visuellement-cache" for="rd-dep">Département</label>
+          <select id="rd-dep">
+            <option value="">Choisir…</option>
+            {deps.map((d) => <option value={d}>{`${d} · ${index.deps[d] ?? d}`}</option>)}
+          </select>
+        </fieldset>
+        <fieldset class="rq-bloc rq-bloc-large">
+          <legend>Mots de l’intitulé</legend>
+          <label class="visuellement-cache" for="rd-mots">Mots de l’intitulé</label>
+          <input id="rd-mots" type="search" placeholder="cantine scolaire, assainissement, PLU…" autocomplete="off" />
+          <button type="submit" class="rq-copier">Chercher</button>
+        </fieldset>
+        <fieldset class="rq-bloc">
+          <legend>Famille d’actes et année</legend>
+          <label class="visuellement-cache" for="rd-famille">Famille d’actes</label>
+          <select id="rd-famille"><option value="">Toutes les familles</option></select>
+          <label class="visuellement-cache" for="rd-annee">Année</label>
+          <select id="rd-annee"><option value="">Toutes les années</option></select>
+        </fieldset>
+      </form>
+    )}
+    <noscript>
+      <p class="c-vide">La recherche a besoin de JavaScript : elle se fait dans le navigateur.</p>
+    </noscript>
+    <p id="rd-etat" class="mesure" aria-live="polite"></p>
+    <div id="rd-resultats"></div>
+
+    <h2 class="badge">Ce que la recherche dit, et ce qu’elle ne dit pas</h2>
+    <ul class="mesure">
+      <li>
+        <strong>Une collectivité absente ne délibère pas moins.</strong> Elle ne verse pas ses actes en données ouvertes,
+        que la loi n’impose pas&nbsp;: l’obligation est de les publier sur son propre site. La couverture est inégale,
+        forte en Bretagne, faible ailleurs, et les résultats ne se comparent pas d’une collectivité à l’autre.
+      </li>
+      <li>
+        <strong>On ne cherche pas une personne.</strong> Un mot n’entre dans l’index que s’il figure dans les intitulés
+        d’au moins trois collectivités, et jamais un prénom&nbsp;; une délibération dont l’intitulé nomme un particulier
+        est écartée à la collecte, et celle qu’un filtre aurait laissée passer se retire sur demande, par la page
+        <a href="/signaler#retrait">signaler</a>.
+      </li>
+      <li>
+        <strong>L’intitulé, pas l’acte.</strong> La recherche lit l’objet tel que la collectivité l’a écrit, coupé à
+        cent trente caractères&nbsp;; le texte de la délibération reste chez elle, et c’est lui qui fait foi.
+      </li>
+      <li>Les résultats vont du plus récent au plus ancien, sans autre classement.</li>
+    </ul>
+    <p class="p-source-territoire">
+      D’après les jeux de délibérations publiés au schéma du socle commun des données locales, sur data.gouv.fr — dont
+      celui de Mégalis Bretagne. Rien de ce que vous cherchez n’est envoyé ni gardé&nbsp;: le navigateur lit les fichiers
+      de l’index sur ce site.
+    </p>
+  </div>
+</Base>
+<script>
+  import { brancherRechercheDeliberations } from '../client/recherche-deliberations.ts';
+  brancherRechercheDeliberations();
+</script>

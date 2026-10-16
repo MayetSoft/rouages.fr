@@ -8,6 +8,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
+import { deliberationRetiree, empreinteDeliberation } from '../src/modele/retraits-deliberations.ts';
+
+export { deliberationRetiree, empreinteDeliberation };
 
 export interface Retraits {
   /** Des SIREN, sans espaces. */
@@ -69,7 +72,11 @@ export const conseillerRetire = (commune: string, nom: string, prenom: string, n
   return empreintes.size > 0 && empreintes.has(empreinteElu(commune, nom, prenom, naissance));
 };
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && process.argv[2] === '--deliberation') {
+  const [siren, date, ...objet] = process.argv.slice(3);
+  if (!siren || !date || !objet.length) console.log('npx tsx scripts/retraits.ts --deliberation <SIREN> <AAAA-MM-JJ> "<objet tel que publié>"');
+  else console.log(`  - empreinte: "${empreinteDeliberation(siren, date, objet.join(' '))}"`);
+} else if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const [commune, nom, prenom, naissance] = process.argv.slice(2);
   if (!commune || !nom || !prenom || !naissance) console.log('npx tsx scripts/retraits.ts <code INSEE> <NOM> <Prénom> <AAAA-MM-JJ>');
   else console.log(`  - commune: "${commune}"\n    empreinte: "${empreinteElu(commune, nom, prenom, naissance)}"`);

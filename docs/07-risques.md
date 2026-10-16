@@ -738,11 +738,24 @@ laissera toujours passer un nom sans prénom courant (« vente Dupont »).
 - **Un contrôle en CI** tient des cas aux noms inventés
   (`npm run verifier-particuliers`), comme pour les autres filtres.
 
-### Avant d'écrire le code
+### Avant d'écrire le code — fait le 16 octobre 2026
 
-- Remesurer le seuil des trois collectivités sur tout le corpus, et lire un
-  échantillon de ce qu'il laisse chercher.
-- Mesurer la taille de l'index par département, pour qu'il se charge comme
-  les fichiers de proximité.
+- Le seuil, remesuré sur l'année 2025 de Mégalis (73 084 intitulés retenus,
+  1 064 écartés par le filtre des particuliers, 1 832 collectivités) : à
+  trois collectivités, 31 % des mots restent cherchables, 26 % des intitulés
+  ont un mot qui ne se cherche pas, 692 sont introuvables. Ce qui passe de
+  justesse est surtout des noms de lieux (Kervignac, Loctudy) et des mots
+  courants, mais aussi des prénoms (Yann, Brigitte, Sébastien) : **l'index
+  écarte en plus les prénoms du dictionnaire** (`estUnPrenomCourant`).
+- La taille : les adresses des actes pèsent plus que tout le reste (16,8 Mo
+  par an avec elles, 6,9 Mo sans). L'index couvre donc **vingt-quatre mois**,
+  par morceaux de deux mille intitulés que le navigateur ne charge qu'à
+  l'affichage — 8,7 Mo pour une année d'Ille-et-Vilaine.
 - Le niveau 3 attend un avis juridique écrit. Sans lui, il ne se fait pas.
+
+Le niveau 1 est en place (`/deliberations`, `src/client/recherche-deliberations.ts`,
+`ecrireRechercheDeliberations`) : par département, par mot, famille d'actes
+et année ; la page porte `noindex`, ne garde rien de ce qu'on cherche, dit
+qu'un mot absent n'est pas cherchable et pourquoi, et rappelle que la
+couverture se compare mal. L'index se construit à l'ingestion.
 

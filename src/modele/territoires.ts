@@ -12,6 +12,7 @@
  * temps de génération.
  */
 import { dernierChangement } from './fiche-commune.ts';
+import { deliberationRetiree } from './retraits-deliberations.ts';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { verdictDe, type StructureExercante, type Verdict } from './verdict.ts';
@@ -200,6 +201,7 @@ const cacheEcoles = new Map<string, EcolesDep | null>();
 const cacheSru = new Map<string, SruDep | null>();
 const cacheRisques = new Map<string, RisquesDep | null>();
 const cacheJournal = new Map<string, JournalDep | null>();
+const cacheDelibCom = new Map<string, { com?: Record<string, string> } | null>();
 const cacheElections = new Map<string, ElectionsDep | null>();
 const cacheConseils = new Map<string, ConseilsDep | null>();
 type DeclarationsDep = {
@@ -273,7 +275,15 @@ function rassemblerJournal(c: CommuneIndex): EvenementCommune[] {
   for (const i of ligne[3]) nomDe.set(dep.g[i][0], dep.g[i][1]);
   // Un événement de la commune elle-même porte son code, pas son SIREN :
   // l'ingestion l'a converti, elle seule connaît la correspondance.
-  const retenus = j.e.filter((e) => (e.c ? e.c === c.code : nomDe.has(e.s ?? '')));
+  // Une délibération retirée à la demande (`retraits.yaml`) disparaît dès ce build ; celle de la commune
+  // porte son code, et son SIREN se lit dans le fichier des délibérations.
+  const genreDelib = j.genres.indexOf('Délibération');
+  const sirenCommune = genreDelib >= 0 ? enCache(cacheDelibCom, c.dep, `dep/${c.dep}-deliberations.json`)?.com?.[c.code] : undefined;
+  const retenus = j.e.filter(
+    (e) =>
+      (e.c ? e.c === c.code : nomDe.has(e.s ?? '')) &&
+      !(e.g === genreDelib && deliberationRetiree(e.s ?? sirenCommune ?? '', e.d, e.q)),
+  );
   return retenus
     .sort((a, b) => b.d.localeCompare(a.d) || a.q.localeCompare(b.q, 'fr'))
     .slice(0, JOURNAL_MAX)

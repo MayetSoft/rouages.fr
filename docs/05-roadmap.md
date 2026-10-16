@@ -4970,3 +4970,47 @@ annonce alors ses 25 725 242 octets), laisse une demi-heure au
 téléchargement, et ne garde une archive zip que si sa fin de répertoire
 central est là. Même garde dans le téléchargeur des collectes lancées
 seules. La limite du workflow passe de trois à quatre heures.
+
+### Les retraits pour les délibérations (16 octobre 2026)
+
+Le filet que le cadrage promettait : une délibération dont l'objet nomme
+quelqu'un que les filtres ont laissé passer s'inscrit dans `retraits.yaml`,
+section `deliberations`, par l'empreinte SHA-256 du SIREN de la
+collectivité, de la date et de l'objet tel que publié — jamais l'objet —,
+que calcule `npx tsx scripts/retraits.ts --deliberation <SIREN> <date>
+"<objet>"`. La collecte l'écarte à l'ingestion ; la page de la commune et
+le journal l'écartent dès le build suivant (`src/modele/retraits-deliberations.ts`),
+comme les rapprochements. Essayé sur une délibération d'Ille-et-Vilaine :
+présente sur la page de sa commune sans le retrait, absente avec. `/signaler`
+et `/mentions` le disent.
+
+### Chercher dans les délibérations (16 octobre 2026)
+
+Le niveau 1 du cadrage (`docs/07-risques.md`, section 8). La collecte garde,
+en plus des cinq dernières délibérations de chaque collectivité, toutes
+celles des vingt-quatre derniers mois, et écrit pour chaque département
+`recherche-deliberations/<dep>/` : les intitulés par morceaux de deux mille,
+du plus récent au plus ancien, et pour chaque mot cherchable — présent chez
+trois collectivités au moins, jamais un prénom — les rangs des intitulés qui
+l'emploient. La page `/deliberations` croise les rangs des mots cherchés et
+ne charge que les morceaux qu'elle affiche. Essayée sur l'année 2025 de
+l'Ille-et-Vilaine (index d'essai, non publié) : 167 délibérations pour
+« cantine », 34 pour « cantine scolaire » en 2025 ; « Sébastien » et un nom
+de famille rare ne se cherchent pas, et la page le dit. L'index réel
+arrivera avec la prochaine réingestion ; d'ici là, la page dit qu'il n'est
+pas encore publié. La page de la commune y renvoie quand l'index de son
+département existe.
+
+
+### L'audit d'accessibilité en CI (16 octobre 2026)
+
+`npm run verifier-accessibilite` sert `dist/` sur un port local et passe
+axe-core (4.10.2, Playwright 1.56.1, versions figées) sur huit pages — l'accueil,
+Le Mayet-de-Montagne et Paris toutes sections ouvertes, l'Allier, le
+requêteur avec des résultats, la recherche dans les délibérations, les
+mentions, signaler —, en clair et en sombre ; une violation fait échouer la
+CI. Essayé dans les deux sens : aucune violation sur le build de la CI, et
+une image sans texte de remplacement glissée dans la page du Mayet fait
+échouer le contrôle. La CI installe Chromium (`npx playwright install
+--with-deps chromium`) ; la réingestion ne refait pas cet audit, les données
+ne changeant pas le balisage.

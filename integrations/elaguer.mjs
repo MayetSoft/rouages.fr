@@ -30,6 +30,8 @@ const RACINE_GARDEE = new Set([
   'dep',
   'marches',
   'associations',
+  // L'index de recherche des délibérations, que lit le navigateur.
+  'recherche-deliberations',
   'echeances.json',
   'attributions.json',
   'avis.json',

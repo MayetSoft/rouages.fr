@@ -28,6 +28,7 @@ npm run verifier-rattachement  les annonces du BODACC rattachées à la bonne co
 npm run verifier-geo         la projection Lambert 93 et les lecteurs GML et Shapefile
 npm run verifier-particuliers  les particuliers nommés dans l'objet d'une délibération
 npm run verifier-types       les types, fichiers .astro compris — `tsc` seul ne les voit pas
+npm run verifier-accessibilite  axe-core sur quelques pages du build, en clair et en sombre
 npm run build                valide puis génère (le build refuse un contenu invalide)
 npm run relire               les fiches encore à vérifier contre leur source
 npm run veille               l'état des sources surveillées

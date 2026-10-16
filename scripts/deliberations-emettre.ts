@@ -40,9 +40,11 @@
  * vaut pour tout le bloc — le site **relaie un intitulé et un lien**, jamais le
  * document, qui reste chez la collectivité qui l'a publié.
  */
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { nommeUnParticulier } from '../src/modele/civilites.ts';
+import { estUnPrenomCourant, nommeUnParticulier } from '../src/modele/civilites.ts';
+import { motsDe } from '../src/modele/mots-deliberations.ts';
+import { deliberationRetiree } from './retraits.ts';
 import { debutFenetre, GENRES, type Evenement } from '../src/modele/journal.ts';
 import { lireCsvOuvert, ressourcesDuJeu, ressourcesDuSchema } from './donnees-ouvertes.ts';
 
@@ -100,6 +102,17 @@ const PAR_COLLECTIVITE = 5;
 /** Au-delà, l'intitulé cesse d'informer et pèse sur chaque ligne. */
 const MAX_OBJET = 130;
 
+/**
+ * La recherche porte sur vingt-quatre mois : mesuré sur l'année 2025 de
+ * Mégalis, les adresses des actes pèsent 16,8 Mo par an, plus que tout le
+ * reste (6,9 Mo sans elles).
+ */
+const MOIS_RECHERCHE = 24;
+/** Un mot ne se cherche que s'il figure chez au moins trois collectivités (`docs/07-risques.md`, section 8). */
+const SEUIL_COLLECTIVITES = 3;
+/** Les intitulés d'un département, par morceaux : le navigateur ne charge que ceux qu'il affiche. */
+const MORCEAU = 2000;
+
 export interface Deliberation {
   date: string;
   /** Index dans `FAMILLES_ACTES`, ou -1 quand le code est absent ou illisible. */
@@ -125,6 +138,8 @@ export interface Deliberations {
   ecartees: number;
   /** Les délibérations des derniers mois, pour le journal. */
   evenements: Evenement[];
+  /** Pour la recherche : depuis quand, les délibérations de la fenêtre par SIREN, les mots qu'on peut chercher. */
+  recherche: { depuis: string; parCollectivite: Map<string, Deliberation[]>; mots: Set<string> };
 }
 
 export async function collecterDeliberations(
@@ -177,7 +192,7 @@ export async function collecterDeliberations(
       // Celles qui statuent sur le cas d'une personne restent chez la
       // collectivité : le site n'a pas à les relayer ni à les indexer. Une
       // civilité, ou un prénom courant suivi d'un nom (`civilites.ts`).
-      if (nommeUnParticulier(objet)) {
+      if (nommeUnParticulier(objet) || deliberationRetiree(siren, date, objet)) {
         ecartees++;
         continue;
       }
@@ -240,6 +255,24 @@ export async function collecterDeliberations(
     );
   }
 
+  // La recherche : les vingt-quatre derniers mois, et les mots que trois collectivités au moins emploient.
+  const debutRecherche = new Date();
+  debutRecherche.setMonth(debutRecherche.getMonth() - MOIS_RECHERCHE);
+  const depuisRecherche = debutRecherche.toISOString().slice(0, 10);
+  const fenetre = new Map<string, Deliberation[]>();
+  const chez = new Map<string, Set<string>>();
+  for (const [siren, m] of brut) {
+    const l = [...m.values()].filter((x) => x.date >= depuisRecherche && x.date <= new Date().toISOString().slice(0, 10));
+    if (!l.length) continue;
+    fenetre.set(siren, l);
+    for (const x of l) for (const mot of motsDe(x.objet)) (chez.get(mot) ?? chez.set(mot, new Set()).get(mot)!).add(siren);
+  }
+  const cherchables = new Set([...chez].filter(([mot, s]) => s.size >= SEUIL_COLLECTIVITES && !estUnPrenomCourant(mot)).map(([mot]) => mot));
+  dire(
+    `Délibérations, recherche : ${[...fenetre.values()].reduce((t, l) => t + l.length, 0).toLocaleString('fr-FR')} intitulés depuis ${depuisRecherche}, ` +
+      `${cherchables.size.toLocaleString('fr-FR')} mots cherchables sur ${chez.size.toLocaleString('fr-FR')}.`,
+  );
+
   dire(
     `Délibérations : ${lus.toLocaleString('fr-FR')} retenues depuis ${depuis.slice(0, 4)} pour ` +
       `${brut.size.toLocaleString('fr-FR')} collectivités` +
@@ -256,7 +289,71 @@ export async function collecterDeliberations(
     collectivites: brut.size,
     ecartees,
     evenements,
+    recherche: { depuis: depuisRecherche, parCollectivite: fenetre, mots: cherchables },
   };
+}
+
+/**
+ * L'index de recherche d'un département, dans `recherche-deliberations/<dep>/` :
+ *
+ *   — `meta.json` : depuis quand, combien, les familles d'actes, les
+ *     collectivités (SIREN et nom) ;
+ *   — `m<k>.json` : les intitulés par morceaux de deux mille, du plus récent
+ *     au plus ancien — [date, famille, collectivité, objet, adresse de l'acte] ;
+ *   — `i-<lettre>.json` : pour chaque mot cherchable commençant par cette
+ *     lettre, les rangs des intitulés qui l'emploient, en écarts successifs
+ *     écrits en base 36.
+ *
+ * Le navigateur charge la lettre de chaque mot cherché, croise les rangs, et
+ * ne lit que les morceaux qu'il affiche.
+ */
+export function ecrireRechercheDeliberations(
+  sortie: string,
+  dep: string,
+  sirens: string[],
+  nomDe: (siren: string) => string | undefined,
+  d: Deliberations,
+): number {
+  const dossier = join(sortie, 'recherche-deliberations', dep);
+  rmSync(dossier, { recursive: true, force: true });
+  const docs: { siren: string; x: Deliberation }[] = [];
+  const collectivites = [...new Set(sirens)].filter((s) => d.recherche.parCollectivite.has(s));
+  for (const siren of collectivites) for (const x of d.recherche.parCollectivite.get(siren)!) docs.push({ siren, x });
+  if (!docs.length) return 0;
+  docs.sort((a, b) => b.x.date.localeCompare(a.x.date) || a.siren.localeCompare(b.siren) || a.x.objet.localeCompare(b.x.objet));
+  mkdirSync(dossier, { recursive: true });
+  const rang = new Map(collectivites.map((s, i) => [s, i]));
+  for (let k = 0; k * MORCEAU < docs.length; k++) {
+    const morceau = docs.slice(k * MORCEAU, (k + 1) * MORCEAU).map(({ siren, x }) => [x.date, x.famille, rang.get(siren)!, x.objet, x.url]);
+    writeFileSync(join(dossier, `m${k}.json`), JSON.stringify(morceau));
+  }
+  const parLettre = new Map<string, Map<string, number[]>>();
+  docs.forEach(({ x }, i) => {
+    for (const mot of motsDe(x.objet)) {
+      if (!d.recherche.mots.has(mot)) continue;
+      const lettre = mot[0];
+      const m = parLettre.get(lettre) ?? parLettre.set(lettre, new Map()).get(lettre)!;
+      (m.get(mot) ?? m.set(mot, []).get(mot)!).push(i);
+    }
+  });
+  for (const [lettre, m] of parLettre) {
+    const o: Record<string, string> = {};
+    for (const [mot, rangs] of [...m].sort((a, b) => a[0].localeCompare(b[0]))) o[mot] = rangs.map((r, j) => (j ? r - rangs[j - 1] : r).toString(36)).join(',');
+    writeFileSync(join(dossier, `i-${lettre}.json`), JSON.stringify(o));
+  }
+  writeFileSync(
+    join(dossier, 'meta.json'),
+    JSON.stringify({
+      maj: d.maj,
+      depuis: d.recherche.depuis,
+      n: docs.length,
+      morceau: MORCEAU,
+      familles: FAMILLES_ACTES,
+      lettres: [...parLettre.keys()].sort(),
+      c: collectivites.map((s) => [s, nomDe(s) ?? s]),
+    }),
+  );
+  return docs.length;
 }
 
 /**

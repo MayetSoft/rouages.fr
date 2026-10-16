@@ -74,6 +74,9 @@ const ARTICLE = /\b(?:du|des)\s+$/i;
 const MOTIF =
   /(?<![\p{L}-])(\p{Lu}[\p{L}]+(?:-\p{Lu}[\p{L}]+)?)\s+((?:(?:Le|La|De|Du|Des|Van|Von|Mac|Mc|Di|Da|Dos|D’|D'|LE|LA|DE|DU|DES)\s*)?\p{Lu}[\p{L}'’-]{1,})/gu;
 
+/** Un prénom courant, plié : l'index de recherche des délibérations ne le retient pas. */
+export const estUnPrenomCourant = (mot: string) => PRENOMS.has(plier(mot));
+
 export function nommeUnParticulier(texte: string): boolean {
   if (CIVILITES.test(texte)) return true;
   for (const m of texte.matchAll(MOTIF)) {

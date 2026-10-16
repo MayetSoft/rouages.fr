@@ -28,8 +28,14 @@
 #                 titulaire, pour un rapprochement par le nom signalé comme
 #                 faux (deux sociétés de même nom) — lu au build, pas à
 #                 l'ingestion : il disparaît dès la publication suivante.
+#   deliberations: une délibération dont l'objet nomme quelqu'un que les
+#                 filtres ont laissé passer — l'empreinte que calcule
+#                 `npx tsx scripts/retraits.ts --deliberation <SIREN> <date> "<objet>"`,
+#                 jamais l'objet. Retirée de la page de la commune, du journal
+#                 et de la recherche à l'ingestion suivante.
 entreprises: []
 elus: []
 declarations: []
 sites: []
 rapprochements: []
+deliberations: []
