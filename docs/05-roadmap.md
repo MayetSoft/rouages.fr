@@ -4864,3 +4864,31 @@ pas pour l'information voyageur : la page dit qu'un arrêt existe et qui
 l'inscrit, jamais quand on y passe, et renvoie à la fiche de chaque réseau.
 Les fréquences, qui demanderaient de lire les horaires de chaque fichier,
 restent à faire.
+
+### Le zonage d'urbanisme sur la page de commune, à la demande (16 octobre 2026)
+
+La mesure du 23 septembre portait sur les attributs : 1,3 million de zones,
+290 Mo. Avec les géométries, c'est autre chose — 3,2 Mo pour les seuls
+environs du Mayet-de-Montagne, des dizaines de gigaoctets pour la France, et
+autant d'un dépôt qui les garderait. Le site ne stocke donc rien : un bouton,
+dans « Ce qui peut s'y construire », demande les zones du PLU ou du PLUi
+(`wfs_du:zone_urba`), à défaut les secteurs de la carte communale
+(`wfs_du:secteur_cc`), au service WFS de la Géoplateforme de l'IGN, qui
+sert le Géoportail de l'urbanisme. Le zonage est donc toujours celui que le
+Géoportail publie à l'instant.
+
+La carte reprend le cadrage des autres cartes de la commune
+(`projectionSurCommune`), découpe les zones au contour, les colore par type
+— U, AU (hachurée en plus), A, N : palette passée au validateur, en clair et
+en sombre, l'orange et le jaune des PLU imprimés ne s'y distinguant pas — et
+liste chaque zone avec son libellé et la page du règlement qui la décrit,
+sur les annexes de la Géoplateforme. Une zone n'est retenue que si un de
+ses sommets est dans la commune à plus de 50 m de sa limite, ou si elle la
+contient : sans cela, les zones d'Issy et de Boulogne entraient dans la
+liste de Paris. Au Mayet-de-Montagne, 17 zones du PLUi de Vichy
+Communauté ; à Paris, le PLU et les deux plans de sauvegarde.
+
+Le service voit l'adresse IP de qui clique : `/mentions` le dit, et rien ne
+part sans le clic. La phrase sous la carte dit qu'une zone se lit avec son
+règlement et que la carte ne dit pas ce qu'on peut construire sur une
+parcelle.
