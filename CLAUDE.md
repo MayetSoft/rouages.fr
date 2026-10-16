@@ -56,7 +56,9 @@ des restrictions d'eau de VigiEau (590 Mo, 12 Go lus en flux) et les espaces
 naturels de l'INPN et les contours des communes d'Admin Express, lus sur la
 Géoplateforme par pages (350 et 420 Mo, mis en cache pour la journée), et les
 fichiers d'horaires GTFS de tous les réseaux (plus de 0,8 Go, Île-de-France
-Mobilités seule 160 Mo, gardés dans `.cache/gtfs/`). `--cache` les
+Mobilités seule 160 Mo, gardés dans `.cache/gtfs/`), et les cartes de
+couverture 4G de l'Arcep (1,1 Go en 7z, recalculées seulement quand un
+nouveau trimestre paraît). `--cache` les
 réutilise, et sans lui il faut compter le téléchargement en plus.
 
 La réingestion complète se lance aussi en intégration continue : workflow

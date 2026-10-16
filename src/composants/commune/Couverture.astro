@@ -1,0 +1,75 @@
+---
+/**
+ * La couverture 4G théorique de la commune, en part de sa surface, d'après
+ * les cartes que l'Arcep collecte auprès des opérateurs : pour au moins un
+ * opérateur, puis opérateur par opérateur. Voir `scripts/couverture-emettre.ts`.
+ */
+import type { CouvertureMobile, PartsCouverture } from '../../modele/fiche-vie.ts';
+import { enFrancais } from '../../modele/urbanisme.ts';
+
+interface Props {
+  c: CouvertureMobile;
+}
+const { c } = Astro.props;
+const m = c.meilleure;
+const au = enFrancais(c.au);
+const pc = (v: number) => `${v} %`;
+const bonne = (p: PartsCouverture) => p.tbc + p.bc;
+---
+{m ? (
+  <>
+    <p class="mesure">
+      {`Avec au moins un opérateur, ${pc(bonne(m))} de la surface de la commune est en bonne ou très bonne couverture 4G, ` +
+        (m.aucune ? `et ${pc(m.aucune)} n’est couverte par aucun, ` : 'et moins de 1 % n’est couverte par aucun, ') +
+        `d’après les cartes théoriques des opérateurs au ${au}.`}
+    </p>
+    <div class="cpt-defile" tabindex="0" role="region" aria-label="La couverture 4G par opérateur — le tableau défile sur les petits écrans">
+      <table class="cpt-tableau">
+        <caption>Part de la surface de la commune, par niveau de couverture 4G</caption>
+        <thead>
+          <tr>
+            <th scope="col">Opérateur</th>
+            <th scope="col">Très bonne</th>
+            <th scope="col">Bonne</th>
+            <th scope="col">Limitée</th>
+            <th scope="col">Aucune</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Au moins un</th>
+            <td>{pc(m.tbc)}</td>
+            <td>{pc(m.bc)}</td>
+            <td>{pc(m.cl)}</td>
+            <td>{pc(m.aucune)}</td>
+          </tr>
+          {c.operateurs.map((o) => (
+            <tr>
+              <th scope="row">{o.nom}</th>
+              <td>{pc(o.tbc)}</td>
+              <td>{pc(o.bc)}</td>
+              <td>{pc(o.cl)}</td>
+              <td>{pc(o.aucune)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+) : (
+  <p class="mesure">
+    La commune est trop petite pour la mesure de couverture du site, faite sur une grille d’un point tous les 200 mètres
+    environ&nbsp;: la carte de l’Arcep la montre à l’adresse.
+  </p>
+)}
+<p class="p-strate">
+  Très bonne couverture&nbsp;: on devrait pouvoir échanger des données à l’extérieur des bâtiments et, dans la plupart
+  des cas, à l’intérieur&nbsp;; bonne&nbsp;: à l’extérieur dans la plupart des cas, à l’intérieur dans certains&nbsp;;
+  limitée&nbsp;: à l’extérieur dans la plupart des cas, probablement pas à l’intérieur. Ce sont des simulations des
+  opérateurs, que l’Arcep vérifie par des mesures, pas des relevés&nbsp;: en part de la surface, mesurée sur une grille
+  d’un point tous les 200 mètres environ — une forêt pèse autant qu’un bourg, quel que soit le nombre d’habitants.
+  Pour une adresse, <a href="https://monreseaumobile.arcep.fr/" target="_blank" rel="noopener">la carte de l’Arcep</a>.
+</p>
+<p class="p-source-territoire">
+  {`D’après les cartes de couverture théorique 4G que l’Arcep collecte chaque trimestre auprès d’Orange, SFR, Bouygues Telecom et Free Mobile (jeu « Mon Réseau Mobile »), au ${au}, croisées avec les contours des communes (IGN, Admin Express). Calcul du ${c.maj}.`}
+</p>

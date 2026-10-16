@@ -65,6 +65,11 @@ jobs:
           ln -s "$HOME/rouages-cache" .cache
           du -sh "$HOME/rouages-cache" || true
 
+      # Les cartes de couverture de l'Arcep sont des archives 7z : présent sur les
+      # machines de GitHub et dans l'image Docker, installé sinon.
+      - name: 7z, pour les cartes de couverture mobile
+        run: command -v 7z || (sudo apt-get update -q && sudo apt-get install -y -q p7zip-full)
+
       - name: Ingérer
         # Une collecte facultative qui échoue laisse ses fichiers d'avant en
         # place et le script continue ; seuls BANATIC et le découpage sont

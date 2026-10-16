@@ -2,7 +2,8 @@
 # ou en runner auto-hébergé. Voir `docs/08-runner-auto-heberge.md`.
 #
 # Node 22, comme la CI, et ce dont le workflow « Réingestion des territoires »
-# a besoin hors de Node : git, curl, unzip, gh pour ouvrir la PR, et les
+# a besoin hors de Node : git, curl, unzip, 7z (les cartes de couverture de
+# l'Arcep), gh pour ouvrir la PR, et les
 # bibliothèques du runner GitHub Actions. Le runner lui-même n'est pas dans
 # l'image : il se télécharge au premier lancement, dans son volume, et se met
 # à jour seul.
@@ -10,7 +11,7 @@ FROM node:22-bookworm
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      git curl unzip ca-certificates gh jq \
+      git curl unzip p7zip-full ca-certificates gh jq \
       libicu72 libkrb5-3 liblttng-ust1 libssl3 zlib1g \
  && rm -rf /var/lib/apt/lists/*
 
