@@ -80,6 +80,72 @@ export function depuisLambert93(x: number, y: number): [number, number] {
 }
 
 /* ------------------------------------------------------------------ *
+ * LAEA Europe et UTM → longitude, latitude
+ * ------------------------------------------------------------------ */
+
+const e2 = e * e;
+const q = (phi: number) => {
+  const s = Math.sin(phi);
+  return (1 - e2) * (s / (1 - e2 * s * s) - (1 / (2 * e)) * Math.log((1 - e * s) / (1 + e * s)));
+};
+/** ETRS89 / LAEA Europe (EPSG:3035) : azimutale équivalente de Lambert, centrée sur 52° N, 10° E — celle du carroyage de l'INSEE. */
+const LAEA = { phi1: 52 * rad, lambda0: 10 * rad, x0: 4321000, y0: 3210000 };
+const QP = q(Math.PI / 2);
+const BETA1 = Math.asin(q(LAEA.phi1) / QP);
+const RQ = L93.a * Math.sqrt(QP / 2);
+const D = (L93.a * m(LAEA.phi1)) / (RQ * Math.cos(BETA1));
+
+/** Un point en LAEA Europe, en mètres, vers [longitude, latitude] en degrés (formules de Snyder, ellipsoïde GRS 80). */
+export function depuisLaea3035(x: number, y: number): [number, number] {
+  const dx = x - LAEA.x0;
+  const dy = y - LAEA.y0;
+  const rho = Math.hypot(dx / D, D * dy);
+  if (rho === 0) return [LAEA.lambda0 / rad, LAEA.phi1 / rad];
+  const c = 2 * Math.asin(rho / (2 * RQ));
+  const beta = Math.asin(Math.cos(c) * Math.sin(BETA1) + (D * dy * Math.sin(c) * Math.cos(BETA1)) / rho);
+  const lambda = LAEA.lambda0 + Math.atan2(dx * Math.sin(c), D * rho * Math.cos(BETA1) * Math.cos(c) - D * D * dy * Math.sin(BETA1) * Math.sin(c));
+  const phi =
+    beta +
+    (e2 / 3 + (31 * e2 * e2) / 180 + (517 * e2 ** 3) / 5040) * Math.sin(2 * beta) +
+    ((23 * e2 * e2) / 360 + (251 * e2 ** 3) / 3780) * Math.sin(4 * beta) +
+    ((761 * e2 ** 3) / 45360) * Math.sin(6 * beta);
+  return [lambda / rad, phi / rad];
+}
+
+/**
+ * Un point en UTM, en mètres, vers [longitude, latitude] en degrés : la
+ * projection des cartes et du carroyage d'outre-mer (RGAF09 aux Antilles,
+ * RGFG95 en Guyane, RGR92 à La Réunion, RGM04 à Mayotte — des repères
+ * calés sur le même ellipsoïde GRS 80, à moins d'un mètre de WGS 84).
+ * Série de Snyder pour la Mercator transverse inverse.
+ */
+export function depuisUtm(x: number, y: number, zone: number, sud: boolean): [number, number] {
+  const k0 = 0.9996;
+  const ep2 = e2 / (1 - e2);
+  const M = (sud ? y - 10_000_000 : y) / k0;
+  const mu = M / (L93.a * (1 - e2 / 4 - (3 * e2 * e2) / 64 - (5 * e2 ** 3) / 256));
+  const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+  const phi1 =
+    mu +
+    ((3 * e1) / 2 - (27 * e1 ** 3) / 32) * Math.sin(2 * mu) +
+    ((21 * e1 * e1) / 16 - (55 * e1 ** 4) / 32) * Math.sin(4 * mu) +
+    ((151 * e1 ** 3) / 96) * Math.sin(6 * mu) +
+    ((1097 * e1 ** 4) / 512) * Math.sin(8 * mu);
+  const s = Math.sin(phi1);
+  const c1 = ep2 * Math.cos(phi1) ** 2;
+  const t1 = Math.tan(phi1) ** 2;
+  const n1 = L93.a / Math.sqrt(1 - e2 * s * s);
+  const r1 = (L93.a * (1 - e2)) / (1 - e2 * s * s) ** 1.5;
+  const d = (x - 500_000) / (n1 * k0);
+  const phi =
+    phi1 -
+    ((n1 * Math.tan(phi1)) / r1) *
+      ((d * d) / 2 - ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * ep2) * d ** 4) / 24 + ((61 + 90 * t1 + 298 * c1 + 45 * t1 * t1 - 252 * ep2 - 3 * c1 * c1) * d ** 6) / 720);
+  const lambda = (d - ((1 + 2 * t1 + c1) * d ** 3) / 6 + ((5 - 2 * c1 + 28 * t1 - 3 * c1 * c1 + 8 * ep2 + 24 * t1 * t1) * d ** 5) / 120) / Math.cos(phi1);
+  return [(zone * 6 - 183) + lambda / rad, phi / rad];
+}
+
+/* ------------------------------------------------------------------ *
  * Shapefile
  * ------------------------------------------------------------------ */
 

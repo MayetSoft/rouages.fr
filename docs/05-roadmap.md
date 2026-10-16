@@ -5153,3 +5153,43 @@ géométrie GeoPackage et la grille (un anneau, son trou, le dehors, le
 meilleur niveau gardé). La page de commune la montre sous les antennes,
 dans une section renommée « Le téléphone mobile : antennes et
 couverture ». Les données arriveront avec la prochaine réingestion.
+
+### Le carroyage de l'INSEE, et la couverture mobile en habitants et outre-mer (16 octobre 2026)
+
+**Le carroyage** (`scripts/carroyage.ts`) : les individus des ménages
+fiscaux par carreau de 200 m, Filosofi 2021 (publié le 16 février 2026) —
+2,3 millions de carreaux habités en métropole, 11 222 en Martinique,
+14 773 à La Réunion ; les autres territoires d'outre-mer n'y sont pas.
+L'identifiant d'un carreau porte son coin sud-ouest, en LAEA Europe
+(EPSG:3035) pour la métropole, en UTM pour l'outre-mer : deux projections
+inverses rejoignent `geo-formats.ts`, vérifiées par aller-retour contre des
+formules directes écrites à part (`verifier-geo`, au millimètre). Une fois
+projetés, 99,4 % des carreaux de métropole tombent dans l'une des communes
+que l'INSEE leur donne (98,2 % en Martinique, 99,6 % à La Réunion) ; le reste
+est en bordure, ou dans un arrondissement de Paris, Lyon ou Marseille que
+l'INSEE nomme à la place de sa commune. Le lecteur est réutilisable pour
+d'autres croisements (habitants près d'un arrêt desservi, d'un médecin…).
+
+**La couverture mobile en habitants** : chaque carreau habité prend le
+niveau et la commune du point de la grille où tombe son centre, et pèse
+ses habitants. Au Mayet-de-Montagne, 86 % de la surface est en très bonne
+couverture avec au moins un opérateur, mais 99 % des 1 279 habitants — le
+bourg est mieux couvert que les bois. La page montre les deux tableaux, et
+dit que le carroyage compte les ménages fiscaux (pas les personnes en
+maison de retraite ou en internat) avec des valeurs estimées par l'INSEE
+dans les carreaux de moins de onze ménages.
+
+**L'outre-mer** : Guadeloupe, Martinique, Guyane, La Réunion et Mayotte,
+chacune avec ses opérateurs (Orange Caraïbe, Outremer Telecom, Free
+Caraïbe, Digicel ; Orange, SRR, Telco OI, Zeop à La Réunion ; Orange, SRR,
+Telco OI à Mayotte), lus sur la page de l'Arcep à chaque trimestre, en UTM
+(zones 20 nord, 22 nord, 40 sud, 38 sud). Les fichiers sont petits : un
+territoire se lit en quelques secondes. En habitants pour la Martinique et
+La Réunion ; ailleurs, la surface seule. À Fort-de-France, 96 % de la
+surface et 100 % des habitants en très bonne couverture avec au moins un
+opérateur. Saint-Barthélemy et Saint-Martin, sans page de commune ici, ne
+sont pas lus.
+
+La méthode porte un numéro (`v: 2` dans les fichiers) : un fichier d'une
+autre version est refait à l'ingestion suivante, même si le trimestre de
+l'Arcep n'a pas changé.

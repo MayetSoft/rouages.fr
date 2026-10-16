@@ -123,7 +123,8 @@ type TransportsDep = {
 const transportsDep = parDepartement<TransportsDep>('transports');
 type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Record<string, [number, number, number, number][]> };
 const antennesDep = parDepartement<AntennesDep>('antennes');
-type CouvertureDep = { maj: string; t: string; au: string; ops: string[]; c: Record<string, [number] | [number, number[], number[][]]> };
+type PartsDep = [number[], number[][]];
+type CouvertureDep = { maj: string; t: string; au: string; ops: string[]; carroyage?: number; c: Record<string, { n: number; s?: PartsDep; h?: number; p?: PartsDep }> };
 const couvertureDep = parDepartement<CouvertureDep>('couverture');
 type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<string, [number, number, number, number, 0 | 1 | 2][]> };
 const productionDep = parDepartement<ProductionDep>('production');
@@ -499,14 +500,23 @@ export interface PartsCouverture {
   aucune: number;
 }
 
+/** Les parts pour au moins un opérateur, puis opérateur par opérateur. */
+export interface PartsParOperateur {
+  meilleure: PartsCouverture;
+  operateurs: ({ nom: string } & PartsCouverture)[];
+}
+
 /**
- * La couverture 4G théorique de la commune, en part de sa surface : pour au
- * moins un opérateur, puis opérateur par opérateur. `null` pour les parts
- * quand la commune est trop petite pour la grille de mesure.
+ * La couverture 4G théorique de la commune : en part de sa surface (`null`
+ * quand la commune est trop petite pour la grille de mesure) et en part de
+ * ses habitants (`null` hors du carroyage de l'INSEE, ou sans carreau habité).
  */
 export interface CouvertureMobile {
-  meilleure: PartsCouverture | null;
-  operateurs: ({ nom: string } & PartsCouverture)[];
+  surface: PartsParOperateur | null;
+  habitants: number | null;
+  parHabitants: PartsParOperateur | null;
+  /** L'année du carroyage de l'INSEE. */
+  carroyage: number | null;
   /** La date des cartes, AAAA-MM-JJ : le dernier jour du trimestre. */
   au: string;
   maj: string;
@@ -1088,8 +1098,16 @@ function couvertureMobile(c: CommuneFiche): CouvertureMobile | null {
   const f = d?.c[c.code];
   if (!d || !f) return null;
   const parts = ([tbc, bc, cl]: number[]): PartsCouverture => ({ tbc, bc, cl, aucune: Math.max(0, 100 - tbc - bc - cl) });
-  if (f.length === 1) return { meilleure: null, operateurs: [], au: d.au, maj: d.maj };
-  return { meilleure: parts(f[1]), operateurs: f[2].map((p, i) => ({ nom: d.ops[i] ?? '', ...parts(p) })), au: d.au, maj: d.maj };
+  const parOperateur = (x?: PartsDep): PartsParOperateur | null =>
+    x ? { meilleure: parts(x[0]), operateurs: x[1].map((p, i) => ({ nom: d.ops[i] ?? '', ...parts(p) })) } : null;
+  return {
+    surface: parOperateur(f.s),
+    habitants: f.h ?? null,
+    parHabitants: parOperateur(f.p),
+    carroyage: d.carroyage ?? null,
+    au: d.au,
+    maj: d.maj,
+  };
 }
 
 function production(c: CommuneFiche): Production | null {
