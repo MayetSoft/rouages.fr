@@ -1,0 +1,107 @@
+---
+/**
+ * Les cartes des départements : une bataille de chiffres en cinq manches
+ * contre l'ordinateur, et une collection de toutes les cartes vues. Les
+ * chiffres sont lus dans `/jeux/cartes.json`, qui dit d'où vient chacun.
+ */
+import Base from '../../layouts/Base.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+---
+<Base
+  titre="Les cartes des départements"
+  description="Une bataille de chiffres en cinq manches : habitants, communes, associations, droits de mutation… Choisissez le chiffre qui battra la carte d’en face, et complétez votre collection des départements."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Approfondir · ados et adultes</p>
+    <h1>Les cartes des départements</h1>
+    <p class="resume">
+      Cinq manches contre l’ordinateur. À chaque manche, choisissez sur votre carte le chiffre qui battra la carte
+      cachée d’en face&nbsp;: le plus grand gagne. Chaque carte vue entre dans votre collection.
+    </p>
+
+    <div id="jt" class="jeu">
+      <div id="jt-debut" class="jeu-choix">
+        <button class="bouton jeu-bouton" type="button" id="jt-jouer" disabled>Chargement des cartes…</button>
+      </div>
+
+      <section id="jt-manche" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-compteur"><span id="jt-compteur"></span> · <span id="jt-marque"></span></p>
+        <div class="jt-table" id="jt-table"></div>
+        <p class="jeu-contexte" id="jt-verdict"></p>
+        <button class="bouton jeu-bouton" type="button" id="jt-suivante" hidden>Manche suivante</button>
+      </section>
+
+      <section id="jt-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="jt-score"></span> <span id="jt-cases" class="jeu-cases"></span></p>
+        <PartageJeu id="jt" />
+        <button class="plat" type="button" id="jt-libre">Une autre partie</button>
+      </section>
+
+      <section id="jt-collection-boite" class="jeu-carte" hidden>
+        <p class="jeu-question">Ma collection · <span id="jt-collection-compte"></span></p>
+        <ul class="jt-collection" id="jt-collection"></ul>
+        <p class="jeu-details">Gardée dans votre navigateur, rien d’autre part.</p>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Le défi du jour distribue les mêmes cartes à tout le monde. Une case par manche&nbsp;: 🟩 gagnée, 🟨 égalité, 🟥 perdue.</li>
+      <li>Le plus grand chiffre gagne, toujours — même pour l’évolution depuis 1876, où une baisse est un nombre négatif.</li>
+      <li>Un chiffre inconnu sur votre carte ne se joue pas&nbsp;; inconnu sur la carte d’en face, il perd.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <p class="mesure">
+      Les populations municipales et les séries historiques du recensement de l’INSEE, le code officiel géographique,
+      BANATIC pour les intercommunalités à fiscalité propre, le répertoire national des associations (associations non
+      dissoutes), la DGFiP pour les droits de mutation reçus par chaque département et le taux qu’il a voté au
+      1er&nbsp;juin 2026, les contours d’Admin Express (IGN). Les mêmes chiffres que les pages des départements et des communes.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import { brancherCartes } from '../../client/jeu-cartes.ts';
+  brancherCartes();
+</script>
+
+<style is:global>
+  .jt-table { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: .4rem 0 .8rem; perspective: 900px; }
+  @media (max-width: 30rem) { .jt-table { grid-template-columns: 1fr; } }
+  .jt-carte { position: relative; transform-style: preserve-3d; transition: transform .6s cubic-bezier(.3,0,.2,1); }
+  .jt-face, .jt-dos { backface-visibility: hidden; border-radius: calc(var(--rayon) * 1.5); border: 2px solid var(--trait-fort); background: var(--fond-carte); padding: .7rem; }
+  .jt-face { position: relative; }
+  .jt-dos { position: absolute; inset: 0; }
+  .jt-dos { transform: rotateY(180deg); display: grid; place-items: center; font-size: 3rem; background: repeating-linear-gradient(45deg, #1e5f74, #1e5f74 10px, #2b7f99 10px, #2b7f99 20px); }
+  .jt-carte--cachee { transform: rotateY(180deg); }
+  .jt-gagne .jt-face { border-color: #2e9e5b; box-shadow: 0 0 0 3px color-mix(in srgb, #2e9e5b 35%, transparent); }
+  .jt-perd .jt-face { border-color: #cf3b2f; opacity: .85; }
+  .jt-egal .jt-face { border-color: #e6b422; }
+  .jt-tete { display: flex; justify-content: space-between; align-items: baseline; gap: .4rem; }
+  .jt-tete strong { font-family: var(--titre); font-size: 1.1rem; }
+  .jt-tete span { color: var(--encre-douce); font-variant-numeric: tabular-nums; }
+  .jt-forme { height: 5.5rem; margin: .3rem 0 .4rem; }
+  .jt-forme svg { width: 100%; height: 100%; }
+  .jt-chemin { fill: var(--accent); stroke: none; }
+  .jt-chiffres { list-style: none; padding: 0; margin: 0; display: grid; gap: .2rem; font-size: .8rem; }
+  .jt-chiffres li > span, .jt-choix { display: flex; }
+  .jt-chiffres li { display: flex; justify-content: space-between; gap: .4rem; }
+  .jt-chiffres li > span:first-child { color: var(--encre-douce); }
+  .jt-choix { width: 100%; justify-content: space-between; gap: .4rem; font: inherit; text-align: left; background: var(--fond-doux); border: 1px solid var(--trait); border-radius: 6px; padding: .25rem .45rem; cursor: pointer; color: var(--encre); }
+  .jt-choix:hover:not([disabled]) { border-color: var(--accent); background: var(--accent-doux); }
+  .jt-choix[disabled] { cursor: default; opacity: .7; }
+  .jt-choix span:first-child { color: var(--encre-douce); }
+  .jt-joue, .jt-joue .jt-choix { background: color-mix(in srgb, #e6b422 30%, var(--fond-carte)); border-radius: 6px; font-weight: 700; }
+  .jt-collection { list-style: none; padding: 0; margin: .4rem 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr)); gap: .3rem; }
+  .jt-collection li { display: grid; justify-items: center; font-size: .65rem; color: var(--encre-douce); opacity: .35; }
+  .jt-collection li.vue { opacity: 1; color: var(--encre); }
+  .jt-collection svg { width: 2.2rem; height: 2.2rem; }
+  .jt-mini { fill: var(--trait-fort); }
+  .jt-collection li.vue .jt-mini { fill: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { .jt-carte { transition: none; } }
+</style>

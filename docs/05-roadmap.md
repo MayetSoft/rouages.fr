@@ -4087,6 +4087,43 @@ Ce qui se compte ainsi : les pages vues par jeu et la fréquentation de
 `/jeux/*.json`, qui dit combien de parties commencent. À vérifier auprès de
 l'hébergeur avant d'en promettre quoi que ce soit dans `/mentions`.
 
+### Des jeux à partager : courbes, cartes, récits et duels (17 octobre 2026)
+
+Les six pistes proposées le 16 octobre, toutes retenues par le mainteneur.
+
+- **Devine la courbe** (`/jeux/devine-la-courbe`). On trace au doigt la
+  population de sa commune depuis 1876, puis la vraie courbe se dessine par
+  dessus. Une case par époque, d'après les séries historiques de l'INSEE
+  (`/jeux/courbes/XX.json`).
+- **La silhouette** (`/jeux/silhouette`). On reconnaît une commune à sa
+  forme : la distance et la direction à chaque essai, les voisines au
+  troisième, la première lettre au cinquième.
+- **Le chrono de l'interco** (`/jeux/chrono`). On nomme toutes les communes
+  de son intercommunalité, à quatre secondes par commune, et la carte se
+  remplit à chaque bonne réponse.
+- **Ta commune en 30 secondes**, en deux formats :
+  - le récit, sur chaque page de commune : un bouton, des cartes animées
+    qui défilent seules, une image au format story à partager, et le lien
+    `#en-30-secondes` ;
+  - le jeu (`/jeux/en-30-secondes`), où une question précède chaque carte.
+
+  Les chiffres sont ceux de la page : population, naissances et décès,
+  budget sur 100 €, prix d'une maison, associations, participation aux
+  municipales, prix de l'eau (`/jeux/recit/XX.json`). Une carte sans
+  chiffre est sautée.
+- **Le duel**, commun à tous les jeux du jour. Le lien porte le jeu, le jour,
+  le lieu, le score et, si on le souhaite, un pseudo : l'autre joueur
+  rejoue la même partie, puis une course compare les deux scores. Rien ne
+  part vers un serveur, et une partie rejouée pour un duel ne compte pas
+  dans la série.
+- **Les cartes des départements** (`/jeux/cartes-departements`). Une
+  bataille de huit chiffres en cinq manches contre l'ordinateur, avec la
+  collection des 101 départements gardée dans le navigateur
+  (`/jeux/cartes.json`, contours allégés à 290 ko).
+
+Les animations s'arrêtent pour qui demande à son système de les réduire.
+Chaque jeu se joue au clavier, les flèches suffisant pour tracer la courbe.
+
 ### Une section « Simulateurs » : estimer un bien ou un terrain (11 octobre 2026)
 
 Demandée par le mainteneur, avec sa méthode : un bien vaut la somme de ses
