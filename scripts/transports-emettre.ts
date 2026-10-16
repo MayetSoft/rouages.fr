@@ -25,10 +25,11 @@
  * (`dep/XX-contours.json`, Admin Express) ; le centre d'une commune est celui
  * que publie `proximite/centres.json`.
  *
- * Ce que le site n'en dit pas : la fréquence, les horaires, les jours de
- * service. Un arrêt de car scolaire desservi deux fois par jour y pèse autant
- * qu'une station de métro. Le transport à la demande, quand il n'a pas
- * d'arrêts fixes, n'y figure pas.
+ * **La desserte** (`horaires-gtfs.ts`) : les fichiers d'horaires eux-mêmes,
+ * lus pour une semaine de classe, disent combien de passages compte chaque
+ * arrêt, jour par jour ; la commune garde son arrêt le plus desservi. Une
+ * collecte des horaires qui échoue laisse les arrêts. Le transport à la
+ * demande, quand il n'a pas d'arrêts fixes, n'y figure pas.
  *
  * Écrit `dep/XX-transports.json`. Lancé seul — `npx tsx
  * scripts/transports-emettre.ts` —, il relit les contours déjà écrits.
@@ -37,6 +38,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { contoursDesCommunes, dedans, ECHELLE, type Anneau } from './espaces-emettre.ts';
+import { collecterHoraires, semaineDeClasse, type JeuGtfs } from './horaires-gtfs.ts';
 import { departementDe, ecrireParDepartement, telechargerSiAbsent } from './par-departement.ts';
 
 type LireJson = (url: string) => Promise<unknown>;
@@ -44,11 +46,20 @@ type LireJson = (url: string) => Promise<unknown>;
 const PAN = 'https://transport.data.gouv.fr';
 
 /**
+ * La desserte d'un arrêt dans la semaine comptée : son nom, ses passages du
+ * lundi au dimanche, le nombre de lignes qui y passent.
+ */
+export type Desservi = [string, number[], number];
+
+/**
  * Pour une commune : ses arrêts et les réseaux qui les inscrivent (leurs
  * numéros au Point d'accès) ; à défaut, l'arrêt le plus proche de son centre :
- * son nom, sa commune, la distance en hectomètres, ses réseaux.
+ * son nom, sa commune, la distance en hectomètres, ses réseaux. `h` : l'arrêt
+ * le plus desservi de la semaine (ou l'arrêt le plus proche, s'il est
+ * desservi) ; `z` : les fichiers qui couvrent la semaine inscrivent ses
+ * arrêts, et aucun passage n'y est prévu. Ni l'un ni l'autre : on ne sait pas.
  */
-export type TransportsCommune = { n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] };
+export type TransportsCommune = ({ n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] }) & { h?: Desservi; z?: 1 };
 
 /** Jusqu'à ce nombre d'arrêts, la page les nomme. */
 const NOMMES = 8;
@@ -64,6 +75,8 @@ export interface Reseau {
 
 export interface CollecteTransports {
   maj: string;
+  /** Le lundi de la semaine comptée, AAAA-MM-JJ, quand les horaires ont été lus. */
+  semaine?: string;
   reseaux: Map<string, Reseau>;
   communes: Map<string, TransportsCommune>;
 }
@@ -119,9 +132,20 @@ function km(ax: number, ay: number, bx: number, by: number): number {
   return 2 * 6371 * Math.asin(Math.sqrt(h));
 }
 
-export async function collecterTransports(sortie: string, lireJson: LireJson, dire: (m: string) => void): Promise<CollecteTransports> {
+export async function collecterTransports(sortie: string, lireJson: LireJson, dire: (m: string) => void, cache?: string): Promise<CollecteTransports> {
   // Les jeux du Point d'accès : leur nom, leur éditeur, et s'ils agrègent une région.
-  type Jeu = { datagouv_id: string; id: string; title: string; page_url: string; licence: string; tags?: string[]; publisher?: { name?: string } };
+  type Ressource = { id: string | number; format?: string; url?: string; original_url?: string; is_community_resource?: boolean };
+  type Jeu = {
+    datagouv_id: string;
+    id: string;
+    title: string;
+    page_url: string;
+    licence: string;
+    type?: string;
+    tags?: string[];
+    publisher?: { name?: string };
+    resources?: Ressource[];
+  };
   const jeux = (await lireJson(`${PAN}/api/datasets`)) as Jeu[];
   // `/api/gtfs-stops` numérote les jeux autrement que `/api/datasets` : le lien se fait par la fiche.
   const fiches = new Map<string, Jeu>();
@@ -255,7 +279,41 @@ export async function collecterTransports(sortie: string, lireJson: LireJson, di
     const r = (propres.length ? propres : [...meilleur.jeux].filter(Boolean)).map(idDe);
     communes.set(code, { p: [meilleur.nom, ou, Math.round(d * 10), r] });
   });
-  return { maj: new Date().toISOString().slice(0, 10), reseaux, communes };
+
+  // La desserte, d'après les fichiers d'horaires eux-mêmes. Un échec laisse les arrêts.
+  let semaine: string | undefined;
+  if (cache) {
+    try {
+      const jours = await semaineDeClasse(lireJson);
+      const gtfs: JeuGtfs[] = jeux
+        .filter((j) => j.type === 'public-transit')
+        .map((j) => ({
+          id: j.id,
+          agregat: !!j.tags?.some((t) => /agr[ée]gat/i.test(t)),
+          fichiers: (j.resources ?? [])
+            .filter((r) => (r.format ?? '').toUpperCase() === 'GTFS' && !r.is_community_resource)
+            .map((r) => ({ id: String(r.id), urls: [r.url, r.original_url].filter((u): u is string => !!u) })),
+        }))
+        .filter((j) => j.fichiers.length)
+        // Pour un essai : `ROUAGES_GTFS=<id>,<id>` ne lit que ces jeux.
+        .filter((j) => !process.env.ROUAGES_GTFS || process.env.ROUAGES_GTFS.split(',').includes(j.id));
+      const h = await collecterHoraires(gtfs, jours, (lon, lat) => communeDu(Math.round(lon * ECHELLE), Math.round(lat * ECHELLE)), join(cache, 'gtfs'), dire);
+      const desservi = (m: Map<string, { nom: string; n: number[]; lignes: Set<string> }> | undefined, cle?: string): Desservi | undefined => {
+        if (!m) return undefined;
+        const choix = cle ? m.get(cle) : [...m.values()].sort((a, b) => b.n.reduce((x, y) => x + y, 0) - a.n.reduce((x, y) => x + y, 0))[0];
+        return choix && choix.n.some(Boolean) ? [choix.nom, choix.n, choix.lignes.size] : undefined;
+      };
+      for (const [code, e] of communes) {
+        const d = 'p' in e ? desservi(h.desserte.get(e.p[1]), plier(e.p[0])) : desservi(h.desserte.get(code));
+        if (d) e.h = d;
+        else if (!('p' in e) && h.couvertes.has(code)) e.z = 1;
+      }
+      semaine = `${jours[0].slice(0, 4)}-${jours[0].slice(4, 6)}-${jours[0].slice(6)}`;
+    } catch (e) {
+      dire(`  Horaires non lus (${(e as Error).message}) : les arrêts restent, sans leur desserte.`);
+    }
+  }
+  return { maj: new Date().toISOString().slice(0, 10), semaine, reseaux, communes };
 }
 
 /** Les fichiers de chaque département ; `deps`, pour n'écrire que ceux qu'une collecte partielle couvre entièrement. */
@@ -270,6 +328,7 @@ export function ecrireTransports(sortie: string, t: CollecteTransports, deps?: s
   }
   return ecrireParDepartement(sortie, 'transports', communes, (dep) => ({
     maj: t.maj,
+    ...(t.semaine ? { s: t.semaine } : {}),
     r: Object.fromEntries([...(cites.get(dep) ?? [])].map((id) => {
       const r = t.reseaux.get(id)!;
       return [id, [r.titre, r.editeur, r.url]];
@@ -284,6 +343,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   // Pour un essai : `ROUAGES_CADRE=o,s,e,n ROUAGES_DEPS=03` ne lit que ce cadre et n'écrit que ces départements.
   const cadre = process.env.ROUAGES_CADRE?.split(',').map(Number);
   if (cadre?.length === 4) CADRES.splice(0, CADRES.length, cadre as [number, number, number, number]);
-  const t = await collecterTransports(sortie, lireJson, console.log);
+  const t = await collecterTransports(sortie, lireJson, console.log, join(racine, '.cache'));
   console.log(`${ecrireTransports(sortie, t, process.env.ROUAGES_DEPS?.split(','))} départements écrits.`);
 }

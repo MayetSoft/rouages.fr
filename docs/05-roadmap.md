@@ -2982,7 +2982,8 @@ réécrit ces fichiers seul.
   des arrêts rattachés aux communes : il faudrait lire les centaines de flux
   GTFS et placer chaque arrêt dans sa commune par sa position, donc disposer
   des contours communaux, que le site n'a pas. Les horaires GTFS restent à
-  faire (décision du 30 septembre : 6b, plus tard).
+  faire (décision du 30 septembre : 6b, plus tard). — Fait depuis, le
+  16 octobre : voir « La desserte des arrêts ».
 - **Gares SNCF** ✔ (`gares-emettre.ts`, décision 6a) : les gares de voyageurs
   de SNCF Gares & Connexions jointes à leur fréquentation 2024 par code UIC ;
   une gare sans voyageurs est écartée, la liste comptant des gares fermées.
@@ -5065,3 +5066,47 @@ titre de la page à un titre de niveau 3 ; sur la page de région, le texte
 visuellement caché d'un tableau des comptes sortait de son cadre défilant et
 faisait déborder la page de 10 px à 390 px — les cadres défilants sont
 désormais positionnés. L'audit prend trois minutes et demie au lieu d'une.
+
+### La desserte des arrêts : les passages d'une semaine de classe (16 octobre 2026)
+
+La décision 6b du 30 septembre. La page de commune disait qu'un arrêt
+existe ; elle dit maintenant combien de fois on y passe. `horaires-gtfs.ts`
+lit chaque fichier GTFS déclaré au Point d'accès national (567 fichiers, plus
+de 0,8 Go, Île-de-France Mobilités seule 160 Mo et 1,1 Go d'horaires
+détaillés, lus en flux en 45 secondes) et compte, pour chaque arrêt et
+chaque jour du lundi au dimanche, les arrêts de course où l'on peut monter.
+La commune garde son arrêt le plus desservi : « 322 passages par jour du
+lundi au vendredi, 289 le samedi et 38 le dimanche, sur 8 lignes ».
+
+**Une semaine, pas un jour** : au Mayet-de-Montagne, les deux arrêts ne
+voient passer que le car de l'internat vers Roanne, le lundi matin et le
+vendredi soir — un mardi aurait dit « rien ». La page dit « 2 passages dans
+la semaine, 1 le lundi et 1 le vendredi, sur 1 ligne ». **Une semaine de
+classe** : la première à venir sans vacances scolaires dans les zones A, B, C
+ni en Corse (calendrier de l'Éducation nationale, `data.education.gouv.fr`)
+ni jour férié (`calendrier.api.gouv.fr`) ; le 16 octobre, celle du 2 au
+8 novembre 2026. L'outre-mer a ses propres vacances, que la semaine retenue
+ne regarde pas.
+
+**Ne pas compter deux fois** : 43 jeux publient plusieurs GTFS, tantôt des
+sous-réseaux (BreizhGo par département), tantôt des copies (trois pour
+Île-de-France Mobilités, un « référentiel complet » en plus de chaque réseau
+à Aix-Marseille). Entre fichiers d'un même jeu, on garde le plus grand
+nombre de passages de chaque arrêt, jour par jour ; entre jeux, on
+additionne ; contre un agrégat régional, qui reprend tous les réseaux, on
+garde le plus grand des deux — ce qui compte aussi un réseau publié
+seulement dans l'agrégat, ou dont le fichier propre a échoué (essayé à
+Montluçon, dont le réseau urbain ne répondait pas d'ici). Un fichier qui ne
+couvre pas la semaine ne dit pas « aucun passage » : il ne dit rien, et la
+page ne parle de desserte que si un fichier couvrant la semaine inscrit
+l'arrêt.
+
+**Vérifié** : sur les fichiers de l'Allier, de Mobivie, d'Aléo et de Maelis,
+un second compteur écrit à part en Python donne exactement les mêmes nombres,
+le lundi comme le dimanche ; au Mayet-de-Montagne, le compte a été refait à
+la main dans le fichier. `npm run verifier-horaires`, en CI, tient un GTFS
+fabriqué (exceptions de calendrier, course à fréquence, arrêt où l'on ne
+monte pas, fichier périmé), la fusion, le choix de la semaine et la phrase.
+La collecte allonge la réingestion de quelques minutes à un quart d'heure ;
+un échec des horaires laisse les arrêts. Les données arriveront avec la
+prochaine réingestion.

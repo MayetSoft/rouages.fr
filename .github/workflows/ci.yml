@@ -35,6 +35,8 @@ jobs:
         run: npm run verifier-particuliers
       - name: Délibérations rangées par compétence
         run: npm run verifier-themes
+      - name: Horaires des transports (GTFS)
+        run: npm run verifier-horaires
       - name: Citations retrouvées par la veille des aides locales
         run: npm run verifier-veille-aides
       - name: Types
