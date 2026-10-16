@@ -44,6 +44,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { estUnPrenomCourant, nommeUnParticulier } from '../src/modele/civilites.ts';
 import { motsDe } from '../src/modele/mots-deliberations.ts';
+import { THEMES, themesDe } from '../src/modele/themes-deliberations.ts';
 import { deliberationRetiree } from './retraits.ts';
 import { debutFenetre, GENRES, type Evenement } from '../src/modele/journal.ts';
 import { lireCsvOuvert, ressourcesDuJeu, ressourcesDuSchema } from './donnees-ouvertes.ts';
@@ -302,7 +303,10 @@ export async function collecterDeliberations(
  *     au plus ancien — [date, famille, collectivité, objet, adresse de l'acte] ;
  *   — `i-<lettre>.json` : pour chaque mot cherchable commençant par cette
  *     lettre, les rangs des intitulés qui l'emploient, en écarts successifs
- *     écrits en base 36.
+ *     écrits en base 36 ;
+ *   — `t.json` : pour chaque compétence du réseau, les rangs des intitulés
+ *     que les règles de `src/modele/themes-deliberations.ts` y rangent, écrits
+ *     de même.
  *
  * Le navigateur charge la lettre de chaque mot cherché, croise les rangs, et
  * ne lit que les morceaux qu'il affiche.
@@ -336,9 +340,15 @@ export function ecrireRechercheDeliberations(
       (m.get(mot) ?? m.set(mot, []).get(mot)!).push(i);
     }
   });
+  const parTheme = new Map<string, number[]>();
+  docs.forEach(({ x }, i) => {
+    for (const t of themesDe(x.objet)) (parTheme.get(THEMES[t].fiche) ?? parTheme.set(THEMES[t].fiche, []).get(THEMES[t].fiche)!).push(i);
+  });
+  const ecarts = (rangs: number[]) => rangs.map((r, j) => (j ? r - rangs[j - 1] : r).toString(36)).join(',');
+  writeFileSync(join(dossier, 't.json'), JSON.stringify(Object.fromEntries([...parTheme].sort((a, b) => a[0].localeCompare(b[0])).map(([f, r]) => [f, ecarts(r)]))));
   for (const [lettre, m] of parLettre) {
     const o: Record<string, string> = {};
-    for (const [mot, rangs] of [...m].sort((a, b) => a[0].localeCompare(b[0]))) o[mot] = rangs.map((r, j) => (j ? r - rangs[j - 1] : r).toString(36)).join(',');
+    for (const [mot, rangs] of [...m].sort((a, b) => a[0].localeCompare(b[0]))) o[mot] = ecarts(rangs);
     writeFileSync(join(dossier, `i-${lettre}.json`), JSON.stringify(o));
   }
   writeFileSync(
@@ -350,6 +360,7 @@ export function ecrireRechercheDeliberations(
       morceau: MORCEAU,
       familles: FAMILLES_ACTES,
       lettres: [...parLettre.keys()].sort(),
+      themes: [...parTheme.keys()].sort(),
       c: collectivites.map((s) => [s, nomDe(s) ?? s]),
     }),
   );

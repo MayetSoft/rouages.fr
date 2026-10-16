@@ -23,6 +23,8 @@ npm run verifier-journal
 npm run verifier-rattachement
 npm run verifier-geo
 npm run verifier-particuliers
+npm run verifier-themes
+npm run verifier-horaires
 npm run verifier-veille-aides
 npm run verifier-reseau
 npm run verifier-types

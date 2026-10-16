@@ -114,13 +114,17 @@ type GaresDep = {
 const garesDep = parDepartement<GaresDep>('gares');
 type TransportsDep = {
   maj: string;
+  /** Le lundi de la semaine dont les passages sont comptés. */
+  s?: string;
   /** Les réseaux cités : titre, éditeur, fiche au Point d'accès national. */
   r: Record<string, [string, string, string]>;
-  c: Record<string, { n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] }>;
+  c: Record<string, ({ n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] }) & { h?: [string, number[], number]; z?: 1 }>;
 };
 const transportsDep = parDepartement<TransportsDep>('transports');
 type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Record<string, [number, number, number, number][]> };
 const antennesDep = parDepartement<AntennesDep>('antennes');
+type CouvertureDep = { maj: string; t: string; au: string; ops: string[]; c: Record<string, [number] | [number, number[], number[][]]> };
+const couvertureDep = parDepartement<CouvertureDep>('couverture');
 type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<string, [number, number, number, number, 0 | 1 | 2][]> };
 const productionDep = parDepartement<ProductionDep>('production');
 type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
@@ -467,6 +471,12 @@ export interface Transports {
   noms: string[] | null;
   reseaux: { titre: string; editeur: string; url: string }[];
   proche: { nom: string; code: string; commune: string; km: number } | null;
+  /** L'arrêt le plus desservi (ou l'arrêt le plus proche) : ses passages du lundi au dimanche, ses lignes. */
+  desserte: { nom: string; jours: number[]; lignes: number } | null;
+  /** Les fichiers d'horaires qui couvrent la semaine n'y prévoient aucun passage. */
+  aucunPassage: boolean;
+  /** Le lundi de la semaine comptée. */
+  semaine: string | null;
   maj: string;
 }
 
@@ -477,6 +487,27 @@ export interface Transports {
 export interface Antennes {
   operateurs: { nom: string; sites: number; g4: number; g5: number }[];
   /** La date de la liste, AAAA-MM-JJ : le dernier jour du trimestre. */
+  au: string;
+  maj: string;
+}
+
+/** Une part de la surface, en pour cent, par niveau de la carte de couverture 4G. */
+export interface PartsCouverture {
+  tbc: number;
+  bc: number;
+  cl: number;
+  aucune: number;
+}
+
+/**
+ * La couverture 4G théorique de la commune, en part de sa surface : pour au
+ * moins un opérateur, puis opérateur par opérateur. `null` pour les parts
+ * quand la commune est trop petite pour la grille de mesure.
+ */
+export interface CouvertureMobile {
+  meilleure: PartsCouverture | null;
+  operateurs: ({ nom: string } & PartsCouverture)[];
+  /** La date des cartes, AAAA-MM-JJ : le dernier jour du trimestre. */
   au: string;
   maj: string;
 }
@@ -754,6 +785,7 @@ export interface ComplementsVie {
   gares: Gares | null;
   transports: Transports | null;
   antennes: Antennes | null;
+  couvertureMobile: CouvertureMobile | null;
   production: Production | null;
   monuments: Monuments | null;
   solsPollues: SolsPollues | null;
@@ -1027,10 +1059,15 @@ function transports(c: CommuneFiche): Transports | null {
     const [titre, editeur, url] = d.r[id] ?? [id, '', 'https://transport.data.gouv.fr/datasets'];
     return { titre, editeur, url };
   };
-  if ('n' in f) return { arrets: f.n, noms: f.a ?? null, reseaux: f.r.map(reseau), proche: null, maj: d.maj };
+  const horaires = {
+    desserte: f.h ? { nom: f.h[0], jours: f.h[1], lignes: f.h[2] } : null,
+    aucunPassage: !!f.z,
+    semaine: d.s ?? null,
+  };
+  if ('n' in f) return { arrets: f.n, noms: f.a ?? null, reseaux: f.r.map(reseau), proche: null, ...horaires, maj: d.maj };
   nomsCommunes ??= new Map(communes().map((x) => [x.code, x.nom]));
   const [nom, code, hm, r] = f.p;
-  return { arrets: 0, noms: null, reseaux: r.map(reseau), proche: { nom, code, commune: nomsCommunes.get(code) ?? code, km: hm / 10 }, maj: d.maj };
+  return { arrets: 0, noms: null, reseaux: r.map(reseau), proche: { nom, code, commune: nomsCommunes.get(code) ?? code, km: hm / 10 }, ...horaires, maj: d.maj };
 }
 
 const FIN_TRIMESTRE = ['03-31', '06-30', '09-30', '12-31'];
@@ -1044,6 +1081,15 @@ function antennes(c: CommuneFiche): Antennes | null {
     au: `${m[1]}-${FIN_TRIMESTRE[Number(m[2]) - 1]}`,
     maj: d.maj,
   };
+}
+
+function couvertureMobile(c: CommuneFiche): CouvertureMobile | null {
+  const d = couvertureDep.get(c.dep);
+  const f = d?.c[c.code];
+  if (!d || !f) return null;
+  const parts = ([tbc, bc, cl]: number[]): PartsCouverture => ({ tbc, bc, cl, aucune: Math.max(0, 100 - tbc - bc - cl) });
+  if (f.length === 1) return { meilleure: null, operateurs: [], au: d.au, maj: d.maj };
+  return { meilleure: parts(f[1]), operateurs: f[2].map((p, i) => ({ nom: d.ops[i] ?? '', ...parts(p) })), au: d.au, maj: d.maj };
 }
 
 function production(c: CommuneFiche): Production | null {
@@ -1409,6 +1455,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     gares: gares(c),
     transports: transports(c),
     antennes: antennes(c),
+    couvertureMobile: couvertureMobile(c),
     production: production(c),
     monuments: monuments(c),
     solsPollues: solsPollues(c),

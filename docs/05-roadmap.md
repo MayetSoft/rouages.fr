@@ -2982,7 +2982,8 @@ réécrit ces fichiers seul.
   des arrêts rattachés aux communes : il faudrait lire les centaines de flux
   GTFS et placer chaque arrêt dans sa commune par sa position, donc disposer
   des contours communaux, que le site n'a pas. Les horaires GTFS restent à
-  faire (décision du 30 septembre : 6b, plus tard).
+  faire (décision du 30 septembre : 6b, plus tard). — Fait depuis, le
+  16 octobre : voir « La desserte des arrêts ».
 - **Gares SNCF** ✔ (`gares-emettre.ts`, décision 6a) : les gares de voyageurs
   de SNCF Gares & Connexions jointes à leur fréquentation 2024 par code UIC ;
   une gare sans voyageurs est écartée, la liste comptant des gares fermées.
@@ -3070,7 +3071,8 @@ réécrit ces fichiers seul.
 
   **Ce que le bloc ne dit pas : la couverture.** Un site voisin peut couvrir
   la commune, un site d'ici ne la couvre pas toute ; la page le dit et renvoie
-  à la carte de l'Arcep. Les cartes de couverture théorique, elles, sont des
+  à la carte de l'Arcep. — Mesurée depuis, le 16 octobre : voir « La
+  couverture 4G de chaque commune ». Les cartes de couverture théorique, elles, sont des
   polygones par opérateur et par technologie — de 28 à 380 Mo compressés
   chacun — qu'on ne ramènerait à la commune qu'avec ses contours. Un site
   partagé compte une fois par opérateur : l'identifiant de partage n'est
@@ -5051,3 +5053,140 @@ une image sans texte de remplacement glissée dans la page du Mayet fait
 échouer le contrôle. La CI installe Chromium (`npx playwright install
 --with-deps chromium`) ; la réingestion ne refait pas cet audit, les données
 ne changeant pas le balisage.
+
+### Chercher dans les délibérations par compétence (16 octobre 2026)
+
+Le niveau 2 du cadrage (`docs/07-risques.md`, section 8). Soixante et onze
+règles écrites (`src/modele/themes-deliberations.ts`) rangent un intitulé
+sous une ou plusieurs compétences du réseau — l'eau, l'assainissement, la
+voirie, l'école, le cimetière, le budget… — d'après ses mots, mots entiers,
+sans accents ni majuscules, avec des termes d'exclusion, et sans manquer un
+mot dont l'apostrophe s'est perdue (« dorientations », « station
+depuration »). La collecte écrit pour chaque département `t.json`, les
+rangs par compétence ; la page `/deliberations` ajoute une liste
+« Compétence » qui se croise avec les mots, la famille et l'année, met sous
+chaque résultat les fiches où il est rangé, et publie toutes les règles.
+
+Mesuré sur les 124 081 intitulés de 2025 de Mégalis : 36 % rangés. Chaque
+compétence a été relue sur un échantillon ; les faux positifs trouvés —
+« concert* » sur « concertation », « PPR » (période de préparation au
+reclassement), « CADA » (centre d'accueil de demandeurs d'asile), « APA »
+(activité physique adaptée), « ICPE » (une indemnité de chaussures),
+« UNESCO » sur le patrimoine immatériel, « La Chapelle-Chaussée », la
+redevance d'occupation du domaine public sous la police du maire, la ligne
+de trésorerie sous le comptable public — sont corrigés. `npm run
+verifier-themes`, en CI, vérifie que chaque règle mène à une fiche et tient
+vingt-sept intitulés réels, dont ces faux positifs. Essayé sur un index
+d'essai de l'Ille-et-Vilaine (non publié) : 1 228 délibérations sous
+« Assainissement », 167 sous « Écoles » pour « cantine », 3 sous « RSA ».
+
+La relecture a aussi trouvé un agent nommé dans une délégation de signature,
+au prénom absent du dictionnaire : le filtre des particuliers écarte
+désormais une délégation ou un arrêté qui finit sur un prénom et un nom,
+hors noms de collectivités (`npm run verifier-particuliers`, 28 cas).
+L'index par compétence arrivera avec la prochaine réingestion.
+
+### L'audit d'accessibilité élargi (16 octobre 2026)
+
+`npm run verifier-accessibilite` passe de huit à quinze pages — en plus : la
+région, l'intercommunalité (Vichy Communauté), une fiche du réseau, la
+comparaison de deux communes, les jeux et l'un d'eux, le simulateur des frais
+d'achat, et la recherche dans les délibérations avec des résultats quand un
+index est publié — et ajoute la largeur d'un téléphone (390 px, en clair).
+À cette largeur, une page qui défile horizontalement fait aussi échouer le
+contrôle. Une page absente du build est comptée à part au lieu de faire
+planter l'audit.
+
+Trois défauts trouvés et corrigés : dans la comparaison, les tableaux
+défilants portaient le même nom de région dans chaque colonne — ils disent
+maintenant la commune ; dans trois jeux, le récapitulatif de fin sautait du
+titre de la page à un titre de niveau 3 ; sur la page de région, le texte
+visuellement caché d'un tableau des comptes sortait de son cadre défilant et
+faisait déborder la page de 10 px à 390 px — les cadres défilants sont
+désormais positionnés. L'audit prend trois minutes et demie au lieu d'une.
+
+### La desserte des arrêts : les passages d'une semaine de classe (16 octobre 2026)
+
+La décision 6b du 30 septembre. La page de commune disait qu'un arrêt
+existe ; elle dit maintenant combien de fois on y passe. `horaires-gtfs.ts`
+lit chaque fichier GTFS déclaré au Point d'accès national (567 fichiers, plus
+de 0,8 Go, Île-de-France Mobilités seule 160 Mo et 1,1 Go d'horaires
+détaillés, lus en flux en 45 secondes) et compte, pour chaque arrêt et
+chaque jour du lundi au dimanche, les arrêts de course où l'on peut monter.
+La commune garde son arrêt le plus desservi : « 322 passages par jour du
+lundi au vendredi, 289 le samedi et 38 le dimanche, sur 8 lignes ».
+
+**Une semaine, pas un jour** : au Mayet-de-Montagne, les deux arrêts ne
+voient passer que le car de l'internat vers Roanne, le lundi matin et le
+vendredi soir — un mardi aurait dit « rien ». La page dit « 2 passages dans
+la semaine, 1 le lundi et 1 le vendredi, sur 1 ligne ». **Une semaine de
+classe** : la première à venir sans vacances scolaires dans les zones A, B, C
+ni en Corse (calendrier de l'Éducation nationale, `data.education.gouv.fr`)
+ni jour férié (`calendrier.api.gouv.fr`) ; le 16 octobre, celle du 2 au
+8 novembre 2026. L'outre-mer a ses propres vacances, que la semaine retenue
+ne regarde pas.
+
+**Ne pas compter deux fois** : 43 jeux publient plusieurs GTFS, tantôt des
+sous-réseaux (BreizhGo par département), tantôt des copies (trois pour
+Île-de-France Mobilités, un « référentiel complet » en plus de chaque réseau
+à Aix-Marseille). Entre fichiers d'un même jeu, on garde le plus grand
+nombre de passages de chaque arrêt, jour par jour ; entre jeux, on
+additionne ; contre un agrégat régional, qui reprend tous les réseaux, on
+garde le plus grand des deux — ce qui compte aussi un réseau publié
+seulement dans l'agrégat, ou dont le fichier propre a échoué (essayé à
+Montluçon, dont le réseau urbain ne répondait pas d'ici). Un fichier qui ne
+couvre pas la semaine ne dit pas « aucun passage » : il ne dit rien, et la
+page ne parle de desserte que si un fichier couvrant la semaine inscrit
+l'arrêt.
+
+**Vérifié** : sur les fichiers de l'Allier, de Mobivie, d'Aléo et de Maelis,
+un second compteur écrit à part en Python donne exactement les mêmes nombres,
+le lundi comme le dimanche ; au Mayet-de-Montagne, le compte a été refait à
+la main dans le fichier. `npm run verifier-horaires`, en CI, tient un GTFS
+fabriqué (exceptions de calendrier, course à fréquence, arrêt où l'on ne
+monte pas, fichier périmé), la fusion, le choix de la semaine et la phrase.
+La collecte allonge la réingestion de quelques minutes à un quart d'heure ;
+un échec des horaires laisse les arrêts. Les données arriveront avec la
+prochaine réingestion.
+
+### La couverture 4G de chaque commune, en part de sa surface (16 octobre 2026)
+
+Le bloc des antennes disait ce qui est installé, pas ce qui est couvert. Les
+cartes de couverture théorique que l'Arcep collecte chaque trimestre
+(`couverture-emettre.ts`) le disent : une par opérateur — Orange, SFR,
+Bouygues Telecom, Free Mobile —, pour la métropole et la Corse, en
+GeoPackage archivé en 7z (122 à 369 Mo chacune, 928 Mo ouverte pour la plus
+légère), en Lambert 93, un multipolygone par département et par niveau :
+très bonne, bonne, limitée. Les niveaux ne se recouvrent pas (aucun point
+dans deux niveaux sur les 184 000 de l'Allier).
+
+**La mesure** : une grille d'un point tous les 200 m environ par
+département ; chaque point prend sa commune et, pour chaque opérateur, son
+niveau, par une rastérisation rangée par rangée (les abscisses où les
+anneaux croisent la rangée, et la parité à gauche du point). La part d'une
+commune est la part de ses points ; « au moins un opérateur » prend le
+meilleur niveau des quatre, point par point. Une commune de moins de
+vingt-cinq points (un kilomètre carré environ) est dite trop petite pour la
+grille. **En part de la surface, pas de la population** (décision du
+16 octobre) : le carroyage de l'INSEE viendra plus tard pondérer par les
+habitants, et servira à d'autres croisements.
+
+**Un trimestre, un calcul** : environ 85 secondes par opérateur, la carte
+nationale étant décodée en entier — un quart d'heure pour la France. La
+collecte s'arrête si les fichiers publiés portent déjà le dernier trimestre
+de l'Arcep (`ROUAGES_COUVERTURE_FORCER=1` refait le calcul) ; elle ne
+pèse donc sur la réingestion qu'une fois par trimestre. Il faut `7z` : il
+est sur les machines de GitHub, le workflow l'installe sinon, et l'image
+Docker l'embarque désormais. L'outre-mer, dont les cartes sont par
+territoire et dans d'autres projections, viendra après.
+
+**Vérifié** : au Mayet-de-Montagne (2026 T2), au moins un opérateur donne
+86 % de la surface en très bonne couverture, 13 % en bonne, 1 % en limitée,
+moins de 1 % sans couverture ; Orange seul 65 / 30 / 5 %. Un second calcul
+écrit à part en Python — projection directe vers le Lambert 93 au lieu de
+l'inverse, test du point dans le polygone réécrit, grille décalée — donne
+64 / 30 / 5 % pour Orange. `npm run verifier-geo` tient la lecture d'une
+géométrie GeoPackage et la grille (un anneau, son trou, le dehors, le
+meilleur niveau gardé). La page de commune la montre sous les antennes,
+dans une section renommée « Le téléphone mobile : antennes et
+couverture ». Les données arriveront avec la prochaine réingestion.

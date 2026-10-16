@@ -1025,8 +1025,15 @@ async function principal() {
 
   // Les arrêts se placent dans les contours des communes, écrits avec les espaces naturels.
   const { collecterTransports, ecrireTransports } = await import('./transports-emettre.ts');
-  const transports = await tenter('Arrêts de transport en commun', () => collecterTransports(SORTIE, lireJson, grise));
+  const transports = await tenter('Arrêts de transport en commun', () => collecterTransports(SORTIE, lireJson, grise, CACHE));
   if (transports) grise(`${ecrireTransports(SORTIE, transports)} départements d’arrêts écrits.`);
+
+  // La couverture mobile, sur les mêmes contours ; recalculée seulement quand l'Arcep publie un nouveau trimestre.
+  const { collecterCouverture, ecrireCouverture } = await import('./couverture-emettre.ts');
+  const couverture = await tenter('Couverture mobile 4G', () =>
+    collecterCouverture(SORTIE, async (url) => (await obstine(url)).text(), telecharger, CACHE, grise),
+  );
+  if (couverture) grise(`${ecrireCouverture(SORTIE, couverture)} départements de couverture mobile écrits.`);
 
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));

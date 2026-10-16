@@ -1,6 +1,8 @@
 /**
  * Vérifie les lecteurs de `geo-formats.ts` : la projection Lambert 93, le GML
- * d'un WFS, le Shapefile en archive zip.
+ * d'un WFS, le Shapefile en archive zip ; et ceux de la couverture mobile
+ * (`couverture-emettre.ts`) : la géométrie d'un GeoPackage et la grille qui
+ * mesure la part couverte d'une commune.
  *
  * Une erreur y serait muette : un axe inversé, une projection décalée de
  * quelques kilomètres ou une table lue dans le mauvais encodage ne font pas
@@ -11,8 +13,9 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { crc32 } from 'node:zlib';
+import { anneauxGpkg, poser } from './couverture-emettre.ts';
 import { depuisLambert93, lireGml, lireShapefile } from './geo-formats.ts';
+import { zip } from './zip-essai.ts';
 
 const ROUGE = '\x1b[31m', VERT = '\x1b[32m', GRIS = '\x1b[90m', RAZ = '\x1b[0m';
 let echecs = 0;
@@ -139,44 +142,6 @@ function dbf(valeur: Buffer): Buffer {
   return b;
 }
 
-/** Une archive zip sans compression : de quoi faire lire `unzip -p` sans dépendre de `zip`. */
-function zip(fichiers: [string, Buffer][]): Buffer {
-  const locaux: Buffer[] = [];
-  const centraux: Buffer[] = [];
-  let decalage = 0;
-  for (const [nom, donnees] of fichiers) {
-    const n = Buffer.from(nom);
-    const crc = crc32(donnees);
-    const l = Buffer.alloc(30);
-    l.writeUInt32LE(0x04034b50, 0);
-    l.writeUInt16LE(20, 4);
-    l.writeUInt32LE(crc, 14);
-    l.writeUInt32LE(donnees.length, 18);
-    l.writeUInt32LE(donnees.length, 22);
-    l.writeUInt16LE(n.length, 26);
-    locaux.push(l, n, donnees);
-    const c = Buffer.alloc(46);
-    c.writeUInt32LE(0x02014b50, 0);
-    c.writeUInt16LE(20, 4);
-    c.writeUInt16LE(20, 6);
-    c.writeUInt32LE(crc, 16);
-    c.writeUInt32LE(donnees.length, 20);
-    c.writeUInt32LE(donnees.length, 24);
-    c.writeUInt16LE(n.length, 28);
-    c.writeUInt32LE(decalage, 42);
-    centraux.push(c, n);
-    decalage += 30 + n.length + donnees.length;
-  }
-  const central = Buffer.concat(centraux);
-  const fin = Buffer.alloc(22);
-  fin.writeUInt32LE(0x06054b50, 0);
-  fin.writeUInt16LE(fichiers.length, 8);
-  fin.writeUInt16LE(fichiers.length, 10);
-  fin.writeUInt32LE(central.length, 12);
-  fin.writeUInt32LE(decalage, 16);
-  return Buffer.concat([...locaux, central, fin]);
-}
-
 const dossier = mkdtempSync(join(tmpdir(), 'verifier-geo-'));
 try {
   const exterieur: [number, number][] = [[700000, 6600000], [700000, 6610000], [710000, 6610000], [710000, 6600000], [700000, 6600000]];
@@ -206,6 +171,48 @@ try {
   );
 } finally {
   rmSync(dossier, { recursive: true, force: true });
+}
+
+/* ------------------------------------------------------------------ *
+ * GeoPackage et grille de la couverture mobile
+ * ------------------------------------------------------------------ */
+
+{
+  // Un multipolygone en Lambert 93 : un carré de 10 km et son trou de 6 km, derrière l'en-tête GeoPackage sans cadre.
+  const anneau = (pts: [number, number][]) => {
+    const b = Buffer.alloc(4 + pts.length * 16);
+    b.writeUInt32LE(pts.length, 0);
+    pts.forEach(([x, y], i) => {
+      b.writeDoubleLE(x, 4 + i * 16);
+      b.writeDoubleLE(y, 12 + i * 16);
+    });
+    return b;
+  };
+  const ext: [number, number][] = [[700000, 6600000], [710000, 6600000], [710000, 6610000], [700000, 6610000], [700000, 6600000]];
+  const trou: [number, number][] = [[702000, 6602000], [702000, 6608000], [708000, 6608000], [708000, 6602000], [702000, 6602000]];
+  const polygone = Buffer.concat([Buffer.from([1]), Buffer.from(Uint32Array.of(3).buffer), Buffer.from(Uint32Array.of(2).buffer), anneau(ext), anneau(trou)]);
+  const multi = Buffer.concat([Buffer.from([1]), Buffer.from(Uint32Array.of(6).buffer), Buffer.from(Uint32Array.of(1).buffer), polygone]);
+  const entete = Buffer.from([0x47, 0x50, 0, 0x01, 0xa0, 0x86, 0x01, 0]);
+  const rs = anneauxGpkg(new Uint8Array(Buffer.concat([entete, multi])));
+  attendre('GeoPackage : deux anneaux', rs.length === 2, rs.length, 'L’extérieur et le trou du multipolygone.');
+  attendre(
+    'GeoPackage : premier sommet projeté',
+    proche([rs[0]?.a[0] ?? 0, rs[0]?.a[1] ?? 0], [3, 46.5], 1e-9),
+    [rs[0]?.a[0], rs[0]?.a[1]],
+    'Le sommet (700 000 ; 6 600 000) est l’origine du Lambert 93.',
+  );
+  // La grille de la collecte (0,0026° × 0,0018°) sur la zone ; trois points : dans l'anneau, dans le trou, dehors.
+  const g = { x0: 2.9, y0: 46.45, nx: 120, ny: 120 };
+  const niveaux = new Uint8Array(g.nx * g.ny);
+  poser(rs.map((r) => r.a), g, 2, niveaux);
+  const au = (x: number, y: number) => {
+    const [lon, lat] = depuisLambert93(x, y);
+    return niveaux[Math.floor((lat - g.y0) / 0.0018) * g.nx + Math.floor((lon - g.x0) / 0.0026)];
+  };
+  const obtenu = [au(701000, 6605000), au(705000, 6605000), au(715000, 6605000)];
+  attendre('Grille : anneau, trou, dehors', obtenu.join() === '2,0,0', obtenu, 'Un point de l’anneau prend le niveau ; le trou et le dehors restent à zéro.');
+  poser(rs.map((r) => r.a), g, 1, niveaux);
+  attendre('Grille : un niveau plus faible n’écrase pas', au(701000, 6605000) === 2, au(701000, 6605000), 'Chaque point garde le meilleur niveau posé.');
 }
 
 if (echecs) {

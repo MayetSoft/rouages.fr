@@ -27,8 +27,10 @@ npm run verifier-journal     la fenêtre et les plafonds du journal
 npm run verifier-rattachement  les annonces du BODACC rattachées à la bonne commune
 npm run verifier-geo         la projection Lambert 93 et les lecteurs GML et Shapefile
 npm run verifier-particuliers  les particuliers nommés dans l'objet d'une délibération
+npm run verifier-themes      les délibérations rangées sous la bonne compétence
+npm run verifier-horaires    la lecture des horaires GTFS et le choix de la semaine de classe
 npm run verifier-types       les types, fichiers .astro compris — `tsc` seul ne les voit pas
-npm run verifier-accessibilite  axe-core sur quelques pages du build, en clair et en sombre
+npm run verifier-accessibilite  axe-core sur quinze pages du build, en clair, en sombre et à 390 px
 npm run build                valide puis génère (le build refuse un contenu invalide)
 npm run relire               les fiches encore à vérifier contre leur source
 npm run veille               l'état des sources surveillées
@@ -52,7 +54,11 @@ recensement (230 Mo), le référentiel FINESS (244 Mo), les objets protégés de
 Palissy (365 Mo), les bornes de recharge électrique (160 Mo) et l'historique
 des restrictions d'eau de VigiEau (590 Mo, 12 Go lus en flux) et les espaces
 naturels de l'INPN et les contours des communes d'Admin Express, lus sur la
-Géoplateforme par pages (350 et 420 Mo, mis en cache pour la journée). `--cache` les
+Géoplateforme par pages (350 et 420 Mo, mis en cache pour la journée), et les
+fichiers d'horaires GTFS de tous les réseaux (plus de 0,8 Go, Île-de-France
+Mobilités seule 160 Mo, gardés dans `.cache/gtfs/`), et les cartes de
+couverture 4G de l'Arcep (1,1 Go en 7z, recalculées seulement quand un
+nouveau trimestre paraît). `--cache` les
 réutilise, et sans lui il faut compter le téléchargement en plus.
 
 La réingestion complète se lance aussi en intégration continue : workflow
