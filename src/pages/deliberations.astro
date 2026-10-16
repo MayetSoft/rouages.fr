@@ -2,14 +2,15 @@
 /**
  * Chercher dans les délibérations d'un département : les intitulés des
  * vingt-quatre derniers mois que les collectivités versent en données
- * ouvertes, par mot, famille d'actes et année. Tout se passe dans le
+ * ouvertes, par mot, compétence, famille d'actes et année. Tout se passe dans le
  * navigateur : voir `src/client/recherche-deliberations.ts`. Les garde-fous
  * sont ceux de `docs/07-risques.md`, section 8 ; la page n'est pas indexée.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../layouts/Base.astro';
-import { RACINE } from '../modele/graphe.ts';
+import { chargerGraphe, RACINE } from '../modele/graphe.ts';
+import { THEMES } from '../modele/themes-deliberations.ts';
 
 const dossier = join(RACINE, 'public', 'territoires', 'recherche-deliberations');
 const cheminIndex = join(RACINE, 'public', 'territoires', 'index.json');
@@ -19,10 +20,14 @@ const deps = existsSync(dossier)
       .filter((d) => existsSync(join(dossier, d, 'meta.json')))
       .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }))
   : [];
+
+// Les compétences sous lesquelles les règles rangent les intitulés, avec le nom de leur fiche.
+const g = chargerGraphe();
+const themes = THEMES.map((t) => ({ ...t, nom: g.competences.get(t.fiche)?.nom ?? t.fiche })).sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 ---
 <Base
   titre="Chercher dans les délibérations"
-  description="Les délibérations des collectivités qui les versent en données ouvertes, des vingt-quatre derniers mois : chercher par mot, famille d’actes et année, dans un département."
+  description="Les délibérations des collectivités qui les versent en données ouvertes, des vingt-quatre derniers mois : chercher par mot, compétence, famille d’actes et année, dans un département."
   section="chez-moi"
   indexer={false}
 >
@@ -57,6 +62,14 @@ const deps = existsSync(dossier)
           <button type="submit" class="rq-copier">Chercher</button>
         </fieldset>
         <fieldset class="rq-bloc">
+          <legend>Compétence</legend>
+          <label class="visuellement-cache" for="rd-theme">Compétence</label>
+          <select id="rd-theme">
+            <option value="">Toutes les compétences</option>
+            {themes.map((t) => <option value={t.fiche}>{t.nom}</option>)}
+          </select>
+        </fieldset>
+        <fieldset class="rq-bloc">
           <legend>Famille d’actes et année</legend>
           <label class="visuellement-cache" for="rd-famille">Famille d’actes</label>
           <select id="rd-famille"><option value="">Toutes les familles</option></select>
@@ -88,8 +101,36 @@ const deps = existsSync(dossier)
         <strong>L’intitulé, pas l’acte.</strong> La recherche lit l’objet tel que la collectivité l’a écrit, coupé à
         cent trente caractères&nbsp;; le texte de la délibération reste chez elle, et c’est lui qui fait foi.
       </li>
+      <li>
+        <strong>Une compétence est attribuée par des règles écrites</strong>, publiées ci-dessous&nbsp;: des mots de
+        l’intitulé, jamais un jugement sur son contenu. Une règle se trompe parfois — « école » dans le nom d’une rue
+        —, et un intitulé sans aucun de ces mots n’est rangé nulle part. Le personnel, les subventions aux associations
+        et la commande publique n’ont pas de fiche dans le réseau, et ne sont donc rangés sous aucune compétence.
+      </li>
       <li>Les résultats vont du plus récent au plus ancien, sans autre classement.</li>
     </ul>
+
+    <details class="rd-regles mesure">
+      <summary>Les règles qui rangent les intitulés par compétence</summary>
+      <p>
+        Une compétence est attribuée quand l’intitulé contient l’un de ses termes, en mots entiers, sans tenir compte
+        des accents ni des majuscules, et aucun de ses termes d’exclusion. Un astérisque accepte toute fin de mot
+        («&nbsp;école*&nbsp;» prend «&nbsp;écoles&nbsp;»)&nbsp;; une apostrophe perdue («&nbsp;dorientations&nbsp;»)
+        ne fait pas manquer le mot. Un intitulé peut relever de plusieurs compétences. Mesurées sur les 124&nbsp;081
+        intitulés de 2025 publiés par Mégalis Bretagne, ces règles en rangent 36&nbsp;%.
+      </p>
+      <dl class="rd-regles-liste">
+        {themes.map((t) => (
+          <>
+            <dt><a href={`/n/${t.fiche}`}>{t.nom}</a></dt>
+            <dd>
+              {t.termes.join(' · ')}
+              {t.sauf?.length ? <span class="rd-sauf"> — sauf&nbsp;: {t.sauf.join(' · ')}</span> : null}
+            </dd>
+          </>
+        ))}
+      </dl>
+    </details>
     <p class="p-source-territoire">
       D’après les jeux de délibérations publiés au schéma du socle commun des données locales, sur data.gouv.fr — dont
       celui de Mégalis Bretagne. Rien de ce que vous cherchez n’est envoyé ni gardé&nbsp;: le navigateur lit les fichiers

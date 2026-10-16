@@ -33,6 +33,8 @@ jobs:
         run: npm run verifier-geo
       - name: Particuliers nommés dans les délibérations
         run: npm run verifier-particuliers
+      - name: Délibérations rangées par compétence
+        run: npm run verifier-themes
       - name: Citations retrouvées par la veille des aides locales
         run: npm run verifier-veille-aides
       - name: Types

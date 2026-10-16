@@ -19,6 +19,7 @@
     "verifier-rattachement": "tsx scripts/verifier-rattachement.ts",
     "verifier-reseau": "tsx scripts/verifier-reseau.ts",
     "verifier-particuliers": "tsx scripts/verifier-particuliers.ts",
+    "verifier-themes": "tsx scripts/verifier-themes.ts",
     "verifier-accessibilite": "tsx scripts/verifier-accessibilite.ts",
     "verifier-geo": "tsx scripts/verifier-geo.ts",
     "verifier-veille-aides": "tsx scripts/verifier-veille-aides.ts",

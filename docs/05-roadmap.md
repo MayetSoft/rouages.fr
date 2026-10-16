@@ -5014,3 +5014,35 @@ une image sans texte de remplacement glissée dans la page du Mayet fait
 échouer le contrôle. La CI installe Chromium (`npx playwright install
 --with-deps chromium`) ; la réingestion ne refait pas cet audit, les données
 ne changeant pas le balisage.
+
+### Chercher dans les délibérations par compétence (16 octobre 2026)
+
+Le niveau 2 du cadrage (`docs/07-risques.md`, section 8). Soixante et onze
+règles écrites (`src/modele/themes-deliberations.ts`) rangent un intitulé
+sous une ou plusieurs compétences du réseau — l'eau, l'assainissement, la
+voirie, l'école, le cimetière, le budget… — d'après ses mots, mots entiers,
+sans accents ni majuscules, avec des termes d'exclusion, et sans manquer un
+mot dont l'apostrophe s'est perdue (« dorientations », « station
+depuration »). La collecte écrit pour chaque département `t.json`, les
+rangs par compétence ; la page `/deliberations` ajoute une liste
+« Compétence » qui se croise avec les mots, la famille et l'année, met sous
+chaque résultat les fiches où il est rangé, et publie toutes les règles.
+
+Mesuré sur les 124 081 intitulés de 2025 de Mégalis : 36 % rangés. Chaque
+compétence a été relue sur un échantillon ; les faux positifs trouvés —
+« concert* » sur « concertation », « PPR » (période de préparation au
+reclassement), « CADA » (centre d'accueil de demandeurs d'asile), « APA »
+(activité physique adaptée), « ICPE » (une indemnité de chaussures),
+« UNESCO » sur le patrimoine immatériel, « La Chapelle-Chaussée », la
+redevance d'occupation du domaine public sous la police du maire, la ligne
+de trésorerie sous le comptable public — sont corrigés. `npm run
+verifier-themes`, en CI, vérifie que chaque règle mène à une fiche et tient
+vingt-sept intitulés réels, dont ces faux positifs. Essayé sur un index
+d'essai de l'Ille-et-Vilaine (non publié) : 1 228 délibérations sous
+« Assainissement », 167 sous « Écoles » pour « cantine », 3 sous « RSA ».
+
+La relecture a aussi trouvé un agent nommé dans une délégation de signature,
+au prénom absent du dictionnaire : le filtre des particuliers écarte
+désormais une délégation ou un arrêté qui finit sur un prénom et un nom,
+hors noms de collectivités (`npm run verifier-particuliers`, 28 cas).
+L'index par compétence arrivera avec la prochaine réingestion.

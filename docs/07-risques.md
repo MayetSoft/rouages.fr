@@ -759,3 +759,25 @@ et année ; la page porte `noindex`, ne garde rien de ce qu'on cherche, dit
 qu'un mot absent n'est pas cherchable et pourquoi, et rappelle que la
 couverture se compare mal. L'index se construit à l'ingestion.
 
+Le niveau 2 aussi (`src/modele/themes-deliberations.ts`) : soixante et onze
+règles, une par compétence du réseau, rangent un intitulé sous une fiche
+quand il contient l'un des termes de la règle et aucun de ses termes
+d'exclusion. Les règles sont publiées en entier sur la page de recherche,
+chaque résultat dit sous quelles fiches elles le rangent, et une compétence
+choisie restreint la recherche. Rien n'est ajouté aux intitulés : l'index
+par compétence (`t.json`) ne contient que des rangs. Relues sur un
+échantillon de chaque compétence parmi les 124 081 intitulés de 2025 de
+Mégalis, elles en rangent 36 % ; les faux positifs trouvés à la relecture
+(« concert* » qui prenait « concertation », « PPR » une période de
+reclassement, « CADA » un centre de demandeurs d'asile, « APA » l'activité
+physique adaptée, « chaussée » un nom de commune) sont corrigés et tenus
+par `npm run verifier-themes`, en CI. Le personnel, les subventions aux
+associations et la commande publique n'ont pas de fiche : ils ne sont rangés
+nulle part, et la page le dit.
+
+La même relecture a trouvé un agent nommé par une délégation, avec un
+prénom trop rare pour le dictionnaire (« arrêté donnant délégation de
+signature à … ») : le filtre des particuliers écarte désormais une
+délégation ou un arrêté qui finit sur un prénom et un nom, sauf un nom de
+collectivité. Sur les intitulés de 2025, il n'a pris que ces deux-là.
+
