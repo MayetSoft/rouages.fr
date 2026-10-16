@@ -30,8 +30,10 @@ interface Props {
   procedures: string[];
   /** Les rapprochements par le nom avec les déclarations d'intérêts des élus, par « acheteur|SIREN ». */
   rapprochements?: Map<string, Rapprochement[]>;
+  /** Le département de la page : l'essai de Rouages Pro s'ouvre dessus. */
+  departement?: string;
 }
-const { liste, depuis, fenetre, procedures, rapprochements = new Map<string, Rapprochement[]>() } = Astro.props;
+const { liste, depuis, fenetre, procedures, rapprochements = new Map<string, Rapprochement[]>(), departement } = Astro.props;
 /** La fiche publique d'une entreprise, sur l'annuaire de l'État. */
 const FICHE = 'https://annuaire-entreprises.data.gouv.fr/entreprise/';
 /**
@@ -121,6 +123,10 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
         </li>
       ))}
     </ul>
+    <p class="p-marche-ailleurs">
+      <a href={`${PRO}/essai?depuis=rouages.fr${departement ? `&dep=${departement}` : ''}`}>{'Recevoir chaque lundi les échéances de votre métier dans le département'}</a>
+      {' — Rouages Pro, le service payant de l’éditeur, sur les mêmes données : 30 jours d’essai gratuit, sans carte'}
+    </p>
   </div>
 )}
 {liste.some((a) => a.liste.some((m) => m.titulaires.some((t) => t.representant))) && (
