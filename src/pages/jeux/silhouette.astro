@@ -1,0 +1,110 @@
+---
+/**
+ * La silhouette : reconnaître une commune à sa forme seule, comme dans
+ * Worldle. Les contours sont ceux d'Admin Express, lus dans
+ * `/jeux/communes/XX.json` comme pour la commune mystère.
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="La silhouette"
+  description="Une commune de chez vous, rien que sa forme : saurez-vous la reconnaître ? Six essais, la distance et la direction à chaque erreur, un nouveau défi chaque jour."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Comprendre · dès 10 ans</p>
+    <h1>La silhouette</h1>
+    <p class="resume">
+      Une commune, rien que sa forme. Six essais pour la reconnaître&nbsp;: à chaque erreur, la distance, la direction,
+      et la forme de celle que vous avez proposée.
+    </p>
+
+    <div id="js" class="jeu">
+      <ChampLieuJeu
+        id="js-lieu"
+        etiquette="Où jouer ? Un code postal, une intercommunalité, un département"
+        placeholder="Vichy Communauté, Allier, 03250…"
+        exemples={mayet ? [{ cle: 'e-200071363', nom: 'Vichy Communauté' }, { cle: 'd-03', nom: 'Allier' }] : []}
+      />
+      <p id="js-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <div id="js-choix" class="jeu-choix" hidden>
+        <p><strong id="js-lieu-nom"></strong> <span id="js-lieu-detail"></span> — la même silhouette pour tout le monde aujourd’hui.</p>
+        <button class="bouton jeu-bouton" type="button" id="js-jouer">Jouer le défi du jour</button>
+      </div>
+
+      <section id="js-manche" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-compteur" id="js-compteur"></p>
+        <div class="js-forme" id="js-forme"></div>
+        <p class="jeu-details" id="js-indice"></p>
+        <form id="js-essai" class="jx-essai">
+          <label for="js-saisie">Quelle est cette commune ?</label>
+          <input id="js-saisie" class="jeu-saisie" list="js-noms" autocomplete="off" required placeholder="Le nom d’une commune du périmètre" />
+          <datalist id="js-noms"></datalist>
+          <button class="bouton jeu-bouton" type="submit">Proposer</button>
+        </form>
+        <ol class="js-essais" id="js-essais"></ol>
+        <p class="jeu-verdict" id="js-verdict" hidden></p>
+        <p class="jeu-contexte" id="js-contexte" hidden><a id="js-lien"></a> : ses chiffres, sa carte, ses voisines.</p>
+      </section>
+
+      <section id="js-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="js-score"></span> <span id="js-cases" class="jeu-cases"></span></p>
+        <PartageJeu id="js" />
+        <button class="plat" type="button" id="js-libre">Une autre silhouette</button>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Chaque jour, pour chaque lieu, la même silhouette pour tout le monde. Six essais.</li>
+      <li>Après chaque essai&nbsp;: la distance à vol d’oiseau entre les centres des deux communes, la direction à prendre, et la forme de la commune proposée.</li>
+      <li>Au troisième essai, les voisines se dessinent autour de la silhouette&nbsp;; au cinquième, la première lettre de son nom.</li>
+      <li>Une case par essai&nbsp;: 🟩 trouvée, 🟨 à moins de 5&nbsp;km, 🟧 à moins de 15&nbsp;km, 🟥 plus loin. Le partage ne dit pas la réponse.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <p class="mesure">Les contours des communes d’Admin Express (IGN), simplifiés pour le jeu, au millésime de la carte du site.</p>
+  </div>
+</Base>
+
+<script>
+  import { brancherSilhouette } from '../../client/jeu-silhouette.ts';
+  brancherSilhouette();
+</script>
+
+<style is:global>
+  .js-forme { margin: .4rem auto 1rem; max-width: 22rem; }
+  .js-forme svg { width: 100%; max-height: 20rem; display: block; }
+  .js-c { stroke-width: 1.2; }
+  .js-cible { fill: var(--encre); stroke: var(--encre); }
+  .js-cible--fin { fill: #2e9e5b; stroke: var(--encre); stroke-width: 2.5; }
+  .js-voisine { fill: var(--fond-doux); stroke: var(--trait-fort); }
+  .jx-essai { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: center; margin: 0 0 1rem; }
+  .jx-essai label { flex-basis: 100%; font-size: .88rem; color: var(--encre-douce); }
+  .jx-essai input { flex: 1 1 12rem; min-width: 0; }
+  .js-essais { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .35rem; }
+  .js-essais li {
+    display: grid; grid-template-columns: 2.2rem 1fr auto auto; gap: .6rem; align-items: center;
+    background: var(--fond-doux); border: 1px solid var(--trait); border-radius: var(--rayon); padding: .4rem .7rem;
+  }
+  .js-essais li.juste { background: #e3f3e9; border-color: #2e9e5b; }
+  .js-essais span:nth-child(3) { font-variant-numeric: tabular-nums; color: var(--encre-douce); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .js-essais li.juste { background: #183a26; } }
+  :root[data-theme="dark"] .js-essais li.juste { background: #183a26; }
+  .js-mini-boite svg { width: 2rem; height: 2rem; display: block; }
+  .js-mini { fill: var(--encre-douce); stroke: none; }
+  .js-mini.vert { fill: #2e9e5b; } .js-mini.jaune { fill: #e6b422; } .js-mini.orange { fill: #e8762c; } .js-mini.rouge { fill: #cf3b2f; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes js-apparaitre { from { opacity: 0; transform: scale(.96); } }
+    .js-forme svg { animation: js-apparaitre .5s ease-out both; transform-origin: center; }
+  }
+</style>
