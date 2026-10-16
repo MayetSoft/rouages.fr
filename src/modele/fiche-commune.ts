@@ -15,6 +15,7 @@
  * ne dit plus que qui exerce chaque compétence, et conduit à la page pour le
  * reste.
  */
+import { deliberationRetiree } from './retraits-deliberations.ts';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { detailDepuisBrut, type DetailAffiche, type DetailBrut } from '../vues/detail-marche.ts';
 import { join } from 'node:path';
@@ -1215,7 +1216,10 @@ function assemblerDeliberations(commune: CommuneFiche, structures: StructureFich
         .filter((f) => f.nombre > 0 && f.nom)
         .sort((a, b) => b.nombre - a.nombre)
         .slice(0, 3),
-      liste: e.d.map((x) => ({ date: x.date, famille: d.familles[x.famille] ?? null, objet: x.objet, url: x.url })),
+      // Une délibération retirée à la demande disparaît dès ce build (`retraits.yaml`).
+      liste: e.d
+        .filter((x) => !deliberationRetiree(siren, x.date, x.objet))
+        .map((x) => ({ date: x.date, famille: d.familles[x.famille] ?? null, objet: x.objet, url: x.url })),
     });
   };
   const sirenCommune = d.com[commune.code];

@@ -4970,3 +4970,17 @@ annonce alors ses 25 725 242 octets), laisse une demi-heure au
 téléchargement, et ne garde une archive zip que si sa fin de répertoire
 central est là. Même garde dans le téléchargeur des collectes lancées
 seules. La limite du workflow passe de trois à quatre heures.
+
+### Les retraits pour les délibérations (16 octobre 2026)
+
+Le filet que le cadrage promettait : une délibération dont l'objet nomme
+quelqu'un que les filtres ont laissé passer s'inscrit dans `retraits.yaml`,
+section `deliberations`, par l'empreinte SHA-256 du SIREN de la
+collectivité, de la date et de l'objet tel que publié — jamais l'objet —,
+que calcule `npx tsx scripts/retraits.ts --deliberation <SIREN> <date>
+"<objet>"`. La collecte l'écarte à l'ingestion ; la page de la commune et
+le journal l'écartent dès le build suivant (`src/modele/retraits-deliberations.ts`),
+comme les rapprochements. Essayé sur une délibération d'Ille-et-Vilaine :
+présente sur la page de sa commune sans le retrait, absente avec. `/signaler`
+et `/mentions` le disent.
+

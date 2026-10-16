@@ -43,6 +43,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { nommeUnParticulier } from '../src/modele/civilites.ts';
+import { deliberationRetiree } from './retraits.ts';
 import { debutFenetre, GENRES, type Evenement } from '../src/modele/journal.ts';
 import { lireCsvOuvert, ressourcesDuJeu, ressourcesDuSchema } from './donnees-ouvertes.ts';
 
@@ -177,7 +178,7 @@ export async function collecterDeliberations(
       // Celles qui statuent sur le cas d'une personne restent chez la
       // collectivité : le site n'a pas à les relayer ni à les indexer. Une
       // civilité, ou un prénom courant suivi d'un nom (`civilites.ts`).
-      if (nommeUnParticulier(objet)) {
+      if (nommeUnParticulier(objet) || deliberationRetiree(siren, date, objet)) {
         ecartees++;
         continue;
       }
