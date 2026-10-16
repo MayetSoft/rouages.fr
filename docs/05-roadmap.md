@@ -4918,3 +4918,25 @@ clavier : le lien d'évitement vient en premier, le focus est visible
 partout, les onglets suivent les flèches, Début et Fin. La carte des
 communes d'un département fait passer le clavier par chaque commune (317
 dans l'Allier) : un lien « Passer la carte », visible au focus, la saute.
+
+### Les particuliers nommés sans civilité dans les délibérations (16 octobre 2026)
+
+En préparant le cadrage de la recherche dans les délibérations, une mesure sur
+les 6 931 intitulés publiés a trouvé ce que le filtre des civilités laissait
+passer : « subv à » suivi d'un prénom et d'un nom, un cadeau de départ, un
+remboursement d'assurance, une vente par un agent immobilier nommé — et des
+civilités écrites en capitales (« AU PROFIT DE MADAME … »), que le motif ne
+lisait pas. La règle exclut les particuliers cités dans les délibérations :
+c'étaient des publications contraires à la règle.
+
+Le motif des civilités lit désormais les capitales, sans prendre « maître
+d'œuvre » ni « Madame la Maire » pour un nom. Un second motif,
+`nommeUnParticulier`, cherche un prénom courant suivi d'un nom : les prénoms
+portés par au moins cinq conseillers municipaux au répertoire des élus
+(`src/modele/prenoms.json`, 2 325 prénoms, `scripts/prenoms-emettre.ts`),
+moins ceux qui sont aussi des mots (« France », « Noël », « Maire »…), et
+jamais après un mot de lieu (« rue Jean Moulin », « école publique Henri
+Matisse »). Il écarte trop plutôt que pas assez — « grille tarifaire Jean
+Moulin » part avec —, et c'est le sens voulu. 21 délibérations sont retirées
+des fichiers publiés et 45 du journal, sans attendre la réingestion ;
+`npm run verifier-particuliers`, en CI, tient 22 cas aux noms inventés.

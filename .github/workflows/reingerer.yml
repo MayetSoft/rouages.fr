@@ -100,6 +100,7 @@ jobs:
           npm run verifier-journal
           npm run verifier-rattachement
           npm run verifier-geo
+          npm run verifier-particuliers
           npm run verifier-veille-aides
           npm run verifier-reseau
           npm run verifier-types
@@ -127,7 +128,7 @@ jobs:
           {
             echo "Réingestion complète lancée à la main, sur la machine « ${{ inputs.machine }} » ([journal]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))."
             echo
-            echo "Le contrôle de la CI (validation, recherche, journal, rattachement, lecteurs géographiques, veille des aides, réseau, types, build de l'Allier, du Finistère, de la Meuse et de Paris) est passé dans le même job : une PR ouverte par le workflow ne relance pas \`ci.yml\`."
+            echo "Le contrôle de la CI (validation, recherche, journal, rattachement, lecteurs géographiques, particuliers, veille des aides, réseau, types, build de l'Allier, du Finistère, de la Meuse et de Paris) est passé dans le même job : une PR ouverte par le workflow ne relance pas \`ci.yml\`."
             echo
             if [ -s echecs.txt ]; then
               echo "## Collectes en échec"
