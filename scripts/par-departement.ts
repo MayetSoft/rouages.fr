@@ -158,11 +158,11 @@ export function telechargerSiAbsent(racine: string) {
   // une collecte lancée seule les écrit en se terminant (voir `provenance.ts`).
   journaliserLesLectures();
   ecrireProvenanceEnSortant(join(racine, 'public', 'territoires'));
-  const obstine = async (url: string): Promise<Response> => {
+  const obstine = async (url: string, entetes: Record<string, string> = {}): Promise<Response> => {
     let derniere: unknown;
     for (let i = 0; i < 8; i++) {
       try {
-        const r = await fetch(url, { signal: AbortSignal.timeout(600_000) });
+        const r = await fetch(url, { headers: entetes, signal: AbortSignal.timeout(600_000) });
         if (r.ok) return r;
         derniere = new Error(`${url} : ${r.status}`);
       } catch (e) {
@@ -180,10 +180,14 @@ export function telechargerSiAbsent(racine: string) {
       return;
     }
     for (let i = 0; i < 6; i++) {
-      const r = await obstine(url);
+      // Sans compression à la volée, le serveur annonce la longueur (Melodi de l'INSEE ne le fait pas sinon) ;
+      // et une archive zip n'est gardée que si sa fin de répertoire central est là.
+      const r = await obstine(url, { 'accept-encoding': 'identity' });
       const attendu = Number(r.headers.get('content-length') ?? 0);
       const corps = Buffer.from(await r.arrayBuffer().catch(() => new ArrayBuffer(0)));
-      if (!attendu || corps.length === attendu) {
+      const zip = corps.subarray(0, 4).toString('latin1') === 'PK\x03\x04';
+      const entier = !zip || corps.subarray(-65_557).includes(Buffer.from('PK\x05\x06', 'latin1')) || corps.subarray(-65_557).includes(Buffer.from('PK\x06\x07', 'latin1'));
+      if (entier && (!attendu || corps.length === attendu)) {
         writeFileSync(vers, corps);
         garderVersion(url, vers);
         return;

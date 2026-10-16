@@ -19,11 +19,14 @@
  */
 import { spawn, spawnSync } from 'node:child_process';
 import {
+  closeSync,
   createReadStream,
   createWriteStream,
   existsSync,
   mkdirSync,
+  openSync,
   readFileSync,
+  readSync,
   renameSync,
   rmSync,
   statSync,
@@ -61,15 +64,16 @@ const VERT = '\x1b[32m', JAUNE = '\x1b[33m', GRIS = '\x1b[90m', RAZ = '\x1b[0m';
 const dire = (m: string) => console.log(m);
 
 /** Le tunnel du proxy lâche par intermittence : on réessaie plutôt que d'abandonner. */
-async function obstine(url: string, essais = 8): Promise<Response> {
+async function obstine(url: string, essais = 8, options: { delai?: number; entetes?: Record<string, string> } = {}): Promise<Response> {
   let derniere: unknown;
   for (let i = 0; i < essais; i++) {
     try {
       // Le catalogue de l'OFB refuse l'en-tête de langue par défaut de Node
       // (« Couldn't find 3-letter language code for * ») : on en pose un.
+      // Le délai court jusqu'à la fin du corps, pas seulement jusqu'aux en-têtes.
       const r = await fetch(url, {
-        headers: { 'accept-language': 'fre' },
-        signal: AbortSignal.timeout(180_000),
+        headers: { 'accept-language': 'fre', ...options.entetes },
+        signal: AbortSignal.timeout(options.delai ?? 180_000),
       });
       if (r.ok) return r;
       derniere = new Error(`HTTP ${r.status}`);
@@ -165,16 +169,41 @@ async function telechargerEnCache(
   }
 }
 
+/** Une archive zip est entière si sa fin de répertoire central est là, dans les 64 Ko de la fin. */
+function zipEntier(chemin: string): boolean {
+  const taille = statSync(chemin).size;
+  const fd = openSync(chemin, 'r');
+  try {
+    const tete = Buffer.alloc(4);
+    readSync(fd, tete, 0, 4, 0);
+    if (tete.toString('latin1') !== 'PK\x03\x04') return true; // pas une archive : rien à vérifier ici
+    const n = Math.min(taille, 65_557);
+    const fin = Buffer.alloc(n);
+    readSync(fd, fin, 0, n, taille - n);
+    return fin.includes(Buffer.from('PK\x05\x06', 'latin1')) || fin.includes(Buffer.from('PK\x06\x07', 'latin1'));
+  } finally {
+    closeSync(fd);
+  }
+}
+
 /**
  * Un flux coupé en route ne lève pas d'erreur : il laisse un fichier tronqué.
  * La réingestion du 30 septembre 2026 a perdu ainsi les trois tables du
  * recensement servies par Melodi — des archives incomplètes, qu'`unzip` a
  * refusées (code 9). On compare donc à la longueur annoncée, et on recommence.
+ *
+ * Celle du 16 octobre les a perdues de nouveau, par une autre porte : à un
+ * client qui accepte la compression — Node l'accepte par défaut —, Melodi
+ * renvoie l'archive recompressée à la volée, sans longueur annoncée, et le
+ * délai de trois minutes coupait ces gros fichiers lents en route. On demande
+ * donc le fichier tel quel (`accept-encoding: identity`), on laisse une
+ * demi-heure au téléchargement, et une archive zip n'est gardée que si sa fin
+ * est là.
  */
 async function telecharger(url: string, vers: string): Promise<void> {
   const { Readable } = await import('node:stream');
   for (let essai = 1; ; essai++) {
-    const r = await obstine(url);
+    const r = await obstine(url, 8, { delai: 1_800_000, entetes: { 'accept-encoding': 'identity' } });
     if (!r.body) throw new Error(`${url} : réponse sans corps`);
     const attendu = Number(r.headers.get('content-length') ?? 0);
     const flux = createWriteStream(vers);
@@ -192,6 +221,11 @@ async function telecharger(url: string, vers: string): Promise<void> {
     const recu = existsSync(vers) ? statSync(vers).size : 0;
     // Une réponse compressée à la volée n'annonce que sa taille compressée.
     const compresse = !!r.headers.get('content-encoding');
+    if (!coupe && existsSync(vers) && !zipEntier(vers)) {
+      if (essai >= 4) throw new Error(`${url} : archive zip incomplète, quatre fois de suite`);
+      dire(`${GRIS}  archive zip incomplète (${recu} octets), on recommence${RAZ}`);
+      continue;
+    }
     if (!coupe && (!attendu || compresse || recu === attendu)) return;
     if (essai >= 4) throw new Error(`${url} : ${recu} octets reçus sur ${attendu}, quatre fois de suite`);
     dire(`${GRIS}  ${recu} octets reçus sur ${attendu}, on recommence${RAZ}`);

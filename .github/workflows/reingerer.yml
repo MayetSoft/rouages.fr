@@ -45,7 +45,8 @@ jobs:
     # Le runner auto-hébergé ne sert qu'à ce déclenchement manuel, jamais à du
     # code venu d'une pull request : voir la documentation.
     runs-on: ${{ inputs.machine == 'auto-hebergee' && fromJSON('["self-hosted", "rouages"]') || 'ubuntu-latest' }}
-    timeout-minutes: 180
+    # 2 h 38 d'ingestion le 16 octobre 2026, sous la limite de trois heures : on laisse de la marge.
+    timeout-minutes: 240
     env:
       ROUAGES_RETRAITS_SECRET: ${{ secrets.ROUAGES_RETRAITS_SECRET }}
     steps:
