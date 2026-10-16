@@ -8,7 +8,7 @@
  * protège ou encadre (réserves, biotopes, cœurs de parc, Natura 2000), des
  * hachures ocre pour ce qui inventorie (ZNIEFF). La légende le redit.
  */
-import type { Anneau, EspacesNaturels, Point, ZoneNaturelle } from '../../modele/carte.ts';
+import { cadrerSurCommune, type EspacesNaturels, type ZoneNaturelle } from '../../modele/carte.ts';
 import QuiDecide from './QuiDecide.astro';
 
 interface Props {
@@ -56,27 +56,7 @@ const H = 300;
 const dessinees = e.zones.filter((z) => z.rang <= 7 && z.anneaux.length > 0);
 const carte = (() => {
   if (dessinees.length === 0) return null;
-  const ys = e.commune.flat().map(([, y]) => y);
-  const k = Math.cos((((Math.min(...ys) + Math.max(...ys)) / 2 / 1e4) * Math.PI) / 180);
-  const proj = ([x, y]: Point): Point => [x * k, -y];
-  const ici = e.commune.map((r) => r.map(proj));
-  const xs = ici.flat().map(([x]) => x);
-  const yv = ici.flat().map(([, y]) => y);
-  let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...yv), Math.max(...yv)];
-  const m = 0.06 * Math.max(x1 - x0, y1 - y0);
-  [x0, x1, y0, y1] = [x0 - m, x1 + m, y0 - m, y1 + m];
-  if ((x1 - x0) / (y1 - y0) < W / H) {
-    const l = ((y1 - y0) * W) / H;
-    const c = (x0 + x1) / 2;
-    [x0, x1] = [c - l / 2, c + l / 2];
-  } else {
-    const h = ((x1 - x0) * H) / W;
-    const c = (y0 + y1) / 2;
-    [y0, y1] = [c - h / 2, c + h / 2];
-  }
-  const s = W / (x1 - x0);
-  const vue = (a: Anneau[]) =>
-    a.map((r) => 'M' + r.map(proj).map(([x, y]) => `${((x - x0) * s).toFixed(1)} ${((y - y0) * s).toFixed(1)}`).join('L') + 'Z').join('');
+  const vue = cadrerSurCommune(e.commune, W, H);
   return {
     commune: vue(e.commune),
     inventaires: dessinees.filter((z) => z.rang >= 6).map((z) => ({ nom: z.nom, d: vue(z.anneaux) })),

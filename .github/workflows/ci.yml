@@ -29,6 +29,8 @@ jobs:
         run: npm run verifier-journal
       - name: Rattachement des annonces du BODACC
         run: npm run verifier-rattachement
+      - name: Lecteurs géographiques (Lambert 93, GML, Shapefile)
+        run: npm run verifier-geo
       - name: Citations retrouvées par la veille des aides locales
         run: npm run verifier-veille-aides
       - name: Types

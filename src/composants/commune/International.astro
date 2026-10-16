@@ -18,7 +18,7 @@
  * que le registre n'en porte pas.
  */
 import type { DemarchePcaet } from '../../modele/pcaet.ts';
-import type { ZoneNaturelle } from '../../modele/carte.ts';
+import { cadrerSurCommune, type Anneau, type ZoneNaturelle } from '../../modele/carte.ts';
 import { lienUnesco, type BienMondial, type RattachementMondial } from '../../modele/patrimoine-mondial.ts';
 
 interface Props {
@@ -29,8 +29,43 @@ interface Props {
   designations: ZoneNaturelle[];
   biens: (BienMondial & { id: number; mode: RattachementMondial[1]; elements: string[] })[];
   majMondial: string | null;
+  carte: { commune: Anneau[]; traces: { id: number; zone: 'bien' | 'tampon' | 'ensemble'; anneaux: Anneau[] }[] } | null;
+  /** Le contour de la commune, pour cadrer la carte quand seuls Ramsar ou la biosphère la touchent. */
+  contour: Anneau[] | null;
 }
-const { nom, epci, plan, majPlans, designations, biens, majMondial } = Astro.props;
+const { nom, epci, plan, majPlans, designations, biens, majMondial, carte, contour } = Astro.props;
+// La carte : la commune, et ce qui la touche — réserve de biosphère, site Ramsar, bien du patrimoine mondial et sa
+// zone tampon —, découpés à ses limites, du plus étendu au plus resserré.
+const W = 480;
+const H = 300;
+const ZONES_BIOSPHERE: Record<string, string> = { FR63: 'zone centrale', FR64: 'zone tampon', FR65: 'zone de transition' };
+const tracees = designations.filter((z) => (z.rang === 10 || z.rang === 11) && z.anneaux.length > 0);
+const cadreCommune = carte?.commune ?? contour;
+const dessin =
+  cadreCommune && (carte || tracees.length)
+    ? (() => {
+        const vue = cadrerSurCommune(cadreCommune, W, H);
+        const nomBien = (id: number) => biens.find((b) => b.id === id)?.nom ?? '';
+        return {
+          commune: vue(cadreCommune),
+          biosphere: tracees
+            .filter((z) => z.rang === 11)
+            .map((z) => ({ nom: z.nom, zone: ZONES_BIOSPHERE[z.id.slice(0, 4)] ?? 'zone', centrale: z.id.startsWith('FR63'), d: vue(z.anneaux) })),
+          ramsar: tracees.filter((z) => z.rang === 10).map((z) => ({ nom: z.nom, d: vue(z.anneaux) })),
+          traces: (carte?.traces ?? []).map((t) => ({ zone: t.zone, nom: nomBien(t.id), d: vue(t.anneaux) })),
+        };
+      })()
+    : null;
+const nomsCarte = dessin
+  ? [
+      ...new Set([
+        ...dessin.biosphere.map((z) => `${z.nom} (réserve de biosphère, ${z.zone})`),
+        ...dessin.ramsar.map((z) => `${z.nom} (site Ramsar)`),
+        ...dessin.traces.map((t) => `${t.nom}${t.zone === 'tampon' ? ' (zone tampon)' : t.zone === 'ensemble' ? ' (bien ou zone tampon)' : ''}`),
+      ]),
+    ]
+  : [];
+const idCarte = `mondial-${Math.abs([...nom].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7))}`;
 const plier = (s: string) =>
   s
     .normalize('NFD')
@@ -53,6 +88,48 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
   12: { id: 'patrimoine-mondial', texte: 'le patrimoine mondial' },
 };
 ---
+{dessin && (
+  <figure class="espaces-carte">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Carte de ${nom} et de ce qui la touche au titre d’engagements internationaux : ${nomsCarte.join(', ')}.`}>
+      <defs>
+        <clipPath id={`${idCarte}-limite`}><path d={dessin.commune} /></clipPath>
+        <pattern id={`${idCarte}-hachures`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line class="mondial-hachure" x1="0" y1="0" x2="0" y2="7" />
+        </pattern>
+        <pattern id={`${idCarte}-biosphere`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">
+          <line class="biosphere-hachure" x1="0" y1="0" x2="0" y2="7" />
+        </pattern>
+      </defs>
+      <path class="espaces-fond" d={dessin.commune} />
+      <g clip-path={`url(#${idCarte}-limite)`}>
+        {dessin.biosphere.map((z) =>
+          z.centrale ? (
+            <path class="biosphere-centrale" d={z.d}><title>{`${z.nom} — réserve de biosphère, ${z.zone}`}</title></path>
+          ) : (
+            <path class="biosphere-zone" d={z.d} fill={`url(#${idCarte}-biosphere)`}><title>{`${z.nom} — réserve de biosphère, ${z.zone}`}</title></path>
+          ),
+        )}
+        {dessin.ramsar.map((z) => <path class="ramsar-site" d={z.d}><title>{`${z.nom} — site Ramsar`}</title></path>)}
+        {dessin.traces.map((t) =>
+          t.zone !== 'bien' ? (
+            <path class="mondial-tampon" d={t.d} fill={`url(#${idCarte}-hachures)`}><title>{`${t.nom} — ${t.zone === 'tampon' ? 'zone tampon' : 'bien ou zone tampon'}`}</title></path>
+          ) : (
+            <path class="mondial-bien" d={t.d}><title>{t.nom}</title></path>
+          ),
+        )}
+      </g>
+      <path class="espaces-limite" d={dessin.commune} />
+    </svg>
+    <figcaption class="espaces-legende">
+      {dessin.biosphere.some((z) => z.centrale) && <span><i class="espaces-cle biosphere-cle-centrale" aria-hidden="true"></i>Réserve de biosphère, zone centrale</span>}
+      {dessin.biosphere.some((z) => !z.centrale) && <span><i class="espaces-cle biosphere-cle-zone" aria-hidden="true"></i>Réserve de biosphère, zone tampon ou de transition</span>}
+      {dessin.ramsar.length > 0 && <span><i class="espaces-cle ramsar-cle" aria-hidden="true"></i>Site Ramsar</span>}
+      {dessin.traces.some((t) => t.zone === 'bien') && <span><i class="espaces-cle mondial-cle-bien" aria-hidden="true"></i>Bien inscrit au patrimoine mondial</span>}
+      {dessin.traces.some((t) => t.zone === 'tampon') && <span><i class="espaces-cle mondial-cle-tampon" aria-hidden="true"></i>Zone tampon</span>}
+      {dessin.traces.some((t) => t.zone === 'ensemble') && <span><i class="espaces-cle mondial-cle-tampon" aria-hidden="true"></i>Bien ou zone tampon, que la couche publiée ne distingue pas</span>}
+    </figcaption>
+  </figure>
+)}
 <ul class="mesure c-international">
   {epci && (
     <li>
@@ -78,10 +155,16 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
         ? ` ${nom} est dans le périmètre de `
         : b.mode === 'tampon'
           ? ` ${nom} est dans la zone tampon de `
+          : b.mode === 'ensemble'
+            ? ` ${nom} est dans le périmètre ou dans la zone tampon de `
           : b.elements.length
             ? ` L’UNESCO situe à ${nom} ${b.elements.length > 1 ? 'des éléments' : 'un élément'} de `
             : ` L’UNESCO situe à ${nom} `}
-      <a href={lienUnesco(b.id)} target="_blank" rel="noopener">{`« ${b.nom} »`}</a>{`, ${CATEGORIE[b.categorie]}${b.inscrit ? ` inscrit en ${b.inscrit}` : ''}${b.elements.length ? ` — ${liste(b.elements)} —` : ''} au titre de la `}<a href="/n/patrimoine-mondial">convention du patrimoine mondial</a>{b.mode === 'tampon' ? '. La zone tampon entoure le bien pour lui ajouter une protection.' : '.'}
+      <a href={lienUnesco(b.id)} target="_blank" rel="noopener">{`« ${b.nom} »`}</a>{`, ${CATEGORIE[b.categorie]}${b.inscrit ? ` inscrit en ${b.inscrit}` : ''}${b.elements.length ? ` — ${liste(b.elements)} —` : ''} au titre de la `}<a href="/n/patrimoine-mondial">convention du patrimoine mondial</a>{b.mode === 'tampon'
+        ? '. La zone tampon entoure le bien pour lui ajouter une protection.'
+        : b.mode === 'ensemble'
+          ? '. La couche publiée ne distingue pas le bien de sa zone tampon.'
+          : '.'}
     </li>
   ))}
   {uniques.map((z) => (
@@ -94,5 +177,5 @@ const LIEN_NOEUD: Record<number, { id: string; texte: string }> = {
 <p class="p-source-territoire">
   {`Plans climat : registre Territoires & Climat de l’ADEME (Licence Ouverte)${majPlans ? `, lu le ${majPlans.split('-').reverse().join('/')}` : ''} — sans les noms des chefs de projet ni des élus référents. ` +
     'Désignations internationales : périmètres de l’INPN, croisés avec la commune (voir « Les espaces naturels »). ' +
-    `Patrimoine mondial : la liste de l’UNESCO (CC BY-SA 4.0${majMondial ? `, mise à jour le ${majMondial.split('-').reverse().join('/')}` : ''}), dont les éléments sont situés par leurs coordonnées, et les périmètres et zones tampons publiés par les DREAL d’Occitanie, de Bretagne, de Nouvelle-Aquitaine, de Normandie et de Bourgogne-Franche-Comté, par la Mission Bassin Minier et par Vichy Communauté. Ailleurs, un bien étendu n’est rattaché qu’aux communes de ses éléments : une commune absente peut en faire partie.`}
+    `Patrimoine mondial : la liste de l’UNESCO (CC BY-SA 4.0${majMondial ? `, mise à jour le ${majMondial.split('-').reverse().join('/')}` : ''}), dont les éléments sont situés par leurs coordonnées, et les périmètres et zones tampons publiés par les DREAL d’Occitanie, de Bretagne, de Nouvelle-Aquitaine, de Normandie, de Bourgogne-Franche-Comté et des Pays de la Loire (la zone tampon du Val de Loire), par la Mission Bassin Minier et par Vichy Communauté. Ailleurs, un bien étendu n’est rattaché qu’aux communes de ses éléments : une commune absente peut en faire partie.`}
 </p>

@@ -1,0 +1,77 @@
+---
+/**
+ * Ce qui protège et engage les communes d'un département ou d'une région : les
+ * parcs, Natura 2000, le patrimoine mondial, les plans climat. Un bilan des
+ * fichiers que la page de commune lit déjà (`src/modele/bilan-protections.ts`).
+ */
+import type { BilanProtections } from '../modele/bilan-protections.ts';
+import { lienUnesco } from '../modele/patrimoine-mondial.ts';
+
+interface Props {
+  b: BilanProtections;
+  /** « le département », « la région » : pour les phrases. */
+  ou: string;
+}
+const { b, ou } = Astro.props;
+const n = (x: number) => x.toLocaleString('fr-FR');
+const pluriel = (x: number, mot: string) => `${n(x)} ${mot}${x > 1 ? 's' : ''}`;
+const pc = (x: number) => `${Math.round((100 * x) / b.total)} %`;
+/** Au-delà de douze communes, on en montre douze et on compte le reste. */
+const MONTREES = 12;
+const MODE = { perimetre: 'dans le bien', tampon: 'zone tampon', ensemble: 'bien ou zone tampon', element: 'un élément' } as const;
+const CATEGORIE = { culturel: 'bien culturel', naturel: 'bien naturel', mixte: 'bien mixte' } as const;
+const date = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') : '');
+---
+<ul class="mesure bp-chiffres">
+  <li>
+    <strong>{pluriel(b.pnr.reduce((s, p) => s + p.communes.length, 0), 'commune')}</strong>
+    {` dans un parc naturel régional (${pc(b.pnr.reduce((s, p) => s + p.communes.length, 0))})`}
+  </li>
+  <li><strong>{pluriel(b.parcsNationaux.reduce((s, p) => s + p.communes.length, 0), 'commune')}</strong>{' dans un parc national, cœur ou aire d’adhésion'}</li>
+  <li><strong>{pluriel(b.natura2000.communes, 'commune')}</strong>{` touchée${b.natura2000.communes > 1 ? 's' : ''} par ${pluriel(b.natura2000.sites, 'site')} Natura 2000 (${pc(b.natura2000.communes)})`}</li>
+  <li>
+    <strong>{`${n(b.plans.avecPlan)} intercommunalité${b.plans.avecPlan > 1 ? 's' : ''} sur ${n(b.plans.intercos)}`}</strong>
+    {` portent un plan climat-air-énergie au registre de l’ADEME, pour ${pluriel(b.plans.communesCouvertes, 'commune')} de ${ou}`}
+  </li>
+</ul>
+
+{[
+  ['Parcs naturels régionaux', b.pnr],
+  ['Parcs nationaux', b.parcsNationaux],
+].map(([titre, liste]) =>
+  (liste as typeof b.pnr).length > 0 && (
+    <>
+      <h3 class="espaces-groupe">{titre as string}</h3>
+      <ul class="c-structures">
+        {(liste as typeof b.pnr).map((p) => (
+          <li>
+            <strong>{p.nom}</strong>{` — ${pluriel(p.communes.length, 'commune')} : `}{p.communes.slice(0, MONTREES).map((c, i) => (
+              <>{i > 0 && ', '}<a href={`/commune/${c.code}`}>{c.nom}</a></>
+            ))}{p.communes.length > MONTREES ? ` et ${n(p.communes.length - MONTREES)} autres.` : '.'}
+          </li>
+        ))}
+      </ul>
+    </>
+  ),
+)}
+
+{b.biens.length > 0 && (
+  <>
+    <h3 class="espaces-groupe">Le patrimoine mondial</h3>
+    <ul class="c-structures">
+      {b.biens.map((bien) => (
+        <li>
+          <a href={lienUnesco(bien.id)} target="_blank" rel="noopener">{`« ${bien.nom} »`}</a>{`, ${CATEGORIE[bien.categorie]}${bien.inscrit ? ` inscrit en ${bien.inscrit}` : ''} — ${pluriel(bien.communes.length, 'commune')} : `}{bien.communes.slice(0, MONTREES).map((c, i) => (
+            <>{i > 0 && ', '}<a href={`/commune/${c.code}#international`}>{c.nom}</a>{` (${MODE[c.mode]})`}</>
+          ))}{bien.communes.length > MONTREES ? ` et ${n(bien.communes.length - MONTREES)} autres.` : '.'}
+        </li>
+      ))}
+    </ul>
+  </>
+)}
+
+<p class="p-source-territoire">
+  {`Parcs et Natura 2000 : périmètres de l’INPN croisés avec les communes${b.majEspaces ? ` (${date(b.majEspaces)})` : ''}. ` +
+    `Plans climat : registre Territoires & Climat de l’ADEME${b.majPlans ? `, lu le ${date(b.majPlans)}` : ''} — une intercommunalité absente du registre n’a pas forcément manqué à son obligation. ` +
+    'Patrimoine mondial : liste de l’UNESCO et périmètres régionaux, là où ils sont publiés ; ailleurs, un bien n’est rattaché qu’aux communes de ses éléments.'}
+</p>

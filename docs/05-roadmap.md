@@ -4682,3 +4682,95 @@ sa zone tampon). 1 015 communes rattachées : 501 dans un bien, 449 dans une
 zone tampon, 79 par un élément seulement. La Provence-Alpes-Côte d'Azur n'est
 pas branchée : sa couche ne donne que le centre de chaque bien, ce que la
 liste de l'UNESCO dit déjà.
+
+### Trouver des communes : parcs, Natura 2000, patrimoine mondial, plan climat (15 octobre 2026)
+
+Cinq critères « oui / non », sous « Protections et engagements » : dans un
+parc naturel régional, dans un parc national (cœur ou aire d'adhésion),
+touchée par un site Natura 2000, touchée par un bien du patrimoine mondial,
+et une intercommunalité qui porte un plan climat au registre de l'ADEME.
+« Non » n'est proposé que lorsque l'absence est une donnée : les périmètres de
+l'INPN couvrent toute la France, une commune qui n'y figure pas est hors de
+tout parc. Le patrimoine mondial — périmètres publiés dans six régions
+seulement — et le registre des plans climat ne permettent de chercher que
+« oui » ; une adresse qui demanderait `imondial:non` est lue comme « oui ».
+4 949 communes sont dans un parc naturel régional, 456 dans un parc national,
+12 493 touchées par un site Natura 2000. Au Mayet-de-Montagne : Natura 2000
+(Bois Noirs), pas de parc, le plan climat de Vichy Communauté.
+
+### Le patrimoine mondial sur la carte de la commune (15 octobre 2026)
+
+La section « Ce qui s'applique ici depuis l'international » dessine le bien et
+sa zone tampon, découpés aux limites de la commune, comme la carte des espaces
+naturels — le cadrage est désormais partagé (`cadrerSurCommune`, dans
+`src/modele/carte.ts`). La collecte écrit `dep/XX-mondial.json` : pour chaque
+commune touchée par un périmètre, le tracé réduit à son cadre, simplifié à une
+dizaine de mètres pour un monument et une centaine pour un paysage — 544 Ko
+pour 39 départements. Une commune rattachée par un élément seulement n'a pas
+de carte : l'UNESCO donne un point, pas un périmètre. Couleur propre
+(`--patrimoine-mondial`), redéfinie en mode sombre.
+
+### Patrimoine mondial : le Val de Loire, et les régions qui ne publient rien (15 octobre 2026)
+
+La DREAL des Pays de la Loire publie la zone tampon du Val de Loire, entière,
+de Sully-sur-Loire à Chalonnes : 154 communes de cinq départements. Ses
+polygones englobent la vallée sans en retrancher le bien (pas de trou, à la
+différence des zones tampons d'Occitanie), et le périmètre du bien, sur le
+même catalogue, ne se télécharge pas (le lien rend une page) ; la Région des
+Pays de la Loire, qui le publiait aussi, a retiré son jeu. La page dit donc
+« dans le périmètre ou dans la zone tampon », et la carte le légende ainsi :
+dire « zone tampon » de Tours, qui est dans le bien, aurait été faux.
+1 168 communes sont désormais rattachées.
+
+Rien n'a été trouvé, le 15 octobre 2026, pour l'Île-de-France (Versailles,
+Fontainebleau, Provins, les rives de la Seine), le Grand Est (Strasbourg,
+Nancy, Reims, la Champagne), le Centre-Val de Loire (Chartres, Bourges ; la
+couche « valeur universelle exceptionnelle » du Val de Loire décrit ses
+attributs, pas son périmètre) ni l'Auvergne-Rhône-Alpes au-delà de Vichy et
+de la Chaîne des Puys (Lyon, Chauvet, les palafittes savoyards) : ni sur
+data.gouv.fr, ni par recherche. Ces biens restent rattachés par leurs
+éléments, d'après la liste de l'UNESCO. Le jeu « Périmètre UNESCO » de la
+Ville du Havre double celui de la DREAL de Normandie et n'est pas repris.
+
+### Trouver des communes : la carte des résultats (16 octobre 2026)
+
+Au-dessus du tableau, une carte : chaque commune est un point posé à son
+centre (`proximite/centres.json`, déjà publié pour « le plus proche »), et
+celles qui répondent aux critères sont en couleur. Sans département choisi,
+la France métropolitaine ; l'outre-mer se voit en choisissant son
+département, et la légende dit combien de résultats y sont. Survol : le nom,
+le département, la population ; clic : la page de la commune. Le tableau reste
+la vue complète et accessible. La couleur des résultats (`--carte-resultat`)
+a été choisie au validateur de palette, en clair comme en sombre — la couleur
+d'accent du site manquait de saturation pour marquer des points.
+
+### Département et région : ce qui protège et engage leurs communes (16 octobre 2026)
+
+Une section de plus sur la page du département et de la région, faite des
+fichiers que la page de commune lit déjà (`src/modele/bilan-protections.ts`) :
+combien de communes sont dans un parc naturel régional, dans un parc national
+(cœur et aire d'adhésion réunis sous un même nom), touchées par un site Natura
+2000 ; combien d'intercommunalités portent un plan climat au registre de
+l'ADEME ; chaque parc nommé avec ses communes, et chaque bien du patrimoine
+mondial avec les siennes et la façon dont elles y tiennent. Dans l'Allier :
+aucun parc, 102 communes touchées par 22 sites Natura 2000, 11
+intercommunalités sur 12 avec un plan climat, et Vichy et Bellerive-sur-Allier
+pour « Les grandes villes d'eaux d'Europe ». Le bilan n'est donné qu'une fois
+pour le Rhône et la Métropole de Lyon, qui se partagent les communes.
+
+### Ramsar et biosphère sur la carte internationale (16 octobre 2026)
+
+La collecte des espaces naturels garde désormais aussi les tracés des sites
+Ramsar et des réserves de biosphère (rangs 10 et 11), et la carte de la
+section internationale les dessine avec le patrimoine mondial : réserve de
+biosphère (zone centrale pleine, zones tampon et de transition hachurées),
+site Ramsar, bien et zone tampon du patrimoine mondial. Elle paraît dès qu'un
+seul de ces périmètres touche la commune — à Arles, la Camargue. Les fichiers
+ont été réécrits à partir des couches de l'INPN collectées le 13 octobre, et
+gardent cette date : un million d'octets de plus en tout.
+
+Trois catégories sur une même carte : la palette a été reprise au validateur.
+Le violet du patrimoine mondial et le bleu de Ramsar étaient indiscernables
+pour un daltonien ; ce sont désormais le bleu (Ramsar), l'orange (patrimoine
+mondial) et le vert d'eau (biosphère), validés en clair et en sombre, chacun
+nommé dans la légende.

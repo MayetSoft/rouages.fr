@@ -178,11 +178,20 @@ function emettreManques(
   return situes;
 }
 
-/** Un indicateur du requêteur : sa clé, son libellé, son unité, son millésime, et combien de communes le renseignent. */
-type Indicateur = [string, string, string, string, number];
+/**
+ * Un indicateur du requêteur : sa clé, son libellé, son unité, son millésime,
+ * combien de communes le renseignent, et pour un indicateur qui vaut oui ou
+ * non, ce qu'on peut chercher : « oui-non » quand l'absence est une donnée
+ * (une commune hors de tout parc), « oui » seulement quand elle n'en est pas
+ * une (un registre qui ne porte pas tout).
+ */
+type Indicateur = [string, string, string, string, number] | [string, string, string, string, number, 'oui' | 'oui-non'];
+
+const FISCALITE_PROPRE = new Set(['CC', 'CA', 'CU', 'METRO', 'MET69', 'SAN', 'EPT']);
 
 function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], dossier: string): Indicateur[] {
   const rang = new Map(index.c.map(([code], i) => [code, i]));
+  const pcaet = lire<{ maj: string; c: Record<string, unknown> }>(join(sortie, 'pcaet.json'));
   const n = index.c.length;
   const valeurs: Record<string, (number | null)[]> = {
     fb: new Array(n).fill(null),
@@ -195,6 +204,11 @@ function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], do
     m2appart: new Array(n).fill(null),
     niveauvie: new Array(n).fill(null),
     pauvrete: new Array(n).fill(null),
+    pnr: new Array(n).fill(null),
+    parcnational: new Array(n).fill(null),
+    natura2000: new Array(n).fill(null),
+    mondial: new Array(n).fill(null),
+    pcaet: new Array(n).fill(null),
   };
   const millesimes: Record<string, string> = {};
   const arrondi = (x: number) => Math.round(x * 10) / 10;
@@ -253,6 +267,33 @@ function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], do
         valeurs.plus65[i] = part((age) => age >= 65);
         valeurs.moins20[i] = part((age) => age < 20);
       }
+    } else if (f.endsWith('-espaces.json')) {
+      // Le fichier couvre toutes les communes du département : une commune absente n'a aucune zone.
+      const d = lire<{ maj: string; c: Record<string, [number, string, number][]> }>(join(sortie, 'dep', f));
+      if (!d) continue;
+      const dep = f.replace(/-espaces\.json$/, '');
+      millesimes.pnr = millesimes.parcnational = millesimes.natura2000 = d.maj;
+      index.c.forEach(([, , , depCommune], i) => {
+        if (depCommune === dep) valeurs.pnr[i] = valeurs.parcnational[i] = valeurs.natura2000[i] = 0;
+      });
+      for (const [code, zones] of Object.entries(d.c)) {
+        const i = rang.get(code);
+        if (i === undefined) continue;
+        const natures = new Set(zones.map(([nature]) => nature));
+        valeurs.pnr[i] = natures.has(8) ? 1 : 0;
+        valeurs.parcnational[i] = natures.has(0) || natures.has(9) ? 1 : 0;
+        valeurs.natura2000[i] = natures.has(4) || natures.has(5) ? 1 : 0;
+      }
+    } else if (/^[0-9AB]{2,3}\.json$/.test(f)) {
+      // Le plan climat de l'intercommunalité à fiscalité propre, quand le registre de l'ADEME en porte un.
+      const plans = pcaet?.c;
+      const d = plans ? lire<{ g: [string, string, string, unknown][]; c: [string, string, number, number[]][] }>(join(sortie, 'dep', f)) : null;
+      if (!plans || !d) continue;
+      for (const [code, , , structures] of d.c) {
+        const i = rang.get(code);
+        if (i === undefined) continue;
+        if (structures.some((k) => FISCALITE_PROPRE.has(d.g[k]?.[2]) && plans[d.g[k][0]])) valeurs.pcaet[i] = 1;
+      }
     } else if (f.endsWith('-risques.json')) {
       const d = lire<{ maj: string; c: Record<string, { catnat?: [number, number, string][] }> }>(join(sortie, 'dep', f));
       if (!d) continue;
@@ -263,6 +304,16 @@ function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], do
       }
     }
   }
+  // Le patrimoine mondial : un fichier national, dont la couverture est partielle — on ne cherche que « oui ».
+  const mondial = lire<{ version: string | null; maj: string; c: Record<string, unknown[]> }>(join(sortie, 'patrimoine-mondial.json'));
+  if (mondial) {
+    millesimes.mondial = mondial.version ?? mondial.maj;
+    for (const code of Object.keys(mondial.c)) {
+      const i = rang.get(code);
+      if (i !== undefined) valeurs.mondial[i] = 1;
+    }
+  }
+  if (pcaet) millesimes.pcaet = pcaet.maj;
   mkdirSync(join(dossier, 'indicateurs'), { recursive: true });
   for (const [cle, v] of Object.entries(valeurs)) writeFileSync(join(dossier, 'indicateurs', `${cle}.json`), JSON.stringify({ v }));
   const compte = (cle: string) => valeurs[cle].filter((x) => x !== null).length;
@@ -277,6 +328,11 @@ function emettreIndicateurs(sortie: string, index: Index, fichiers: string[], do
     ['plus65', 'Part des 65 ans et plus', '%', millesimes.plus65 ?? '', compte('plus65')],
     ['moins20', 'Part des moins de 20 ans', '%', millesimes.moins20 ?? '', compte('moins20')],
     ['catnat', 'Reconnaissances de catastrophe naturelle depuis 1982', '', millesimes.catnat ?? '', compte('catnat')],
+    ['pnr', 'Dans un parc naturel régional', '', millesimes.pnr ?? '', compte('pnr'), 'oui-non'],
+    ['parcnational', 'Dans un parc national, cœur ou aire d’adhésion', '', millesimes.parcnational ?? '', compte('parcnational'), 'oui-non'],
+    ['natura2000', 'Touchée par un site Natura 2000', '', millesimes.natura2000 ?? '', compte('natura2000'), 'oui-non'],
+    ['mondial', 'Touchée par un bien du patrimoine mondial (bien, zone tampon ou élément)', '', millesimes.mondial ?? '', compte('mondial'), 'oui'],
+    ['pcaet', 'Intercommunalité portant un plan climat au registre de l’ADEME', '', millesimes.pcaet ?? '', compte('pcaet'), 'oui'],
   ];
 }
 

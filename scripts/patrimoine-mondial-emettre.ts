@@ -21,7 +21,9 @@
  * un point de sa grille à plus de 50 m de sa limite tombe dedans, ou trois
  * sommets du périmètre, ou, pour un petit périmètre, son centre.
  *
- * Écrit `public/territoires/patrimoine-mondial.json`, que seul le build lit.
+ * Écrit `public/territoires/patrimoine-mondial.json`, que seul le build lit,
+ * et pour la carte de la commune, `dep/XX-mondial.json` : le tracé du bien
+ * et de sa zone tampon, réduit au cadre de chaque commune touchée.
  * Lancé seul — `npx tsx scripts/patrimoine-mondial-emettre.ts` —, il relit
  * les contours des communes déjà écrits.
  */
@@ -30,9 +32,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { BienMondial, PatrimoineMondial, RattachementMondial } from '../src/modele/patrimoine-mondial.ts';
-import { anneauxDe, cadreDe, contoursDesCommunes, dedans, distanceAuBord, ECHELLE, type Entite } from './espaces-emettre.ts';
+import { anneauxDe, cadreDe, contoursDesCommunes, decouper, dedans, distanceAuBord, ECHELLE, encoder, simplifier, type Entite } from './espaces-emettre.ts';
 import { lireGml, lireShapefile } from './geo-formats.ts';
-import { telechargerSiAbsent } from './par-departement.ts';
+import { ecrireParDepartement, telechargerSiAbsent } from './par-departement.ts';
 
 type LireJson = (url: string) => Promise<unknown>;
 type Proprietes = Record<string, string | number | null | undefined>;
@@ -40,7 +42,8 @@ type Proprietes = Record<string, string | number | null | undefined>;
 const LISTE = 'https://data.unesco.org/api/explore/v2.1/catalog/datasets/whc001';
 
 /** Ce qu'une entité régionale dit d'elle-même : le bien (numéro ou nom), la zone, l'élément. */
-type Lecture = { unesco: number | null; nom: string | null; zone: 'bien' | 'tampon'; element: string | null };
+/** `ensemble` : une couche qui ne distingue pas le bien de sa zone tampon. */
+type Lecture = { unesco: number | null; nom: string | null; zone: 'bien' | 'tampon' | 'ensemble'; element: string | null };
 
 interface Perimetre {
   id: string;
@@ -103,6 +106,17 @@ export const PERIMETRES: Perimetre[] = [
       const bien = texte(p.nom_bien);
       return { unesco: null, nom: ensemble || bien || null, zone: 'bien', element: bien && bien !== ensemble ? bien : null };
     },
+  },
+  {
+    // La « zone tampon » du Val de Loire, entière, de Sully-sur-Loire à Chalonnes. Ses polygones englobent la
+    // vallée sans en retrancher le bien — pas de trou —, et le périmètre du bien, sur le même catalogue, ne se
+    // télécharge pas : le lien rend une page. La commune est donc dans le bien ou dans sa zone tampon, sans
+    // qu'on puisse dire lequel.
+    id: 'pays-de-la-loire-tampons',
+    producteur: 'DREAL Pays de la Loire',
+    licence: 'non-precisee',
+    url: 'https://catalogue.sigloire.fr/api/data/51034a16-6b22-48b2-af59-dc3601540ef0?srs=EPSG:4326',
+    lire: (p) => ({ unesco: numero(p.id_bien), nom: texte(p.nom_bien) || null, zone: 'ensemble', element: null }),
   },
   {
     id: 'normandie',
@@ -189,7 +203,11 @@ async function entitesDe(src: Perimetre, lireJson: LireJson, cache: string): Pro
   return (src.membres ?? []).flatMap((m) => lireShapefile(zip, m)) as unknown as Entite[];
 }
 
-export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJson, dire: (m: string) => void, cache = tmpdir()): Promise<PatrimoineMondial> {
+/** Un tracé pour la carte de la commune : le numéro du bien, bien (« b ») ou zone tampon (« t »), les anneaux encodés. */
+export type TraceMondial = [number, 'b' | 't' | 'e', number[][]];
+export type CollecteMondial = PatrimoineMondial & { traces: Map<string, TraceMondial[]> };
+
+export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJson, dire: (m: string) => void, cache = tmpdir()): Promise<CollecteMondial> {
   const fiche = (await lireJson(LISTE)) as { metas?: { default?: { modified?: string; license?: string } } };
   const q = new URLSearchParams({ where: 'iso_codes like "FR"', select: 'id_no,name_fr,category,date_inscribed,iso_codes,components_list,coordinates' });
   const lignes = ((await lireJson(`${LISTE}/exports/json?${q}`)) as Ligne[]).filter((l) => (l.iso_codes ?? '').split(',').some((c) => c.trim() === 'FR'));
@@ -240,7 +258,7 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
     let r = liste.find(([i]) => i === id);
     if (!r) liste.push((r = [id, mode, []]));
     // Le plus fort l'emporte : dans le bien, puis dans la zone tampon, puis un élément situé.
-    const force = { perimetre: 0, tampon: 1, element: 2 } as const;
+    const force = { perimetre: 0, ensemble: 1, tampon: 2, element: 3 } as const;
     if (force[mode] < force[r[1]]) r[1] = mode;
     // Un élément qui porte le nom du bien n'apprend rien.
     const plie = el ? plier(el) : '';
@@ -266,6 +284,7 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
 
   // Les périmètres régionaux.
   const sources: PatrimoineMondial['sources'] = [];
+  const traces = new Map<string, TraceMondial[]>();
   const MARGE = 5;
   for (const src of PERIMETRES) {
     let entites: Entite[];
@@ -288,7 +307,7 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
         continue;
       }
       gardees++;
-      const mode = lu.zone === 'tampon' ? 'tampon' : 'perimetre';
+      const mode = lu.zone === 'tampon' ? 'tampon' : lu.zone === 'ensemble' ? 'ensemble' : 'perimetre';
       if (zone.length === 0) {
         const brut = JSON.stringify(e.geometry?.coordinates ?? []).match(/-?\d+(\.\d+)?/g)?.map(Number) ?? [];
         if (brut.length < 2) continue;
@@ -322,7 +341,14 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
           for (const r of zone) for (let i = 0; i < r.length && sommets < 3; i += 2) if (dedans(r[i], r[i + 1], anneaux) && distanceAuBord(r[i], r[i + 1], anneaux) > MARGE) sommets++;
           touche = sommets >= 3 || dedans(cx, cy, anneaux);
         }
-        if (touche) rattacher(code, id, mode, lu.element);
+        if (touche) {
+          rattacher(code, id, mode, lu.element);
+          // Le tracé, réduit au cadre de la commune et simplifié à une dizaine de mètres pour un monument,
+          // une centaine pour un paysage.
+          const tol = Math.max(cadre[2] - cadre[0], cadre[3] - cadre[1]) < 100 ? 0.5 : 5;
+          const anneaux = zone.map((r) => simplifier(decouper(r, k), tol)).filter((r) => r.length >= 8).map(encoder);
+          if (anneaux.length) (traces.get(code) ?? traces.set(code, []).get(code)!).push([id, mode === 'tampon' ? 't' : mode === 'ensemble' ? 'e' : 'b', anneaux]);
+        }
       }
     }
     sources.push({ id: src.id, producteur: src.producteur, licence: src.licence, url: src.url, entites: gardees, ecartees });
@@ -332,11 +358,16 @@ export async function collecterPatrimoineMondial(sortie: string, lireJson: LireJ
   for (const liste of Object.values(c)) liste.sort((a, b) => a[0] - b[0]);
   const n = Object.keys(c).length;
   dire(`Patrimoine mondial : ${lignes.length} biens français, ${situes} éléments situés, ${n} communes rattachées.`);
-  return { maj: new Date().toISOString().slice(0, 10), version: fiche.metas?.default?.modified?.slice(0, 10) ?? null, biens, sources, c };
+  return { maj: new Date().toISOString().slice(0, 10), version: fiche.metas?.default?.modified?.slice(0, 10) ?? null, biens, sources, c, traces };
 }
 
-export function ecrirePatrimoineMondial(sortie: string, p: PatrimoineMondial): void {
-  writeFileSync(join(sortie, 'patrimoine-mondial.json'), JSON.stringify(p));
+export function ecrirePatrimoineMondial(sortie: string, p: CollecteMondial): void {
+  const { traces, ...liste } = p;
+  writeFileSync(join(sortie, 'patrimoine-mondial.json'), JSON.stringify(liste));
+  // Les zones tampons d'abord : le bien se dessine par-dessus.
+  const ordre = { e: 0, t: 1, b: 2 } as const;
+  for (const l of traces.values()) l.sort((a, b) => ordre[a[1]] - ordre[b[1]] || a[0] - b[0]);
+  ecrireParDepartement(sortie, 'mondial', traces, () => ({ maj: p.maj }));
 }
 
 // Lancé seul.

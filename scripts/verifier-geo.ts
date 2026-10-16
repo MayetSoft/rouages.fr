@@ -1,0 +1,215 @@
+/**
+ * Vérifie les lecteurs de `geo-formats.ts` : la projection Lambert 93, le GML
+ * d'un WFS, le Shapefile en archive zip.
+ *
+ * Une erreur y serait muette : un axe inversé, une projection décalée de
+ * quelques kilomètres ou une table lue dans le mauvais encodage ne font pas
+ * échouer la collecte — ils rattachent un bien du patrimoine mondial à la
+ * mauvaise commune, ou à aucune. Les cas sont donc fixés ici, sur des
+ * fichiers fabriqués à la main dont on connaît la réponse.
+ */
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { crc32 } from 'node:zlib';
+import { depuisLambert93, lireGml, lireShapefile } from './geo-formats.ts';
+
+const ROUGE = '\x1b[31m', VERT = '\x1b[32m', GRIS = '\x1b[90m', RAZ = '\x1b[0m';
+let echecs = 0;
+
+function attendre(quoi: string, ok: boolean, obtenu: unknown, pourquoi: string) {
+  if (!ok) echecs++;
+  console.log(`${ok ? VERT + '  ok  ' : ROUGE + 'ÉCHEC '}${RAZ}${quoi} → ${JSON.stringify(obtenu)}\n      ${GRIS}${pourquoi}${RAZ}`);
+}
+const proche = (a: number[], b: number[], tol: number) => a.length === b.length && a.every((x, i) => Math.abs(x - b[i]) <= tol);
+
+/* ------------------------------------------------------------------ *
+ * Lambert 93
+ * ------------------------------------------------------------------ */
+
+// La projection directe, écrite ici à part d'après les mêmes constantes de
+// définition (EPSG:2154), pour vérifier que l'inverse la défait.
+function versLambert93(lon: number, lat: number): [number, number] {
+  const rad = Math.PI / 180;
+  const a = 6378137;
+  const f = 1 / 298.257222101;
+  const e = Math.sqrt(f * (2 - f));
+  const m = (p: number) => Math.cos(p) / Math.sqrt(1 - (e * Math.sin(p)) ** 2);
+  const t = (p: number) => Math.tan(Math.PI / 4 - p / 2) / ((1 - e * Math.sin(p)) / (1 + e * Math.sin(p))) ** (e / 2);
+  const [p1, p2, p0] = [49 * rad, 44 * rad, 46.5 * rad];
+  const n = (Math.log(m(p1)) - Math.log(m(p2))) / (Math.log(t(p1)) - Math.log(t(p2)));
+  const F = m(p1) / (n * t(p1) ** n);
+  const rho0 = a * F * t(p0) ** n;
+  const rho = a * F * t(lat * rad) ** n;
+  const theta = n * (lon - 3) * rad;
+  return [700000 + rho * Math.sin(theta), 6600000 + rho0 - rho * Math.cos(theta)];
+}
+
+attendre(
+  'Lambert 93, origine (700 000 ; 6 600 000)',
+  proche(depuisLambert93(700000, 6600000), [3, 46.5], 1e-9),
+  depuisLambert93(700000, 6600000),
+  'Par définition, le méridien central (3° E) et la latitude d’origine (46° 30′ N).',
+);
+for (const [nom, lon, lat] of [
+  ['Le Mayet-de-Montagne', 3.668, 46.072],
+  ['Dunkerque', 2.377, 51.034],
+  ['Bonifacio', 9.159, 41.387],
+  ['Brest', -4.486, 48.39],
+] as const) {
+  const [x, y] = versLambert93(lon, lat);
+  const retour = depuisLambert93(x, y);
+  attendre(`aller-retour, ${nom}`, proche(retour, [lon, lat], 1e-8), retour.map((v) => Number(v.toFixed(9))), 'L’inverse défait la projection directe, aux extrémités de la France comme au centre.');
+}
+
+/* ------------------------------------------------------------------ *
+ * GML
+ * ------------------------------------------------------------------ */
+
+const gml = `<wfs:FeatureCollection xmlns:ms="http://mapserver.gis.umn.edu/mapserver" xmlns:gml="http://www.opengis.net/gml">
+<gml:featureMember><ms:couche>
+  <ms:nom_site>Le Havre, la ville reconstruite par Auguste Perret</ms:nom_site>
+  <ms:type>Bien</ms:type>
+  <ms:note>d&#39;apr&#232;s &amp; c&#244;t&#233;</ms:note>
+  <ms:geometry><gml:MultiSurface srsName="EPSG:4326"><gml:surfaceMember><gml:Polygon>
+    <gml:exterior><gml:LinearRing><gml:posList srsDimension="2">49.0 0.0 49.0 1.0 50.0 1.0 50.0 0.0 49.0 0.0</gml:posList></gml:LinearRing></gml:exterior>
+    <gml:interior><gml:LinearRing><gml:posList srsDimension="2">49.4 0.4 49.4 0.6 49.6 0.6 49.6 0.4 49.4 0.4</gml:posList></gml:LinearRing></gml:interior>
+  </gml:Polygon></gml:surfaceMember></gml:MultiSurface></ms:geometry>
+</ms:couche></gml:featureMember>
+<gml:featureMember><ms:couche><ms:nom_site>Sans géométrie</ms:nom_site></ms:couche></gml:featureMember>
+</wfs:FeatureCollection>`;
+const g = lireGml(gml);
+attendre('GML : deux entités', g.length === 2, g.length, 'Une entité sans géométrie reste comptée, avec une géométrie nulle.');
+attendre(
+  'GML : axes remis en longitude, latitude',
+  JSON.stringify(g[0].geometry?.coordinates[0][0][1]) === '[1,49]',
+  g[0].geometry?.coordinates[0][0][1],
+  'En WFS 1.1.0, EPSG:4326 donne la latitude d’abord ; GeoJSON veut la longitude d’abord.',
+);
+attendre('GML : le trou est gardé', g[0].geometry?.coordinates[0].length === 2, g[0].geometry?.coordinates[0].length, 'Un anneau intérieur est un trou du polygone, pas un polygone de plus.');
+attendre('GML : entités XML décodées', g[0].properties.note === "d'après & côté", g[0].properties.note, 'Les noms de biens portent des apostrophes et des accents encodés.');
+attendre('GML : sans géométrie', g[1].geometry === null, g[1].geometry, 'Rien n’est inventé.');
+
+/* ------------------------------------------------------------------ *
+ * Shapefile
+ * ------------------------------------------------------------------ */
+
+/** Un Shapefile d'un polygone (un anneau extérieur, un trou), en Lambert 93. */
+function shp(anneaux: [number, number][][]): Buffer {
+  const points = anneaux.flat();
+  const contenu = 44 + 4 * anneaux.length + 16 * points.length;
+  const b = Buffer.alloc(100 + 8 + contenu);
+  b.writeInt32BE(9994, 0);
+  b.writeInt32BE(b.length / 2, 24);
+  b.writeInt32LE(1000, 28);
+  b.writeInt32LE(5, 32);
+  b.writeInt32BE(1, 100);
+  b.writeInt32BE(contenu / 2, 104);
+  const o = 108;
+  b.writeInt32LE(5, o);
+  b.writeInt32LE(anneaux.length, o + 36);
+  b.writeInt32LE(points.length, o + 40);
+  let debut = 0;
+  anneaux.forEach((r, i) => {
+    b.writeInt32LE(debut, o + 44 + 4 * i);
+    debut += r.length;
+  });
+  points.forEach(([x, y], j) => {
+    b.writeDoubleLE(x, o + 44 + 4 * anneaux.length + 16 * j);
+    b.writeDoubleLE(y, o + 44 + 4 * anneaux.length + 16 * j + 8);
+  });
+  return b;
+}
+
+/** Une table d'un champ texte, avec un octet Windows-1252 (0x92, l'apostrophe typographique) et un « é » (0xE9). */
+function dbf(valeur: Buffer): Buffer {
+  const taille = 40;
+  const b = Buffer.alloc(32 + 32 + 1 + 1 + taille + 1, 0x20);
+  b.fill(0, 0, 65);
+  b[0] = 3;
+  b.writeUInt32LE(1, 4);
+  b.writeUInt16LE(32 + 32 + 1, 8);
+  b.writeUInt16LE(1 + taille, 10);
+  b.write('nom', 32, 'latin1');
+  b[32 + 11] = 0x43;
+  b[32 + 16] = taille;
+  b[64] = 0x0d;
+  valeur.copy(b, 66);
+  b[b.length - 1] = 0x1a;
+  return b;
+}
+
+/** Une archive zip sans compression : de quoi faire lire `unzip -p` sans dépendre de `zip`. */
+function zip(fichiers: [string, Buffer][]): Buffer {
+  const locaux: Buffer[] = [];
+  const centraux: Buffer[] = [];
+  let decalage = 0;
+  for (const [nom, donnees] of fichiers) {
+    const n = Buffer.from(nom);
+    const crc = crc32(donnees);
+    const l = Buffer.alloc(30);
+    l.writeUInt32LE(0x04034b50, 0);
+    l.writeUInt16LE(20, 4);
+    l.writeUInt32LE(crc, 14);
+    l.writeUInt32LE(donnees.length, 18);
+    l.writeUInt32LE(donnees.length, 22);
+    l.writeUInt16LE(n.length, 26);
+    locaux.push(l, n, donnees);
+    const c = Buffer.alloc(46);
+    c.writeUInt32LE(0x02014b50, 0);
+    c.writeUInt16LE(20, 4);
+    c.writeUInt16LE(20, 6);
+    c.writeUInt32LE(crc, 16);
+    c.writeUInt32LE(donnees.length, 20);
+    c.writeUInt32LE(donnees.length, 24);
+    c.writeUInt16LE(n.length, 28);
+    c.writeUInt32LE(decalage, 42);
+    centraux.push(c, n);
+    decalage += 30 + n.length + donnees.length;
+  }
+  const central = Buffer.concat(centraux);
+  const fin = Buffer.alloc(22);
+  fin.writeUInt32LE(0x06054b50, 0);
+  fin.writeUInt16LE(fichiers.length, 8);
+  fin.writeUInt16LE(fichiers.length, 10);
+  fin.writeUInt32LE(central.length, 12);
+  fin.writeUInt32LE(decalage, 16);
+  return Buffer.concat([...locaux, central, fin]);
+}
+
+const dossier = mkdtempSync(join(tmpdir(), 'verifier-geo-'));
+try {
+  const exterieur: [number, number][] = [[700000, 6600000], [700000, 6610000], [710000, 6610000], [710000, 6600000], [700000, 6600000]];
+  const trou: [number, number][] = [[702000, 6602000], [708000, 6602000], [708000, 6608000], [702000, 6608000], [702000, 6602000]];
+  const archive = join(dossier, 'essai.zip');
+  writeFileSync(
+    archive,
+    zip([
+      ['couche/biens.shp', shp([exterieur, trou])],
+      ['couche/biens.dbf', dbf(Buffer.concat([Buffer.from('Saline d', 'latin1'), Buffer.from([0x92]), Buffer.from('Arc-et-Senans, été', 'latin1')]))],
+    ]),
+  );
+  const s = lireShapefile(archive, 'couche/biens');
+  attendre('Shapefile : une entité', s.length === 1, s.length, 'Un enregistrement, un polygone.');
+  attendre('Shapefile : deux anneaux', s[0]?.geometry?.coordinates[0].length === 2, s[0]?.geometry?.coordinates[0].length, 'L’extérieur et le trou, gardés ensemble.');
+  attendre(
+    'Shapefile : premier sommet projeté',
+    proche(s[0]?.geometry?.coordinates[0][0][0] ?? [], [3, 46.5], 1e-9),
+    s[0]?.geometry?.coordinates[0][0][0],
+    'Le sommet (700 000 ; 6 600 000) est l’origine du Lambert 93.',
+  );
+  attendre(
+    'Shapefile : table en Windows-1252',
+    s[0]?.properties.nom === 'Saline d’Arc-et-Senans, été',
+    s[0]?.properties.nom,
+    'Sans fichier .cpg, l’octet 0x92 est l’apostrophe typographique et 0xE9 le « é » — la table de Bourgogne-Franche-Comté est ainsi.',
+  );
+} finally {
+  rmSync(dossier, { recursive: true, force: true });
+}
+
+if (echecs) {
+  console.log(`\n${ROUGE}${echecs} échec(s).${RAZ}`);
+  process.exit(1);
+}
+console.log(`\n${VERT}Lecteurs géographiques conformes.${RAZ}`);

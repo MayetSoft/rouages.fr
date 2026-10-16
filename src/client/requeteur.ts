@@ -13,10 +13,12 @@
  * navigateur ; l'adresse garde la recherche, qui se partage comme un lien.
  */
 import { chargerIndex, type CommuneBreve } from './recherche-commune.ts';
+import { carteDesResultats } from './requeteur-carte.ts';
 
 type Fichier = { r: number[]; n: number[] };
 /** Clé, libellé, unité, millésime, nombre de communes renseignées. */
-type Indicateur = [string, string, string, string, number];
+/** Clé, libellé, unité, millésime, communes renseignées ; pour un oui-non, ce qu'on peut chercher. */
+type Indicateur = [string, string, string, string, number, ('oui' | 'oui-non')?];
 type IndexProximite = {
   equipements: { millesime: string; types: [string, number, string, number][] };
   associations: { domaines: [string, number][] };
@@ -117,6 +119,7 @@ export function brancherRequeteur(): void {
   /** Ce que la case affiche : un compte vaut 0 quand la commune n'a rien ; un indicateur absent n'est pas un zéro. */
   const valeur = (cle: string, m: Map<number, number>, r: number) => {
     const x = m.get(r);
+    if (indicateur(cle)?.[5]) return x === undefined ? '—' : x ? 'oui' : 'non';
     if (cle.startsWith('i')) return x === undefined ? '—' : decimal(x);
     return String(x ?? 0);
   };
@@ -126,8 +129,13 @@ export function brancherRequeteur(): void {
     if (pmin.value) p.set('pmin', pmin.value);
     if (pmax.value) p.set('pmax', pmax.value);
     if (dep.value) p.set('dep', dep.value);
-    // Un indicateur s'écrit `ifb:min40` ou `ifb:max40` ; un compte, `e60:2`, et 0 pour « aucun ».
-    const morceau = (c: Critere) => (c.cle.startsWith('i') ? `${c.cle}:${c.mode === 'au-plus' ? 'max' : 'min'}${c.n}` : `${c.cle}:${c.mode === 'aucun' ? 0 : c.n}`);
+    // Un indicateur s'écrit `ifb:min40` ou `ifb:max40`, un oui-non `ipnr:oui` ; un compte, `e60:2`, et 0 pour « aucun ».
+    const morceau = (c: Critere) =>
+      indicateur(c.cle)?.[5]
+        ? `${c.cle}:${c.mode === 'au-plus' ? 'non' : 'oui'}`
+        : c.cle.startsWith('i')
+          ? `${c.cle}:${c.mode === 'au-plus' ? 'max' : 'min'}${c.n}`
+          : `${c.cle}:${c.mode === 'aucun' ? 0 : c.n}`;
     if (criteres.length) p.set('c', criteres.map(morceau).join(','));
     history.replaceState(null, '', p.size ? `?${p}` : location.pathname);
   };
@@ -139,7 +147,15 @@ export function brancherRequeteur(): void {
       const mode = el('select');
       mode.setAttribute('aria-label', `Condition sur ${libelle(c.cle)}`);
       const ind = indicateur(c.cle);
-      const modes = ind ? ([['au-moins', 'au moins'], ['au-plus', 'au plus']] as const) : ([['au-moins', 'au moins'], ['aucun', 'aucun']] as const);
+      const booleen = ind?.[5];
+      // Un oui-non : « oui » cherche 1, « non » cherche 0 — proposé seulement quand l'absence est une donnée.
+      const modes: readonly (readonly [Critere['mode'], string])[] = booleen
+        ? booleen === 'oui-non'
+          ? [['au-moins', 'oui'], ['au-plus', 'non']]
+          : [['au-moins', 'oui']]
+        : ind
+          ? [['au-moins', 'au moins'], ['au-plus', 'au plus']]
+          : [['au-moins', 'au moins'], ['aucun', 'aucun']];
       for (const [v, t] of modes) {
         const o = el('option', '', t);
         o.value = v;
@@ -151,16 +167,21 @@ export function brancherRequeteur(): void {
       n.min = ind ? '0' : '1';
       if (ind) n.step = ind[2] === '%' ? '0.1' : '1';
       n.value = String(c.n);
-      n.hidden = c.mode === 'aucun';
+      n.hidden = c.mode === 'aucun' || !!booleen;
       n.setAttribute('aria-label', ind ? `Seuil pour ${libelle(c.cle)}` : `Nombre minimum de ${libelle(c.cle)}`);
       const nom = el('span', 'rq-critere-nom', libelle(c.cle));
-      if (ind) nom.title = `${ind[3] ? `Millésime ${ind[3]} · ` : ''}${ind[4].toLocaleString('fr-FR')} communes renseignées ; les autres sont écartées par ce critère.`;
+      if (ind)
+        nom.title =
+          booleen === 'oui'
+            ? `${ind[3] ? `Au ${ind[3].split('-').reverse().join('/')} · ` : ''}${ind[4].toLocaleString('fr-FR')} communes connues ; une commune absente n’est pas dite hors du critère, on ne le sait pas.`
+            : `${ind[3] ? `Millésime ${ind[3]} · ` : ''}${ind[4].toLocaleString('fr-FR')} communes renseignées ; les autres sont écartées par ce critère.`;
       const retirer = el('button', 'comparer-retirer', '×');
       retirer.type = 'button';
       retirer.setAttribute('aria-label', `Retirer le critère ${libelle(c.cle)}`);
       mode.addEventListener('change', () => {
         c.mode = mode.value as Critere['mode'];
-        n.hidden = c.mode === 'aucun';
+        if (booleen) c.n = c.mode === 'au-plus' ? 0 : 1;
+        n.hidden = c.mode === 'aucun' || !!booleen;
         void calculer();
       });
       n.addEventListener('change', () => {
@@ -265,6 +286,10 @@ export function brancherRequeteur(): void {
     const cadre = el('div', 'rq-cadre');
     cadre.append(table);
     zone.append(telecharger, cadre, plus);
+    // La carte avant le tableau, dès qu'elle est prête — et seulement si la recherche n'a pas changé entre-temps.
+    void carteDesResultats(communes, rangs, dep.value).then((carte) => {
+      if (carte && mien === tour) zone.insertBefore(carte, cadre);
+    });
     montrer();
   };
 
@@ -299,12 +324,18 @@ export function brancherRequeteur(): void {
       ga.append(o);
     });
     ajout.append(ga);
-    if (ip.indicateurs?.length) {
+    // Les indicateurs chiffrés, puis ce qui s'applique ou non à la commune : un parc, un site protégé, un plan.
+    for (const [titre, garde] of [
+      ['Indicateurs', (i: Indicateur) => !i[5]],
+      ['Protections et engagements', (i: Indicateur) => !!i[5]],
+    ] as const) {
       const gi = el('optgroup');
-      gi.label = 'Indicateurs';
-      for (const [cle, nom, unite, millesime, n] of ip.indicateurs) {
-        if (!n) continue;
-        const o = el('option', '', `${nom}${unite ? ` (${unite})` : ''}${millesime ? ` — ${/^\d{4}-\d{2}-\d{2}$/.test(millesime) ? `au ${millesime.split('-').reverse().join('/')}` : millesime.replace('-', ' à ')}` : ''}`);
+      gi.label = titre;
+      for (const i of ip.indicateurs ?? []) {
+        const [cle, nom, unite, millesime, n] = i;
+        if (!n || !garde(i)) continue;
+        const date = millesime ? ` — ${/^\d{4}-\d{2}-\d{2}$/.test(millesime) ? `au ${millesime.split('-').reverse().join('/')}` : millesime.replace('-', ' à ')}` : '';
+        const o = el('option', '', `${nom}${unite ? ` (${unite})` : ''}${date}`);
         o.value = `i${cle}`;
         gi.append(o);
       }
@@ -318,7 +349,10 @@ export function brancherRequeteur(): void {
     for (const morceau of (p.get('c') ?? '').split(',').filter(Boolean)) {
       const [cle, n = ''] = morceau.split(':');
       if (!valide(cle) || criteres.some((c) => c.cle === cle)) continue;
-      if (cle.startsWith('i')) {
+      if (indicateur(cle)?.[5]) {
+        const non = n === 'non' && indicateur(cle)?.[5] === 'oui-non';
+        criteres.push({ cle, mode: non ? 'au-plus' : 'au-moins', n: non ? 0 : 1 });
+      } else if (cle.startsWith('i')) {
         const seuil = /^(min|max)(\d+(?:\.\d+)?)$/.exec(n);
         criteres.push({ cle, mode: seuil?.[1] === 'max' ? 'au-plus' : 'au-moins', n: seuil ? Number(seuil[2]) : 0 });
       } else criteres.push({ cle, mode: n === '0' ? 'aucun' : 'au-moins', n: Math.max(1, Number(n) || 1) });
@@ -329,7 +363,7 @@ export function brancherRequeteur(): void {
       const cle = ajout.value;
       ajout.value = '';
       if (!cle || criteres.some((c) => c.cle === cle)) return;
-      criteres.push({ cle, mode: 'au-moins', n: cle.startsWith('i') ? 0 : 1 });
+      criteres.push({ cle, mode: 'au-moins', n: cle.startsWith('i') && !indicateur(cle)?.[5] ? 0 : 1 });
       dessinerCriteres();
       void calculer();
     });
