@@ -4892,3 +4892,29 @@ Le service voit l'adresse IP de qui clique : `/mentions` le dit, et rien ne
 part sans le clic. La phrase sous la carte dit qu'une zone se lit avec son
 règlement et que la carte ne dit pas ce qu'on peut construire sur une
 parcelle.
+
+### Accessibilité et poids de la page de commune, mesurés (16 octobre 2026)
+
+Mesuré sur le build, dans Chromium, processeur ralenti quatre fois :
+
+| Page | HTML | compressé | nœuds | DOMContentLoaded |
+|---|---:|---:|---:|---:|
+| Le Mayet-de-Montagne | 470 Ko | 95 Ko | 5 708 | 1,8 à 2,2 s |
+| Paris | 800 Ko | 141 Ko | 10 876 | 1,8 à 2,0 s |
+
+Les sections hors de l'onglet ouvert ne sont pas rendues, ce qui tient le
+temps d'affichage malgré le poids. À Paris, la moitié du poids vient des
+1 796 représentants d'intérêts dont le siège est dans la commune : c'est le
+contenu, pas un doublon, et on l'a laissé.
+
+L'audit axe-core (4.10), toutes sections ouvertes, en clair et en sombre, à
+1 200 et 390 px, a trouvé trois défauts, corrigés : la carte de situation et
+la carte des communes d'un département ou d'une intercommunalité étaient des
+images (`role="img"`) contenant des liens — ce sont désormais des groupes,
+chaque commune restant un lien ; la première case d'en-tête du tableau des
+diagnostics énergétiques était vide. Plus aucune violation sur les pages de
+commune, de département, du requêteur, d'accueil et des mentions. Au
+clavier : le lien d'évitement vient en premier, le focus est visible
+partout, les onglets suivent les flèches, Début et Fin. Reste : la carte des
+communes d'un département fait passer le clavier par chaque commune (317
+dans l'Allier) — un lien pour la sauter serait le prochain pas.

@@ -104,7 +104,8 @@ const resume =
 ---
 <figure class="situation">
   <div class="situation-cadre">
-    <svg class="situation-carte" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={resume}>
+    {/* Un groupe, pas une image : chaque commune voisine y est un lien. */}
+    <svg class="situation-carte" viewBox={`0 0 ${W} ${H}`} role={n > 0 ? 'group' : 'img'} aria-label={resume}>
       {voisines.map((v) => (
         <a href={`/commune/${v.code}`} class="situation-voisine">
           <title>{v.nom}</title>

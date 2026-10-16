@@ -95,7 +95,8 @@ for (const [a, b] of segments) {
       {thematiques.map((t) => <label><input type="radio" name="cc-teinte" value={t.id} /> {t.nom}</label>)}
     </fieldset>
   )}
-  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={libelle}>
+  {/* Un groupe, pas une image : chaque commune y est un lien, et la carte est le seul chemin vers elles sur la page. */}
+  <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={libelle}>
     {formes.map((c) => (
       <a href={`/commune/${c.code}`} class="carte-communes-commune">
         <title>{c.nom}</title>
