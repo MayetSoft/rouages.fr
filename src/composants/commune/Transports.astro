@@ -2,10 +2,11 @@
 /**
  * Les arrêts de transport en commun de la commune et les réseaux qui les
  * inscrivent dans leurs horaires ; à défaut, l'arrêt le plus proche de son
- * centre. Une présence, pas une desserte : rien ne dit ici combien de fois
- * par jour on y passe.
+ * centre. Et la desserte : les passages de l'arrêt le plus desservi, jour
+ * par jour, sur une semaine de classe, lus dans les fichiers d'horaires.
  */
 import type { Transports } from '../../modele/fiche-vie.ts';
+import { libelleSemaine, phraseDesserte } from '../../modele/desserte.ts';
 import Glose from '../Glose.astro';
 
 interface Props {
@@ -15,6 +16,9 @@ const { t } = Astro.props;
 const nf = (v: number) => v.toLocaleString('fr-FR');
 const p = t.proche;
 const date = t.maj.split('-').reverse().join('/');
+const semaine = t.semaine ? libelleSemaine(t.semaine) : null;
+const d = t.desserte;
+const lignes = d && d.lignes ? `, sur ${nf(d.lignes)} ligne${d.lignes > 1 ? 's' : ''}` : '';
 ---
 {!p && (
   <p class="mesure">
@@ -39,12 +43,27 @@ const date = t.maj.split('-').reverse().join('/');
     </li>
   ))}
 </ul>
+{d && semaine && (
+  <p class="mesure">
+    {p
+      ? `À cet arrêt : ${phraseDesserte(d.jours)}${lignes}, la semaine ${semaine}.`
+      : t.arrets > 1
+        ? `« ${d.nom} », l’arrêt le plus desservi : ${phraseDesserte(d.jours)}${lignes}, la semaine ${semaine}.`
+        : `${phraseDesserte(d.jours).replace(/^./, (x) => x.toUpperCase())}${lignes}, la semaine ${semaine}.`}
+  </p>
+)}
+{!d && t.aucunPassage && semaine && (
+  <p class="mesure">{`Aucun passage n’y est prévu la semaine ${semaine}, d’après les fichiers d’horaires qui la couvrent : une ligne saisonnière, ou un service sur réservation, peut-être.`}</p>
+)}
 <p class="p-strate">
   <Glose texte={'Un arrêt figure ici s’il est inscrit dans un fichier d’horaires publié au Point d’accès national : bus, car, tramway, métro, train. ' +
-    'Le site ne dit pas combien de fois par jour on y passe, ni vers où : un arrêt de car scolaire desservi deux fois par jour y pèse autant qu’une station de métro. ' +
-    'Le transport à la demande, quand il n’a pas d’arrêt fixe, n’y figure pas. Deux arrêts de même nom dans la commune — les deux sens d’une ligne — n’en font qu’un.' +
+    'Deux arrêts de même nom dans la commune — les deux sens d’une ligne — n’en font qu’un, et leurs passages s’additionnent. ' +
+    (semaine
+      ? `Un passage est l’arrêt d’une course où l’on peut monter, d’après les horaires prévus pour la semaine ${semaine} — une semaine de classe, ni vacances scolaires en métropole ni jour férié : ce sont les horaires théoriques, pas ceux d’un jour de grève ou de travaux. Plusieurs fichiers d’un même réseau ne comptent pas deux fois. `
+      : 'Le site ne dit pas combien de fois par jour on y passe. ') +
+    'Le transport à la demande, quand il n’a pas d’arrêt fixe, n’y figure pas.' +
     (p ? ' La distance est mesurée depuis le centre de la commune, en ligne droite.' : '')} />
 </p>
 <p class="p-source-territoire">
-  {`D’après la couche des arrêts du Point d’accès national aux données de transport (transport.data.gouv.fr), lue le ${date} : les fichiers d’horaires GTFS de chaque réseau, réunis. Le Point d’accès la dit expérimentale et demande qu’on ne s’en serve pas pour l’information voyageur : pour les horaires, la fiche de chaque réseau. La commune de chaque arrêt est celle dont le contour le contient (IGN, Admin Express).`}
+  {`D’après la couche des arrêts du Point d’accès national aux données de transport (transport.data.gouv.fr), lue le ${date} : les fichiers d’horaires GTFS de chaque réseau, réunis${semaine ? ', et ces mêmes fichiers lus course par course pour compter les passages' : ''}. Le Point d’accès dit sa couche expérimentale et demande qu’on ne s’en serve pas pour l’information voyageur : pour les horaires, la fiche de chaque réseau. La commune de chaque arrêt est celle dont le contour le contient (IGN, Admin Express)${semaine ? ' ; la semaine comptée suit le calendrier scolaire de l’Éducation nationale et les jours fériés publiés par l’administration' : ''}.`}
 </p>

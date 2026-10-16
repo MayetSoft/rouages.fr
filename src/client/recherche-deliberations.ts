@@ -8,14 +8,17 @@
  * collecte (`motsDe`) ; leurs rangs se croisent ; seuls les morceaux affichés
  * se chargent. Un mot qui n'est pas dans l'index n'est pas « absent » : il
  * n'est pas cherchable — trop rare (moins de trois collectivités) ou prénom —,
- * et la page le dit.
+ * et la page le dit. Une compétence choisie ajoute ses rangs au croisement
+ * (`t.json`, rangé par les règles de `themes-deliberations.ts`), et chaque
+ * résultat dit sous quelles compétences ces mêmes règles le rangent.
  *
  * Rien ne part ailleurs que vers les fichiers du site, et la recherche n'est
  * pas gardée.
  */
 import { motsDe, plierMot } from '../modele/mots-deliberations.ts';
+import { THEMES, themesDe } from '../modele/themes-deliberations.ts';
 
-type Meta = { maj: string; depuis: string; n: number; morceau: number; familles: string[]; lettres: string[]; c: [string, string][] };
+type Meta = { maj: string; depuis: string; n: number; morceau: number; familles: string[]; lettres: string[]; themes?: string[]; c: [string, string][] };
 type Ligne = [string, number, number, string, string];
 
 const PAGE = 50;
@@ -53,14 +56,19 @@ export function brancherRechercheDeliberations(): void {
   const champ = document.getElementById('rd-mots') as HTMLInputElement | null;
   const famille = document.getElementById('rd-famille') as HTMLSelectElement | null;
   const annee = document.getElementById('rd-annee') as HTMLSelectElement | null;
+  const theme = document.getElementById('rd-theme') as HTMLSelectElement | null;
   const formulaire = document.getElementById('rd-formulaire') as HTMLFormElement | null;
   const etat = document.getElementById('rd-etat');
   const zone = document.getElementById('rd-resultats');
-  if (!dep || !champ || !famille || !annee || !formulaire || !etat || !zone) return;
+  if (!dep || !champ || !famille || !annee || !theme || !formulaire || !etat || !zone) return;
+  // Le nom de chaque fiche, tel que la page l'a écrit dans la liste des compétences.
+  const nomFiche = new Map([...theme.options].filter((o) => o.value).map((o) => [o.value, o.textContent ?? o.value]));
 
   const metas = new Map<string, Promise<Meta>>();
   const lettres = new Map<string, Promise<Record<string, string>>>();
   const morceaux = new Map<string, Promise<Ligne[]>>();
+  const parTheme = new Map<string, Promise<Record<string, string>>>();
+  const themes = (d: string) => parTheme.get(d) ?? parTheme.set(d, json<Record<string, string>>(`${base(d)}/t.json`)).get(d)!;
   const meta = (d: string) => metas.get(d) ?? metas.set(d, json<Meta>(`${base(d)}/meta.json`)).get(d)!;
   const lettre = (d: string, l: string) => lettres.get(`${d}${l}`) ?? lettres.set(`${d}${l}`, json<Record<string, string>>(`${base(d)}/i-${l}.json`)).get(`${d}${l}`)!;
   const morceau = (d: string, k: number) => morceaux.get(`${d}|${k}`) ?? morceaux.set(`${d}|${k}`, json<Ligne[]>(`${base(d)}/m${k}.json`)).get(`${d}|${k}`)!;
@@ -80,6 +88,7 @@ export function brancherRechercheDeliberations(): void {
     if (champ.value.trim()) p.set('q', champ.value.trim());
     if (famille.value) p.set('f', famille.value);
     if (annee.value) p.set('a', annee.value);
+    if (theme.value) p.set('t', theme.value);
     history.replaceState(null, '', p.size ? `?${p}` : location.pathname);
   };
 
@@ -122,6 +131,17 @@ export function brancherRechercheDeliberations(): void {
         return;
       }
       rangs = croiser(listes);
+    }
+    if (theme.value) {
+      // Un index d'avant les compétences n'a pas de `t.json` : on le dit plutôt que de répondre « aucune ».
+      if (!m.themes) {
+        etat.textContent = 'L’index de ce département ne range pas encore les délibérations par compétence : il le fera à la prochaine mise à jour des données.';
+        return;
+      }
+      const l = m.themes.includes(theme.value) ? (await themes(dep.value))[theme.value] : undefined;
+      if (mien !== tour) return;
+      const sous = l ? decoder(l) : [];
+      rangs = rangs ? croiser([rangs, sous]) : sous;
     }
     // Les filtres de famille et d'année se lisent dans les morceaux : on les parcourt dans l'ordre, du plus récent.
     const f = famille.value === '' ? null : Number(famille.value);
@@ -177,6 +197,18 @@ export function brancherRechercheDeliberations(): void {
         corps.append(lien);
       } else corps.textContent = objet;
       li.append(tete, corps);
+      // Les compétences où les règles rangent cet intitulé, chacune vers sa fiche.
+      const fiches = themesDe(objet).map((i) => THEMES[i].fiche);
+      if (fiches.length) {
+        const p = el('p', 'rd-themes');
+        fiches.forEach((f, i) => {
+          if (i) p.append(' · ');
+          const a = el('a', '', nomFiche.get(f) ?? f);
+          a.href = `/n/${f}`;
+          p.append(a);
+        });
+        li.append(p);
+      }
       ul.append(li);
     }
     zone.append(ul);
@@ -186,11 +218,12 @@ export function brancherRechercheDeliberations(): void {
     e.preventDefault();
     void chercher();
   });
-  for (const x of [dep, famille, annee]) x.addEventListener('change', () => void chercher());
+  for (const x of [dep, famille, annee, theme]) x.addEventListener('change', () => void chercher());
 
   const p = new URLSearchParams(location.search);
   if (p.get('dep') && [...dep.options].some((o) => o.value === p.get('dep'))) dep.value = p.get('dep')!;
   champ.value = p.get('q') ?? '';
+  if (p.get('t') && nomFiche.has(p.get('t')!)) theme.value = p.get('t')!;
   void (async () => {
     if (dep.value) {
       try {

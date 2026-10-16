@@ -18,6 +18,8 @@ const NOMME: string[] = [
   'Vente d’une parcelle au profit de Mme Odile Hypothèse',
   'AU PROFIT DE MADAME TIPHAINE FICTIVE POUR LE COMPTE DE LA SOCIÉTÉ',
   'Vente d’un terrain via l’agent immobilier Sébastien INVENTÉ',
+  'arrêté donnant délégation de signature à Pélagonie Fictivard',
+  'Délégation du maire en matière d’état civil à Ombeline Supposée',
 ];
 const PAS_NOMME: string[] = [
   'Participation aux dépenses de fonctionnement de lécole publique Henri Matisse',
@@ -34,6 +36,10 @@ const PAS_NOMME: string[] = [
   'CONVENTION D’OCCUPATION A LA LANDE MARTIN AVEC ATC FRANCE',
   'Complexe sportif Jean Coulon : remplacement de la main courante',
   'Vote du compte financier unique 2025',
+  'Délégation d’attributions à Morlaix Communauté',
+  'Extension de la délégation du Droit de Préemption Urbain au profit de Vitré Communauté',
+  'Délégations du Conseil Municipal à Madame le Maire',
+  'Délégation à Blavet Bellevue Océan Communauté',
 ];
 
 let erreurs = 0;

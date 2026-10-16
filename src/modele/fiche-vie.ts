@@ -114,9 +114,11 @@ type GaresDep = {
 const garesDep = parDepartement<GaresDep>('gares');
 type TransportsDep = {
   maj: string;
+  /** Le lundi de la semaine dont les passages sont comptés. */
+  s?: string;
   /** Les réseaux cités : titre, éditeur, fiche au Point d'accès national. */
   r: Record<string, [string, string, string]>;
-  c: Record<string, { n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] }>;
+  c: Record<string, ({ n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] }) & { h?: [string, number[], number]; z?: 1 }>;
 };
 const transportsDep = parDepartement<TransportsDep>('transports');
 type AntennesDep = { maj: string; trimestre: string; operateurs: string[]; c: Record<string, [number, number, number, number][]> };
@@ -467,6 +469,12 @@ export interface Transports {
   noms: string[] | null;
   reseaux: { titre: string; editeur: string; url: string }[];
   proche: { nom: string; code: string; commune: string; km: number } | null;
+  /** L'arrêt le plus desservi (ou l'arrêt le plus proche) : ses passages du lundi au dimanche, ses lignes. */
+  desserte: { nom: string; jours: number[]; lignes: number } | null;
+  /** Les fichiers d'horaires qui couvrent la semaine n'y prévoient aucun passage. */
+  aucunPassage: boolean;
+  /** Le lundi de la semaine comptée. */
+  semaine: string | null;
   maj: string;
 }
 
@@ -1027,10 +1035,15 @@ function transports(c: CommuneFiche): Transports | null {
     const [titre, editeur, url] = d.r[id] ?? [id, '', 'https://transport.data.gouv.fr/datasets'];
     return { titre, editeur, url };
   };
-  if ('n' in f) return { arrets: f.n, noms: f.a ?? null, reseaux: f.r.map(reseau), proche: null, maj: d.maj };
+  const horaires = {
+    desserte: f.h ? { nom: f.h[0], jours: f.h[1], lignes: f.h[2] } : null,
+    aucunPassage: !!f.z,
+    semaine: d.s ?? null,
+  };
+  if ('n' in f) return { arrets: f.n, noms: f.a ?? null, reseaux: f.r.map(reseau), proche: null, ...horaires, maj: d.maj };
   nomsCommunes ??= new Map(communes().map((x) => [x.code, x.nom]));
   const [nom, code, hm, r] = f.p;
-  return { arrets: 0, noms: null, reseaux: r.map(reseau), proche: { nom, code, commune: nomsCommunes.get(code) ?? code, km: hm / 10 }, maj: d.maj };
+  return { arrets: 0, noms: null, reseaux: r.map(reseau), proche: { nom, code, commune: nomsCommunes.get(code) ?? code, km: hm / 10 }, ...horaires, maj: d.maj };
 }
 
 const FIN_TRIMESTRE = ['03-31', '06-30', '09-30', '12-31'];

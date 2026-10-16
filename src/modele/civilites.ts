@@ -77,8 +77,21 @@ const MOTIF =
 /** Un prénom courant, plié : l'index de recherche des délibérations ne le retient pas. */
 export const estUnPrenomCourant = (mot: string) => PRENOMS.has(plier(mot));
 
+/**
+ * Une délégation ou un arrêté qui finit sur un prénom et un nom (« arrêté
+ * donnant délégation de signature à Pélagie Vergeade ») : l'agent est nommé
+ * même quand son prénom est trop rare pour le dictionnaire. Sur les intitulés
+ * de 2025 de Mégalis, le motif ne prend que ces cas-là, une fois écartés les
+ * noms de collectivités (« à Morlaix Communauté »).
+ */
+const DELEGATION =
+  /\b(?:d[ée]l[ée]gations?|arr[êe]t[ée]s?)\b.*\s(?:à|a|au profit de)\s+\p{Lu}[\p{Ll}-]{2,}\s+(\p{Lu}[\p{L}'’-]+)\s*$/iu;
+const COLLECTIVITES = /^(?:communaut[ée]|agglom[ée]ration|agglo|m[ée]tropole|habitat|[ée]nergies?|territoires?|conseil|d[ée]partement|r[ée]gion|syndicat)$/i;
+
 export function nommeUnParticulier(texte: string): boolean {
   if (CIVILITES.test(texte)) return true;
+  const d = DELEGATION.exec(texte);
+  if (d && !COLLECTIVITES.test(d[1])) return true;
   for (const m of texte.matchAll(MOTIF)) {
     const prenom = plier(m[1]);
     if (!PRENOMS.has(prenom) && !prenom.split('-').every((x) => PRENOMS.has(x))) continue;

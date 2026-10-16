@@ -1025,7 +1025,7 @@ async function principal() {
 
   // Les arrêts se placent dans les contours des communes, écrits avec les espaces naturels.
   const { collecterTransports, ecrireTransports } = await import('./transports-emettre.ts');
-  const transports = await tenter('Arrêts de transport en commun', () => collecterTransports(SORTIE, lireJson, grise));
+  const transports = await tenter('Arrêts de transport en commun', () => collecterTransports(SORTIE, lireJson, grise, CACHE));
   if (transports) grise(`${ecrireTransports(SORTIE, transports)} départements d’arrêts écrits.`);
 
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
