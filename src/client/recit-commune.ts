@@ -45,17 +45,20 @@ export interface DonneesRecit {
   communes: Communes;
 }
 
-const nombre = (x: number) => Math.round(x).toLocaleString('fr-FR');
+// L'espace fine insécable des milliers manque à la police des titres : une insécable ordinaire à la place.
+const insecable = (t: string) => t.replace(/\u202f/g, '\u00a0');
+const nombre = (x: number) => insecable(Math.round(x).toLocaleString('fr-FR'));
 const euros = (x: number) => `${nombre(x)} €`;
-const pc = (x: number) => `${x.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} %`;
+const pc = (x: number) => `${insecable(x.toLocaleString('fr-FR', { maximumFractionDigits: 1 }))} %`;
 const NS = 'http://www.w3.org/2000/svg';
 const POSTES: [string, string, string][] = [
-  ['👷', 'payer les agents', '#1e5f74'],
-  ['🛒', 'acheter ce qu’il faut', '#3a8fa8'],
+  // Des couleurs claires : le fond du récit est sombre.
+  ['👷', 'payer les agents', '#f2c14e'],
+  ['🛒', 'acheter ce qu’il faut', '#9fd3e3'],
   ['🏗️', 'construire et réparer', '#e8762c'],
-  ['🤝', 'aider et participer', '#2e9e5b'],
-  ['🏦', 'rembourser les emprunts', '#8a4b12'],
-  ['📦', 'le reste', '#9a968d'],
+  ['🤝', 'aider et participer', '#7fd6a0'],
+  ['🏦', 'rembourser les emprunts', '#e09ac0'],
+  ['📦', 'le reste', '#c9c4b8'],
 ];
 
 async function json<T>(url: string): Promise<T | null> {
