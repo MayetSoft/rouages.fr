@@ -881,6 +881,25 @@ surveillances:
     url: "https://ids.craig.fr/wxs/public/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=public:VVA_2021_ZONE_TAMPON_UNESCO&RESULTTYPE=hits"
     lien: od-unesco-vichy
 
+  # Les annexes du PLU de Paris, sous ODbL : les tracés qui en dérivent sont
+  # rediffusés sous la même licence.
+  - id: unesco-paris
+    nom: "Ville de Paris — biens du patrimoine mondial et zones tampons"
+    alimente: "le périmètre et la zone tampon des biens du patrimoine mondial à Paris"
+    type: disponibilite
+    licence: odbl
+    fichiers: ["dep/XX-mondial.json", "patrimoine-mondial.json"]
+    url: "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/plu-annexes-biens-inscrits-au-patrimoine-mondial/records?limit=1"
+    lien: od-unesco-paris
+
+  - id: unesco-strasbourg
+    nom: "Eurométropole de Strasbourg — le bien « Strasbourg, Grande-Île et Neustadt »"
+    alimente: "le périmètre du bien du patrimoine mondial à Strasbourg"
+    type: disponibilite
+    licence: licence-ouverte-2.0
+    url: "https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/contours_psmv_unesco/records?limit=1"
+    lien: od-unesco-strasbourg
+
   # Le registre des plans climat de l'ADEME, sous Licence Ouverte sans version
   # précisée (fiche data-fair relevée le 15 octobre 2026).
   - id: ademe-pcaet

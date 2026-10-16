@@ -4732,6 +4732,37 @@ data.gouv.fr, ni par recherche. Ces biens restent rattachés par leurs
 éléments, d'après la liste de l'UNESCO. Le jeu « Périmètre UNESCO » de la
 Ville du Havre double celui de la DREAL de Normandie et n'est pas repris.
 
+### Patrimoine mondial : Paris et Strasbourg (16 octobre 2026)
+
+Deuxième recherche, catalogue par catalogue : data.gouv.fr, la
+Géoplateforme (sa couche « Bien du patrimoine mondial » est celle de l'INPN,
+naturels seulement), le catalogue fédéré d'Opendatasoft, DataGrandEst, le
+WFS de la Métropole de Lyon. Deux couches s'ajoutent :
+
+- **la Ville de Paris** annexe à son PLU le bien et la zone tampon de chaque
+  bien parisien — les rives de la Seine, deux éléments de l'œuvre de Le
+  Corbusier, la tour Saint-Jacques des Chemins de Saint-Jacques —, sous
+  ODbL : `dep/75-mondial.json` et les tracés qui en dérivent sont rediffusés
+  sous la même licence ;
+- **l'Eurométropole de Strasbourg** publie le contour du bien « Grande-Île et
+  Neustadt » (185 ha, l'étendue que l'UNESCO lui donne depuis 2017), sans sa
+  zone tampon.
+
+La règle du centre d'un petit périmètre a été resserrée : il doit être à plus
+de 50 m de la limite de la commune. L'immeuble Molitor, au 24 rue
+Nungesser-et-Coli à Paris, est posé sur la limite de Boulogne-Billancourt, et
+les contours des communes le mettaient côté Boulogne. À cette distance, on ne
+tranche plus : la liste de l'UNESCO situe seule le monument, et la zone
+tampon dit le reste. Quatre éléments de l'Occitanie, de la Dordogne et du
+Pas-de-Calais, des ponts surtout, ne sont plus rattachés par leur périmètre.
+
+Restent sans couche : Versailles, Fontainebleau et Provins (la DRIEAT ne
+publie rien), Reims, Nancy et la Champagne (la Grande Région ne donne que des
+points, l'atlas éolien de la DREAL Grand Est a disparu), Chartres et Bourges,
+le site historique de Lyon, Chauvet, les palafittes. Le jeu « Patrimoine
+mondial de l'UNESCO » de la Région des Pays de la Loire, qui couvrait aussi
+le Centre-Val de Loire, rend toujours une erreur 404.
+
 ### Trouver des communes : la carte des résultats (16 octobre 2026)
 
 Au-dessus du tableau, une carte : chaque commune est un point posé à son
