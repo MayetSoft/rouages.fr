@@ -5046,3 +5046,22 @@ au prénom absent du dictionnaire : le filtre des particuliers écarte
 désormais une délégation ou un arrêté qui finit sur un prénom et un nom,
 hors noms de collectivités (`npm run verifier-particuliers`, 28 cas).
 L'index par compétence arrivera avec la prochaine réingestion.
+
+### L'audit d'accessibilité élargi (16 octobre 2026)
+
+`npm run verifier-accessibilite` passe de huit à quinze pages — en plus : la
+région, l'intercommunalité (Vichy Communauté), une fiche du réseau, la
+comparaison de deux communes, les jeux et l'un d'eux, le simulateur des frais
+d'achat, et la recherche dans les délibérations avec des résultats quand un
+index est publié — et ajoute la largeur d'un téléphone (390 px, en clair).
+À cette largeur, une page qui défile horizontalement fait aussi échouer le
+contrôle. Une page absente du build est comptée à part au lieu de faire
+planter l'audit.
+
+Trois défauts trouvés et corrigés : dans la comparaison, les tableaux
+défilants portaient le même nom de région dans chaque colonne — ils disent
+maintenant la commune ; dans trois jeux, le récapitulatif de fin sautait du
+titre de la page à un titre de niveau 3 ; sur la page de région, le texte
+visuellement caché d'un tableau des comptes sortait de son cadre défilant et
+faisait déborder la page de 10 px à 390 px — les cadres défilants sont
+désormais positionnés. L'audit prend trois minutes et demie au lieu d'une.

@@ -27,7 +27,7 @@ async function sections(code: string): Promise<Map<string, HTMLElement>> {
 }
 
 /** Le contenu d'une section sans son titre, prêt à être inséré : identifiants et scripts retirés. */
-function corps(s: HTMLElement): DocumentFragment {
+function corps(s: HTMLElement, nom: string): DocumentFragment {
   const f = document.createDocumentFragment();
   for (const n of [...s.childNodes]) {
     if (n instanceof HTMLElement && n.tagName === 'H2') continue;
@@ -37,6 +37,9 @@ function corps(s: HTMLElement): DocumentFragment {
       // Deux fois le même identifiant dans une page casse les ancres et les étiquettes.
       copie.removeAttribute('id');
       copie.querySelectorAll('[id]').forEach((x) => x.removeAttribute('id'));
+      // Un tableau défilant est une région nommée : le même nom dans chaque colonne ne dirait pas laquelle.
+      for (const r of [copie, ...copie.querySelectorAll<HTMLElement>('[role="region"][aria-label]')])
+        if (r.getAttribute('role') === 'region' && r.hasAttribute('aria-label')) r.setAttribute('aria-label', `${r.getAttribute('aria-label')} — ${nom}`);
     }
     f.append(copie);
   }
@@ -137,7 +140,7 @@ export function brancherComparaison(): void {
         lien.textContent = c.nom;
         h3.append(lien);
         col.append(h3);
-        if (s) col.append(corps(s));
+        if (s) col.append(corps(s, c.nom));
         else {
           const p = document.createElement('p');
           p.className = 'c-vide';
