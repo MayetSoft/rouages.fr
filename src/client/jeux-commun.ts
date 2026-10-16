@@ -82,6 +82,7 @@ export const JEUX = {
   courbe: { nom: 'Devine la courbe', adresse: '/jeux/devine-la-courbe' },
   silhouette: { nom: 'La silhouette', adresse: '/jeux/silhouette' },
   chrono: { nom: 'Le chrono de l’interco', adresse: '/jeux/chrono' },
+  trente: { nom: 'Ta commune en 30 secondes', adresse: '/jeux/en-30-secondes' },
 } as const;
 export type CleJeu = keyof typeof JEUX;
 

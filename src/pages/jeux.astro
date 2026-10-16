@@ -34,6 +34,7 @@ const NIVEAUX = [
 ] as const;
 type Carte = { cle: string | null; url: string; titre: string; icone: NomIcone; couleur: string; niveau: (typeof NIVEAUX)[number]['id']; age: string; duree: string; texte: string };
 const NOTRES: Carte[] = [
+  { cle: 'trente', url: '/jeux/en-30-secondes', titre: 'Ta commune en 30 secondes', icone: 'habitants', couleur: 'habitants', niveau: 'decouvrir', age: 'dès 10 ans', duree: '2 min', texte: 'Plus de naissances ou de décès ? Le prix d’une maison ? Sept questions sur votre commune, les réponses en cartes animées.' },
   { cle: 'demande', url: '/jeux/a-qui-je-demande', titre: 'À qui je demande ?', icone: 'decide', couleur: 'decide', niveau: 'decouvrir', age: 'dès 8 ans', duree: '5 min', texte: 'Le toit de l’école, les poubelles, le train : cinq scènes, cinq portes. La mairie, le département, la région, l’État ?' },
   { cle: 'paires', url: '/jeux/qui-s-en-occupe', titre: 'Qui s’en occupe ?', icone: 'habitants', couleur: 'habitants', niveau: 'decouvrir', age: 'dès 8 ans', duree: '5 min', texte: 'Un jeu de paires : l’école et la mairie, le collège et le département, le lycée et la région.' },
   { cle: 'carte', url: '/jeux/puzzle-carte', titre: 'Le puzzle de la carte', icone: 'carte', couleur: 'nature', niveau: 'decouvrir', age: 'dès 8 ans', duree: '5 min', texte: 'La carte de ta région, sans les noms : où est l’Allier ? Clique sur le bon département.' },

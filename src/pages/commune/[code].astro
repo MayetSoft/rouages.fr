@@ -96,6 +96,7 @@ import Secheresse from '../../composants/commune/Secheresse.astro';
 import Ailleurs from '../../composants/commune/Ailleurs.astro';
 import { SITES_COMMANDE_PUBLIQUE, SITES_VERIFIER_ENTREPRISE, sitesDeCommune } from '../../modele/sites-complementaires.ts';
 import CarteSituation from '../../composants/commune/CarteSituation.astro';
+import EnTrenteSecondes from '../../composants/commune/EnTrenteSecondes.astro';
 import Icone from '../../composants/Icone.astro';
 import CentEuros from '../../composants/CentEuros.astro';
 import Frise, { type Jalon } from '../../composants/commune/Frise.astro';
@@ -507,6 +508,8 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
     <section id="apercu">
       <h2 class="visuellement-cache">En bref</h2>
     {carte && <CarteSituation carte={carte} nom={commune.nom} depNom={commune.depNom} />}
+
+    {carte && <EnTrenteSecondes code={commune.code} nom={commune.nom} />}
 
     <Essentiel plus={plus} vie={vie} population={commune.population} faits={faits} plafond={PLAFOND_JOURNAL} />
 
