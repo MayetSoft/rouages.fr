@@ -1,0 +1,86 @@
+---
+/**
+ * Ce qui est à portée des habitants d'un département ou d'une région — le
+ * réseau mobile, un car, un généraliste —, comparé à sa région et à la France.
+ * Un bilan des fichiers que la page de commune lit déjà
+ * (`src/modele/bilan-portee.ts`).
+ */
+import type { BilanPortee, PartsPortee } from '../modele/bilan-portee.ts';
+import { libelleSemaine } from '../modele/desserte.ts';
+import { enFrancais } from '../modele/urbanisme.ts';
+
+interface Props {
+  b: BilanPortee;
+  /** « ce département », « cette région » : pour les phrases. */
+  ou: string;
+}
+const { b, ou } = Astro.props;
+const n = (x: number) => Math.round(x).toLocaleString('fr-FR');
+const part = (x: number, total: number) => {
+  if (!total) return '—';
+  const v = (100 * x) / total;
+  if (v > 0 && v < 0.5) return 'moins de 1 %';
+  if (v >= 99.5 && v < 100) return 'plus de 99 %';
+  return `${Math.round(v)} %`;
+};
+/** Une colonne plus large ne se montre que si d'autres départements y contribuent : sinon elle répéterait la précédente. */
+const plusLarge = (f: (p: PartsPortee) => [number, number], large: PartsPortee, etroit: PartsPortee) =>
+  f(large)[1] > f(etroit)[1] ? part(...f(large)) : '—';
+/** Chaque ligne : son libellé, puis sa part et son dénominateur d'après les sommes. */
+const LIGNES: [string, (p: PartsPortee) => [number, number]][] = [
+  ['Habitants en bonne ou très bonne couverture 4G d’au moins un opérateur', (p) => [p.mobile.bonne, p.mobile.h]],
+  ['Habitants sans couverture 4G d’aucun opérateur', (p) => [p.mobile.aucune, p.mobile.h]],
+  ['Communes où aucun bus, car ou train ne s’arrête dans la semaine comptée', (p) => [p.car.sansPassage, p.car.communes]],
+  ['Habitants à 800 mètres ou moins d’un arrêt desservi dans la semaine', (p) => [p.arrets.desservi, p.arrets.h]],
+  ['… d’un arrêt desservi dix fois chaque jour du lundi au vendredi', (p) => [p.arrets.frequent, p.arrets.h]],
+  ['Habitants à un kilomètre ou moins d’un médecin généraliste', (p) => [p.medecin.proche, p.medecin.h]],
+  ['Habitants à plus de dix kilomètres d’un médecin généraliste', (p) => [p.medecin.loin, p.medecin.h]],
+];
+const lignes = LIGNES.filter(([, f]) => f(b.ici)[1] > 0);
+const { mobile, car, medecin } = b.ici;
+const chiffres = [
+  mobile.h > 0 && `<strong>${n(mobile.aucune)} habitants</strong> sans couverture 4G d’aucun opérateur, sur ${n(mobile.h)}`,
+  car.communes > 0 &&
+    `<strong>${n(car.sansPassage)} commune${car.sansPassage > 1 ? 's' : ''} sur ${n(car.communes)}</strong> où rien ne s’arrête dans la semaine${b.semaine ? ` ${libelleSemaine(b.semaine)}` : ''}, pour ${n(car.habitantsSansPassage)} habitants`,
+  medecin.h > 0 && `<strong>${n(medecin.loin)} habitants</strong> à plus de dix kilomètres d’un médecin généraliste, à vol d’oiseau`,
+].filter((x): x is string => !!x);
+---
+<ul class="mesure bp-chiffres">
+  {chiffres.map((c) => <li set:html={c} />)}
+</ul>
+
+<div class="rq-cadre" tabindex="0" role="region" aria-label="Ce qui est à portée, comparé — le tableau défile sur les petits écrans">
+  <table class="rq-table bp-comparaison">
+    <caption>{`Ce qui est à portée, dans ${ou}${b.region ? ', sa région' : ''} et la France entière`}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Part des…</th>
+        <th scope="col" class="rq-nombre">Ici</th>
+        {b.region && <th scope="col" class="rq-nombre">Sa région</th>}
+        <th scope="col" class="rq-nombre">France entière</th>
+      </tr>
+    </thead>
+    <tbody>
+      {lignes.map(([libelle, f]) => (
+        <tr>
+          <th scope="row">{libelle}</th>
+          <td class="rq-nombre">{part(...f(b.ici))}</td>
+          {b.region && <td class="rq-nombre">{plusLarge(f, b.region, b.ici)}</td>}
+          <td class="rq-nombre">{plusLarge(f, b.france, b.region ?? b.ici)}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<p class="p-source-territoire">
+  {[
+    mobile.h > 0 && `Couverture : cartes théoriques des opérateurs que l’Arcep collecte${b.au ? `, au ${enFrancais(b.au)}` : ''}, croisées avec le carroyage de l’INSEE.`,
+    car.communes > 0 &&
+      'Desserte : les fichiers d’horaires GTFS du Point d’accès national, lus pour une semaine de classe ; une commune sans arrêt compte parmi celles où rien ne s’arrête, une commune dont les arrêts ne figurent dans aucun fichier couvrant la semaine n’est pas comptée.',
+    (b.ici.arrets.h > 0 || medecin.h > 0) &&
+      `Distances : à vol d’oiseau, du centre de chaque carreau habité de 200 mètres aux arrêts desservis et aux lieux d’exercice des généralistes libéraux (base des équipements géolocalisée de l’INSEE)${b.maj ? `, calcul du ${enFrancais(b.maj)}` : ''}.`,
+    'Les habitants sont ceux des ménages fiscaux du carroyage (2021) ; en outre-mer, le carroyage ne couvre que la Martinique et La Réunion, et la France entière s’entend de ce qui est calculé. Un tiret : aucun autre département n’a encore ce chiffre.',
+  ]
+    .filter(Boolean)
+    .join(' ')}
+</p>

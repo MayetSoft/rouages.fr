@@ -34,11 +34,12 @@
  * Écrit `dep/XX-transports.json`. Lancé seul — `npx tsx
  * scripts/transports-emettre.ts` —, il relit les contours déjà écrits.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { contoursDesCommunes, dedans, ECHELLE, type Anneau } from './espaces-emettre.ts';
+import { contoursDesCommunes, ECHELLE } from './espaces-emettre.ts';
 import { collecterHoraires, semaineDeClasse, type JeuGtfs } from './horaires-gtfs.ts';
+import { localisateur } from './localiser.ts';
 import { departementDe, ecrireParDepartement, telechargerSiAbsent } from './par-departement.ts';
 
 type LireJson = (url: string) => Promise<unknown>;
@@ -60,6 +61,17 @@ export type Desservi = [string, number[], number];
  * arrêts, et aucun passage n'y est prévu. Ni l'un ni l'autre : on ne sait pas.
  */
 export type TransportsCommune = ({ n: number; r: string[]; a?: string[] } | { p: [string, string, number, string[]] }) & { h?: Desservi; z?: 1 };
+
+/**
+ * Les arrêts desservis de la semaine comptée, gardés dans le cache des
+ * horaires pour les croiser avec le carroyage : position, passages du jour
+ * ouvré le moins desservi (du lundi au vendredi), passages de la semaine.
+ */
+export const ARRETS_DESSERVIS = 'arrets-desservis.json';
+export interface ArretsDesservis {
+  semaine: string;
+  a: number[][];
+}
 
 /** Jusqu'à ce nombre d'arrêts, la page les nomme. */
 const NOMMES = 8;
@@ -153,31 +165,8 @@ export async function collecterTransports(sortie: string, lireJson: LireJson, di
 
   const contours = contoursDesCommunes(sortie);
   if (!contours.size) throw new Error('contours des communes absents : lancer d’abord la collecte des espaces naturels');
-  // Une grille d'un dixième de degré pour trouver vite la commune d'un point.
+  const communeDu = localisateur(contours);
   const CASE = 0.1 * ECHELLE;
-  const cadres = new Map<string, [number, number, number, number]>();
-  const grille = new Map<string, string[]>();
-  for (const [code, anneaux] of contours) {
-    let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
-    for (const r of anneaux)
-      for (let i = 0; i < r.length; i += 2) {
-        x0 = Math.min(x0, r[i]);
-        x1 = Math.max(x1, r[i]);
-        y0 = Math.min(y0, r[i + 1]);
-        y1 = Math.max(y1, r[i + 1]);
-      }
-    cadres.set(code, [x0, y0, x1, y1]);
-    for (let cx = Math.floor(x0 / CASE); cx <= Math.floor(x1 / CASE); cx++)
-      for (let cy = Math.floor(y0 / CASE); cy <= Math.floor(y1 / CASE); cy++) (grille.get(`${cx},${cy}`) ?? grille.set(`${cx},${cy}`, []).get(`${cx},${cy}`)!).push(code);
-  }
-  const communeDu = (x: number, y: number): string | null => {
-    for (const code of grille.get(`${Math.floor(x / CASE)},${Math.floor(y / CASE)}`) ?? []) {
-      const k = cadres.get(code)!;
-      if (x < k[0] || x > k[2] || y < k[1] || y > k[3]) continue;
-      if (dedans(x, y, contours.get(code)! as Anneau[])) return code;
-    }
-    return null;
-  };
 
   // Les arrêts, carreau par carreau, dédoublonnés par leur nom et leur position.
   const arrets = new Map<string, Arret>();
@@ -309,6 +298,12 @@ export async function collecterTransports(sortie: string, lireJson: LireJson, di
         else if (!('p' in e) && h.couvertes.has(code)) e.z = 1;
       }
       semaine = `${jours[0].slice(0, 4)}-${jours[0].slice(4, 6)}-${jours[0].slice(6)}`;
+      // Les arrêts desservis et leur position, pour les croiser avec les habitants (`acces-emettre.ts`).
+      const a6 = (v: number) => Math.round(v * 1e5) / 1e5;
+      const points = [...h.desserte.values()].flatMap((m) =>
+        [...m.values()].filter((x) => x.n.some(Boolean)).map((x) => [a6(x.lon), a6(x.lat), Math.min(...x.n.slice(0, 5)), x.n.reduce((u, v) => u + v, 0)]),
+      );
+      writeFileSync(join(cache, 'gtfs', ARRETS_DESSERVIS), JSON.stringify({ semaine, a: points } satisfies ArretsDesservis));
     } catch (e) {
       dire(`  Horaires non lus (${(e as Error).message}) : les arrêts restent, sans leur desserte.`);
     }

@@ -98,7 +98,7 @@ export function brancherRechercheDeliberations(): void {
     const mien = ++tour;
     zone.textContent = '';
     if (!dep.value) {
-      etat.textContent = 'Choisissez un département.';
+      etat.textContent = theme.value ? `Choisissez un département pour voir ses délibérations rangées sous « ${nomFiche.get(theme.value) ?? theme.value} ».` : 'Choisissez un département.';
       return;
     }
     etat.textContent = 'Recherche…';

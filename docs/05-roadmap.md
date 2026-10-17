@@ -5086,6 +5086,16 @@ désormais une délégation ou un arrêté qui finit sur un prénom et un nom,
 hors noms de collectivités (`npm run verifier-particuliers`, 28 cas).
 L'index par compétence arrivera avec la prochaine réingestion.
 
+**Dans les deux sens** (17 octobre 2026). La fiche d'une compétence qui a
+une règle (`/n/<id>`) mène à la recherche déjà réglée sur elle
+(`/deliberations?t=<id>`), avec les mots recherchés ; sans département
+choisi, la page dit lequel choisir pour cette compétence. Sur la page de
+commune, chaque délibération récente dit « Comprendre : » et la fiche qui
+explique son sujet, rangée au build par les mêmes règles ; la phrase de
+source précise qu'elle dit le sujet, pas ce que la délibération décide.
+Les fiches sous les délibérations n'attendent pas la réingestion : elles se
+calculent sur les intitulés déjà publiés.
+
 ### L'audit d'accessibilité élargi (16 octobre 2026)
 
 `npm run verifier-accessibilite` passe de huit à quinze pages — en plus : la
@@ -5268,3 +5278,70 @@ phrase des fiches. **La page reste hors du menu et des moteurs**
 (`PUBLIE = false`) tant qu'un praticien — instructeur, juriste,
 architecte — n'a pas relu ses réponses : c'est au mainteneur de passer le
 drapeau, qui l'ajoute alors à la liste des simulateurs.
+
+**La fiche de relecture** (`docs/09-relecture-autorisations.md`) est ce
+que le praticien lit : chaque cas, les travaux et le terrain en clair, la
+réponse de l'orienteur mot pour mot avec ses raisons et ses suppositions,
+la fiche citée, et deux cases — d'accord, à corriger. Suivent sept
+questions où l'orienteur a choisi faute de texte net (le décret de février
+2026, l'abri accolé, l'agrandissement de 5 m² ou moins, le secteur protégé
+en zone urbaine, la clôture sans réponse sur la commune, la piscine hors
+sol, la surface qui décide de l'architecte). Elle est tirée des cas
+(`scripts/autorisations-cas.ts`) et du modèle par
+`npm run relecture-autorisations` ; `verifier-autorisations` échoue si
+celle du dépôt ne correspond plus à ce que le site répond, les cases
+cochées et les remarques mises à part.
+
+### Les habitants à distance : d'un arrêt desservi, d'un généraliste (17 octobre 2026)
+
+Le carroyage de l'INSEE sert une deuxième fois : `scripts/acces-emettre.ts`
+mesure, du centre de chaque carreau habité et à vol d'oiseau, la distance
+au cabinet de généraliste le plus proche et la présence d'un arrêt desservi
+à 800 mètres, puis pondère par les habitants du carreau. La commune d'un
+carreau est celle dont le contour contient son centre (`localiser.ts`,
+extrait de la collecte des arrêts) ; un cabinet ou un arrêt de la commune
+voisine compte.
+
+**Les généralistes** viennent de la base permanente des équipements
+géolocalisée 2025 (INSEE, `BPE25.zip`, type D265 : les lieux d'exercice
+des généralistes libéraux d'après le RPPS, 61 214 lignes). Seule la
+position est lue, jamais le nom. La page donne la distance sous laquelle
+vit la moitié des habitants, et la part à un, cinq et dix kilomètres, sous
+l'accessibilité potentielle localisée de la DREES, qui dit le reste —
+l'activité des médecins, l'âge de la population, les salariés des centres
+de santé.
+
+**Les arrêts** sont ceux que la collecte des horaires trouve desservis dans
+la semaine comptée : `transports-emettre.ts` les garde dans le cache
+(`.cache/gtfs/arrets-desservis.json`, position et passages du jour ouvré le
+moins desservi). Deux parts : au moins un passage dans la semaine, et au
+moins dix passages chaque jour du lundi au vendredi.
+
+Essayé sur l'Allier (données non publiées) : au Mayet-de-Montagne, la
+moitié des 1 274 habitants vivent à 500 mètres ou moins d'un cabinet,
+69 % à un kilomètre ou moins, tous à cinq ; 67 % à 800 mètres ou moins
+d'un arrêt desservi, aucun d'un arrêt desservi dix fois par jour ouvré (un
+réseau, l'interurbain de l'Allier, n'avait pas répondu ce jour-là). Un
+calcul indépendant en Python — projection LAEA écrite à part, distances
+dans le plan, carreaux pris par leur commune INSEE — donne 70 %, une
+médiane de 535 mètres et 69 %. `verifier-geo` tient la distance à plat
+contre la sphère, le plus proche de la grille contre la recherche
+exhaustive, la lecture d'un extrait de la base et les phrases. Les chiffres
+arriveront avec la prochaine réingestion, qui lit les horaires avant ce
+croisement.
+
+### Le réseau mobile, le car, le médecin : département et région (17 octobre 2026)
+
+Les pages de département et de région réunissent ce que la page de commune
+dit déjà (`src/modele/bilan-portee.ts`, sur le modèle du bilan des
+protections) : les habitants en bonne ou très bonne couverture 4G d'au moins
+un opérateur et ceux qui n'en ont aucune ; les communes où rien ne s'arrête
+dans la semaine comptée — sans arrêt, ou sans passage — et leurs habitants ;
+les habitants à 800 mètres d'un arrêt desservi, puis d'un arrêt desservi dix
+fois par jour ouvré ; ceux qui vivent à un kilomètre ou moins d'un
+généraliste, et à plus de dix. Chaque ligne a son dénominateur — habitants
+du carroyage, ou communes dont la desserte est connue — et se compare à la
+région et à la France entière, calculées des mêmes fichiers. Une commune
+dont les arrêts ne figurent dans aucun fichier d'horaires couvrant la
+semaine n'est pas comptée. Rien ne s'affiche avant la réingestion, qui
+produira la couverture, la desserte et les distances.

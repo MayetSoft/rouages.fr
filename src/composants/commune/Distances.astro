@@ -1,0 +1,29 @@
+---
+/**
+ * Les habitants à distance — du médecin généraliste le plus proche, ou des
+ * arrêts desservis —, d'après le carroyage de l'INSEE. Voir
+ * `scripts/acces-emettre.ts` et `src/modele/distances.ts`.
+ */
+import type { Acces } from '../../modele/fiche-vie.ts';
+import { phraseArrets, phraseMedecin } from '../../modele/distances.ts';
+import { enFrancais } from '../../modele/urbanisme.ts';
+
+interface Props {
+  a: Acces;
+  quoi: 'medecin' | 'arrets';
+}
+const { a, quoi } = Astro.props;
+const phrase = quoi === 'medecin' ? phraseMedecin(a) : phraseArrets(a);
+const source =
+  quoi === 'medecin'
+    ? `D’après le carroyage de l’INSEE (Filosofi ${a.carroyage}, carreaux de 200 mètres) et la base permanente des équipements géolocalisée (INSEE, ${a.bpe}) : les lieux d’exercice des généralistes libéraux, dans la commune ou ailleurs, sans les salariés des centres de santé ; un cabinet proche ne prend pas forcément de nouveaux patients.`
+    : `D’après le carroyage de l’INSEE (Filosofi ${a.carroyage}, carreaux de 200 mètres) et les arrêts que les fichiers d’horaires desservent dans la semaine comptée, dans la commune ou ailleurs.`;
+---
+{phrase && (
+  <>
+    <p class="mesure">{phrase}</p>
+    <p class="p-source-territoire">
+      {`${source} Distances à vol d’oiseau depuis le centre de chaque carreau, pondérées par ceux qui y vivent — les ménages fiscaux, sans les personnes en maison de retraite ou en internat. Calcul du ${enFrancais(a.maj)}.`}
+    </p>
+  </>
+)}

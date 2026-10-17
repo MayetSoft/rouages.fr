@@ -43,8 +43,8 @@ export interface HorairesFlux {
 }
 
 /** Une ligne CSV, guillemets compris ; GTFS n'y met pas de retour à la ligne. */
-export function champs(ligne: string): string[] {
-  if (!ligne.includes('"')) return ligne.split(',');
+export function champs(ligne: string, sep = ','): string[] {
+  if (!ligne.includes('"')) return ligne.split(sep);
   const sortie: string[] = [];
   let cour = '';
   let dans = false;
@@ -57,7 +57,7 @@ export function champs(ligne: string): string[] {
       } else if (c === '"') dans = false;
       else cour += c;
     } else if (c === '"') dans = true;
-    else if (c === ',') {
+    else if (c === sep) {
       sortie.push(cour);
       cour = '';
     } else cour += c;
@@ -226,8 +226,8 @@ export interface JeuGtfs {
   fichiers: { id: string; urls: string[] }[];
 }
 
-/** Par commune et par nom d'arrêt plié : le nom, les passages de chaque jour, les lignes. */
-export type Desserte = Map<string, Map<string, { nom: string; n: number[]; lignes: Set<string> }>>;
+/** Par commune et par nom d'arrêt plié : le nom, la position du premier quai lu, les passages de chaque jour, les lignes. */
+export type Desserte = Map<string, Map<string, { nom: string; lon: number; lat: number; n: number[]; lignes: Set<string> }>>;
 
 export interface CollecteHoraires {
   /** Les sept jours comptés, en AAAAMMJJ. */
@@ -316,7 +316,7 @@ export async function collecterHoraires(
         couvertes.add(code);
         const m = duFichier.get(code) ?? duFichier.set(code, new Map()).get(code)!;
         const cle = plierNom(a.nom);
-        const x = m.get(cle) ?? m.set(cle, { nom: a.nom, n: [0, 0, 0, 0, 0, 0, 0], lignes: new Set() }).get(cle)!;
+        const x = m.get(cle) ?? m.set(cle, { nom: a.nom, lon: a.lon, lat: a.lat, n: [0, 0, 0, 0, 0, 0, 0], lignes: new Set() }).get(cle)!;
         a.n.forEach((v, i) => (x.n[i] += v));
         for (const l of a.lignes) x.lignes.add(`${jeu.id}|${l}`);
       }
@@ -339,7 +339,7 @@ export async function collecterHoraires(
       const d = cible.get(code) ?? cible.set(code, new Map()).get(code)!;
       for (const [cle, x] of m) {
         const y = d.get(cle);
-        if (!y) d.set(cle, { nom: x.nom, n: [...x.n], lignes: new Set(x.lignes) });
+        if (!y) d.set(cle, { ...x, n: [...x.n], lignes: new Set(x.lignes) });
         else {
           x.n.forEach((v, i) => (y.n[i] += v));
           for (const l of x.lignes) y.lignes.add(l);

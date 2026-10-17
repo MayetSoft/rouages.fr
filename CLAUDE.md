@@ -30,6 +30,7 @@ npm run verifier-particuliers  les particuliers nommés dans l'objet d'une déli
 npm run verifier-themes      les délibérations rangées sous la bonne compétence
 npm run verifier-horaires    la lecture des horaires GTFS et le choix de la semaine de classe
 npm run verifier-autorisations  l'orienteur des autorisations d'urbanisme, contre les fiches de service-public.fr
+npm run relecture-autorisations  réécrit la fiche de relecture du praticien (docs/09-…)
 npm run verifier-types       les types, fichiers .astro compris — `tsc` seul ne les voit pas
 npm run verifier-accessibilite  axe-core sur seize pages du build, en clair, en sombre et à 390 px
 npm run build                valide puis génère (le build refuse un contenu invalide)
@@ -43,7 +44,7 @@ docker compose run --rm sonde    ce que la connexion de la machine joint
 ```
 
 `npm run territoires` dure une quarantaine de minutes et touche plus de trente
-sources — dont cinquante-sept collectes facultatives, isolées : celle qui échoue laisse en
+sources — dont soixante-seize collectes facultatives, isolées : celle qui échoue laisse en
 place les fichiers de l'ingestion précédente plutôt que de tout emporter. Ce qui
 reste fatal, ce sont les référentiels dont dépend la structure du réseau,
 BANATIC et le découpage.
@@ -60,7 +61,8 @@ fichiers d'horaires GTFS de tous les réseaux (plus de 0,8 Go, Île-de-France
 Mobilités seule 160 Mo, gardés dans `.cache/gtfs/`), et les cartes de
 couverture 4G de l'Arcep (1,1 Go en 7z, recalculées seulement quand un
 nouveau trimestre paraît), avec le carroyage Filosofi de l'INSEE (92 Mo,
-2,3 millions de carreaux de 200 m). `--cache` les
+2,3 millions de carreaux de 200 m) et la base des équipements géolocalisée
+(143 Mo, 1,5 Go lus en flux, pour la position des généralistes). `--cache` les
 réutilise, et sans lui il faut compter le téléchargement en plus.
 
 La réingestion complète se lance aussi en intégration continue : workflow

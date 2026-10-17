@@ -46,6 +46,7 @@ import Sru from '../../composants/commune/Sru.astro';
 import Marches from '../../composants/commune/Marches.astro';
 import Representants from '../../composants/commune/Representants.astro';
 import Deliberations from '../../composants/commune/Deliberations.astro';
+import Distances from '../../composants/commune/Distances.astro';
 import Subventions from '../../composants/commune/Subventions.astro';
 import Associations from '../../composants/commune/Associations.astro';
 import CentresSociaux from '../../composants/commune/CentresSociaux.astro';
@@ -385,7 +386,7 @@ const sommaire: [string, string, unknown][] = [
   ['travail', 'Le travail', vie.travail],
   ['equipements', 'Ce qu’on trouve sur place', fiche?.equipements],
   ['services', 'Les services', (fiche?.services.length ?? 0) > 0],
-  ['sante', 'Le médecin', vie.sante],
+  ['sante', 'Le médecin', vie.sante || vie.acces?.medecin],
   ['defibrillateurs', 'Les défibrillateurs', vie.defibrillateurs],
   ['petite-enfance', 'Les tout-petits', vie.petiteEnfance],
   ['ecoles', 'Les écoles', vie.ecoles],
@@ -1092,10 +1093,11 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       </section>
     )}
 
-    {vie.sante && (
+    {(vie.sante || vie.acces?.medecin) && (
       <section id="sante">
         <h2 class="badge">Voir un médecin généraliste</h2>
-        <Sante s={vie.sante} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />
+        {vie.sante && <Sante s={vie.sante} depNom={SEULE_DE_SON_DEPARTEMENT.has(commune.code) ? null : commune.depNom} />}
+        {vie.acces?.medecin && <Distances a={vie.acces} quoi="medecin" />}
       </section>
     )}
 
@@ -1219,6 +1221,7 @@ const eau = plus.eau && plus.eau.prix !== null ? plus.eau : null;
       <section id="transports">
         <h2 class="badge">Les transports en commun</h2>
         <Transports t={vie.transports} />
+        {vie.acces?.arrets && <Distances a={vie.acces} quoi="arrets" />}
       </section>
     )}
 

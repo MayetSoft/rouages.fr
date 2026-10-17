@@ -6,16 +6,23 @@
  * aucune consolidation nationale : une collectivité absente d'ici n'est pas
  * une collectivité qui ne délibère pas, c'est une collectivité qui ne verse pas
  * ses actes en données ouvertes. La phrase de source le dit.
+ *
+ * Sous chaque intitulé, la fiche de la compétence qui l'explique, d'après les
+ * mêmes règles écrites que la recherche (`src/modele/themes-deliberations.ts`).
  */
 import type { CollectiviteDelibere } from '../../modele/fiche-commune.ts';
 import Glose from '../Glose.astro';
 import { moisAnnee } from '../../vues/graphiques.ts';
+import { chargerGraphe } from '../../modele/graphe.ts';
+import { THEMES, themesDe } from '../../modele/themes-deliberations.ts';
 
 interface Props {
   liste: CollectiviteDelibere[];
   depuis: string | null;
 }
 const { liste, depuis } = Astro.props;
+const g = chargerGraphe();
+const fiches = (objet: string) => themesDe(objet).map((i) => ({ id: THEMES[i].fiche, nom: g.competences.get(THEMES[i].fiche)?.nom ?? THEMES[i].fiche }));
 ---
 {liste.map((c, rang) => {
   const Groupe = rang > 0 ? 'details' : 'div';
@@ -42,6 +49,12 @@ const { liste, depuis } = Astro.props;
                 ? <a class="p-marche-objet" href={d.url} rel="noopener">{d.objet}</a>
                 : <span class="p-marche-objet">{d.objet}</span>}
               {d.famille && <span class="p-marche-detail">{d.famille.toLowerCase()}</span>}
+              {fiches(d.objet).length > 0 && (
+                <span class="p-delib-fiches">
+                  {'Comprendre\u00a0: '}
+                  {fiches(d.objet).map((f, i) => <>{i ? ' · ' : ''}<a href={`/n/${f.id}`}>{f.nom}</a></>)}
+                </span>
+              )}
             </span>
           </li>
         ))}
@@ -54,5 +67,7 @@ const { liste, depuis } = Astro.props;
     (depuis ? `, depuis ${depuis.slice(0, 4)}` : '') +
     '. Il n’existe pas de recensement national : une collectivité qui n’apparaît pas ici publie ' +
     'ses actes sur son propre site, comme la loi l’y oblige depuis 2022, sans les verser en ' +
-    'données ouvertes. Les délibérations dont l’objet nomme une personne ne sont pas reprises.'}
+    'données ouvertes. Les délibérations dont l’objet nomme une personne ne sont pas reprises. ' +
+    'La compétence sous un intitulé vient de règles écrites sur ses mots, publiées avec la recherche : ' +
+    'elle dit quelle fiche explique le sujet, pas ce que la délibération décide.'}
 </p>
