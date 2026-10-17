@@ -31,6 +31,8 @@ import Marches from './commune/Marches.astro';
 import { elusDeCollectivite } from '../modele/elus-echelons.ts';
 import { bilanProtections, comparaisonProtections } from '../modele/bilan-protections.ts';
 import BilanProtections from './BilanProtections.astro';
+import { bilanPortee } from '../modele/bilan-portee.ts';
+import BilanPortee from './BilanPortee.astro';
 
 interface Props {
   c: Collectivite;
@@ -104,6 +106,8 @@ const protections = c.code === '691' ? null : bilanProtections(deps);
 const depsRegion =
   c.echelon === 'departement' ? Object.entries(meta?.codesRegion ?? {}).filter(([, r]) => r === meta?.codesRegion?.[deps[0]]).map(([d]) => d) : null;
 const comparaison = protections ? comparaisonProtections(deps, depsRegion) : null;
+// Le réseau, le car, le médecin : même partage que le bilan des protections pour le Rhône et la Métropole.
+const portee = c.code === '691' ? null : bilanPortee(deps, depsRegion);
 const investissement = c.echelon === 'departement' ? investissementCollectivite('departement', c.code) : null;
 const petiteEnfance = partage || c.code === '67A' ? null : petiteEnfanceCollectivite(c.echelon, c.code);
 
@@ -223,6 +227,12 @@ const titre = c.echelon === 'departement' ? c.nom : `${c.nom}${unique ? '' : ' (
           ou={c.echelon === 'departement' ? 'ce département' : 'cette région'}
           comparaison={comparaison}
         />
+      </section>
+    )}
+    {portee && (
+      <section id="portee">
+        <h2 class="badge">Le réseau mobile, le car, le médecin</h2>
+        <BilanPortee b={portee} ou={c.echelon === 'departement' ? 'ce département' : 'cette région'} />
       </section>
     )}
     {petiteEnfance && (

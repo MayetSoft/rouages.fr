@@ -5329,3 +5329,19 @@ contre la sphère, le plus proche de la grille contre la recherche
 exhaustive, la lecture d'un extrait de la base et les phrases. Les chiffres
 arriveront avec la prochaine réingestion, qui lit les horaires avant ce
 croisement.
+
+### Le réseau mobile, le car, le médecin : département et région (17 octobre 2026)
+
+Les pages de département et de région réunissent ce que la page de commune
+dit déjà (`src/modele/bilan-portee.ts`, sur le modèle du bilan des
+protections) : les habitants en bonne ou très bonne couverture 4G d'au moins
+un opérateur et ceux qui n'en ont aucune ; les communes où rien ne s'arrête
+dans la semaine comptée — sans arrêt, ou sans passage — et leurs habitants ;
+les habitants à 800 mètres d'un arrêt desservi, puis d'un arrêt desservi dix
+fois par jour ouvré ; ceux qui vivent à un kilomètre ou moins d'un
+généraliste, et à plus de dix. Chaque ligne a son dénominateur — habitants
+du carroyage, ou communes dont la desserte est connue — et se compare à la
+région et à la France entière, calculées des mêmes fichiers. Une commune
+dont les arrêts ne figurent dans aucun fichier d'horaires couvrant la
+semaine n'est pas comptée. Rien ne s'affiche avant la réingestion, qui
+produira la couverture, la desserte et les distances.
