@@ -8,21 +8,7 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { national } from '../../../modele/fiche-commune.ts';
 import { communes, metaTerritoires } from '../../../modele/territoires.ts';
-import { COLLECTIVITES_SIRENS } from '../../../modele/collectivites-sirens.ts';
-
-/** « l’Allier », « le Cantal », « la Loire », « les Landes » : d'après le nom officiel de la collectivité. */
-const officiels = new Map([...COLLECTIVITES_SIRENS.values()].filter((c) => c.echelon === 'departement').map((c) => [c.code, c.nom]));
-function avecArticle(dep: string, nom: string): string {
-  const o = officiels.get(dep)?.replace(/^Département /, '');
-  if (!o) return nom;
-  return o
-    .replace(/^de la /, 'la ')
-    .replace(/^de l’/, 'l’')
-    .replace(/^du /, 'le ')
-    .replace(/^des /, 'les ')
-    .replace(/^d’/, '')
-    .replace(/^de /, '');
-}
+import { avecArticle } from '../../../modele/article-departement.ts';
 
 const silhouettes = national<{ maj: string; millesime: string; d: Record<string, number[][]> }>('contours-departements.json');
 

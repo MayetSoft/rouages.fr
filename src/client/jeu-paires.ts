@@ -4,7 +4,7 @@
  * en retourne deux ; une paire juste reste visible. Le score est le nombre de
  * coups ; chaque paire a sa case, selon les erreurs commises sur ses cartes.
  */
-import { brancherPartage, EMOJI, feter, hasard, jourDeParis, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, feter, hasard, jourDuJeu, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 type Paire = [string, string, string, string, string, string];
 type Carte = { paire: number; cote: 'objet' | 'porte'; emoji: string; texte: string };
@@ -17,7 +17,7 @@ export function brancherPaires(): void {
     portes: Record<string, [string, string]>;
   };
   const garde = memoire('rouages-jeu-paires');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   let tirees: Paire[] = [];
   let cartes: Carte[] = [];
   let trouvees = new Set<number>();

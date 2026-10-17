@@ -1,0 +1,82 @@
+---
+/**
+ * Devine la courbe : la population de sa commune depuis 1876, à tracer avant
+ * de voir la vraie — le format que le New York Times a rendu célèbre sous le
+ * nom « You Draw It ». Les chiffres sont ceux de la page de la commune :
+ * les séries historiques du recensement, lues dans `/jeux/courbes/XX.json`.
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Devine la courbe"
+  description="Combien d’habitants votre commune comptait-elle en 1900, en 1950, en 1990 ? Tracez la courbe de sa population depuis 1876, puis découvrez la vraie, d’après le recensement."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Comprendre · dès 10 ans</p>
+    <h1>Devine la courbe</h1>
+    <p class="resume">
+      Votre commune a-t-elle grandi, ou s’est-elle vidée&nbsp;? Tracez au doigt la courbe de sa population depuis
+      1876, puis regardez la vraie se dessiner par-dessus.
+    </p>
+
+    <div id="jc" class="jeu">
+      <ChampLieuJeu
+        id="jc-lieu"
+        etiquette="Votre commune"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+      <p id="jc-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <section id="jc-manche" class="jeu-carte" hidden>
+        <p class="jeu-compteur" id="jc-compteur"></p>
+        <p class="jeu-question" id="jc-titre"></p>
+        <p class="jeu-details">Glissez le doigt ou la souris de gauche à droite, depuis le point de départ. Au clavier&nbsp;: les flèches.</p>
+        <div class="jc-zone" id="jc-zone"></div>
+        <p class="jeu-details" id="jc-aide" aria-live="polite"></p>
+        <p class="jc-actions">
+          <button class="bouton jeu-bouton" type="button" id="jc-voir" disabled>Voir la vraie courbe</button>
+          <button class="plat" type="button" id="jc-effacer">Effacer</button>
+        </p>
+        <div id="jc-fin" hidden aria-live="polite">
+          <p class="jeu-score"><span id="jc-score"></span> <span id="jc-cases" class="jeu-cases"></span></p>
+          <p class="jeu-contexte" id="jc-verdict"></p>
+          <p class="jeu-contexte"><a id="jc-lien"></a> — son histoire, recensement par recensement.</p>
+          <PartageJeu id="jc" />
+          <button class="plat" type="button" id="jc-hasard">Une autre commune du département, au hasard</button>
+        </div>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Le premier recensement, celui de 1876, est donné. Tracez la suite jusqu’au dernier, puis comparez.</li>
+      <li>Le score dit de combien vous vous êtes trompé en moyenne, en proportion de la vraie population&nbsp;: 100, c’est parfait.</li>
+      <li>Une case par époque — avant 1945, l’après-guerre, les années 1980 et 1990, les années 2000 et 2010, aujourd’hui&nbsp;: 🟩 à 10&nbsp;% près, 🟨 à 20&nbsp;%, 🟧 à 35&nbsp;%, 🟥 au-delà.</li>
+      <li>Les bandes grises marquent les deux guerres mondiales. Votre tracé reste dans votre navigateur&nbsp;; le partage montre la commune, les cases et le score.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <p class="mesure">
+      INSEE, séries historiques des résultats du recensement, de 1876 au dernier millésime, ramenées à la géographie
+      communale en vigueur&nbsp;: une commune nouvelle a la population de celles qu’elle réunit. Trois définitions se
+      succèdent dans la même série — population totale jusqu’en 1954, sans doubles comptes de 1962 à 1999, municipale
+      depuis 2006&nbsp;: comparer 1876 à aujourd’hui reste une lecture de tendance. Ce sont les chiffres de la page de
+      chaque commune.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import { brancherCourbe } from '../../client/jeu-courbe.ts';
+  brancherCourbe();
+</script>

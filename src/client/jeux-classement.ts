@@ -12,7 +12,7 @@
  * `-verdict`, `-contexte`, `-fin`, `-score`, `-cases`, `-libre`, et le bloc
  * de `PartageJeu.astro`.
  */
-import { brancherPartage, type CleJeu, EMOJI, hasard, jourDeParis, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, type CleJeu, EMOJI, hasard, jourDuJeu, melanger, memoire, type Case, type Resultat } from './jeux-commun.ts';
 
 export interface Element {
   texte: string;
@@ -51,7 +51,7 @@ export function brancherClassement(r: Reglage): void {
   const liste = $<HTMLOListElement>('liste');
   if (!liste) return;
   const garde = memoire(r.memoire);
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const valider = $<HTMLButtonElement>('valider');
   const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`;
 

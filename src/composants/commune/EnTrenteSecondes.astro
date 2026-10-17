@@ -1,0 +1,50 @@
+---
+/**
+ * « En 30 secondes », sur la page de la commune : un bouton qui ouvre le
+ * récit animé dans une fenêtre (`src/client/recit-commune.ts`). L'adresse
+ * `#en-30-secondes` l'ouvre directement : c'est le lien qu'on partage.
+ */
+interface Props {
+  code: string;
+  nom: string;
+}
+const { code, nom } = Astro.props;
+import '../../styles/recit.css';
+---
+<button type="button" class="rc-lancer" data-recit={code} data-nom={nom}>
+  <span class="rc-lancer-icone" aria-hidden="true">▶</span>
+  <span>
+    <strong>{`${nom} en 30 secondes`}</strong>
+    <small>Ses habitants, son budget, ses maisons, ses associations, en cartes animées — à partager.</small>
+  </span>
+</button>
+<dialog class="rc-dialogue" id="en-30-secondes" aria-label={`${nom} en 30 secondes`}>
+  <div class="rc-cadre"></div>
+</dialog>
+
+<script>
+  import { chargerRecit, ecranFin, lire } from '../../client/recit-commune.ts';
+
+  const bouton = document.querySelector<HTMLButtonElement>('[data-recit]');
+  const dialogue = document.getElementById('en-30-secondes') as HTMLDialogElement | null;
+  if (bouton && dialogue) {
+    const code = bouton.dataset.recit!;
+    const cadre = dialogue.querySelector<HTMLElement>('.rc-cadre')!;
+    const fermer = () => {
+      dialogue.close();
+      if (location.hash === '#en-30-secondes') history.replaceState(null, '', location.pathname + location.search);
+    };
+    const ouvrir = async () => {
+      bouton.disabled = true;
+      const d = await chargerRecit(code);
+      bouton.disabled = false;
+      if (!d) return;
+      dialogue.showModal();
+      const jouer = () => lire(cadre, d, { jeu: false, fermer, fin: () => ecranFin(cadre, d, { rejouer: jouer, fermer }) });
+      jouer();
+    };
+    bouton.addEventListener('click', () => void ouvrir());
+    dialogue.addEventListener('click', (e) => e.target === dialogue && fermer());
+    if (location.hash === '#en-30-secondes') void ouvrir();
+  }
+</script>

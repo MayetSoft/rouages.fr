@@ -16,6 +16,7 @@ const { id } = Astro.props;
 const LIENS: Reseau[] = ['whatsapp', 'facebook', 'x', 'bluesky', 'linkedin'];
 ---
 <div id={`${id}-partage`} class="pj" hidden>
+  <div id={`${id}-duel`} class="pj-duel" hidden aria-live="polite"></div>
   <div class="pj-suivi">
     <p class="pj-serie"><strong id={`${id}-serie`}></strong> · <span id={`${id}-rebours`}></span></p>
     <ol class="pj-semaine" id={`${id}-semaine`} aria-label="Vos sept derniers jours"></ol>
@@ -37,6 +38,14 @@ const LIENS: Reseau[] = ['whatsapp', 'facebook', 'x', 'bluesky', 'linkedin'];
     </span>
   </div>
   <p id={`${id}-note-image`} class="pj-titre pj-note" hidden aria-live="polite"></p>
+  <div class="pj-defier">
+    <p class="pj-titre">Défier quelqu’un — la même partie, à battre</p>
+    <label class="pj-pseudo">Votre prénom ou un pseudo, pour qu’on sache qui défie <small>(facultatif, il n’est mis que dans le lien)</small>
+      <input id={`${id}-pseudo`} maxlength="24" autocomplete="nickname" />
+    </label>
+    <button class="bouton pj-bouton" type="button" id={`${id}-defier`}>⚔️ Envoyer un duel</button>
+    <p id={`${id}-note-duel`} class="pj-titre pj-note" hidden aria-live="polite"></p>
+  </div>
 </div>
 
 <style>

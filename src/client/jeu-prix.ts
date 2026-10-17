@@ -15,7 +15,7 @@
  */
 import { aLieu } from '../modele/signalement.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, memoire, progression, type Case, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDuJeu, memoire, progression, type Case, type Resultat } from './jeux-commun.ts';
 
 /** [année, 0 maison ou 1 appartement, prix, surface, pièces, terrain] — voir `ventesDuJeu`. */
 type VenteJeu = [number, 0 | 1, number, number, number, number];
@@ -135,7 +135,7 @@ export function brancherJeuPrix(): void {
   let partie: Manche[] = [];
   let courante = 0;
   let duJour = true;
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const cleDuJour = () => `${jour}:${lieu!.cle}`;
 
   const resultat = (): Resultat | null =>

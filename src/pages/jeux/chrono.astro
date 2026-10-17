@@ -1,0 +1,102 @@
+---
+/**
+ * Le chrono de l'interco : nommer, avant la fin du temps, toutes les
+ * communes de son intercommunalité. La carte se remplit à chaque bonne
+ * réponse. Les noms et les contours sont ceux de `/jeux/communes/XX.json`.
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Le chrono de l’interco"
+  description="Combien de communes de votre intercommunalité savez-vous nommer avant la fin du chrono ? La carte se remplit à chaque bonne réponse."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Comprendre · dès 10 ans</p>
+    <h1>Le chrono de l’interco</h1>
+    <p class="resume">
+      Votre intercommunalité réunit des dizaines de communes. Combien savez-vous en nommer avant la fin du
+      chrono&nbsp;? À chaque bonne réponse, la carte se remplit.
+    </p>
+
+    <div id="jh" class="jeu">
+      <ChampLieuJeu
+        id="jh-lieu"
+        etiquette="Votre intercommunalité — ou tapez votre commune"
+        placeholder="Vichy Communauté, Moulins Communauté…"
+        exemples={mayet ? [{ cle: 'e-200071363', nom: 'Vichy Communauté' }] : []}
+      />
+      <p id="jh-message" class="jeu-message" hidden aria-live="polite"></p>
+
+      <div id="jh-choix" class="jeu-choix" hidden>
+        <p><strong id="jh-lieu-nom"></strong><span id="jh-lieu-detail"></span></p>
+        <button class="bouton jeu-bouton" type="button" id="jh-jouer">Lancer le chrono</button>
+      </div>
+
+      <section id="jh-manche" class="jeu-carte" hidden>
+        <div class="jh-tableau">
+          <span class="jh-temps" id="jh-temps" aria-label="Temps restant">0:00</span>
+          <span class="jh-compte" id="jh-compte" aria-live="polite"></span>
+        </div>
+        <label class="jh-saisie" for="jh-saisie">
+          Tapez un nom — il se valide tout seul, sans accents ni article
+          <input id="jh-saisie" class="jeu-saisie" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Cusset, Le Mayet-de-Montagne…" />
+        </label>
+        <div class="jh-carte" id="jh-carte"></div>
+        <ul class="jh-liste" id="jh-liste" aria-label="Communes trouvées"></ul>
+        <button class="plat" type="button" id="jh-abandon">J’arrête là</button>
+      </section>
+
+      <section id="jh-fin" class="jeu-carte" hidden aria-live="polite">
+        <p class="jeu-score"><span id="jh-score"></span> <span id="jh-cases" class="jeu-cases"></span></p>
+        <p class="jeu-contexte" id="jh-verdict"></p>
+        <PartageJeu id="jh" />
+        <button class="plat" type="button" id="jh-libre">Rejouer</button>
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Quatre secondes par commune de l’intercommunalité, une minute et demie au moins. Le chrono part au premier clic.</li>
+      <li>Un nom se reconnaît sans accents, traits d’union ni article&nbsp;: «&nbsp;mayet de montagne&nbsp;» suffit.</li>
+      <li>Cinq cases, un cinquième des communes chacune&nbsp;: 🟩 toutes trouvées, 🟨 en partie, 🟥 aucune. Une partie du jour par intercommunalité&nbsp;; on peut rejouer pour s’entraîner.</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <p class="mesure">La composition des intercommunalités d’après BANATIC, et les contours d’Admin Express (IGN), comme sur la page de chaque intercommunalité.</p>
+  </div>
+</Base>
+
+<script>
+  import { brancherChrono } from '../../client/jeu-chrono.ts';
+  brancherChrono();
+</script>
+
+<style is:global>
+  .jh-tableau { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 .6rem; }
+  .jh-temps { font-family: var(--titre); font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .jh-temps--fin { color: #cf3b2f; }
+  .jh-compte { font-size: 1.1rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .jh-saisie { display: grid; gap: .3rem; font-size: .88rem; color: var(--encre-douce); margin: 0 0 .8rem; }
+  .jh-carte svg { width: 100%; max-height: 26rem; display: block; margin: 0 0 .8rem; }
+  .jh-c { fill: var(--fond-doux); stroke: var(--trait-fort); stroke-width: 1; transition: fill .4s ease; }
+  .jh-c--trouvee { fill: #2e9e5b; }
+  .jh-c--manquee { fill: #cf3b2f; opacity: .75; }
+  .jh-liste { list-style: none; padding: 0; margin: 0 0 .8rem; display: flex; flex-wrap: wrap; gap: .3rem; font-size: .82rem; }
+  .jh-liste li { background: #e3f3e9; border-radius: 999px; padding: .1rem .55rem; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .jh-liste li { background: #183a26; } }
+  :root[data-theme="dark"] .jh-liste li { background: #183a26; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes jh-flash { 0% { fill: #e6b422; } 100% { fill: #2e9e5b; } }
+    .jh-c--nouvelle { animation: jh-flash .8s ease-out; }
+    .jh-liste li:first-child { animation: jeu-rebond .35s ease-out; }
+  }
+</style>

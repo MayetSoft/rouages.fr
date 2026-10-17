@@ -15,7 +15,7 @@ import {
   EMOJI,
   feter,
   hasard,
-  jourDeParis,
+  jourDuJeu,
   memoire,
   progression,
   reussie,
@@ -65,7 +65,7 @@ export function brancherQuiz(r: ReglageQuiz): void {
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(`${r.prefixe}-${id}`) as T;
   if (!$('manche')) return;
   const garde = memoire(`rouages-jeu-${r.cle}`);
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   let partie: (QuestionQuiz & { choix?: number })[] = [];
   let courante = 0;
   let duJour = true;

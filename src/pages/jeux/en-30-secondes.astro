@@ -1,0 +1,104 @@
+---
+/**
+ * « Ta commune en 30 secondes », en jeu : les cartes du récit de la page de
+ * commune, chacune précédée d'une question. Une case par question. Le récit
+ * seul est sur la page de chaque commune (`#en-30-secondes`).
+ */
+import Base from '../../layouts/Base.astro';
+import ChampLieuJeu from '../../composants/jeux/ChampLieuJeu.astro';
+import PartageJeu from '../../composants/jeux/PartageJeu.astro';
+import '../../styles/jeux.css';
+import '../../styles/recit.css';
+
+const filtre = process.env.ROUAGES_DEPS?.split(',').map((d) => d.trim()).filter(Boolean);
+const mayet = !filtre?.length || filtre.includes('03');
+---
+<Base
+  titre="Ta commune en 30 secondes"
+  description="Plus de naissances ou de décès ? Le prix d’une maison ? Le plus gros poste du budget ? Sept questions sur votre commune, et les vraies réponses en cartes animées, à partager."
+  section="jeux"
+  image="/apercus/jeux.png"
+>
+  <div class="page page--etroite">
+    <p class="badge"><a href="/jeux">Jeux</a> · Découvrir · dès 10 ans</p>
+    <h1>Ta commune en 30 secondes</h1>
+    <p class="resume">
+      Connaissez-vous vraiment votre commune&nbsp;? Une question par carte — ses habitants, ses naissances, son budget,
+      ses maisons, ses associations, son vote, son eau —, puis la réponse, animée.
+    </p>
+
+    <div id="j3" class="jeu">
+      <ChampLieuJeu
+        id="j3-lieu"
+        etiquette="Votre commune"
+        placeholder="Le Mayet-de-Montagne, 03250…"
+        exemples={mayet ? [{ cle: 'c-03165', nom: 'Le Mayet-de-Montagne' }] : []}
+      />
+      <p id="j3-message" class="jeu-message" hidden aria-live="polite"></p>
+      <div id="j3-lecteur" hidden></div>
+      <section id="j3-fin" class="jeu-carte" hidden aria-live="polite">
+        <PartageJeu id="j3" />
+      </section>
+      <noscript><p class="mesure">Le jeu a besoin de JavaScript.</p></noscript>
+    </div>
+
+    <h2 class="badge">La règle</h2>
+    <ul class="accueil-themes">
+      <li>Une question par carte, trois réponses possibles&nbsp;; la carte montre ensuite le vrai chiffre et sa source. Une case par question&nbsp;: 🟩 juste, 🟥 faux.</li>
+      <li>Une carte dont la commune n’a pas le chiffre — pas de vente de maison, pas de prix de l’eau publié — est sautée.</li>
+      <li>Le récit sans les questions, qui défile seul, est sur la page de chaque commune&nbsp;: le bouton «&nbsp;en 30 secondes&nbsp;».</li>
+    </ul>
+
+    <h2 class="badge">Sources</h2>
+    <p class="mesure">
+      Les chiffres de la page de la commune&nbsp;: les recensements et l’état civil de l’INSEE, les comptes publiés par
+      l’OFGL, les ventes de logements de la DGFiP (DVF), le répertoire national des associations, les résultats des
+      élections du ministère de l’Intérieur, les prix de l’eau de l’observatoire SISPEA, les contours d’Admin Express
+      (IGN). Chaque carte dit sa source et son millésime.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type OptionsLieu } from '../../client/jeux-lieu.ts';
+  import { brancherPartage, jourDuJeu, memoire, type Case, type Resultat } from '../../client/jeux-commun.ts';
+  import { chargerRecit, ecranFin, lire } from '../../client/recit-commune.ts';
+
+  const LIEUX: OptionsLieu = { source: '/jeux/territoires.json', genres: ['commune'] };
+  const $ = (id: string) => document.getElementById(`j3-${id}`) as HTMLElement;
+  brancherChampLieu('j3-lieu', LIEUX);
+  const garde = memoire('rouages-jeu-30s');
+  const jour = jourDuJeu();
+  let res: Resultat | null = null;
+  const remplir = brancherPartage('j3', () => res, 'trente');
+  const message = (t: string) => (($('message').textContent = t), ($('message').hidden = !t));
+
+  quandLieu(LIEUX, garde.lire<string>('lieu'), (cle) => {
+    void (async () => {
+      const lieu = await resoudre(cle, LIEUX).catch(() => null);
+      if (!lieu) return message('Cherchez votre commune par son nom ou son code postal.');
+      const d = await chargerRecit(lieu.cle.slice(2));
+      if (!d) return message('Les chiffres de cette commune n’ont pas pu être lus.');
+      message('');
+      garde.ecrire('lieu', lieu.cle);
+      retenirLieu(lieu.cle);
+      const cadre = $('lecteur');
+      cadre.hidden = false;
+      $('fin').hidden = true;
+      const finir = (cases: Case[], premiere: boolean) => {
+        const score = `${cases.filter((c) => c === 'vert').length}/${cases.length}`;
+        ecranFin(cadre, d, { jeu: { cases, score }, rejouer: () => jouer(false) });
+        res = { jeu: 'Ta commune en 30 secondes', embleme: '⏱️', lieu: d.nom, jour, cases, score, adresse: `${location.origin}${location.pathname}?t=${encodeURIComponent(lieu.cle)}` };
+        if (premiere) garde.ecrire(`${jour}:${lieu.cle}`, cases);
+        $('fin').hidden = false;
+        remplir(res);
+      };
+      const jouer = (duJour: boolean) => {
+        const deja = duJour ? garde.lire<Case[]>(`${jour}:${lieu.cle}`) : null;
+        lire(cadre, d, { jeu: true, fin: (cases) => finir(cases, duJour) });
+        if (deja) finir(deja, false);
+      };
+      jouer(true);
+    })();
+  });
+</script>

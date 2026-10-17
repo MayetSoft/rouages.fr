@@ -8,7 +8,7 @@
  */
 import { aLieu } from '../modele/signalement.ts';
 import { brancherChampLieu, quandLieu, resoudre, retenirLieu, type Lieu, type OptionsLieu } from './jeux-lieu.ts';
-import { brancherPartage, EMOJI, hasard, jourDeParis, melanger, memoire, progression, type Resultat } from './jeux-commun.ts';
+import { brancherPartage, EMOJI, hasard, jourDuJeu, melanger, memoire, progression, type Resultat } from './jeux-commun.ts';
 
 type Genre = 'T' | 'L' | 'C' | 'R' | 'D' | 'E';
 type Reponse = [number, Genre, ...number[]];
@@ -32,7 +32,7 @@ export function brancherJeuQui(): void {
   if (!$('jq')) return;
   brancherChampLieu('jq-lieu', LIEUX);
   const garde = memoire('rouages-jeu-qui');
-  const jour = jourDeParis();
+  const jour = jourDuJeu();
   const jouer = $<HTMLButtonElement>('jq-jouer');
   const fichiers = new Map<string, Promise<Fichier>>();
   const charger = (dep: string) => {
