@@ -22,6 +22,7 @@
     "verifier-themes": "tsx scripts/verifier-themes.ts",
     "verifier-horaires": "tsx scripts/verifier-horaires.ts",
     "verifier-autorisations": "tsx scripts/verifier-autorisations.ts",
+    "relecture-autorisations": "tsx scripts/relecture-autorisations.ts",
     "verifier-accessibilite": "tsx scripts/verifier-accessibilite.ts",
     "verifier-geo": "tsx scripts/verifier-geo.ts",
     "verifier-veille-aides": "tsx scripts/verifier-veille-aides.ts",

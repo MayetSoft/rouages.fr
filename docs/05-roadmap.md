@@ -5268,3 +5268,16 @@ phrase des fiches. **La page reste hors du menu et des moteurs**
 (`PUBLIE = false`) tant qu'un praticien — instructeur, juriste,
 architecte — n'a pas relu ses réponses : c'est au mainteneur de passer le
 drapeau, qui l'ajoute alors à la liste des simulateurs.
+
+**La fiche de relecture** (`docs/09-relecture-autorisations.md`) est ce
+que le praticien lit : chaque cas, les travaux et le terrain en clair, la
+réponse de l'orienteur mot pour mot avec ses raisons et ses suppositions,
+la fiche citée, et deux cases — d'accord, à corriger. Suivent sept
+questions où l'orienteur a choisi faute de texte net (le décret de février
+2026, l'abri accolé, l'agrandissement de 5 m² ou moins, le secteur protégé
+en zone urbaine, la clôture sans réponse sur la commune, la piscine hors
+sol, la surface qui décide de l'architecte). Elle est tirée des cas
+(`scripts/autorisations-cas.ts`) et du modèle par
+`npm run relecture-autorisations` ; `verifier-autorisations` échoue si
+celle du dépôt ne correspond plus à ce que le site répond, les cases
+cochées et les remarques mises à part.

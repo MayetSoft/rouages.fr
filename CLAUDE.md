@@ -30,6 +30,7 @@ npm run verifier-particuliers  les particuliers nommés dans l'objet d'une déli
 npm run verifier-themes      les délibérations rangées sous la bonne compétence
 npm run verifier-horaires    la lecture des horaires GTFS et le choix de la semaine de classe
 npm run verifier-autorisations  l'orienteur des autorisations d'urbanisme, contre les fiches de service-public.fr
+npm run relecture-autorisations  réécrit la fiche de relecture du praticien (docs/09-…)
 npm run verifier-types       les types, fichiers .astro compris — `tsc` seul ne les voit pas
 npm run verifier-accessibilite  axe-core sur seize pages du build, en clair, en sombre et à 390 px
 npm run build                valide puis génère (le build refuse un contenu invalide)
