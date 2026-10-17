@@ -5291,3 +5291,41 @@ sol, la surface qui décide de l'architecte). Elle est tirée des cas
 `npm run relecture-autorisations` ; `verifier-autorisations` échoue si
 celle du dépôt ne correspond plus à ce que le site répond, les cases
 cochées et les remarques mises à part.
+
+### Les habitants à distance : d'un arrêt desservi, d'un généraliste (17 octobre 2026)
+
+Le carroyage de l'INSEE sert une deuxième fois : `scripts/acces-emettre.ts`
+mesure, du centre de chaque carreau habité et à vol d'oiseau, la distance
+au cabinet de généraliste le plus proche et la présence d'un arrêt desservi
+à 800 mètres, puis pondère par les habitants du carreau. La commune d'un
+carreau est celle dont le contour contient son centre (`localiser.ts`,
+extrait de la collecte des arrêts) ; un cabinet ou un arrêt de la commune
+voisine compte.
+
+**Les généralistes** viennent de la base permanente des équipements
+géolocalisée 2025 (INSEE, `BPE25.zip`, type D265 : les lieux d'exercice
+des généralistes libéraux d'après le RPPS, 61 214 lignes). Seule la
+position est lue, jamais le nom. La page donne la distance sous laquelle
+vit la moitié des habitants, et la part à un, cinq et dix kilomètres, sous
+l'accessibilité potentielle localisée de la DREES, qui dit le reste —
+l'activité des médecins, l'âge de la population, les salariés des centres
+de santé.
+
+**Les arrêts** sont ceux que la collecte des horaires trouve desservis dans
+la semaine comptée : `transports-emettre.ts` les garde dans le cache
+(`.cache/gtfs/arrets-desservis.json`, position et passages du jour ouvré le
+moins desservi). Deux parts : au moins un passage dans la semaine, et au
+moins dix passages chaque jour du lundi au vendredi.
+
+Essayé sur l'Allier (données non publiées) : au Mayet-de-Montagne, la
+moitié des 1 274 habitants vivent à 500 mètres ou moins d'un cabinet,
+69 % à un kilomètre ou moins, tous à cinq ; 67 % à 800 mètres ou moins
+d'un arrêt desservi, aucun d'un arrêt desservi dix fois par jour ouvré (un
+réseau, l'interurbain de l'Allier, n'avait pas répondu ce jour-là). Un
+calcul indépendant en Python — projection LAEA écrite à part, distances
+dans le plan, carreaux pris par leur commune INSEE — donne 70 %, une
+médiane de 535 mètres et 69 %. `verifier-geo` tient la distance à plat
+contre la sphère, le plus proche de la grille contre la recherche
+exhaustive, la lecture d'un extrait de la base et les phrases. Les chiffres
+arriveront avec la prochaine réingestion, qui lit les horaires avant ce
+croisement.

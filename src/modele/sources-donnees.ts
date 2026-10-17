@@ -152,7 +152,8 @@ const ENTREES: Entree[] = [
     liens: [{ titre: 'Diplômes et formation, recensement 2023 (INSEE)', url: melodi('DS_RP_DIPLOMES_PRINC', 2023) }],
   },
   {
-    motif: /Filosofi|niveau de vie/i,
+    // Le carroyage (« Filosofi 2021, carreaux de 200 mètres ») a son entrée plus bas.
+    motif: /Filosofi(?! \d{4}, carreaux)|niveau de vie/i,
     liens: [{ titre: 'Revenus et pauvreté, Filosofi 2023 (INSEE)', url: melodi('DS_FILOSOFI_CC', 2023) }],
   },
 
@@ -223,7 +224,8 @@ const ENTREES: Entree[] = [
 
   // --- Vivre là -------------------------------------------------------------
   {
-    motif: /base permanente des équipements/i,
+    // La base géolocalisée a son entrée plus bas.
+    motif: /base permanente des équipements(?! géolocalisée)/i,
     liens: [
       { titre: 'Base permanente des équipements (INSEE)', url: 'https://www.insee.fr/fr/statistiques/8217527' },
       { titre: 'Le fichier', url: 'https://www.insee.fr/fr/statistiques/fichier/8217527/DS_BPE_CSV_FR.zip' },
@@ -307,6 +309,17 @@ const ENTREES: Entree[] = [
     motif: /Agence ORE/,
     liens: [
       { titre: 'Consommation d’électricité et de gaz par commune (Agence ORE)', url: 'https://opendata.agenceore.fr/datasets/consommation-annuelle-d-electricite-et-gaz-par-commune' },
+    ],
+  },
+  {
+    motif: /carroyage de l.INSEE/i,
+    liens: [{ titre: 'Revenus, pauvreté et niveau de vie, données carroyées à 200 mètres (Filosofi 2021, INSEE)', url: 'https://www.insee.fr/fr/statistiques/8735162' }],
+  },
+  {
+    motif: /équipements géolocalisée/i,
+    liens: [
+      { titre: 'Équipements géolocalisés 2025 (INSEE)', url: 'https://www.insee.fr/fr/statistiques/8217525' },
+      { titre: 'Le fichier', url: 'https://www.insee.fr/fr/statistiques/fichier/8217525/BPE25.zip' },
     ],
   },
   {

@@ -14,6 +14,8 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { km, medecins, Voisinage } from './acces-emettre.ts';
+import { distance, phraseArrets, phraseMedecin } from '../src/modele/distances.ts';
 import { anneauxGpkg, poser } from './couverture-emettre.ts';
 import { depuisLaea3035, depuisLambert93, depuisUtm, lireGml, lireShapefile } from './geo-formats.ts';
 import { zip } from './zip-essai.ts';
@@ -276,6 +278,66 @@ try {
   attendre('Grille : anneau, trou, dehors', obtenu.join() === '2,0,0', obtenu, 'Un point de l’anneau prend le niveau ; le trou et le dehors restent à zéro.');
   poser(rs.map((r) => r.a), g, 1, niveaux);
   attendre('Grille : un niveau plus faible n’écrase pas', au(701000, 6605000) === 2, au(701000, 6605000), 'Chaque point garde le meilleur niveau posé.');
+}
+
+// Les habitants à distance : la distance à plat contre la formule de la sphère,
+// le plus proche de la grille contre la recherche exhaustive, et la lecture
+// des généralistes dans un extrait de la base des équipements.
+{
+  const haversine = (lo1: number, la1: number, lo2: number, la2: number) => {
+    const r = Math.PI / 180;
+    const h = Math.sin(((la2 - la1) * r) / 2) ** 2 + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin(((lo2 - lo1) * r) / 2) ** 2;
+    return 2 * 6371.0088 * Math.asin(Math.sqrt(h));
+  };
+  // Le Mayet-de-Montagne et Vichy, une vingtaine de kilomètres.
+  const [a, b] = [km(3.6667, 46.0722, 3.4264, 46.1278), haversine(3.6667, 46.0722, 3.4264, 46.1278)];
+  attendre('Distance à plat', Math.abs(a - b) / b < 0.005, `${a.toFixed(3)} km contre ${b.toFixed(3)}`, 'À vingt kilomètres, l’écart à la sphère reste sous 0,5 %.');
+
+  let graine = 7;
+  const hasard = () => ((graine = (graine * 16807) % 2147483647) / 2147483647);
+  const points: [number, number][] = Array.from({ length: 400 }, () => [3 + hasard(), 45.5 + hasard()]);
+  const v = new Voisinage(points);
+  let faux = 0;
+  for (let i = 0; i < 300; i++) {
+    const [lon, lat] = [2.8 + 1.4 * hasard(), 45.3 + 1.4 * hasard()];
+    const exhaustif = Math.min(...points.map(([x, y]) => km(lon, lat, x, y)));
+    const obtenu = v.plusProche(lon, lat, 60);
+    if (Math.abs(obtenu - exhaustif) > 1e-9) faux++;
+  }
+  attendre('Voisinage : le plus proche', faux === 0, `${faux} écart(s) sur 300`, 'La grille rend le même point que la recherche exhaustive, bord des cases compris.');
+  attendre('Voisinage : la portée', v.plusProche(10, 50, 5) === Infinity, v.plusProche(10, 50, 5), 'Au-delà de la portée, aucune distance.');
+
+  const d = [0.05, 0.5, 0.96, 1, 4.1, 12].map(distance).join(' | ');
+  attendre('Distances en clair', d === 'moins de 100 mètres | 500 mètres | 1 kilomètre | 1 kilomètre | 4,1 kilomètres | 12 kilomètres', d, 'Au-dessous du kilomètre, à la centaine de mètres ; au-delà, au dixième.');
+  const acces = { habitants: 1274, medecin: { parts: [69, 100, 100] as [number, number, number], mediane: 0.5 }, arrets: { desservi: 67, frequent: 0 }, semaine: '2026-11-02', carroyage: 2021, bpe: 2025, maj: '2026-10-17' };
+  const pm = phraseMedecin(acces);
+  attendre(
+    'Phrase du médecin',
+    pm === 'La moitié des 1\u202f274 habitants de la commune vivent à 500 mètres ou moins du cabinet d’un médecin généraliste, à vol d’oiseau ; 69 % à un kilomètre ou moins, 100 % à cinq kilomètres ou moins.',
+    pm,
+    'Le Mayet-de-Montagne, essai du 17 octobre 2026 : la médiane, puis les parts ; rien au-delà de dix kilomètres quand personne n’y vit.',
+  );
+  const loin = phraseMedecin({ ...acces, medecin: { parts: [0, 40, 85], mediane: 6.3 } });
+  attendre('Phrase du médecin, loin', !!loin?.endsWith('à cinq kilomètres ou moins, et 15 % à plus de dix kilomètres.') && loin.includes('6,3 kilomètres ou moins'), loin, 'La part au-delà de dix kilomètres se dit.');
+  const pa = phraseArrets(acces);
+  attendre('Phrase des arrêts', !!pa?.startsWith('67 % des habitants vivent à 800 mètres ou moins') && pa.includes('du 2 au 8 novembre 2026') && pa.endsWith('et 0 % d’un arrêt desservi au moins dix fois chaque jour du lundi au vendredi.'), pa, 'La semaine comptée et les deux seuils se disent.');
+
+  const dossier = mkdtempSync(join(tmpdir(), 'rouages-bpe-'));
+  try {
+    const csv = [
+      '"AN";"NOMRS";"TYPEQU";"LONGITUDE";"LATITUDE"',
+      '"2025";"CABINET; DU BOURG";"D265";3.6671;46.0725',
+      '"2025";"PHARMACIE";"D307";3.6680;46.0730',
+      '"2025";"RUE D265";"B101";3.6;46.0',
+      '"2025";"SANS POSITION";"D265";;',
+    ].join('\n');
+    writeFileSync(join(dossier, 'bpe.zip'), zip([['BPE25.csv', Buffer.from(csv)]]));
+    const lus: [number, number][] = [];
+    for await (const p of medecins(join(dossier, 'bpe.zip'))) lus.push(p);
+    attendre('Base des équipements : les généralistes', JSON.stringify(lus) === '[[3.6671,46.0725]]', lus, 'Seul le type D265 avec sa position est lu ; un point-virgule dans le nom ne décale pas les colonnes.');
+  } finally {
+    rmSync(dossier, { recursive: true, force: true });
+  }
 }
 
 if (echecs) {

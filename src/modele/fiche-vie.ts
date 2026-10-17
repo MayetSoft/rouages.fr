@@ -126,6 +126,8 @@ const antennesDep = parDepartement<AntennesDep>('antennes');
 type PartsDep = [number[], number[][]];
 type CouvertureDep = { maj: string; t: string; au: string; ops: string[]; carroyage?: number; c: Record<string, { n: number; s?: PartsDep; h?: number; p?: PartsDep }> };
 const couvertureDep = parDepartement<CouvertureDep>('couverture');
+type AccesDep = { maj: string; s?: string; carroyage: number; bpe: number; c: Record<string, { h: number; m?: [number, number, number, number]; a?: [number, number] }> };
+const accesDep = parDepartement<AccesDep>('acces');
 type ProductionDep = { maj: string; au: string; filieres: string[]; c: Record<string, [number, number, number, number, 0 | 1 | 2][]> };
 const productionDep = parDepartement<ProductionDep>('production');
 type MonumentsDep = { maj: string; c: Record<string, [string, string, 0 | 1][]> };
@@ -523,6 +525,25 @@ export interface CouvertureMobile {
 }
 
 /**
+ * Les habitants à distance, d'après le carroyage de l'INSEE : du médecin
+ * généraliste le plus proche, et des arrêts desservis dans la semaine
+ * comptée. Distances à vol d'oiseau, du centre de chaque carreau de 200 m.
+ * Voir `scripts/acces-emettre.ts`.
+ */
+export interface Acces {
+  habitants: number;
+  /** Part des habitants à 1, 5 et 10 km ou moins d'un généraliste, en pour cent ; distance médiane en km, null au-delà de 60 km. */
+  medecin: { parts: [number, number, number]; mediane: number | null } | null;
+  /** Part des habitants à 800 m ou moins d'un arrêt desservi dans la semaine, puis dix fois chaque jour ouvré. */
+  arrets: { desservi: number; frequent: number } | null;
+  /** Le lundi de la semaine comptée. */
+  semaine: string | null;
+  carroyage: number;
+  bpe: number;
+  maj: string;
+}
+
+/**
  * L'électricité produite dans la commune, par filière, d'après le registre
  * national des installations ; aucune installation est une réponse. L'énergie
  * est celle injectée sur le réseau sur un an, autoconsommation exclue.
@@ -796,6 +817,7 @@ export interface ComplementsVie {
   transports: Transports | null;
   antennes: Antennes | null;
   couvertureMobile: CouvertureMobile | null;
+  acces: Acces | null;
   production: Production | null;
   monuments: Monuments | null;
   solsPollues: SolsPollues | null;
@@ -1106,6 +1128,21 @@ function couvertureMobile(c: CommuneFiche): CouvertureMobile | null {
     parHabitants: parOperateur(f.p),
     carroyage: d.carroyage ?? null,
     au: d.au,
+    maj: d.maj,
+  };
+}
+
+function acces(c: CommuneFiche): Acces | null {
+  const d = accesDep.get(c.dep);
+  const f = d?.c[c.code];
+  if (!d || !f || !f.h) return null;
+  return {
+    habitants: f.h,
+    medecin: f.m ? { parts: [f.m[0], f.m[1], f.m[2]], mediane: f.m[3] >= 0 ? f.m[3] / 10 : null } : null,
+    arrets: f.a ? { desservi: f.a[0], frequent: f.a[1] } : null,
+    semaine: d.s ?? null,
+    carroyage: d.carroyage,
+    bpe: d.bpe,
     maj: d.maj,
   };
 }
@@ -1474,6 +1511,7 @@ export function complementsVie(c: CommuneFiche): ComplementsVie {
     transports: transports(c),
     antennes: antennes(c),
     couvertureMobile: couvertureMobile(c),
+    acces: acces(c),
     production: production(c),
     monuments: monuments(c),
     solsPollues: solsPollues(c),

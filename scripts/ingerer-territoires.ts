@@ -1035,6 +1035,11 @@ async function principal() {
   );
   if (couverture) grise(`${ecrireCouverture(SORTIE, couverture)} départements de couverture mobile écrits.`);
 
+  // Les habitants près d'un arrêt desservi et d'un généraliste : le carroyage, les arrêts que les horaires ont gardés, la base des équipements géolocalisée.
+  const { collecterAcces, ecrireAcces } = await import('./acces-emettre.ts');
+  const acces = await tenter('Habitants à distance', () => collecterAcces(SORTIE, telecharger, CACHE, grise));
+  if (acces) grise(`${ecrireAcces(SORTIE, acces)} départements d’habitants à distance écrits.`);
+
   const { collecterPetiteEnfance, ecrirePetiteEnfance } = await import('./petite-enfance-emettre.ts');
   const petiteEnfance = await tenter('Accueil du jeune enfant', () => collecterPetiteEnfance(lireJson, grise));
   if (petiteEnfance) {
