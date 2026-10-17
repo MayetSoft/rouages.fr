@@ -10,6 +10,7 @@ import { chronologie } from '../../vues/chronologie.ts';
 import { fenetresAction } from '../../vues/fenetres-action.ts';
 import { urlSignaler } from '../../modele/signalement.ts';
 import { budgetEtat, lignesDuBudget, montantBudget } from '../../modele/budget-etat.ts';
+import { THEMES } from '../../modele/themes-deliberations.ts';
 
 export function getStaticPaths() {
   return construireReseau().noeuds.map((n) => ({ params: { id: n.id }, props: { noeud: n } }));
@@ -46,6 +47,9 @@ const groupes = ORDRE_LIENS.map((type) => ({
 // Ce que le budget de l'État lui consacre, quand une ligne le nomme.
 const budget = lignesDuBudget(noeud.id);
 const N = budgetEtat()?.plf ?? 2026;
+
+// Les délibérations que la recherche range sous cette compétence, quand elle en a une règle.
+const theme = THEMES.find((t) => t.fiche === noeud.id);
 ---
 
 <Base titre={noeud.nom} description={noeud.resume || noeud.nom} section="fonctionnement">
@@ -144,6 +148,20 @@ const N = budgetEtat()?.plf ?? 2026;
             </li>
           ))}
         </ul>
+      </section>
+    )}
+
+    {theme && (
+      <section>
+        <h2 class="badge">Dans les délibérations</h2>
+        <p class="mesure">
+          Les délibérations que les collectivités versent en données ouvertes sont rangées sous cette compétence quand leur
+          intitulé en contient un des mots&nbsp;: <a href={`/deliberations?t=${noeud.id}`}>les chercher, département par
+          département</a>.
+        </p>
+        <p class="v-nature">
+          {`Mots recherchés : ${theme.termes.join(' · ')}${theme.sauf?.length ? ` — sauf : ${theme.sauf.join(' · ')}` : ''}.`}
+        </p>
       </section>
     )}
 

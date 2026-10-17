@@ -5086,6 +5086,16 @@ désormais une délégation ou un arrêté qui finit sur un prénom et un nom,
 hors noms de collectivités (`npm run verifier-particuliers`, 28 cas).
 L'index par compétence arrivera avec la prochaine réingestion.
 
+**Dans les deux sens** (17 octobre 2026). La fiche d'une compétence qui a
+une règle (`/n/<id>`) mène à la recherche déjà réglée sur elle
+(`/deliberations?t=<id>`), avec les mots recherchés ; sans département
+choisi, la page dit lequel choisir pour cette compétence. Sur la page de
+commune, chaque délibération récente dit « Comprendre : » et la fiche qui
+explique son sujet, rangée au build par les mêmes règles ; la phrase de
+source précise qu'elle dit le sujet, pas ce que la délibération décide.
+Les fiches sous les délibérations n'attendent pas la réingestion : elles se
+calculent sur les intitulés déjà publiés.
+
 ### L'audit d'accessibilité élargi (16 octobre 2026)
 
 `npm run verifier-accessibilite` passe de huit à quinze pages — en plus : la
