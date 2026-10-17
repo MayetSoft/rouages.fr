@@ -5153,3 +5153,81 @@ géométrie GeoPackage et la grille (un anneau, son trou, le dehors, le
 meilleur niveau gardé). La page de commune la montre sous les antennes,
 dans une section renommée « Le téléphone mobile : antennes et
 couverture ». Les données arriveront avec la prochaine réingestion.
+
+### Le carroyage de l'INSEE, et la couverture mobile en habitants et outre-mer (16 octobre 2026)
+
+**Le carroyage** (`scripts/carroyage.ts`) : les individus des ménages
+fiscaux par carreau de 200 m, Filosofi 2021 (publié le 16 février 2026) —
+2,3 millions de carreaux habités en métropole, 11 222 en Martinique,
+14 773 à La Réunion ; les autres territoires d'outre-mer n'y sont pas.
+L'identifiant d'un carreau porte son coin sud-ouest, en LAEA Europe
+(EPSG:3035) pour la métropole, en UTM pour l'outre-mer : deux projections
+inverses rejoignent `geo-formats.ts`, vérifiées par aller-retour contre des
+formules directes écrites à part (`verifier-geo`, au millimètre). Une fois
+projetés, 99,4 % des carreaux de métropole tombent dans l'une des communes
+que l'INSEE leur donne (98,2 % en Martinique, 99,6 % à La Réunion) ; le reste
+est en bordure, ou dans un arrondissement de Paris, Lyon ou Marseille que
+l'INSEE nomme à la place de sa commune. Le lecteur est réutilisable pour
+d'autres croisements (habitants près d'un arrêt desservi, d'un médecin…).
+
+**La couverture mobile en habitants** : chaque carreau habité prend le
+niveau et la commune du point de la grille où tombe son centre, et pèse
+ses habitants. Au Mayet-de-Montagne, 86 % de la surface est en très bonne
+couverture avec au moins un opérateur, mais 99 % des 1 279 habitants — le
+bourg est mieux couvert que les bois. La page montre les deux tableaux, et
+dit que le carroyage compte les ménages fiscaux (pas les personnes en
+maison de retraite ou en internat) avec des valeurs estimées par l'INSEE
+dans les carreaux de moins de onze ménages.
+
+**L'outre-mer** : Guadeloupe, Martinique, Guyane, La Réunion et Mayotte,
+chacune avec ses opérateurs (Orange Caraïbe, Outremer Telecom, Free
+Caraïbe, Digicel ; Orange, SRR, Telco OI, Zeop à La Réunion ; Orange, SRR,
+Telco OI à Mayotte), lus sur la page de l'Arcep à chaque trimestre, en UTM
+(zones 20 nord, 22 nord, 40 sud, 38 sud). Les fichiers sont petits : un
+territoire se lit en quelques secondes. En habitants pour la Martinique et
+La Réunion ; ailleurs, la surface seule. À Fort-de-France, 96 % de la
+surface et 100 % des habitants en très bonne couverture avec au moins un
+opérateur. Saint-Barthélemy et Saint-Martin, sans page de commune ici, ne
+sont pas lus.
+
+La méthode porte un numéro (`v: 2` dans les fichiers) : un fichier d'une
+autre version est refait à l'ingestion suivante, même si le trimestre de
+l'Arcep n'a pas changé.
+
+### Quelle autorisation pour mes travaux : l'orienteur, en relecture (16 octobre 2026)
+
+La « recherche de la procédure applicable » de la phase 4, cadrée avant le
+code (`docs/07-risques.md`, section 9). `/simulateurs/autorisation`
+répond, pour les travaux les plus courants — abri ou annexe séparé ou
+accolé, agrandissement ou surélévation, véranda, piscine, clôture ou mur ou
+haie, changement de destination —, déclaration préalable, permis de
+construire ou rien, et si l'architecte est obligatoire.
+
+**Les règles** (`src/modele/autorisations.ts`) sont celles des fiches de
+service-public.fr, lues le 16 octobre 2026 et citées chacune avec sa date
+de vérification et les articles qu'elle donne : abri de jardin (F662,
+21 mars 2025), agrandissement (F36777, 11 décembre 2024), véranda (F36768,
+11 avril 2025), piscine (F31404, 31 janvier 2025), clôture (F3131,
+5 décembre 2025), changement de destination (F35336, 24 avril 2026),
+architecte (F20568, 7 septembre 2026). Légifrance refusant cet
+environnement, les fiches officielles de la DILA ont servi de texte ; le
+décret n° 2026-117 du 20 février 2026, postérieur à certaines fiches, ne
+touche pas ces seuils d'après les synthèses lues (il dispense des pompes à
+chaleur et relève des seuils pour le solaire, que l'orienteur ne couvre
+pas), et la page le dit.
+
+**Le doute penche vers la formalité** : sans réponse sur la zone urbaine,
+le seuil de 20 m² au lieu de 40 ; sans réponse sur le secteur protégé, le
+secteur protégé ; un abri accolé suit la règle de la construction nouvelle,
+plus exigeante que celle de l'extension ; une clôture dans une commune dont
+on ne sait pas si elle les soumet à déclaration, une déclaration. Chaque
+supposition s'affiche. Une personne morale recourt à l'architecte pour tout
+permis. La réponse dit toujours « d'après les règles générales », ce qui
+peut la changer, la mairie, l'assistance de l'État et le certificat
+d'urbanisme, et rappelle l'article L480-4.
+
+`npm run verifier-autorisations`, en CI, tient 35 cas, chacun repris d'une
+phrase des fiches. **La page reste hors du menu et des moteurs**
+(`PUBLIE = false`) tant qu'un praticien — instructeur, juriste,
+architecte — n'a pas relu ses réponses : c'est au mainteneur de passer le
+drapeau, qui l'ajoute alors à la liste des simulateurs.

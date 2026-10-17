@@ -781,3 +781,64 @@ signature à … ») : le filtre des particuliers écarte désormais une
 délégation ou un arrêté qui finit sur un prénom et un nom, sauf un nom de
 collectivité. Sur les intitulés de 2025, il n'a pris que ces deux-là.
 
+
+## 9. Dire quelle autorisation demander (cadrage du 16 octobre 2026)
+
+La « recherche de la procédure applicable » de la phase 4 : à quelqu'un qui
+veut poser un abri de jardin, agrandir sa maison, creuser une piscine,
+monter une véranda ou une clôture, dire s'il lui faut une déclaration
+préalable, un permis de construire, l'architecte, ou rien.
+
+### Ce qui peut mal tourner
+
+- **Une réponse trop légère** — « aucune formalité » quand il fallait une
+  déclaration — expose la personne à un délit (construire sans autorisation,
+  article L480-4 du code de l'urbanisme) et à une démolition. C'est l'erreur
+  qui compte ; une réponse trop lourde coûte un dossier de trop.
+- **Le droit change** : le décret n° 2026-117 du 20 février 2026 a dispensé
+  certaines pompes à chaleur et relevé des seuils pour le solaire en
+  toiture ; une fiche de service-public.fr peut avoir quelques mois de
+  retard sur le texte.
+- **Le terrain décide** : la zone urbaine d'un PLU ou non, un secteur
+  protégé (abords d'un monument historique, site patrimonial remarquable,
+  site classé, cœur de parc national), une commune qui soumet les clôtures
+  à déclaration. Le site ne le sait pas à la parcelle.
+- **L'existant fait mieux** : l'État publie l'assistance aux demandes
+  d'autorisation d'urbanisme, et service-public.fr une fiche par type de
+  travaux. Refaire leur travail, c'est risquer de se tromper là où ils ont
+  raison (section 7).
+
+### Ce qui est acceptable
+
+Un **orienteur**, pas un simulateur qui conclut :
+
+1. **Des cas courants seulement** — construction indépendante (abri,
+   garage), extension ou surélévation, véranda, piscine, clôture ou mur,
+   changement de destination —, avec les seuils tels que service-public.fr
+   les présente dans ses fiches, chaque fiche citée avec **sa date de
+   vérification** et les articles du code qu'elle donne. Rien au-delà : ni
+   les lotissements, ni les démolitions, ni l'agricole, ni les
+   installations techniques.
+2. **Le doute penche vers la formalité** : sans réponse sur la zone ou le
+   secteur protégé, l'outil prend le cas le plus exigeant et le dit.
+3. **Jamais « vous pouvez »** : la réponse est « d'après les règles
+   générales, ce projet relève de… », suivie de ce qui peut la changer
+   (PLU, secteur protégé, délibération de la commune) et de la mairie à
+   qui demander — son service urbanisme, d'après l'annuaire de
+   l'administration. Un certificat d'urbanisme reste la seule réponse
+   opposable.
+4. **Ce que le site sait de la commune**, montré sans conclure : s'il y a
+   un PLU et des zones urbaines (Géoportail de l'urbanisme), des monuments
+   historiques (leurs abords sont des secteurs protégés), un site
+   patrimonial remarquable, un parc national — comme indices à vérifier.
+5. **Rien n'est gardé** : le calcul se fait dans le navigateur.
+6. **Relecture avant publication** : la section 2 le demande pour les
+   procédures à enjeu. La page se construit, mais elle reste hors des
+   moteurs et du menu tant qu'un praticien — instructeur, juriste,
+   architecte — n'a pas relu les cas ; la décision de l'ouvrir revient au
+   mainteneur.
+
+### Ce qui est refusé
+
+Répondre sur la constructibilité d'un terrain (section 5), interpréter un
+règlement de PLU, ou dire qu'une autorisation sera accordée.

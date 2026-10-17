@@ -1,6 +1,7 @@
 /**
  * Vérifie les lecteurs de `geo-formats.ts` : la projection Lambert 93, le GML
- * d'un WFS, le Shapefile en archive zip ; et ceux de la couverture mobile
+ * d'un WFS, le Shapefile en archive zip, les projections LAEA Europe (le
+ * carroyage de l'INSEE) et UTM (l'outre-mer) ; et ceux de la couverture mobile
  * (`couverture-emettre.ts`) : la géométrie d'un GeoPackage et la grille qui
  * mesure la part couverte d'une commune.
  *
@@ -14,7 +15,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { anneauxGpkg, poser } from './couverture-emettre.ts';
-import { depuisLambert93, lireGml, lireShapefile } from './geo-formats.ts';
+import { depuisLaea3035, depuisLambert93, depuisUtm, lireGml, lireShapefile } from './geo-formats.ts';
 import { zip } from './zip-essai.ts';
 
 const ROUGE = '\x1b[31m', VERT = '\x1b[32m', GRIS = '\x1b[90m', RAZ = '\x1b[0m';
@@ -174,6 +175,68 @@ try {
 }
 
 /* ------------------------------------------------------------------ *
+ * LAEA Europe (carroyage de l'INSEE) et UTM (outre-mer)
+ * ------------------------------------------------------------------ */
+
+{
+  // Les projections directes, écrites ici à part (Snyder), pour vérifier que les inverses de `geo-formats.ts` les défont.
+  const rad = Math.PI / 180;
+  const a = 6378137;
+  const f = 1 / 298.257222101;
+  const e2 = f * (2 - f);
+  const e = Math.sqrt(e2);
+  const q = (p: number) => (1 - e2) * (Math.sin(p) / (1 - e2 * Math.sin(p) ** 2) - (1 / (2 * e)) * Math.log((1 - e * Math.sin(p)) / (1 + e * Math.sin(p))));
+  const versLaea = (lon: number, lat: number): [number, number] => {
+    const p1 = 52 * rad;
+    const l0 = 10 * rad;
+    const qp = q(Math.PI / 2);
+    const b1 = Math.asin(q(p1) / qp);
+    const rq = a * Math.sqrt(qp / 2);
+    const d = (a * (Math.cos(p1) / Math.sqrt(1 - e2 * Math.sin(p1) ** 2))) / (rq * Math.cos(b1));
+    const b = Math.asin(q(lat * rad) / qp);
+    const bb = rq * Math.sqrt(2 / (1 + Math.sin(b1) * Math.sin(b) + Math.cos(b1) * Math.cos(b) * Math.cos(lon * rad - l0)));
+    return [4321000 + bb * d * Math.cos(b) * Math.sin(lon * rad - l0), 3210000 + (bb / d) * (Math.cos(b1) * Math.sin(b) - Math.sin(b1) * Math.cos(b) * Math.cos(lon * rad - l0))];
+  };
+  const versUtm = (lon: number, lat: number, zone: number, sud: boolean): [number, number] => {
+    const k0 = 0.9996;
+    const ep2 = e2 / (1 - e2);
+    const p = lat * rad;
+    const n = a / Math.sqrt(1 - e2 * Math.sin(p) ** 2);
+    const t = Math.tan(p) ** 2;
+    const c = ep2 * Math.cos(p) ** 2;
+    const A = (lon - (zone * 6 - 183)) * rad * Math.cos(p);
+    const m =
+      a *
+      ((1 - e2 / 4 - (3 * e2 * e2) / 64 - (5 * e2 ** 3) / 256) * p -
+        ((3 * e2) / 8 + (3 * e2 * e2) / 32 + (45 * e2 ** 3) / 1024) * Math.sin(2 * p) +
+        ((15 * e2 * e2) / 256 + (45 * e2 ** 3) / 1024) * Math.sin(4 * p) -
+        ((35 * e2 ** 3) / 3072) * Math.sin(6 * p));
+    const x = 500000 + k0 * n * (A + ((1 - t + c) * A ** 3) / 6 + ((5 - 18 * t + t * t + 72 * c - 58 * ep2) * A ** 5) / 120);
+    const y = k0 * (m + n * Math.tan(p) * ((A * A) / 2 + ((5 - t + 9 * c + 4 * c * c) * A ** 4) / 24 + ((61 - 58 * t + t * t + 600 * c - 330 * ep2) * A ** 6) / 720));
+    return [x, sud ? y + 10_000_000 : y];
+  };
+  for (const [nom, lon, lat] of [
+    ['Le Mayet-de-Montagne', 3.668, 46.072],
+    ['Dunkerque', 2.377, 51.034],
+    ['Bonifacio', 9.159, 41.387],
+    ['Brest', -4.486, 48.39],
+  ] as const) {
+    const [x, y] = versLaea(lon, lat);
+    attendre(`LAEA aller-retour : ${nom}`, proche(depuisLaea3035(x, y), [lon, lat], 1e-7), depuisLaea3035(x, y), 'La projection du carroyage de l’INSEE, défaite à un centimètre près.');
+  }
+  for (const [nom, lon, lat, zone, sud] of [
+    ['Fort-de-France', -61.07, 14.6, 20, false],
+    ['Pointe-à-Pitre', -61.53, 16.24, 20, false],
+    ['Cayenne', -52.33, 4.94, 22, false],
+    ['Saint-Denis de La Réunion', 55.45, -20.88, 40, true],
+    ['Mamoudzou', 45.23, -12.78, 38, true],
+  ] as const) {
+    const [x, y] = versUtm(lon, lat, zone, sud);
+    attendre(`UTM aller-retour : ${nom}`, proche(depuisUtm(x, y, zone, sud), [lon, lat], 1e-6), depuisUtm(x, y, zone, sud), 'La projection des cartes et du carroyage d’outre-mer, défaite à dix centimètres près.');
+  }
+}
+
+/* ------------------------------------------------------------------ *
  * GeoPackage et grille de la couverture mobile
  * ------------------------------------------------------------------ */
 
@@ -202,7 +265,7 @@ try {
     'Le sommet (700 000 ; 6 600 000) est l’origine du Lambert 93.',
   );
   // La grille de la collecte (0,0026° × 0,0018°) sur la zone ; trois points : dans l'anneau, dans le trou, dehors.
-  const g = { x0: 2.9, y0: 46.45, nx: 120, ny: 120 };
+  const g = { x0: 2.9, y0: 46.45, nx: 120, ny: 120, dx: 0.0026, dy: 0.0018 };
   const niveaux = new Uint8Array(g.nx * g.ny);
   poser(rs.map((r) => r.a), g, 2, niveaux);
   const au = (x: number, y: number) => {

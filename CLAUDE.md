@@ -29,8 +29,9 @@ npm run verifier-geo         la projection Lambert 93 et les lecteurs GML et Sha
 npm run verifier-particuliers  les particuliers nommés dans l'objet d'une délibération
 npm run verifier-themes      les délibérations rangées sous la bonne compétence
 npm run verifier-horaires    la lecture des horaires GTFS et le choix de la semaine de classe
+npm run verifier-autorisations  l'orienteur des autorisations d'urbanisme, contre les fiches de service-public.fr
 npm run verifier-types       les types, fichiers .astro compris — `tsc` seul ne les voit pas
-npm run verifier-accessibilite  axe-core sur quinze pages du build, en clair, en sombre et à 390 px
+npm run verifier-accessibilite  axe-core sur seize pages du build, en clair, en sombre et à 390 px
 npm run build                valide puis génère (le build refuse un contenu invalide)
 npm run relire               les fiches encore à vérifier contre leur source
 npm run veille               l'état des sources surveillées
@@ -58,7 +59,8 @@ Géoplateforme par pages (350 et 420 Mo, mis en cache pour la journée), et les
 fichiers d'horaires GTFS de tous les réseaux (plus de 0,8 Go, Île-de-France
 Mobilités seule 160 Mo, gardés dans `.cache/gtfs/`), et les cartes de
 couverture 4G de l'Arcep (1,1 Go en 7z, recalculées seulement quand un
-nouveau trimestre paraît). `--cache` les
+nouveau trimestre paraît), avec le carroyage Filosofi de l'INSEE (92 Mo,
+2,3 millions de carreaux de 200 m). `--cache` les
 réutilise, et sans lui il faut compter le téléchargement en plus.
 
 La réingestion complète se lance aussi en intégration continue : workflow

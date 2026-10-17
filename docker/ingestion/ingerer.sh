@@ -25,6 +25,7 @@ npm run verifier-geo
 npm run verifier-particuliers
 npm run verifier-themes
 npm run verifier-horaires
+npm run verifier-autorisations
 npm run verifier-veille-aides
 npm run verifier-reseau
 npm run verifier-types
