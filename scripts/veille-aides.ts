@@ -79,7 +79,8 @@ export function retrouve(passage: string, texte: { plat: string; mots: Set<strin
   const n = nombres(passage);
   if (n.some((x) => !texte.nombres.has(x))) return false;
   const m = mots(passage);
-  return m.length > 0 && m.filter((x) => texte.mots.has(x)).length / m.length >= 0.85;
+  // Un mot coupé en deux par l'extraction (« énergé que ») se retrouve dans le texte aplati.
+  return m.length > 0 && m.filter((x) => texte.mots.has(x) || texte.plat.includes(x)).length / m.length >= 0.85;
 }
 
 export const indexer = (t: string) => ({ plat: aplatir(t), mots: new Set(mots(t)), nombres: new Set(nombres(t)) });
@@ -93,22 +94,27 @@ export function passages(citation: string): string[] {
     .filter((p) => aplatir(p).length >= 12);
 }
 
+/** Les entités nommées qu'on croise dans les pages des collectivités ; les lettres accentuées se composent à part. */
+const ENTITES: Record<string, string> = {
+  nbsp: ' ', amp: '&', quot: '"', apos: '’', lt: '<', gt: '>', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“',
+  laquo: '«', raquo: '»', hellip: '…', ndash: '–', mdash: '—', deg: '°', euro: '€', oelig: 'œ', OElig: 'Œ', aelig: 'æ', sup2: '²', sup3: '³',
+};
+const DIACRITIQUE: Record<string, string> = { acute: '\u0301', grave: '\u0300', circ: '\u0302', uml: '\u0308', cedil: '\u0327' };
+/** « ecirc » → « ê », « Eacute » → « É ». */
+const ACCENTS = (nom: string) => {
+  const m = /^([a-z])(acute|grave|circ|uml|cedil)$/i.exec(nom)!;
+  return (m[1] + DIACRITIQUE[m[2].toLowerCase()]).normalize('NFC');
+};
+
 /** Le texte lisible d'une page : sans scripts, styles, ni balises. */
 export function texteHtml(html: string): string {
   return html
     .replace(/<(script|style|noscript|svg|template)\b[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;|&#160;/g, ' ')
-    .replace(/&rsquo;|&#8217;/g, '’')
-    .replace(/&laquo;/g, '«')
-    .replace(/&raquo;/g, '»')
-    .replace(/&eacute;/g, 'é')
-    .replace(/&egrave;/g, 'è')
-    .replace(/&agrave;/g, 'à')
-    .replace(/&ccedil;/g, 'ç')
-    .replace(/&amp;/g, '&')
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&([a-z]+\d?);/gi, (tout, nom: string) => ENTITES[nom] ?? (/^[a-z](acute|grave|circ|uml|cedil)$/i.test(nom) ? ACCENTS(nom) : tout))
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -221,8 +227,8 @@ export async function veillerAides(avant: Record<string, string>): Promise<{ con
         continue;
       }
       empreintes[url] = l.empreinte;
-      // Un PDF scanné, recopié à la main dans le registre, n'a au mieux qu'une reconnaissance de caractères approximative.
-      const index = l.texte && !/scann[ée]/i.test(t.titre) ? indexer(l.texte) : null;
+      // Un PDF scanné, ou un barème en image, recopié à la main dans le registre : rien à y chercher.
+      const index = l.texte && !/scann[ée]|en image/i.test(t.titre) ? indexer(l.texte) : null;
       const perdues = index ? t.citations.filter((c) => passages(c.citation).some((p) => !retrouve(p, index))) : [];
       const change = avant[url] !== undefined && avant[url] !== l.empreinte;
       if (perdues.length > 0) {

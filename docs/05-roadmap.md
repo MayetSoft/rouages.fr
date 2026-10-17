@@ -4470,6 +4470,30 @@ Une réponse favorable de l'ANIL — accord de réutilisation ou export —
 changerait l'échelle : le registre se pré-remplirait, la vérification
 restant la nôtre.
 
+**Les départements voisins (17 octobre 2026) ✔.** Six lots de recherche
+en parallèle, sur la méthode de l'Allier, puis le contrôle de chaque
+citation contre son texte en ligne. Le registre passe de 81 à 269 aides :
+
+| Lot | Aides | Ce qui manque encore |
+| --- | --- | --- |
+| Puy-de-Dôme | 74 | les montants de Clermont Auvergne Métropole ; la CC du Pays de Saint-Éloy, dont le site est en reconstruction |
+| Loire | 48 | le règlement des aides du PLH 2026 de Saint-Étienne Métropole ; Roannais Agglomération, dont le site bloque les robots |
+| Saône-et-Loire | 31 | Chalon-sur-Saône et Le Grand Chalon, dont les sites bloquent les robots |
+| Nièvre | 9 | |
+| Cher | 8 | Bourges Plus et la ville de Bourges : leurs sites refusent cet environnement, aucune entrée sans texte lu |
+| Creuse | 13 | |
+| Régions | 5 | Bourgogne-Franche-Comté et Nouvelle-Aquitaine ; Auvergne-Rhône-Alpes et Centre-Val de Loire n'ont aucune aide aux logements des particuliers trouvée |
+
+Deux corrections de la veille, trouvées au contrôle :
+- elle décode maintenant les entités HTML (« d&eacute;pos&eacute;es »),
+  et un mot coupé en deux par l'extraction d'un tableau ;
+- un barème recopié depuis une image, dit « en image » dans le titre de sa
+  source, n'est plus cherché dans le texte, comme un PDF scanné.
+
+Les SIREN des départements et des régions correspondent à la liste de
+référence du dépôt ; ceux des intercommunalités sont contrôlés par la
+validation.
+
 **La veille des textes (15 octobre 2026).** Chaque lundi, la veille des
 sources relit les 79 textes du registre (`scripts/veille-aides.ts`). Elle
 cherche dans chacun les citations qui fondent les montants et les

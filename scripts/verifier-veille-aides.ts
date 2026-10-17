@@ -8,7 +8,7 @@
  * de l'Allier : des glyphes de ligature perdus par `pdftotext`, un tableau lu
  * colonne par colonne, une citation qui porte sa page après le guillemet.
  */
-import { constatsDeDates, indexer, passages, retrouve } from './veille-aides.ts';
+import { constatsDeDates, indexer, passages, retrouve, texteHtml } from './veille-aides.ts';
 import type { AideLocale } from '../src/modele/aides-locales.ts';
 
 const ROUGE = '\x1b[31m', VERT = '\x1b[32m', GRIS = '\x1b[90m', RAZ = '\x1b[0m';
@@ -52,6 +52,13 @@ attendre(
   dans('plafonné à 50 000 € HT par logement vacant', 'plafonné à 50 000 € HT par logement vacant'),
   true,
   'une espace insécable n’est pas un changement',
+);
+
+attendre(
+  'entités HTML',
+  dans('les demandes devront être déposées avant le 18 septembre 2026', texteHtml('<p>les demandes devront &ecirc;tre d&eacute;pos&eacute;es avant le 18&nbsp;septembre 2026</p>')),
+  true,
+  '« &ecirc; » est un « ê » : la page dit bien la phrase citée',
 );
 
 // --- ce qui ne doit pas se retrouver ---
