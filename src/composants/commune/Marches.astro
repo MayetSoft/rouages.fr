@@ -116,6 +116,14 @@ const detailEcheance = (m: (typeof echeances)[number]) =>
                 {autres(m) && ` ${autres(m)}`}
               </span>
             )}
+            {m.titulaires.length > 0 && (
+              // Le titulaire qui cherche son nom trouve ici ce qu'il a à renouveler, chez tous ses acheteurs.
+              <span class="p-marche-detail p-marche-pro">
+                {m.titulaires.map((t, i) => (
+                  <>{i > 0 && ' · '}<a href={`${PRO}/titulaire/${t.siren}`}>{m.titulaires.length > 1 ? `${t.nom} : tous ses marchés à renouveler` : 'Tous les marchés à renouveler de ce titulaire'}</a></>
+                ))}
+              </span>
+            )}
             {m.detail && sirenDe.has(m.acheteur) && (
               <Fragment set:html={detailMarcheHtml(m.detail, { nom: m.acheteur, siren: sirenDe.get(m.acheteur)! })} />
             )}
